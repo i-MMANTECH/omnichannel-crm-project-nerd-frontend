@@ -19,3 +19,21 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.nav-item .nav.flex-column::-webkit-scrollbar {
+    width: 8px;
+}
+
+.nav-item .nav.flex-column::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 8px;
+}
+
+.nav-item .nav.flex-column::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 8px;
+}
+
+.nav-item .nav.flex-column::-webkit-scrollbar-thumb:hover {
+    background: #888;
+}
