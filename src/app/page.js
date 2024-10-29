@@ -1,6 +1,5 @@
-// page.js
 import React from 'react';
-import Dashboard from './components/dashboard/Dashboard'; // Adjust the path if necessary
+import Dashboard from './components/dashboard/Dashboard';
 
 const Page = () => {
     return (
