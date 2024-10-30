@@ -2,6 +2,8 @@
 
 import React, { Component } from 'react';
 import { AuthContext } from '../../context/AuthContext';
+import axios from "axios";
+import config from "../../config.json";
 
 class SignIn extends Component {
     static contextType = AuthContext;
@@ -11,6 +13,9 @@ class SignIn extends Component {
         this.state = {
             email: '',
             password: '',
+            error: '',
+            loading: false,
+            showConfirmPassword: false,
         };
     }
 
@@ -18,37 +23,63 @@ class SignIn extends Component {
         this.setState({ [event.target.id]: event.target.value });
     };
 
-    handleSignIn = (event) => {
+    handleTogglePasswordVisibility = () => {
+        this.setState(prevState => ({
+            showConfirmPassword: !prevState.showConfirmPassword,
+        }));
+    };
+
+    handleSignIn = async (event) => {
         event.preventDefault();
         const { login } = this.context;
-        login();
+
+        this.setState({ loading: true, error: '' });
+
+        try {
+            const response = await axios.post(`${config.apiUrl}/login`, {
+                email: this.state.email,
+                password: this.state.password,
+            });
+            login(response.data);
+        } catch (error) {
+            this.setState({ error: "Login failed. Please check your credentials.", loading: false });
+            console.error("Login failed:", error);
+        }
     };
 
     render() {
-        const { email, password } = this.state;
+        const { email, password, error, loading, showConfirmPassword } = this.state;
         const isFormValid = email && password;
 
         return (
-            <div className="flex min-h-screen">
-                <div className="w-1/2 bg-gray-100 relative overflow-hidden">
-                    <img 
-                        src={'../../assets/sign-in-home-screen-image.png'} 
-                        alt="Login" 
-                        className="min-h-full w-full object-cover" 
+            <div className="flex min-h-screen" style={{height: '100vh'}}>
+                 <div className="w-1/2 flex flex-col">
+                <div className="flex-grow">
+                    <img
+                        src="/assets/sign-in-home-screen-image.png"
+                        alt="Create Password"
+                        className="h-full w-full object-cover"
+                        style={{ height: 360 }}
                     />
-                    <div className="absolute bottom-0 left-0 w-full bg-black p-4 text-white z-10">
-                    <img src='../../assets/logo.png'/>
-                        <h2 className="text-3xl font-bold text-white leading-tight">
-                            Let's empower your <br /> employees today.
-                        </h2>
-                        <p className="text-white mt-2">Descriptive text goes here.</p>
-                    </div>
                 </div>
+                
+                {/* Green Separator Line */}
+                <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
+                
+                <div className="bg-black p-8 text-white flex flex-col items-start">
+                    <img src='/assets/logo.png' alt="Logo" />
+                    <h2 className="text-3xl font-bold text-white leading-tight mt-4">
+                        Let's empower your <br /> employees today.
+                    </h2>
+                    <p className="text-white mt-2">Transform every conversation into opportunity.</p>
+                </div>
+            </div>
                 
                 <div className="w-1/2 flex items-center justify-center p-8">
                     <div className="w-full max-w-md">
-                        <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">Welcome Back</h2>
-                        <p className="text-gray-500 text-center mb-6">Enter your details to login</p>
+                        <h2 className="text-2xl font-bold text-gray-800 text-left mb-2">Welcome Back</h2>
+                        <p className="text-gray-500 text-left mb-6">Enter your details to login</p>
+                        {error && <p className="text-red-500 text-center">{error}</p>}
                         <form onSubmit={this.handleSignIn}>
                             <div className="mb-4">
                                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -64,12 +95,9 @@ class SignIn extends Component {
                                     required
                                 />
                             </div>
-                            <div className="mb-4">
-                                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                                    Password
-                                </label>
+                            <div className="relative">
                                 <input
-                                    type="password"
+                                    type={showConfirmPassword ? 'text' : 'password'}
                                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#3EBF0F] focus:border-[#3EBF0F] sm:text-sm"
                                     id="password"
                                     placeholder="Enter password"
@@ -77,8 +105,16 @@ class SignIn extends Component {
                                     onChange={this.handleInputChange}
                                     required
                                 />
+                                <button
+                                    type="button"
+                                    className="absolute inset-y-0 right-0 flex items-center px-3"
+                                    onClick={this.handleTogglePasswordVisibility}
+                                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showConfirmPassword ? '🙈' : '👁️'}
+                                </button>
                             </div>
-                            <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center justify-between mb-4 mt-3">
                                 <label className="flex items-center">
                                     <input type="checkbox" className="form-checkbox text-[#3EBF0F]" />
                                     <span className="ml-2 text-sm text-gray-600">Remember Me</span>
@@ -88,12 +124,14 @@ class SignIn extends Component {
                             <button
                                 type="submit"
                                 className={`w-full py-2 rounded-md text-white focus:outline-none ${isFormValid ? 'bg-[#3EBF0F] hover:bg-[#34a60e]' : 'bg-[#EEEFF2] cursor-not-allowed'}`}
-                                disabled={!isFormValid} 
+                                disabled={!isFormValid || loading}
                             >
-                                Login
+                                {loading ? "Logging in..." : "Login"}
                             </button>
-                            <div className="text-center my-4">
-                                <span className="text-gray-400">OR</span>
+                            <div className="flex items-center my-4">
+                                <hr className="flex-grow border-gray-300" />
+                                <span className="mx-4 text-gray-400">OR</span>
+                                <hr className="flex-grow border-gray-300" />
                             </div>
                             <button
                                 type="button"
@@ -108,13 +146,11 @@ class SignIn extends Component {
                                 You're new here? <a href="sign-up" className="text-[#3EBF0F] hover:underline">Create Account</a>
                             </p>
                         </div>
-                        <div className="text-center mt-4">
-                            <p className="text-xs text-gray-400">
-                                © 2024 NativeTalk Technologies. All rights reserved. 
-                                <a href="#" className="text-gray-400 hover:underline">Terms & Conditions</a> 
-                                <a href="#" className="text-gray-400 hover:underline">Privacy Policy</a>
-                            </p>
-                        </div>
+                        <div style={{width: 500}} className="text- mt-6 pt-6">
+                        <p className="text-xs text-gray-400 mt-6 pt-5">
+                            © 2024 NativeTalk Technologies. All rights reserved. <a href="#" className="text-[#111827] hover:underline">Terms & Conditions</a> | <a href="#" className="text-[#111827] hover:underline">Privacy Policy</a>
+                        </p>
+                    </div>
                     </div>
                 </div>
             </div>

@@ -1,50 +1,79 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 const SignUp = () => {
+    const router = useRouter();
     const [companyName, setCompanyName] = useState('');
     const [workEmail, setWorkEmail] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
+    const [error, setError] = useState('');
 
-    const handleSignUp = (event) => {
+    const handleSignUp = async (event) => {
         event.preventDefault();
-        console.log({ companyName, workEmail, phoneNumber });
+        if (!companyName || !workEmail || !phoneNumber) {
+            setError("Please fill in all fields");
+            return;
+        }
+        try {
+            const response = await axios.post(`${config.apiUrl}/companies/create-account/send-otp`, {
+                email: workEmail
+            });
+            if (response.status === 200) {
+                sessionStorage.setItem('signUpData', JSON.stringify({ companyName, workEmail, phoneNumber }));
+                router.push("/auth/EmailConfirmation");
+            } else {
+                setError("Failed to send OTP. Please try again.");
+            }
+        } catch (err) {
+            console.error("Error sending OTP:", err);
+            setError("An error occurred. Please try again later.");
+        }
     };
 
     const allFieldsFilled = companyName && workEmail && phoneNumber;
 
     return (
-        <div className="flex min-h-screen">
-            <div className="w-1/2 bg-gray-100 relative overflow-hidden">
-                <img 
-                    src={'../../assets/sign-up-home-screen-image.png'} 
-                    alt="Sign Up" 
-                    className="min-h-full w-full object-cover" 
-                />
-                <div className="absolute bottom-0 left-0 w-full bg-black p-4 text-white z-10">
-                <img src='../../assets/logo.png'/>
-                    <h2 className="text-3xl font-bold text-white leading-tight">
-                        Let's empower your <br />employees today.
+        <div className="flex " style={{height: "100vh"}}>
+            <div className="w-1/2 flex flex-col">
+                <div className="flex-grow">
+                    <img
+                        src="/assets/sign-in-home-screen-image.png"
+                        alt="Create Password"
+                        className="h-full w-full object-cover"
+                        style={{ height: 360 }}
+                    />
+                </div>
+                
+                <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
+                
+                <div className="bg-black p-8 text-white flex flex-col items-start">
+                    <img src='/assets/logo.png' alt="Logo" />
+                    <h2 className="text-3xl font-bold text-white leading-tight mt-4">
+                        Let's empower your <br /> employees today.
                     </h2>
-                    <p className="text-white mt-2">Descriptive text goes here.</p>
+                    <p className="text-white mt-2">Transform every conversation into opportunity.</p>
                 </div>
             </div>
 
             <div className="w-1/2 flex items-center justify-center p-8">
                 <div className="w-full max-w-md">
-                    <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">Manage your employees easily!</h2>
-                    <p className="text-gray-500 text-center mb-6">Get started for free today!</p>
+                    <h2 className="text-2xl font-bold text-gray-800 text-left mb-3">Welcome Back</h2>
+                    <p className="text-gray-500 text-left mb-6">Enter your details to login.</p>
                     <form onSubmit={handleSignUp}>
                         <div className="mb-4">
                             <label htmlFor="companyName" className="block text-sm font-medium text-gray-700">
-                                Company Name
+                                Company Name <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
                                 id="companyName"
                                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                                placeholder="Full"
+                                placeholder="Company Name"
                                 value={companyName}
                                 onChange={(e) => setCompanyName(e.target.value)}
                                 required
@@ -52,7 +81,7 @@ const SignUp = () => {
                         </div>
                         <div className="mb-4">
                             <label htmlFor="workEmail" className="block text-sm font-medium text-gray-700">
-                                Work Email
+                                Work Email <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="email"
@@ -66,28 +95,30 @@ const SignUp = () => {
                         </div>
                         <div className="mb-4">
                             <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
-                                Phone Number
+                                Phone Number <span className="text-red-500">*</span>
                             </label>
-                            <input
-                                type="tel"
-                                id="phoneNumber"
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                                placeholder="(123) 456-7890"
+                            <PhoneInput
+                                country={'ng'}
                                 value={phoneNumber}
-                                onChange={(e) => setPhoneNumber(e.target.value)}
-                                required
+                                onChange={setPhoneNumber}
+                                inputClass="custom-phone-input mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                                containerClass="custom-phone-container w-full"
+                                placeholder="(123) 456-7890"
                             />
                         </div>
+                        {error && <p className="text-red-500">{error}</p>}
                         <button
                             type="submit"
-                            className={`w-full text-white py-2 rounded-md focus:outline-none ${allFieldsFilled ? 'bg-[#3EBF0F] hover:bg-green-700' : 'bg-[#EEEFF2]'}`} // Button color set to #3EBF0F
+                            className={`w-full text-white py-2 rounded-md focus:outline-none ${allFieldsFilled ? 'bg-[#3EBF0F] hover:bg-green-700' : 'bg-[#EEEFF2]'}`}
                             disabled={!allFieldsFilled}
                         >
                             Continue
                         </button>
 
-                        <div className="text-center my-4">
-                            <span className="text-gray-400">OR</span>
+                        <div className="flex items-center my-4">
+                            <hr className="flex-grow border-gray-300" />
+                            <span className="mx-4 text-gray-400">OR</span>
+                            <hr className="flex-grow border-gray-300" />
                         </div>
                         <button
                             type="button"
@@ -97,14 +128,14 @@ const SignUp = () => {
                             Sign up with Google
                         </button>
                     </form>
-                    <div className="text-center mt-6">
+                    <div className="text-left mt-6">
                         <p className="text-sm text-gray-600">
                             Already have an account? <a href="sign-in" className="text-green-500 hover:underline">Login Here</a>
                         </p>
                     </div>
-                    <div className="text-center mt-4">
+                    <div style={{width: 500}} className="text- mt-6">
                         <p className="text-xs text-gray-400">
-                            © 2024 NativeTalk Technologies. All rights reserved. <a href="#" className="text-gray-400 hover:underline">Terms & Conditions</a> <a href="#" className="text-gray-400 hover:underline">Privacy Policy</a>
+                            © 2024 NativeTalk Technologies. All rights reserved. <a href="#" className="text-[#111827] hover:underline">Terms & Conditions</a> | <a href="#" className="text-[#111827] hover:underline">Privacy Policy</a>
                         </p>
                     </div>
                 </div>

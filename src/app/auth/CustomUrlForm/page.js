@@ -17,21 +17,30 @@ const CustomUrlForm = () => {
     };
 
     return (
-        <div className="min-h-screen flex bg-gray-100">
-           <div className="w-1/2 bg-gray-100 relative overflow-hidden">
-                <img 
-                    src={'../../assets/sign-up-home-screen-image.png'} 
-                    alt="Sign Up" 
-                    className="min-h-full w-full object-cover" 
-                />
-                <div className="absolute bottom-0 left-0 w-full bg-black p-4 text-white z-10">
-                    <img src='../../assets/logo.png'/>
-                    <h2 className="text-3xl font-bold text-white leading-tight">
-                        Let's empower your <br />employees today.
+        <div className="min-h-screen flex bg-gray-100" style={{height: '100vh'}}>
+            <div className="w-1/2 flex flex-col">
+                <div className="flex-grow">
+                    <img
+                        src="/assets/sign-in-home-screen-image.png"
+                        alt="Create Password"
+                        className="h-full w-full object-cover"
+                        style={{ height: 360 }}
+                    />
+                </div>
+                
+                {/* Green Separator Line */}
+                <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
+                
+                <div className="bg-black p-8 text-white flex flex-col items-start">
+                    <img src='/assets/logo.png' alt="Logo" />
+                    <h2 className="text-3xl font-bold text-white leading-tight mt-4">
+                        Let's empower your <br /> employees today.
                     </h2>
-                    <p className="text-white mt-2">Descriptive text goes here.</p>
+                    <p className="text-white mt-2">Transform every conversation into opportunity.</p>
                 </div>
             </div>
+
+            
 
             <div className="w-1/2 bg-white p-10 flex flex-col justify-center">
                 <h2 className="text-2xl font-bold mb-4">You're almost there! Let's create a custom URL for you</h2>

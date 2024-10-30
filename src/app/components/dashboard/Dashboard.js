@@ -23,7 +23,7 @@ const Dashboard = () => {
             <Sidebar setActiveComponent={setActiveComponent} />
 
             <div className="flex-1 flex flex-col">
-                <Navbar />
+            <Navbar title="Dashboard" />
                 <div className="p-4">{renderActiveComponent()}</div>
             </div>
         </div>

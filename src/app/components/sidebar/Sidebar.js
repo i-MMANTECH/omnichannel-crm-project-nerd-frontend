@@ -1,56 +1,196 @@
 "use client";
 
-import React from 'react';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import React from "react";
+import { Disclosure } from "@headlessui/react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { GiHamburgerMenu } from "react-icons/gi";
+import {
+  MdOutlineSpaceDashboard,
+  MdOutlinePeople,
+  MdOutlineNotifications,
+  MdOutlineSettings,
+} from "react-icons/md";
+import { FaRegComments } from "react-icons/fa";
+import { BiMessageSquareDots } from "react-icons/bi";
+import { AiOutlineUserAdd } from "react-icons/ai";
+import { FiHelpCircle } from "react-icons/fi";
 
-const Sidebar = ({ setActiveComponent }) => {
-    const menuItems = [
-        { id: 'DashboardContent', icon: 'bi-speedometer2', label: 'Dashboard' },
-        { id: 'UserTable', icon: 'bi-people', label: 'Users' },
-        { id: 'Messaging', icon: 'bi-chat', label: 'Messaging' },
-        { id: 'Tasks', icon: 'bi-list-check', label: 'Tasks' },
-        { id: 'Customers', icon: 'bi-people', label: 'Customers' },
-        { id: 'AgentManagement', icon: 'bi-person-badge', label: 'Agent Management' },
-        { id: 'Reports', icon: 'bi-bar-chart', label: 'Reports' },
-        { id: 'Notifications', icon: 'bi-bell', label: 'Notifications' },
-    ];
+function Sidebar() {
+  const router = useRouter();
+  const activeStyle = "text-[#3EBF0F]";
 
-    return (
-        <div className="h-full w-64 bg-white shadow-lg z-10 pt-4 px-3">
-            <div className="flex items-center px-3 mb-5">
-                <img src="/logo.png" alt="Native Talk Logo" className="h-7 mr-2" /> 
-                <span className="text-gray-800 font-bold text-base">
-                    native <span style={{ color: '#3EBF0F' }}>talk</span>
-                </span>
+  const isActive = (path) => router && router.pathname === path;
+
+  return (
+    <div>
+      <Disclosure as="nav">
+        <Disclosure.Button className="absolute top-4 right-4 inline-flex items-center peer justify-center rounded-md p-2 text-gray-800 hover:bg-gray-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white group">
+          <GiHamburgerMenu className="block md:hidden h-6 w-6" aria-hidden="true" />
+        </Disclosure.Button>
+
+        <div className="p-6 w-1/2 h-screen bg-white z-20 fixed top-0 -left-96 lg:left-0 lg:w-60 peer-focus:left-0 peer:transition ease-out delay-150 duration-200">
+          <div className="flex flex-col justify-start items-center">
+            <h1 className="text-lg font-bold text-blue-800 mb-4">
+              <img src="../../assets/logo.png" />
+            </h1>
+
+            <div className="w-full mb-2 border-t border-gray-300">
+              <h2 className="text-sm text-gray-500 pl-4 mt-2">Main Menu</h2>
             </div>
-            
-            <h2 className="text-gray-500 text-xs font-semibold mt-6 mb-3 pl-3">Main Menu</h2>
-            <ul className="flex flex-col space-y-1">
-                {menuItems.map((item) => (
-                    <li key={item.id} className="nav-item">
-                        <button
-                            onClick={() => setActiveComponent(item.id)}
-                            className="nav-link flex items-center p-2 rounded-md text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                            <i className={`bi ${item.icon} mr-3 text-base`}></i> {item.label}
-                        </button>
-                    </li>
-                ))}
-            </ul>
 
-            <ul className="flex flex-col space-y-1 mt-5">
-                {/* Additional items, e.g., settings and help */}
-            </ul>
+            <div className="my-3 pb-3 w-full">
+              <Link
+                href="/dashboard"
+                className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
+                  isActive("/dashboard") ? activeStyle : "text-gray-800"
+                }`}>
 
-            <div className="flex items-center mt-5 p-3 bg-gray-100 rounded-md">
-                <img src="/user-avatar.jpg" alt="User Avatar" className="h-8 w-8 rounded-full mr-3" />
-                <div>
-                    <p className="text-gray-800 text-sm font-semibold">Denise Adebayo</p>
-                    <p className="text-gray-500 text-xs">Agent</p>
+                <MdOutlineSpaceDashboard
+                  className={`text-xl ${isActive("/dashboard") ? activeStyle : "text-gray-600"}`}
+                />
+                <h3 className={`text-sm font-medium ${isActive("/dashboard") ? activeStyle : "text-gray-800"}`}>
+                  Dashboard
+                </h3>
+              </Link>
+
+              <Link
+                href="/users"
+                className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
+                  isActive("/users") ? activeStyle : "text-gray-800"
+                }`}>
+
+                <MdOutlinePeople
+                  className={`text-xl ${isActive("/users") ? activeStyle : "text-gray-600"}`}
+                />
+                <h3 className={`text-sm font-medium ${isActive("/users") ? activeStyle : "text-gray-800"}`}>
+                  Users
+                </h3>
+              </Link>
+
+              <Link
+                href="/messages"
+                className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
+                  isActive("/messages") ? activeStyle : "text-gray-800"
+                }`}>
+
+                <BiMessageSquareDots
+                  className={`text-xl ${isActive("/messages") ? activeStyle : "text-gray-600"}`}
+                />
+                <h3 className={`text-sm font-medium ${isActive("/messages") ? activeStyle : "text-gray-800"}`}>
+                  Messages
+                </h3>
+              </Link>
+
+              <Link
+                href="/tasks"
+                className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
+                  isActive("/tasks") ? activeStyle : "text-gray-800"
+                }`}>
+
+                <FaRegComments
+                  className={`text-xl ${isActive("/tasks") ? activeStyle : "text-gray-600"}`}
+                />
+                <h3 className={`text-sm font-medium ${isActive("/tasks") ? activeStyle : "text-gray-800"}`}>
+                  Tasks
+                </h3>
+              </Link>
+
+              <Link
+                href="/customers"
+                className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
+                  isActive("/customers") ? activeStyle : "text-gray-800"
+                }`}>
+
+                <AiOutlineUserAdd
+                  className={`text-xl ${isActive("/customers") ? activeStyle : "text-gray-600"}`}
+                />
+                <h3 className={`text-sm font-medium ${isActive("/customers") ? activeStyle : "text-gray-800"}`}>
+                  Customers
+                </h3>
+              </Link>
+
+              <Link
+                href="/reports"
+                className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
+                  isActive("/reports") ? activeStyle : "text-gray-800"
+                }`}>
+
+                <MdOutlineNotifications
+                  className={`text-xl ${isActive("/reports") ? activeStyle : "text-gray-600"}`}
+                />
+                <h3 className={`text-sm font-medium ${isActive("/reports") ? activeStyle : "text-gray-800"}`}>
+                  Reports
+                </h3>
+              </Link>
+
+              <Link
+                href="/notifications"
+                className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
+                  isActive("/notifications") ? activeStyle : "text-gray-800"
+                }`}>
+
+                <MdOutlineNotifications
+                  className={`text-xl ${isActive("/notifications") ? activeStyle : "text-gray-600"}`}
+                />
+                <h3 className={`text-sm font-medium ${isActive("/notifications") ? activeStyle : "text-gray-800"}`}>
+                  Notifications
+                </h3>
+              </Link>
+            </div>
+
+                {/* Second navigations */}
+            <div className="w-full mt-6 pt-6">
+              <Link
+                href="/settings"
+                className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
+                  isActive("/settings") ? activeStyle : "text-gray-800"
+                }`}>
+
+                <MdOutlineSettings
+                  className={`text-xl ${isActive("/settings") ? activeStyle : "text-gray-600"}`}
+                />
+                <h3 className={`text-sm font-medium ${isActive("/settings") ? activeStyle : "text-gray-800"}`}>
+                  Settings
+                </h3>
+              </Link>
+
+              <Link
+                href="/help"
+                className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
+                  isActive("/help") ? activeStyle : "text-gray-800"
+                }`}>
+
+                <FiHelpCircle
+                  className={`text-xl ${isActive("/help") ? activeStyle : "text-gray-600"}`}
+                />
+                <h3 className={`text-sm font-medium ${isActive("/help") ? activeStyle : "text-gray-800"}`}>
+                  Help and Support
+                </h3>
+              </Link>
+            </div>
+
+            <div className="w-full mt- border-t border-gray-200 pt-3">
+              <Link
+                href="/agent-profile"
+                className="flex items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200">
+                  
+                <img
+                  src="../../assets/user-profile-image.png"
+                  alt="Agent"
+                  className="w-8 h-8 rounded-full"
+                />
+                <div className="text-sm">
+                  <h3 className="font-medium text-gray-800">Denise Adebayo</h3>
+                  <p className="text-xs text-gray-500">Agent</p>
                 </div>
+              </Link>
             </div>
+          </div>
         </div>
-    );
-};
+      </Disclosure>
+    </div>
+  );
+}
 
 export default Sidebar;
