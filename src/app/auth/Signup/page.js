@@ -8,24 +8,25 @@ import 'react-phone-input-2/lib/style.css';
 
 const SignUp = () => {
     const router = useRouter();
-    const [companyName, setCompanyName] = useState('');
-    const [workEmail, setWorkEmail] = useState('');
-    const [phoneNumber, setPhoneNumber] = useState('');
+    const [company_name, setcompany_name] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone_number, setPhoneNumber] = useState('');
     const [error, setError] = useState('');
 
     const handleSignUp = async (event) => {
         event.preventDefault();
-        if (!companyName || !workEmail || !phoneNumber) {
+        if (!company_name || !email || !phone_number) {
             setError("Please fill in all fields");
             return;
         }
         try {
-            const response = await axios.post(`${config.apiUrl}/companies/create-account/send-otp`, {
-                email: workEmail
+            const response = await axios.post(`http://staging.core.nativetalkcrm.com/api/auth/create-account/send-otp/`, {
+                email: email
             });
             if (response.status === 200) {
-                sessionStorage.setItem('signUpData', JSON.stringify({ companyName, workEmail, phoneNumber }));
-                router.push("/auth/EmailConfirmation");
+                // Save company_name, email, and phone_number to session storage
+                sessionStorage.setItem('signUpData', JSON.stringify({ company_name, email, phone_number }));
+                router.push("/auth/emailConfirmation");
             } else {
                 setError("Failed to send OTP. Please try again.");
             }
@@ -35,14 +36,14 @@ const SignUp = () => {
         }
     };
 
-    const allFieldsFilled = companyName && workEmail && phoneNumber;
+    const allFieldsFilled = company_name && email && phone_number;
 
     return (
-        <div className="flex " style={{height: "100vh"}}>
+        <div className="flex" style={{ height: "100vh" }}>
             <div className="w-1/2 flex flex-col">
                 <div className="flex-grow">
                     <img
-                        src="/assets/sign-in-home-screen-image.png"
+                        src="/assets/sign-up-home-screen-image.png"
                         alt="Create Password"
                         className="h-full w-full object-cover"
                         style={{ height: 360 }}
@@ -66,30 +67,30 @@ const SignUp = () => {
                     <p className="text-gray-500 text-left mb-6">Enter your details to login.</p>
                     <form onSubmit={handleSignUp}>
                         <div className="mb-4">
-                            <label htmlFor="companyName" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="company_name" className="block text-sm font-medium text-gray-700">
                                 Company Name <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
-                                id="companyName"
+                                id="company_name"
                                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                                 placeholder="Company Name"
-                                value={companyName}
-                                onChange={(e) => setCompanyName(e.target.value)}
+                                value={company_name}
+                                onChange={(e) => setcompany_name(e.target.value)}
                                 required
                             />
                         </div>
                         <div className="mb-4">
-                            <label htmlFor="workEmail" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                                 Work Email <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="email"
-                                id="workEmail"
+                                id="email"
                                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                                 placeholder="example@company.com"
-                                value={workEmail}
-                                onChange={(e) => setWorkEmail(e.target.value)}
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                         </div>
@@ -99,7 +100,7 @@ const SignUp = () => {
                             </label>
                             <PhoneInput
                                 country={'ng'}
-                                value={phoneNumber}
+                                value={phone_number}
                                 onChange={setPhoneNumber}
                                 inputClass="custom-phone-input mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                                 containerClass="custom-phone-container w-full"

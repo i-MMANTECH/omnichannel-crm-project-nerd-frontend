@@ -1,10 +1,13 @@
 "use client";
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 
 const SuccessPage = () => {
+    const router = useRouter();
+
     const handleGoToDashboard = () => {
-        console.log("Redirect to Dashboard");
+        router.push('/'); 
     };
 
     return (

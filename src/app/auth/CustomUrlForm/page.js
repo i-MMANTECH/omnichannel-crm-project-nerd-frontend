@@ -1,34 +1,75 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
 const CustomUrlForm = () => {
+    const router = useRouter();
     const [url, setUrl] = useState('Fueledbyramenco');
     const [isUrlAvailable, setIsUrlAvailable] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+    const [userData, setUserData] = useState(null);
+    const [errorMessages, setErrorMessages] = useState({}); // State to hold error messages
 
     const handleChange = (e) => {
         setUrl(e.target.value);
     };
 
-    const handleSubmit = () => {
+    useEffect(() => {
+        const storedData = sessionStorage.getItem('signUpData');
+        if (storedData) {
+            setUserData(JSON.parse(storedData));
+        }
+    }, []);
+
+    const handleSubmit = async () => {
+        if (!userData) {
+            console.error("User data is missing.");
+            return;
+        }
+
         setIsLoading(true);
-        console.log("URL Submitted: ", url);
+        setErrorMessages({}); // Clear previous errors
+
+        try {
+            const response = await axios.post(
+                `http://staging.core.nativetalkcrm.com/api/auth/create-account/register/`,
+                {
+                    ...userData,
+                    company_description: 'Voip', // Ensuring this field has a value
+                    company_username: url
+                }
+            );
+            console.log("User registration successful:", response.data);
+
+            router.push('/successPage');
+        } catch (error) {
+            console.error("Error registering user:", error.response || error);
+
+            // Extract and set error messages if they exist in the response
+            if (error.response && error.response.data && error.response.data.error) {
+                setErrorMessages(error.response.data.error);
+            } else {
+                setErrorMessages({ general: "An unexpected error occurred. Please try again later." });
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
-        <div className="min-h-screen flex bg-gray-100" style={{height: '100vh'}}>
+        <div className="min-h-screen flex bg-gray-100" style={{ height: '100vh' }}>
             <div className="w-1/2 flex flex-col">
                 <div className="flex-grow">
                     <img
-                        src="/assets/sign-in-home-screen-image.png"
+                        src="/assets/sign-up-home-screen-image.png"
                         alt="Create Password"
                         className="h-full w-full object-cover"
                         style={{ height: 360 }}
                     />
                 </div>
                 
-                {/* Green Separator Line */}
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
                 
                 <div className="bg-black p-8 text-white flex flex-col items-start">
@@ -40,10 +81,9 @@ const CustomUrlForm = () => {
                 </div>
             </div>
 
-            
-
             <div className="w-1/2 bg-white p-10 flex flex-col justify-center">
-                <h2 className="text-2xl font-bold mb-4">You're almost there! Let's create a custom URL for you</h2>
+                <h2 className="text-2xl font-bold mb-2">You're almost there! Let's</h2>
+                <h2 className="text-2xl font-bold mb-2">create a custom URL for you</h2>
                 <p className="text-gray-600 mb-8">This would serve as your unique username</p>
 
                 <div className="flex items-center border rounded-lg mb-4 overflow-hidden">
@@ -58,6 +98,17 @@ const CustomUrlForm = () => {
                     <span className="px-2 text-green-500">{isUrlAvailable ? '✔' : '✖'}</span>
                 </div>
                 <p className="text-xs text-gray-500 mb-6">This is just a suggestion, you can change to what you want</p>
+
+                {/* Error Messages */}
+                {Object.keys(errorMessages).length > 0 && (
+                    <div className="mb-4 text-red-500">
+                        {Object.entries(errorMessages).map(([field, messages], index) => (
+                            <p key={index}>
+                                <strong>{field.replace(/_/g, ' ')}:</strong> {messages.join(', ')}
+                            </p>
+                        ))}
+                    </div>
+                )}
 
                 <button
                     onClick={handleSubmit}

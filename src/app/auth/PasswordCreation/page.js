@@ -1,17 +1,21 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const PasswordCreation = () => {
+    const router = useRouter();
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordStrength, setPasswordStrength] = useState(0);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [userData, setUserData] = useState(null);
+    const [passwordError, setPasswordError] = useState('');
 
     const evaluatePasswordStrength = (password) => {
         let strength = 0;
-        if (password.length >= 8) strength += 1;
+        if (password.length >= 6) strength += 1;
         if (/[a-z]/.test(password)) strength += 1;
         if (/[A-Z]/.test(password)) strength += 1;
         if (/\d/.test(password)) strength += 1;
@@ -23,10 +27,12 @@ const PasswordCreation = () => {
         const value = e.target.value;
         setPassword(value);
         setPasswordStrength(evaluatePasswordStrength(value));
+        setPasswordError('');
     };
 
     const handleConfirmPasswordChange = (e) => {
         setConfirmPassword(e.target.value);
+        setPasswordError('');
     };
 
     const togglePasswordVisibility = () => {
@@ -37,12 +43,23 @@ const PasswordCreation = () => {
         setShowConfirmPassword(!showConfirmPassword);
     };
 
-    const handleSubmit = () => {
-        if (password === confirmPassword && passwordStrength >= 3) {
-            console.log('Passwords match and are strong enough!');
-        } else {
-            console.log('Passwords do not match or are not strong enough.');
+    useEffect(() => {
+       
+        const storedData = sessionStorage.getItem('signUpData');
+        if (storedData) {
+            setUserData({ ...JSON.parse(storedData), password });
         }
+    }, [password]);
+
+    const handleSubmit = () => {
+        if (password !== confirmPassword) {
+            setPasswordError("Passwords do not match");
+            return;
+        }
+
+       
+        sessionStorage.setItem('signUpData', JSON.stringify({ ...userData, password }));
+        router.push('/auth/customUrlForm');
     };
 
     const getPasswordStrengthColor = () => {
@@ -75,20 +92,20 @@ const PasswordCreation = () => {
         }
     };
 
+    const isFormValid = password.length >= 6 && confirmPassword.length >= 6;
+
     return (
         <div className="flex h-screen overflow-hidden">
-            {/* Left side with image at the top and content at the bottom aligned to the left */}
             <div className="w-1/2 flex flex-col">
                 <div className="flex-grow">
                     <img
-                        src="/assets/sign-in-home-screen-image.png"
+                        src="/assets/sign-up-home-screen-image.png"
                         alt="Create Password"
                         className="h-full w-full object-cover"
                         style={{ height: 360 }}
                     />
                 </div>
                 
-                {/* Green Separator Line */}
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
                 
                 <div className="bg-black p-8 text-white flex flex-col items-start">
@@ -100,12 +117,11 @@ const PasswordCreation = () => {
                 </div>
             </div>
 
-            {/* Right side with form */}
             <div className="w-1/2 flex flex-col justify-center items-center p-8 overflow-hidden">
                 <div className="w-full max-w-md flex-grow mt-6">
                     <h2 className="text-2xl font-bold text-gray-800 text-left mb-3 mt-6">Create Your Password</h2>
                     <p className="text-gray-500 text-left mb-6">
-                        Set a password with at least 8 characters, combining letters and numbers.
+                        Set a password with at least 6 characters, combining letters and numbers.
                     </p>
 
                     <div className="mb-4">
@@ -155,16 +171,21 @@ const PasswordCreation = () => {
                         </div>
                     </div>
 
+                    {passwordError && (
+                        <p className="text-red-500 text-sm mb-4">
+                            {passwordError}
+                        </p>
+                    )}
+
                     <button
                         onClick={handleSubmit}
-                        className="w-full text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none"
-                        style={{ backgroundColor: '#3EBF0F' }}
+                        className={`w-full text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${isFormValid ? 'bg-[#3EBF0F]' : 'bg-gray-300 cursor-not-allowed'}`}
+                        disabled={!isFormValid}
                     >
                         Continue
                     </button>
                 </div>
 
-                {/* Footer Section - Positioned at the Bottom */}
                 <div style={{ width: 500 }} className="text-center mt-auto pt-6">
                     <p className="text-xs text-gray-400 mt-6 pt-6">
                         © 2024 NativeTalk Technologies. All rights reserved. 

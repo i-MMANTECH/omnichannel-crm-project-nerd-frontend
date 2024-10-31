@@ -10,7 +10,6 @@ const ConfirmEmail = () => {
 
         setCode([...code.map((d, idx) => (idx === index ? element.value : d))]);
 
-        // Focus on the next input
         if (element.nextSibling) {
             element.nextSibling.focus();
         }
@@ -19,12 +18,10 @@ const ConfirmEmail = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log("OTP Code entered:", code.join(""));
-        // Add your OTP verification logic here
     };
 
     const handleResend = () => {
         console.log("Resend code");
-        // Add your resend code logic here
     };
 
     return (

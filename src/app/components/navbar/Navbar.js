@@ -1,10 +1,10 @@
 import React from 'react';
 import { FaSearch, FaBell } from 'react-icons/fa';
 
-const Navbar = ({ title }) => {
+const Navbar = () => {
     return (
         <div className="bg-white shadow-md p-4 flex items-center justify-between">
-            <h1 className="text-xl font-bold">{title}</h1>
+            <h1 className="text-xl font-bold">Dashboard</h1>
 
             <div className="flex items-center space-x-4">
                 <div className="relative">
