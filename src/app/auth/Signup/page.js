@@ -131,7 +131,7 @@ const SignUp = () => {
                     </form>
                     <div className="text-left mt-6">
                         <p className="text-sm text-gray-600">
-                            Already have an account? <a href="sign-in" className="text-green-500 hover:underline">Login Here</a>
+                            Already have an account? <a href="/auth/signIn" className="text-green-500 hover:underline">Login Here</a>
                         </p>
                     </div>
                     <div style={{width: 500}} className="text- mt-6">

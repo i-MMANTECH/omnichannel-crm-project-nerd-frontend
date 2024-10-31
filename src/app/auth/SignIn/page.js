@@ -3,7 +3,6 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import axios from "axios";
-import config from "../../config.json";
 import { useRouter } from 'next/navigation';
 
 const SignIn = () => {
@@ -37,7 +36,7 @@ const SignIn = () => {
                 password,
             });
             login.login(response.data);
-            router.push('/dashboard');
+            router.push('/');
         } catch (error) {
             setError("Login failed. Please check your credentials.");
             setLoading(false);
@@ -138,7 +137,7 @@ const SignIn = () => {
                     </form>
                     <div className="text-center mt-6">
                         <p className="text-sm text-gray-600">
-                            You're new here? <a href="sign-up" className="text-[#3EBF0F] hover:underline">Create Account</a>
+                            You're new here? <a href="/auth/signup" className="text-[#3EBF0F] hover:underline">Create Account</a>
                         </p>
                     </div>
                     <div style={{ width: 500 }} className="text-xs mt-6 pt-6">
