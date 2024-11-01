@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import { AuthContext } from '../../context/AuthContext';
 
 const SignUp = () => {
     const router = useRouter();
@@ -12,6 +13,13 @@ const SignUp = () => {
     const [email, setEmail] = useState('');
     const [phone_number, setPhoneNumber] = useState('');
     const [error, setError] = useState('');
+    const { user } = useContext(AuthContext);
+
+    useEffect(() => {
+        if (user) {
+            router.push('/');
+        }
+    }, [user, router]);
 
     const handleSignUp = async (event) => {
         event.preventDefault();
@@ -24,7 +32,6 @@ const SignUp = () => {
                 email: email
             });
             if (response.status === 200) {
-                // Save company_name, email, and phone_number to session storage
                 sessionStorage.setItem('signUpData', JSON.stringify({ company_name, email, phone_number }));
                 router.push("/auth/emailConfirmation");
             } else {
