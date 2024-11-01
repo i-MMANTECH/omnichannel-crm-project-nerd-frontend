@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import { AuthContext } from '../../context/AuthContext';
 
 const SignUp = () => {
     const router = useRouter();
@@ -12,6 +13,13 @@ const SignUp = () => {
     const [email, setEmail] = useState('');
     const [phone_number, setPhoneNumber] = useState('');
     const [error, setError] = useState('');
+    const { user } = useContext(AuthContext);
+
+    useEffect(() => {
+        if (user) {
+            router.push('/');
+        }
+    }, [user, router]);
 
     const handleSignUp = async (event) => {
         event.preventDefault();
@@ -24,9 +32,8 @@ const SignUp = () => {
                 email: email
             });
             if (response.status === 200) {
-                // Save company_name, email, and phone_number to session storage
                 sessionStorage.setItem('signUpData', JSON.stringify({ company_name, email, phone_number }));
-                router.push("/auth/emailConfirmation");
+                router.push("/auth/email-confirmation");
             } else {
                 setError("Failed to send OTP. Please try again.");
             }
@@ -131,7 +138,7 @@ const SignUp = () => {
                     </form>
                     <div className="text-left mt-6">
                         <p className="text-sm text-gray-600">
-                            Already have an account? <a href="/auth/signIn" className="text-green-500 hover:underline">Login Here</a>
+                            Already have an account? <a href="/auth/sign-in" className="text-green-500 hover:underline">Login Here</a>
                         </p>
                     </div>
                     <div style={{width: 500}} className="text- mt-6">

@@ -12,7 +12,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         if (!user) {
-            router.push('/auth/signIn');
+            router.push('/auth/sign-in');
         }
     }, [user, router]);
 

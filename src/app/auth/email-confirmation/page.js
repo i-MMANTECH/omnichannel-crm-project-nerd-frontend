@@ -10,7 +10,7 @@ const EmailConfirmation = () => {
     const [activeInput, setActiveInput] = useState(0);
     const [userData, setUserData] = useState(null);
     const [timer, setTimer] = useState(59);
-    const [errorMessage, setErrorMessage] = useState(null); // New state for error message
+    const [errorMessage, setErrorMessage] = useState(null);
     const inputRefs = useRef([]);
 
     useEffect(() => {
@@ -32,7 +32,7 @@ const EmailConfirmation = () => {
     };
 
     const handleChange = (value, index) => {
-        if (/^\d$/.test(value)) { // Only handle single digit input
+        if (/^\d$/.test(value)) { 
             const newCode = [...code];
             newCode[index] = value;
             setCode(newCode);
@@ -46,10 +46,10 @@ const EmailConfirmation = () => {
 
     const handlePaste = (e) => {
         e.preventDefault();
-        const pasteData = e.clipboardData.getData('Text').slice(0, 6); // Get only the first 6 characters
-        if (/^\d{6}$/.test(pasteData)) { // Validate if the pasted data is a 6-digit number
-            setCode(pasteData.split('')); // Update the code state with each digit
-            inputRefs.current[5].focus(); // Move focus to the last input
+        const pasteData = e.clipboardData.getData('Text').slice(0, 6);
+        if (/^\d{6}$/.test(pasteData)) {
+            setCode(pasteData.split(''));
+            inputRefs.current[5].focus();
         }
     };
 
@@ -76,9 +76,9 @@ const EmailConfirmation = () => {
                 });
                 if (response.data.success) {
                     console.log("Verification successful:", response.data);
-                    router.push("/auth/passwordCreation");
+                    router.push("/auth/password-create");
                 } else {
-                    setErrorMessage(response.data.message); // Display error message on failure
+                    setErrorMessage(response.data.message);
                 }
             } catch (error) {
                 console.error("Error verifying OTP:", error.response || error);

@@ -59,7 +59,7 @@ const PasswordCreation = () => {
 
        
         sessionStorage.setItem('signUpData', JSON.stringify({ ...userData, password }));
-        router.push('/auth/customUrlForm');
+        router.push('/auth/customurl-form');
     };
 
     const getPasswordStrengthColor = () => {
