@@ -1,19 +1,25 @@
 "use client";
 
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import axios from "axios";
 import { useRouter } from 'next/navigation';
 
 const SignIn = () => {
     const router = useRouter();
-    const  login  = useContext(AuthContext);
+    const { user, login } = useContext(AuthContext);
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    useEffect(() => {
+        if (user) {
+            router.push('/');
+        }
+    }, [user, router]);
 
     const handleInputChange = (event) => {
         const { id, value } = event.target;
@@ -35,7 +41,7 @@ const SignIn = () => {
                 email,
                 password,
             });
-            login.login(response.data);
+            login(response.data);
             router.push('/');
         } catch (error) {
             setError("Login failed. Please check your credentials.");
@@ -57,9 +63,9 @@ const SignIn = () => {
                         style={{ height: 360 }}
                     />
                 </div>
-                
+
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
-                
+
                 <div className="bg-black p-8 text-white flex flex-col items-start">
                     <img src='/assets/logo.png' alt="Logo" />
                     <h2 className="text-3xl font-bold text-white leading-tight mt-4">
@@ -68,7 +74,7 @@ const SignIn = () => {
                     <p className="text-white mt-2">Transform every conversation into opportunity.</p>
                 </div>
             </div>
-            
+
             <div className="w-1/2 flex items-center justify-center p-8">
                 <div className="w-full max-w-md">
                     <h2 className="text-2xl font-bold text-gray-800 text-left mb-2">Welcome Back</h2>
@@ -137,7 +143,7 @@ const SignIn = () => {
                     </form>
                     <div className="text-center mt-6">
                         <p className="text-sm text-gray-600">
-                            You're new here? <a href="/auth/signup" className="text-[#3EBF0F] hover:underline">Create Account</a>
+                            You're new here? <a href="/auth/sign-up" className="text-[#3EBF0F] hover:underline">Create Account</a>
                         </p>
                     </div>
                     <div style={{ width: 500 }} className="text-xs mt-6 pt-6">
