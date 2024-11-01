@@ -143,7 +143,7 @@ const SignIn = () => {
                     </form>
                     <div className="text-center mt-6">
                         <p className="text-sm text-gray-600">
-                            You're new here? <a href="/auth/signup" className="text-[#3EBF0F] hover:underline">Create Account</a>
+                            You're new here? <a href="/auth/sign-up" className="text-[#3EBF0F] hover:underline">Create Account</a>
                         </p>
                     </div>
                     <div style={{ width: 500 }} className="text-xs mt-6 pt-6">
