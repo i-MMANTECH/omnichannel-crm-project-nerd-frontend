@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 const SuccessPage = () => {
@@ -9,6 +9,13 @@ const SuccessPage = () => {
     const handleGoToDashboard = () => {
         router.push('/'); 
     };
+
+    useEffect(() => {
+        const storedData = sessionStorage.getItem('signUpData');
+        if (!storedData) {
+            router.push('/auth/sign-up');
+        } 
+    }, []);
 
     return (
         <div className="min-h-screen flex flex-col justify-center items-center bg-white">

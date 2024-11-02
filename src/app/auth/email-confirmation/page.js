@@ -11,11 +11,16 @@ const EmailConfirmation = () => {
     const [userData, setUserData] = useState(null);
     const [timer, setTimer] = useState(59);
     const [errorMessage, setErrorMessage] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const inputRefs = useRef([]);
 
     useEffect(() => {
         const storedData = sessionStorage.getItem('signUpData');
-        if (storedData) setUserData(JSON.parse(storedData));
+        if (storedData) {
+            setUserData(JSON.parse(storedData));
+        } else {
+            router.push('/auth/sign-up');
+        }
     }, []);
 
     useEffect(() => {
@@ -27,8 +32,7 @@ const EmailConfirmation = () => {
 
     const maskEmail = (email) => {
         const [localPart, domain] = email.split('@');
-        const maskedLocalPart = localPart.slice(0, 3) + '*'.repeat(localPart.length - 3);
-        return `${maskedLocalPart}@${domain}`;
+        return `${localPart.slice(0, 3)}${'*'.repeat(localPart.length - 3)}@${domain}`;
     };
 
     const handleChange = (value, index) => {
@@ -69,29 +73,43 @@ const EmailConfirmation = () => {
     const handleSubmit = async () => {
         const verificationCode = code.join('');
         if (verificationCode.length === 6 && userData?.email) {
+            setIsSubmitting(true);
             try {
                 const response = await axios.post(`http://staging.core.nativetalkcrm.com/api/auth/create-account/verify-otp/`, {
                     email: userData.email,
                     otp: verificationCode
                 });
                 if (response.data.success) {
-                    console.log("Verification successful:", response.data);
                     router.push("/auth/password-create");
                 } else {
+                    setCode(['', '', '', '', '', '']);
                     setErrorMessage(response.data.message);
                 }
             } catch (error) {
-                console.error("Error verifying OTP:", error.response || error);
+                setCode(['', '', '', '', '', '']);
                 setErrorMessage(error.response?.data?.message || "An error occurred. Please try again.");
+            } finally {
+                setIsSubmitting(false);
             }
         } else {
             setErrorMessage("Please enter a 6-digit code.");
         }
     };
 
+    const handleResendCode = async () => {
+        if (timer === 0) {
+            try {
+                setTimer(59);
+                setErrorMessage(null);
+            } catch (error) {
+                console.error("Error resending OTP:", error);
+            }
+        }
+    };
+
     return (
-        <div className="flex min-h-screen" style={{ height: "100vh" }}>
-            <div className="w-1/2 flex flex-col">
+        <div className="flex min-h-screen flex-col md:flex-row" style={{ height: "100vh" }}>
+            <div className="md:w-1/2 flex flex-col">
                 <div className="flex-grow">
                     <img
                         src="/assets/sign-up-home-screen-image.png"
@@ -110,7 +128,7 @@ const EmailConfirmation = () => {
                 </div>
             </div>
 
-            <div style={{marginTop: '100px'}} className="w-1/2 flex flex-col items-center justify-center mt-6 pt-6 p-8">
+            <div style={{ marginTop: '100px' }} className="md:w-1/2 w-full flex flex-col items-center justify-center mt-6 pt-6 p-8">
                 <h2 className="text-2xl font-bold text-left text-gray-800 mt-6 mb-2">
                     Confirm email address
                 </h2>
@@ -131,22 +149,26 @@ const EmailConfirmation = () => {
                             className={`w-10 h-10 border-2 rounded-md text-center text-lg mx-1 ${
                                 activeInput === index ? 'border-green-500' : 'border-gray-300'
                             } focus:outline-none`}
+                            aria-label="OTP input"
                         />
                     ))}
                 </div>
 
-                {/* Error message display */}
                 {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
 
-                <button style={{width: 300}}
+                <button
                     onClick={handleSubmit}
-                    className="w-full bg-[#3EBF0F] text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none"
+                    className={`w-full bg-[#3EBF0F] text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${
+                        isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    style={{ width: 300 }}
+                    disabled={isSubmitting}
                 >
-                    Continue
+                    {isSubmitting ? 'Processing...' : 'Continue'}
                 </button>
 
                 <p className="text-center text-gray-500 mt-4">
-                    Resend code in {timer > 0 ? timer : "0"} seconds
+                    Resend code in {timer > 0 ? timer : <span onClick={handleResendCode} className="text-blue-500 cursor-pointer">Resend now</span>}
                 </p>
 
                 <div className="text-center mt-auto">

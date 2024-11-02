@@ -12,6 +12,16 @@ const PasswordCreation = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [userData, setUserData] = useState(null);
     const [passwordError, setPasswordError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        const storedData = sessionStorage.getItem('signUpData');
+        if (storedData) {
+            setUserData(JSON.parse(storedData));
+        } else {
+            router.push('/auth/sign-up');
+        }
+    }, [router]);
 
     const evaluatePasswordStrength = (password) => {
         let strength = 0;
@@ -44,7 +54,6 @@ const PasswordCreation = () => {
     };
 
     useEffect(() => {
-       
         const storedData = sessionStorage.getItem('signUpData');
         if (storedData) {
             setUserData({ ...JSON.parse(storedData), password });
@@ -57,9 +66,13 @@ const PasswordCreation = () => {
             return;
         }
 
-       
+        setIsSubmitting(true);
         sessionStorage.setItem('signUpData', JSON.stringify({ ...userData, password }));
-        router.push('/auth/customurl-form');
+
+        setTimeout(() => {
+            setIsSubmitting(false);
+            router.push('/auth/customurl-form');
+        }, 2000);
     };
 
     const getPasswordStrengthColor = () => {
@@ -151,6 +164,11 @@ const PasswordCreation = () => {
                                 {getPasswordStrengthLabel()}
                             </span>
                         </div>
+                        {password.length > 0 && (
+                            <p className="text-gray-500 text-xs">
+                                Minimum password length is 6 characters and maximum is 24 characters.
+                            </p>
+                        )}
                     </div>
 
                     <div className="mb-4">
@@ -180,9 +198,9 @@ const PasswordCreation = () => {
                     <button
                         onClick={handleSubmit}
                         className={`w-full text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${isFormValid ? 'bg-[#3EBF0F]' : 'bg-gray-300 cursor-not-allowed'}`}
-                        disabled={!isFormValid}
+                        disabled={!isFormValid || isSubmitting}
                     >
-                        Continue
+                        {isSubmitting ? "Processing..." : "Continue"}
                     </button>
                 </div>
 

@@ -20,6 +20,15 @@ const CustomUrlForm = () => {
         const storedData = sessionStorage.getItem('signUpData');
         if (storedData) {
             setUserData(JSON.parse(storedData));
+        } else {
+            router.push('/auth/sign-up');
+        }
+    }, []);
+
+    useEffect(() => {
+        const storedData = sessionStorage.getItem('signUpData');
+        if (storedData) {
+            setUserData(JSON.parse(storedData));
         }
     }, []);
 
@@ -41,11 +50,8 @@ const CustomUrlForm = () => {
                     company_username: url
                 }
             );
-            console.log("User registration successful:", response.data);
-
             router.push('/success-page');
         } catch (error) {
-            console.error("Error registering user:", error.response || error);
 
             if (error.response && error.response.data && error.response.data.error) {
                 setErrorMessages(error.response.data.error);
