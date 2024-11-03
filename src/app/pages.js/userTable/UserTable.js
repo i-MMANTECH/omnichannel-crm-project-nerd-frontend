@@ -25,7 +25,6 @@ const UserTable = ({ searchQuery }) => {
       setCurrentPage(page);
   };
 
-  // Filter users based on searchQuery
   const filteredUsers = users.filter(user =>
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.role.toLowerCase().includes(searchQuery.toLowerCase())
