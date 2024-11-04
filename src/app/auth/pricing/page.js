@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
+import { faXmark } from '@fortawesome/free-solid-svg-icons';
 
 const Pricing = () => {
     const [billingCycle, setBillingCycle] = useState('monthly');
@@ -200,17 +201,18 @@ const Pricing = () => {
                 {isModalOpen && (
                     <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75">
                         <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-                            <div className="flex items-center justify-between">
+                            <div style={{ borderBottom: '2px solid #D1D5DB', width: '100%' }} className="flex items-center justify-between">
                                 <p className="text-lg font-semibold">Payment Summary</p>
-                                <p
+                              
+
+                                <FontAwesomeIcon className='text-Greyscale/400'
                                     style={{ cursor: 'pointer' }}
                                     onClick={closeModal}
-                                    className="text-gray-600 hover:text-gray-800 text-xl"
-                                >
-                                    X
-                                </p>
+                                    icon={faXmark}
+                                />
+
                             </div>
-                            <hr className="my-4" />
+                            
                         </div>
                     </div>
                 )}
