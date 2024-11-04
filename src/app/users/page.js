@@ -29,9 +29,7 @@ const UsersPage = () => {
                     searchPlaceholder="Search"
                     onSearch={setSearchQuery}
                 />
-                <div className="p-4">
                     <UserTable searchQuery={searchQuery} />
-                </div>
             </div>
         </div>
     );

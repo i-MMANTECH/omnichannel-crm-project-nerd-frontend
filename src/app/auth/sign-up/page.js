@@ -24,20 +24,20 @@ const SignUp = () => {
 
     const handleSignUp = async (event) => {
         event.preventDefault();
-
+    
         if (!company_name || !email || !phone_number) {
             setError("Please fill in all fields");
             return;
         }
-
+    
         setLoading(true);
-
+    
         try {
             const response = await axios.post(
                 'http://staging.core.nativetalkcrm.com/api/auth/create-account/send-otp/',
                 { email: email }
             );
-
+    
             if (response.status === 200) {
                 sessionStorage.setItem(
                     'signUpData',
@@ -49,11 +49,13 @@ const SignUp = () => {
             }
         } catch (err) {
             console.error("Error sending OTP:", err);
-            setError("An error occurred. Please try again later.");
+            const errorMessage = err.response?.data?.error || "An error occurred. Please try again later.";
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
     };
+    
 
     const allFieldsFilled = company_name && email && phone_number;
 

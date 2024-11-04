@@ -8,6 +8,7 @@ const SuccessPage = () => {
 
     const handleGoToDashboard = () => {
         router.push('/'); 
+        sessionStorage.removeItem('signUpData');
     };
 
     useEffect(() => {

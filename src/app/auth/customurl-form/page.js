@@ -20,9 +20,10 @@ const CustomUrlForm = () => {
         const storedData = sessionStorage.getItem('signUpData');
         if (storedData) {
             setUserData(JSON.parse(storedData));
-        } else {
-            router.push('/auth/sign-up');
-        }
+        } 
+        // else {
+        //     router.push('/auth/sign-up');
+        // }
     }, []);
 
     useEffect(() => {

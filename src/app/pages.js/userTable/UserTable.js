@@ -55,7 +55,6 @@ const UserTable = ({ searchQuery }) => {
           <div className="bg-white rounded-lg shadow-lg p-6">
              <div className="flex justify-between items-center mb-6">
                   <div className="flex items-center space-x-4">
-                    <h2 className="text-2xl font-bold text-gray-700">Users</h2>
                     <div className="flex items-center space-x-2">
                       <button className="flex items-center space-x-1 border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-50">
                         <BiGridAlt size={18} className="text-orange-500" />

@@ -18,9 +18,10 @@ const EmailConfirmation = () => {
         const storedData = sessionStorage.getItem('signUpData');
         if (storedData) {
             setUserData(JSON.parse(storedData));
-        } else {
-            router.push('/auth/sign-up');
-        }
+        } 
+        // else {
+        //     router.push('/auth/sign-up');
+        // }
     }, []);
 
     useEffect(() => {
@@ -97,15 +98,25 @@ const EmailConfirmation = () => {
     };
 
     const handleResendCode = async () => {
-        if (timer === 0) {
+        if (timer === 0 && userData?.email) {
             try {
-                setTimer(59);
-                setErrorMessage(null);
+                const response = await axios.post(
+                    'http://staging.core.nativetalkcrm.com/api/auth/create-account/send-otp/',
+                    { email: userData.email }
+                );
+                if (response.data.success) {
+                    setTimer(59); // Reset the timer
+                    setErrorMessage(null); // Clear any previous error messages
+                } else {
+                    setErrorMessage(response.data.message || "Failed to resend OTP. Please try again.");
+                }
             } catch (error) {
+                setErrorMessage(error.response?.data?.message || "An error occurred. Please try again.");
                 console.error("Error resending OTP:", error);
             }
         }
     };
+    
 
     return (
         <div className="flex min-h-screen flex-col md:flex-row" style={{ height: "100vh" }}>
