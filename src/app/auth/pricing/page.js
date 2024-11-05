@@ -3,7 +3,37 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
-import { faXmark } from '@fortawesome/free-solid-svg-icons';
+import PaymentModal from './PaymentModal';
+
+const styles = {
+    logo: { width: '150px', height: 'auto' },
+    container: { width: '60%' },
+    borderBottom: { borderBottom: '2px solid #D1D5DB' },
+    planCard: {
+        width: '238.67px',
+        height: 300,
+        borderRadius: '16px',
+        border: '1px solid #D1D5DB',
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px',
+        justifyContent: 'space-between',
+    },
+    iconWrapper: {
+        borderRadius: '50%',
+        border: '2px solid #DFE1E6',
+        backgroundColor: 'white',
+        padding: '8px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    dashedBorder: { borderTop: '1px dashed #D1D5DB', margin: '2px 0' },
+    button: { width: '80%', margin: 'auto', padding: '10px 0' },
+    tableWidth: { width: '108%' },
+    featureColumn: { backgroundColor: '#F8F9FB' },
+};
 
 const Pricing = () => {
     const [billingCycle, setBillingCycle] = useState('monthly');
@@ -61,87 +91,46 @@ const Pricing = () => {
         }
     ];
 
-    const toggleBilling = (cycle) => {
-        setBillingCycle(cycle);
-    };
+    const toggleBilling = (cycle) => setBillingCycle(cycle);
 
     const openModal = (plan) => {
         setSelectedPlan(plan);
         setIsModalOpen(true);
     };
 
-    const closeModal = () => {
-        setIsModalOpen(false);
-    };
+    const closeModal = () => setIsModalOpen(false);
 
     return (
         <div>
-            <img className='m-5' src='../../assets/logo.png' alt="Logo" style={{ width: '150px', height: 'auto' }} />
-            <div style={{ width: '60%' }} className="max-w-5xl mx-auto p-8 bg-white">
+            <img className='m-5' src='../../assets/logo.png' alt="Logo" style={styles.logo} />
+            <div style={styles.container} className="max-w-5xl mx-auto p-8 bg-white">
                 <p className='pl-4 text-Greyscale/100'>Nativetalk Pricing</p>
 
-                <div
-                    style={{ borderBottom: '2px solid #D1D5DB' }}
-                    className="flex justify-between items-center mb-8 p-4"
-                >
-                    <h2 className="text-2xl font-bold text-left mb-6">
-                        Choose a plan that is right for you
-                    </h2>
+                <div style={styles.borderBottom} className="flex justify-between items-center mb-8 p-4">
+                    <h2 className="text-2xl font-bold text-left mb-6">Choose a plan that is right for you</h2>
                     <div>
-                        <button
-                            onClick={() => toggleBilling('monthly')}
-                            className={`px-4 py-2 text-sm font-medium ${
-                                billingCycle === 'monthly'
-                                    ? 'bg-[#3EBF0F] text-white rounded-md'
-                                    : 'bg-[#F8F9FB] text-gray-500 rounded'
-                            }`}
-                        >
-                            Monthly
-                        </button>
-                        <button
-                            onClick={() => toggleBilling('yearly')}
-                            className={`px-4 py-2 text-sm font-medium ${
-                                billingCycle === 'yearly'
-                                    ? 'bg-[#3EBF0F] text-white rounded-md'
-                                    : 'bg-[#F8F9FB] text-gray-500 rounded'
-                            }`}
-                        >
-                            Yearly
-                        </button>
+                        {['monthly', 'yearly'].map((cycle) => (
+                            <button
+                                key={cycle}
+                                onClick={() => toggleBilling(cycle)}
+                                className={`px-4 py-2 text-sm font-medium ${
+                                    billingCycle === cycle
+                                        ? 'bg-[#3EBF0F] text-white rounded-md'
+                                        : 'bg-[#F8F9FB] text-gray-500 rounded'
+                                }`}
+                            >
+                                {cycle.charAt(0).toUpperCase() + cycle.slice(1)}
+                            </button>
+                        ))}
                     </div>
                 </div>
 
-               {/* Plan Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-16 mb-8"> 
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-16 mb-8">
                     {plans.map((plan, index) => (
-                        <div
-                            key={index}
-                            style={{
-                                width: '238.67px',
-                                height: 'auto',
-                                borderRadius: '16px',
-                                border: '1px solid #D1D5DB',
-                                padding: '20px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '24px',
-                                justifyContent: 'space-between',
-                            }}
-                            className="text-left"
-                        >
+                        <div key={index} style={styles.planCard} className="text-left">
                             <div>
                                 <div className="flex items-center">
-                                    <div
-                                        style={{
-                                            borderRadius: '50%',
-                                            border: '2px solid #DFE1E6',
-                                            backgroundColor: 'white',
-                                            padding: '8px',
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                        }}
-                                    >
+                                    <div style={styles.iconWrapper}>
                                         <FontAwesomeIcon icon={farStar} className="text-Greyscale/400" />
                                     </div>
                                 </div>
@@ -153,19 +142,10 @@ const Pricing = () => {
                                 <span className="text-sm font-normal"> / {billingCycle}</span>
                             </div>
 
-                            <div
-                                style={{
-                                    borderTop: '1px dashed #D1D5DB',
-                                    margin: '2px 0',
-                                }}
-                            ></div>
+                            <div style={styles.dashedBorder}></div>
 
                             <button
-                                style={{
-                                    width: '80%',
-                                    margin: 'auto',
-                                    padding: '10px 0',
-                                }}
+                                style={styles.button}
                                 onClick={() => openModal(plan.name)}
                                 className="border border-gray-200 text-black rounded mt-4 mb-4"
                             >
@@ -175,13 +155,13 @@ const Pricing = () => {
                     ))}
                 </div>
 
-                <table style={{ width: '108%' }} className="w-full text-left border-t border-gray-200">
+                <table style={styles.tableWidth} className="w-full text-left border-t border-gray-200">
                     <thead>
                         <tr>
-                            <th className="py-3" style={{ backgroundColor: '#F8F9FB' }}>Feature</th>
-                            <th className="py-3" style={{ backgroundColor: '#F8F9FB' }}>Basic</th>
-                            <th className="py-3" style={{ backgroundColor: '#F8F9FB' }}>Pro</th>
-                            <th className="py-3" style={{ backgroundColor: '#F8F9FB' }}>Enterprise</th>
+                            <th className="py-3" style={styles.featureColumn}>Feature</th>
+                            {plans.map((plan) => (
+                                <th key={plan.name} className="py-3" style={styles.featureColumn}>{plan.name}</th>
+                            ))}
                         </tr>
                     </thead>
                     <tbody>
@@ -196,27 +176,7 @@ const Pricing = () => {
                     </tbody>
                 </table>
 
-
-                {/* Payment Modal */}
-                {isModalOpen && (
-                    <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75">
-                        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-                            <div style={{ borderBottom: '2px solid #D1D5DB', width: '100%' }} className="flex items-center justify-between">
-                                <p className="text-lg font-semibold">Payment Summary</p>
-                              
-
-                                <FontAwesomeIcon className='text-Greyscale/400'
-                                    style={{ cursor: 'pointer' }}
-                                    onClick={closeModal}
-                                    icon={faXmark}
-                                />
-
-                            </div>
-                            
-                        </div>
-                    </div>
-                )}
-
+                {isModalOpen && <PaymentModal selectedPlan={selectedPlan} closeModal={closeModal} />}
             </div>
         </div>
     );
