@@ -19,9 +19,9 @@ const EmailConfirmation = () => {
         if (storedData) {
             setUserData(JSON.parse(storedData));
         } 
-        // else {
-        //     router.push('/auth/sign-up');
-        // }
+        else {
+            router.push('/auth/sign-up');
+        }
     }, []);
 
     useEffect(() => {

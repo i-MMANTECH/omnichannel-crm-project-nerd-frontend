@@ -1,0 +1,20 @@
+.role-manager {
+    background-color: #E7FEF8;
+    color: #40C4AA;
+  }
+  
+  .role-agent {
+    background-color: #EDF9FF;
+    color: #1285FE;
+  }
+  
+  .role-team-member {
+    background-color: #F4F0FF;
+    color: #936DFF;
+  }
+  
+  .role-admin {
+    background-color: #FEF1ED;
+    color: #F36F4A;
+  }
+  

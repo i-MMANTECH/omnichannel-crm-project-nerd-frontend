@@ -5,36 +5,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import PaymentModal from './PaymentModal';
 
-const styles = {
-    logo: { width: '150px', height: 'auto' },
-    container: { width: '60%' },
-    borderBottom: { borderBottom: '2px solid #D1D5DB' },
-    planCard: {
-        width: '238.67px',
-        height: 300,
-        borderRadius: '16px',
-        border: '1px solid #D1D5DB',
-        padding: '20px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px',
-        justifyContent: 'space-between',
-    },
-    iconWrapper: {
-        borderRadius: '50%',
-        border: '2px solid #DFE1E6',
-        backgroundColor: 'white',
-        padding: '8px',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    dashedBorder: { borderTop: '1px dashed #D1D5DB', margin: '2px 0' },
-    button: { width: '80%', margin: 'auto', padding: '10px 0' },
-    tableWidth: { width: '108%' },
-    featureColumn: { backgroundColor: '#F8F9FB' },
-};
-
 const Pricing = () => {
     const [billingCycle, setBillingCycle] = useState('monthly');
     const [selectedPlan, setSelectedPlan] = useState('Pro');
@@ -181,5 +151,37 @@ const Pricing = () => {
         </div>
     );
 };
+
+
+const styles = {
+    logo: { width: '150px', height: 'auto' },
+    container: { width: '60%' },
+    borderBottom: { borderBottom: '2px solid #D1D5DB' },
+    planCard: {
+        width: '238.67px',
+        height: 300,
+        borderRadius: '16px',
+        border: '1px solid #D1D5DB',
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px',
+        justifyContent: 'space-between',
+    },
+    iconWrapper: {
+        borderRadius: '50%',
+        border: '2px solid #DFE1E6',
+        backgroundColor: 'white',
+        padding: '8px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    dashedBorder: { borderTop: '1px dashed #D1D5DB', margin: '2px 0' },
+    button: { width: '80%', margin: 'auto', padding: '10px 0' },
+    tableWidth: { width: '108%' },
+    featureColumn: { backgroundColor: '#F8F9FB' },
+};
+
 
 export default Pricing;

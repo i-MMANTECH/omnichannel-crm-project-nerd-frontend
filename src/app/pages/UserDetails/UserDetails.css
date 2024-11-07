@@ -1,0 +1,17 @@
+/* UserDetails.css */
+p {
+    margin-bottom: 0.5rem;
+  }
+  
+  .bg-green-100 {
+    background-color: #d1fae5; /* Tailwind CSS for light green background */
+  }
+  
+  .text-green-700 {
+    color: #047857; /* Tailwind CSS for dark green text */
+  }
+  
+  .text-gray-600 {
+    color: #4b5563; /* Tailwind CSS gray color */
+  }
+  

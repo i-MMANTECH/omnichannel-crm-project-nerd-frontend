@@ -5,7 +5,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/app/components/sidebar/Sidebar';
 import Navbar from '@/app/components/navbar/Navbar';
-import Grid from '@/app/pages.js/grid/Grid';
+import Grid from '@/app/pages/grid/Grid';
 
 const Page = () => {
     const { user } = useContext(AuthContext);
@@ -29,9 +29,7 @@ const Page = () => {
                     searchPlaceholder="Search"
                     onSearch={setSearchQuery}
                 />
-                
-                    <Grid searchQuery={searchQuery} />
-                
+                <Grid searchQuery={searchQuery} />
             </div>
         </div>
     );
