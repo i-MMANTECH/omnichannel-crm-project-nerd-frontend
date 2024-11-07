@@ -15,23 +15,14 @@ const OtpVerification = () => {
     const inputRefs = useRef([]);
 
     useEffect(() => {
-        const storedData = sessionStorage.getItem('resetPwdData');
-        if (storedData) {
-            console.log(storedData)
-            try {
-                const parsedData = JSON.parse(storedData);
-                if (parsedData.email) {
-                    setUserData(parsedData);
-                } else {
-                    console.warn("Email not found in resetPwdData.");
-                }
-            } catch (error) {
-                console.error("Error parsing stored data:", error);
-            }
-        } else {
-            console.warn("No resetPwdData found in sessionStorage.");
+        const parsedData = sessionStorage.getItem('resetPwdData');
+        if (parsedData) {
+            setUserData(JSON.parse(parsedData));
+        } 
+        else {
+            router.push('/auth/sign-up');
         }
-    }, []);
+    }, [router]);
 
     useEffect(() => {
         if (timer > 0) {
@@ -84,17 +75,15 @@ const OtpVerification = () => {
         if (verificationCode.length === 6 && userData?.email) {
             setIsSubmitting(true);
             try {
-                const response = await axios.post('http://staging.core.nativetalkcrm.com/api/auth/forgot-password/verify-otp/', {
+                const response = await axios.post(`http://staging.core.nativetalkcrm.com/api/auth/forgot-password/verify-otp/`, {
                     email: userData.email,
                     otp: verificationCode
                 });
-                if (response.data.success) {
-                    sessionStorage.setItem('userVerified', 'true');
-                    alert("OTP verified successfully! Redirecting..."); 
-                    router.push("/auth/password-create");
+                if (response.data.status ) {
+                    router.push("/auth/forgot-password");
                 } else {
                     setCode(['', '', '', '', '', '']);
-                    setErrorMessage(response.data.message || "Verification failed. Please try again.");
+                    setErrorMessage(response.data.message);
                 }
             } catch (error) {
                 setCode(['', '', '', '', '', '']);
@@ -112,7 +101,7 @@ const OtpVerification = () => {
         if (timer === 0 && userData?.email) {
             try {
                 const response = await axios.post(
-                    'http://staging.core.nativetalkcrm.com/api/auth/create-account/send-otp/',
+                    'http://staging.core.nativetalkcrm.com/api/auth/forgot-password/send-otp/',
                     { email: userData.email }
                 );
                 if (response.data.success) {
