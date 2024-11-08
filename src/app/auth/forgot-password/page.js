@@ -36,7 +36,7 @@ const ForgotPassword = () => {
 
     const handlePasswordChange = (e) => {
         const value = e.target.value;
-        if (value.length <= 24) { // Enforce max length of 24
+        if (value.length <= 24) {
             setPassword(value);
             setPasswordStrength(evaluatePasswordStrength(value));
             setPasswordError('');
@@ -62,7 +62,7 @@ const ForgotPassword = () => {
                 new_password: password
             });
             setIsSubmitting(false);
-            router.push('/auth/sign-in');
+            router.push('/auth/success-page');
         } catch (error) {
             setIsSubmitting(false);
             console.error("Error changing password:", error);
