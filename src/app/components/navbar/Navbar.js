@@ -1,10 +1,9 @@
-// Navbar.js
 import React from 'react';
 import { FaSearch, FaBell } from 'react-icons/fa';
 
 const Navbar = ({ title, searchPlaceholder, onSearch }) => {
     return (
-        <div className="bg-white shadow-md p-4 flex items-center justify-between">
+        <div className="bg-white shadow-md p-4 flex items-center justify-between border-b">
             <h1 className="text-xl font-bold">{title}</h1>
             <div className="flex items-center space-x-4">
                 <div className="relative">
