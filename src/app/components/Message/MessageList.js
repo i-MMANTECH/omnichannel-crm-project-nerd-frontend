@@ -1,8 +1,15 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
+import './messageList.css';
 
 const MessageList = ({ activeUser }) => {
+  const messageEndRef = useRef(null);
+
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [activeUser.messages]);
+
   return (
     <div className="message-list">
       {activeUser.messages.map((msg, index) => (
@@ -19,6 +26,7 @@ const MessageList = ({ activeUser }) => {
           </div>
         </div>
       ))}
+      <div ref={messageEndRef} />
     </div>
   );
 };

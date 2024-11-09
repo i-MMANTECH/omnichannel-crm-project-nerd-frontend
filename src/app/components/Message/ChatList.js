@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH, faSearch } from "@fortawesome/free-solid-svg-icons";
+import './chatlist.css'
 
 const ChatList = ({ users, activeUser, setActiveUser }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,6 +25,7 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
               className="search-input"
               value={searchTerm}
               onChange={handleSearchChange}
+              aria-label="Search messages"
             />
             <FontAwesomeIcon icon={faSearch} className="search" />
           </div>
@@ -38,7 +40,7 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
         </div>
       </div>
       <div className="divider"></div>
-      <div className="div-2">
+      <div className="div-2" style={{ overflowY: 'auto', maxHeight: '300px' }}>
         {filteredUsers.map((user) => (
           <div
             key={user.id}

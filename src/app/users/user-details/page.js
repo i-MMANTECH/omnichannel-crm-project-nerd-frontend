@@ -5,7 +5,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Sidebar from '../../components/sidebar/Sidebar';
 import Navbar from '../../components/navbar/Navbar';
-import UserDetails from '../../pages/UserDetails/UserDetails';
+import UserDetails from '../../components/UserDetails/UserDetails';
 
 const Page = () => {
   const { user } = useContext(AuthContext);

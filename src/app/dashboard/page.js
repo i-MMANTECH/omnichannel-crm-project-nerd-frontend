@@ -5,7 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Sidebar from '../components/sidebar/Sidebar';
 import Navbar from '../components/navbar/Navbar';
-import Dashboard from '../pages/dashboard/Dashboard';
+import Dashboard from '../components/dashboard/Dashboard';
 
 const Page = () => {
     const { user } = useContext(AuthContext);

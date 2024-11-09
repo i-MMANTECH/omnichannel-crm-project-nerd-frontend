@@ -1,0 +1,47 @@
+.type {
+    display: flex;
+    align-items: center;
+    border-top: 1px solid var(--greyscale-100);
+    padding: 5px 24px;
+    gap: 10px;
+    width: 100%;
+    height: auto; /* Allow the height to be flexible */
+    margin-top: 20px; /* Reduce margin to prevent excessive spacing */
+}
+
+.write-area {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    gap: 10px;
+}
+
+.attach-icon {
+    cursor: pointer;
+    color: var(--primary100-base);
+    font-size: 18px;
+}
+
+.message-input {
+    flex: 1;
+    border: 1px solid var(--greyscale-100);
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-family: var(--body-medium-regular-14px-font-family);
+    font-size: var(--body-medium-regular-14px-font-size);
+    outline: none;
+}
+
+.send-button {
+    background-color: var(--primary100-base);
+    color: var(--greyscale-0);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+}

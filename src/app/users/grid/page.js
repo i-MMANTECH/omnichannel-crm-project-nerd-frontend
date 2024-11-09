@@ -5,7 +5,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/app/components/sidebar/Sidebar';
 import Navbar from '@/app/components/navbar/Navbar';
-import Grid from '@/app/pages/grid/Grid';
+import Grid from '@/app/components/grid/Grid';
 
 const Page = () => {
     const { user } = useContext(AuthContext);

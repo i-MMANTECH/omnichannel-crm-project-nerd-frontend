@@ -5,10 +5,18 @@ import {
   faPaperclip,
   faPaperPlaneTop,
 } from "@fortawesome/free-solid-svg-icons";
+import './messageInput.css';
 
 const MessageInput = ({ message, onInputChange, onSendMessage }) => {
   const handleFileSelect = () => {
     alert("File selected!");
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onSendMessage();
+    }
   };
 
   return (
@@ -29,6 +37,7 @@ const MessageInput = ({ message, onInputChange, onSendMessage }) => {
           className="message-input"
           value={message}
           onChange={onInputChange}
+          onKeyDown={handleKeyDown}
         />
       </div>
       <button className="send-button" onClick={onSendMessage}>

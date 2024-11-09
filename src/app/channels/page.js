@@ -3,7 +3,7 @@
 import { useContext, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { MainContainer } from '../pages/MainContainer/MainContainer';
+import { MainContainer } from '../components/MainContainer/MainContainer';
 import Sidebar from '../components/sidebar/Sidebar';
 import Navbar from '../components/navbar/Navbar';
 

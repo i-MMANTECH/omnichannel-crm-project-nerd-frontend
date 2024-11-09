@@ -5,7 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Sidebar from '../components/sidebar/Sidebar';
 import Navbar from '../components/navbar/Navbar';
-import { Messages } from '../pages/Message/Messages';
+import { Messages } from '../components/Message/Messages';
 
 const Page = () => {
     const { user } = useContext(AuthContext);
@@ -27,7 +27,7 @@ const Page = () => {
             <Sidebar />
             <div style={{ marginLeft: '240px', zIndex: 100, backgroundColor: 'white' }} className="flex-1 flex flex-col border-l">
                 <Navbar
-                    title="Users"
+                    title="Messages"
                     searchPlaceholder="Search"
                     onSearch={setSearchQuery}
                 />
