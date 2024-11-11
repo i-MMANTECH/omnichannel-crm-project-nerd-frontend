@@ -7,7 +7,7 @@ import { FaRegClock } from "react-icons/fa6";
 
 const UserTable = ({ searchQuery, users }) => {
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(2); 
+    const [pageSize, setPageSize] = useState(10); 
     const totalPages = Math.ceil(users.length / pageSize);
 
     const handlePageChange = (page) => {
@@ -47,8 +47,8 @@ const UserTable = ({ searchQuery, users }) => {
     };
 
     return (
-        <div className="p-6 bg-gray-100 min-h-screen">
-            <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="p-6 bg-white min-h-screen border-l">
+            <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
                     <div className="flex items-center space-x-4">
                         <h2 className="text-2xl font-bold text-gray-700">Users</h2>
@@ -73,7 +73,7 @@ const UserTable = ({ searchQuery, users }) => {
                 </div>
 
                 {/* Table */}
-                <div className="overflow-auto rounded-lg shadow">
+                <div className="overflow-auto">
                     <table className="min-w-full bg-white">
                         <thead>
                             <tr>

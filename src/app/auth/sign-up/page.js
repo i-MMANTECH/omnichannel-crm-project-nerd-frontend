@@ -60,14 +60,14 @@ const SignUp = () => {
     const allFieldsFilled = company_name && email && phone_number;
 
     return (
-        <div className="flex" style={{ height: "100vh" }}>
+        <div className="flex" style={{ height: "100%" }}>
             <div className="w-1/2 flex flex-col">
                 <div className="flex-grow">
                     <img
                         src="/assets/sign-up-home-screen-image.png"
                         alt="Create Password"
                         className="h-full w-full object-cover"
-                        style={{ height: 360 }}
+                        style={{ height: 380 }}
                     />
                 </div>
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
@@ -82,8 +82,8 @@ const SignUp = () => {
 
             <div className="w-1/2 flex items-center justify-center p-8">
                 <div className="w-full max-w-md">
-                    <h2 className="text-2xl font-bold text-gray-800 text-left mb-3">Welcome Back</h2>
-                    <p className="text-gray-500 text-left mb-6">Enter your details to login.</p>
+                    <h2 className="text-2xl font-bold text-gray-800 text-left mb-3">Manage your employees easily! </h2>
+                    <p className="text-gray-500 text-left mb-6">Enter your details to login!</p>
                     
                     <form onSubmit={handleSignUp}>
                         <div className="mb-4">
@@ -140,6 +140,17 @@ const SignUp = () => {
                             {loading ? "Processing..." : "Continue"}
                         </button>
                     </form>
+
+                     <div className="text-left mt-6">
+                        <p className="text-sm text-gray-600">
+                        Already have an account? <a href="/auth/sign-in" className="text-[#3EBF0F] hover:underline">Login Here</a>
+                        </p>
+                    </div>
+                    <div style={{ width: 500, marginBottom: -90 }} className="text-xs mt-6 pt-6">
+                        <p className="text-xs text-gray-400 text-left">
+                            © 2024 NativeTalk Technologies. All rights reserved. <a href="#" className="text-[#111827] hover:underline">Terms & Conditions</a> | <a href="#" className="text-[#111827] hover:underline">Privacy Policy</a>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

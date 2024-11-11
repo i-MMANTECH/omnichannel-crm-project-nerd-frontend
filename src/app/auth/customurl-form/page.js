@@ -21,9 +21,9 @@ const CustomUrlForm = () => {
         if (storedData) {
             setUserData(JSON.parse(storedData));
         } 
-        // else {
-        //     router.push('/auth/sign-up');
-        // }
+        else {
+            router.push('/auth/sign-up');
+        }
     }, []);
 
     useEffect(() => {
@@ -65,14 +65,14 @@ const CustomUrlForm = () => {
     };
 
     return (
-        <div className="min-h-screen flex bg-gray-100" style={{ height: '100vh' }}>
+        <div className="min-h-screen flex bg-gray-100" style={{ height: '100%' }}>
             <div className="w-1/2 flex flex-col">
                 <div className="flex-grow">
                     <img
                         src="/assets/sign-up-home-screen-image.png"
                         alt="Create Password"
                         className="h-full w-full object-cover"
-                        style={{ height: 360 }}
+                        style={{ height: 380 }}
                     />
                 </div>
 

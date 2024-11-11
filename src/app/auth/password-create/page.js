@@ -109,14 +109,14 @@ const PasswordCreation = () => {
     const isFormValid = password.length >= 6 && confirmPassword.length >= 6;
 
     return (
-        <div className="flex h-screen overflow-hidden">
+        <div style={{height: '100%'}} className="flex h-screen overflow-hidden">
             <div className="w-1/2 flex flex-col">
                 <div className="flex-grow">
                     <img
                         src="/assets/sign-up-home-screen-image.png"
                         alt="Create Password"
                         className="h-full w-full object-cover"
-                        style={{ height: 360 }}
+                        style={{ height: 380 }}
                     />
                 </div>
                 

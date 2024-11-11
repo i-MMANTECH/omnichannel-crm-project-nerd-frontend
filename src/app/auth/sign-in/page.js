@@ -53,14 +53,14 @@ const SignIn = () => {
     const isFormValid = email && password;
 
     return (
-        <div className="flex min-h-screen" style={{ height: '100vh' }}>
+        <div className="flex min-h-screen" style={{ height: '100%', overflow: 'hidden' }}>
             <div className="w-1/2 flex flex-col">
                 <div className="flex-grow">
                     <img
                         src="/assets/sign-in-home-screen-image.png"
                         alt="Create Password"
                         className="h-full w-full object-cover"
-                        style={{ height: 360 }}
+                        style={{ height: 380 }}
                     />
                 </div>
 

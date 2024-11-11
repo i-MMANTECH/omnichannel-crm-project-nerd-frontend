@@ -119,14 +119,14 @@ const EmailConfirmation = () => {
     
 
     return (
-        <div className="flex min-h-screen flex-col md:flex-row" style={{ height: "100vh" }}>
+        <div className="flex min-h-screen flex-col md:flex-row" style={{ height: "100%" }}>
             <div className="md:w-1/2 flex flex-col">
                 <div className="flex-grow">
                     <img
                         src="/assets/sign-up-home-screen-image.png"
                         alt="Create Password"
                         className="h-full w-full object-cover"
-                        style={{ height: 360 }}
+                        style={{ height: 380 }}
                     />
                 </div>
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
