@@ -49,7 +49,6 @@
     height: 80vh;
     width: 95%;
     max-width: 1104px;
-    background-color: white;
   }
   
   .messages .overlap-group-3 {
@@ -209,3 +208,6 @@
     width: 100%;
   }
   
+  .messages .no-chat-selected{
+    margin: auto;
+  }

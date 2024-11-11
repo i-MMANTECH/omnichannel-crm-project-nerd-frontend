@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { faInstagram } from "@fortawesome/free-brands-svg-icons";
-import "./style.css";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import ChatList from "./ChatList";
+import { useAuth } from "@/app/context/AuthContext";
+import "./style.css";
 
-const users = [
+const originalUsers = [
   {
     id: 1,
     name: "Emeka Okafor",
@@ -16,17 +17,17 @@ const users = [
     avatarIcon: faInstagram,
     unreadCount: 2,
     messages: [
-      { text: "Hello Chioma! How's everything going?", time: "09:10" },
-      { text: "I wanted to check in on the project status.", time: "09:15" },
-      { text: "Let me know if there’s anything you need from my side.", time: "09:20" },
-      { text: "Are we still on track for the deadline?", time: "09:25" },
-      { text: "Please update me when you have a moment.", time: "09:30" },
-      { text: "I'm here if you need any assistance.", time: "09:35" },
-      { text: "Do you need any additional resources?", time: "09:40" },
-      { text: "Looking forward to your response.", time: "09:45" },
-      { text: "Just checking in again to ensure everything is okay.", time: "09:50" },
-      { text: "Any updates on the current task?", time: "09:55" },
-      { text: "Please let me know when you're available.", time: "10:00" },
+      { text: "Hello Chioma! How's everything going?", time: "09:10", status: "SENT" },
+      { text: "I wanted to check in on the project status.", time: "09:15", status: "DELIVERED" },
+      { text: "Let me know if there’s anything you need from my side.", time: "09:20", status: "READ" },
+      { text: "Are we still on track for the deadline?", time: "09:25", status: "DELIVERED" },
+      { text: "Please update me when you have a moment.", time: "09:30", status: "FAILED" },
+      { text: "I'm here if you need any assistance.", time: "09:35", status: "SENDING" },
+      { text: "Do you need any additional resources?", time: "09:40", status: "DELIVERED" },
+      { text: "Looking forward to your response.", time: "09:45", status: "READ" },
+      { text: "Just checking in again to ensure everything is okay.", time: "09:50", status: "SENT" },
+      { text: "Any updates on the current task?", time: "09:55", status: "SENT" },
+      { text: "Please let me know when you're available.", time: "10:00", status: "DELIVERED" },
     ],
   },
   {
@@ -38,7 +39,7 @@ const users = [
     avatarIcon: faInstagram,
     unreadCount: 1,
     messages: [
-      { text: "Hi Sade, let me know what works for you.", time: "09:30" },
+      { text: "Hi Sade, let me know what works for you.", time: "09:30", status: "READ" },
     ],
   },
   {
@@ -50,7 +51,7 @@ const users = [
     avatarIcon: faInstagram,
     unreadCount: 0,
     messages: [
-      { text: "Here's the image you requested.", time: "09:25" },
+      { text: "Here's the image you requested.", time: "09:25", status: "DELIVERED" },
     ],
   },
   {
@@ -62,7 +63,7 @@ const users = [
     avatarIcon: faInstagram,
     unreadCount: 0,
     messages: [
-      { text: "Here's the image you requested.", time: "09:25" },
+      { text: "Here's the image you requested.", time: "09:25", status: "SENT" },
     ],
   },
   {
@@ -74,7 +75,7 @@ const users = [
     avatarIcon: faInstagram,
     unreadCount: 0,
     messages: [
-      { text: "Here's the image you requested.", time: "09:25" },
+      { text: "Here's the image you requested.", time: "09:25", status: "FAILED" },
     ],
   },
   {
@@ -86,26 +87,34 @@ const users = [
     avatarIcon: faInstagram,
     unreadCount: 0,
     messages: [
-      { text: "Here's the image you requested.", time: "09:25" },
+      { text: "Here's the image you requested.", time: "09:25", status: "SENT" },
     ],
   },
 ];
 
-
 export const Messages = () => {
   const [message, setMessage] = useState("");
-  const [activeUser, setActiveUser] = useState(users[0]);
+  const [activeUser, setActiveUser] = useState(null);
+  const { user: currentUser } = useAuth();
+
+  const usersWithUserIds = originalUsers.map((user) => ({
+    ...user,
+    messages: user.messages.map((msg) => ({...msg, userId: user.id})),
+  }));
 
   const handleInputChange = (e) => {
     setMessage(e.target.value);
   };
-
+  
   const handleSendMessage = () => {
     if (message.trim() !== "") {
-      const newMessage = { text: message, time: new Date().toLocaleTimeString() };
+      const newMessage = { text: message, time: new Date().toLocaleTimeString(), status: 'DELIVERED' };
       setActiveUser({
         ...activeUser,
-        messages: [...activeUser.messages, newMessage],
+        messages: [
+          ...activeUser.messages,
+          { userId: activeUser.id, ...newMessage }
+        ],
       });
       setMessage("");
     }
@@ -113,16 +122,22 @@ export const Messages = () => {
 
   return (
     <div className="messages m-4">
-    <ChatList users={users} activeUser={activeUser} setActiveUser={setActiveUser} />
-    <div className="detail">
-      <ChatHeader activeUser={activeUser} />
-      <MessageList activeUser={activeUser} />
-      <MessageInput
-        message={message}
-        onInputChange={handleInputChange}
-        onSendMessage={handleSendMessage}
-      />
+      <ChatList users={usersWithUserIds} activeUser={activeUser} setActiveUser={setActiveUser} />
+      <div className="detail">
+        {activeUser ? (
+          <>
+            <ChatHeader activeUser={activeUser} />
+            <MessageList activeUser={activeUser} currentUserId={currentUser.id} />
+            <MessageInput
+              message={message}
+              onInputChange={handleInputChange}
+              onSendMessage={handleSendMessage}
+            />
+          </>
+        ) : (
+          <div className="no-chat-selected">Select a user to start chatting</div>
+        )}
+      </div>
     </div>
-  </div>
   );
 };

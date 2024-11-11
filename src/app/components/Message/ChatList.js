@@ -44,7 +44,7 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
         {filteredUsers.map((user) => (
           <div
             key={user.id}
-            className={`message ${user.id === activeUser.id ? 'selected-user' : ''}`}
+            className={`message ${user?.id === activeUser?.id ? 'selected-user' : ''}`}
             onClick={() => setActiveUser(user)}
           >
             <div className="frame">
