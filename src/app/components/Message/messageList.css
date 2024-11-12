@@ -28,10 +28,13 @@
     gap: 5px;
     align-items: flex-start;
   }
-  
+
+  .chat-left {
+    align-items: flex-start !important;
+  }
   .chat-right {
     align-items: flex-end;
-  }
+  }  
   
   .bubble-chat {
     display: inline-flex;

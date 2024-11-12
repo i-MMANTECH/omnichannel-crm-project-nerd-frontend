@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faCheckDouble, faCircleExclamation, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import './messageList.css';
+
 const MessageList = ({ activeUser, currentUserId }) => {
   const messageEndRef = useRef(null);
 
@@ -15,10 +16,10 @@ const MessageList = ({ activeUser, currentUserId }) => {
     <div className="message-list">
       {activeUser.messages.map((msg, index) => {
         const isUserMessage = msg.userId === currentUserId;
-        console.log(isUserMessage);
+        const alignmentClass = isUserMessage ? "chat-right" : "chat-left";
 
         return (
-          <div className={`chat ${isUserMessage ? "chat-right" : "chat-left"}`} key={index}>
+          <div className={`chat ${alignmentClass}`} key={index}>
             <div className={`bubble-chat ${isUserMessage ? "bubble-chat-user" : "bubble-chat-other"}`}>
               <p style={{ whiteSpace: "pre-wrap" }}>{msg.text}</p>
             </div>
@@ -37,5 +38,4 @@ const MessageList = ({ activeUser, currentUserId }) => {
     </div>
   );
 };
-
 export default MessageList;
