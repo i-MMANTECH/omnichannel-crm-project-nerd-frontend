@@ -15,11 +15,11 @@ const SignIn = () => {
     const [loading, setLoading] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    // useEffect(() => {
-    //     if (user) {
-    //         router.push('/');
-    //     }
-    // }, [user, router]);
+    useEffect(() => {
+        if (user) {
+            router.push('/');
+        }
+    }, [user, router]);
 
     const handleInputChange = (event) => {
         const { id, value } = event.target;
