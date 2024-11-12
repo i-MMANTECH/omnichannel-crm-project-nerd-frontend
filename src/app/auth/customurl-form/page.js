@@ -10,7 +10,7 @@ const CustomUrlForm = () => {
     const [isUrlAvailable, setIsUrlAvailable] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const [userData, setUserData] = useState(null);
-    const [errorMessages, setErrorMessages] = useState({}); // State to hold error messages
+    const [errorMessages, setErrorMessages] = useState({});
 
     const handleChange = (e) => {
         setUrl(e.target.value);
@@ -30,24 +30,23 @@ const CustomUrlForm = () => {
         }
 
         setIsLoading(true);
-        setErrorMessages({}); // Clear previous errors
+        setErrorMessages({});
 
         try {
             const response = await axios.post(
                 `http://staging.core.nativetalkcrm.com/api/auth/create-account/register/`,
                 {
                     ...userData,
-                    company_description: 'Voip', // Ensuring this field has a value
+                    company_description: 'Voip',
                     company_username: url
                 }
             );
             console.log("User registration successful:", response.data);
 
-            router.push('/successPage');
+            router.push('/success-page');
         } catch (error) {
             console.error("Error registering user:", error.response || error);
 
-            // Extract and set error messages if they exist in the response
             if (error.response && error.response.data && error.response.data.error) {
                 setErrorMessages(error.response.data.error);
             } else {
@@ -69,9 +68,9 @@ const CustomUrlForm = () => {
                         style={{ height: 360 }}
                     />
                 </div>
-                
+
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
-                
+
                 <div className="bg-black p-8 text-white flex flex-col items-start">
                     <img src='/assets/logo.png' alt="Logo" />
                     <h2 className="text-3xl font-bold text-white leading-tight mt-4">
@@ -99,7 +98,6 @@ const CustomUrlForm = () => {
                 </div>
                 <p className="text-xs text-gray-500 mb-6">This is just a suggestion, you can change to what you want</p>
 
-                {/* Error Messages */}
                 {Object.keys(errorMessages).length > 0 && (
                     <div className="mb-4 text-red-500">
                         {Object.entries(errorMessages).map(([field, messages], index) => (
@@ -120,8 +118,8 @@ const CustomUrlForm = () => {
 
                 <div className="text-center mt-8">
                     <p className="text-xs text-gray-400">
-                        © 2024 NativeTalk Technologies. All rights reserved. 
-                        <a href="#" className="text-gray-400 hover:underline ml-2">Terms & Conditions</a> 
+                        © 2024 NativeTalk Technologies. All rights reserved.
+                        <a href="#" className="text-gray-400 hover:underline ml-2">Terms & Conditions</a>
                         <a href="#" className="text-gray-400 hover:underline ml-2">Privacy Policy</a>
                     </p>
                 </div>

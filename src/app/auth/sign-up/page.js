@@ -33,7 +33,7 @@ const SignUp = () => {
             });
             if (response.status === 200) {
                 sessionStorage.setItem('signUpData', JSON.stringify({ company_name, email, phone_number }));
-                router.push("/auth/emailConfirmation");
+                router.push("/auth/email-confirmation");
             } else {
                 setError("Failed to send OTP. Please try again.");
             }
@@ -138,7 +138,7 @@ const SignUp = () => {
                     </form>
                     <div className="text-left mt-6">
                         <p className="text-sm text-gray-600">
-                            Already have an account? <a href="/auth/signIn" className="text-green-500 hover:underline">Login Here</a>
+                            Already have an account? <a href="/auth/sign-in" className="text-green-500 hover:underline">Login Here</a>
                         </p>
                     </div>
                     <div style={{width: 500}} className="text- mt-6">
