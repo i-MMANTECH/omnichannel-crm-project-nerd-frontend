@@ -15,7 +15,21 @@ const SignIn = () => {
     const [loading, setLoading] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    const getUserDomain = () => {
+        if (process.env.NODE_ENV === 'development') {
+            return 'Fueledbyramencoa1';
+        } else {
+            const subdomain = window.location.hostname.split('.')[0];
+            return subdomain;
+        }
+    };
+
     useEffect(() => {
+        const subdomain = window.location.hostname.split('.')[0];
+        if (!subdomain) {
+            router.push('/auth/sign-up');
+        }
+
         if (user) {
             router.push('/');
         }
@@ -40,6 +54,10 @@ const SignIn = () => {
             const response = await axios.post(`http://staging.core.nativetalkcrm.com/api/auth/signin/`, {
                 email,
                 password,
+            }, {
+                headers: {
+                    'User-Domain': getUserDomain(),
+                }
             });
             login(response.data);
             router.push('/');

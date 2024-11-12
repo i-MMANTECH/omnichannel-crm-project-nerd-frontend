@@ -9,7 +9,7 @@ import "./style.css";
 
 const originalUsers = [
   {
-    id: 1,
+    id: 27,
     name: "Emeka Okafor",
     profileImage: "../../assets/userprofile1.png",
     lastMessage: "Looking forward to your response.",
@@ -105,6 +105,7 @@ export const Messages = () => {
   const handleInputChange = (e) => {
     setMessage(e.target.value);
   };
+  console.log(typeof parseInt(currentUser?.user_id) === originalUsers[0].id)
   
   const handleSendMessage = () => {
     if (message.trim() !== "") {
@@ -127,7 +128,7 @@ export const Messages = () => {
         {activeUser ? (
           <>
             <ChatHeader activeUser={activeUser} />
-            <MessageList activeUser={activeUser} currentUserId={currentUser.id} />
+            <MessageList activeUser={activeUser} currentUserId={currentUser?.user_id} />
             <MessageInput
               message={message}
               onInputChange={handleInputChange}

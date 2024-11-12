@@ -26,12 +26,8 @@ const Page = () => {
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
             <div style={{ marginLeft: '240px', zIndex: 100, backgroundColor: 'white' }} className="flex-1 flex flex-col border-l">
-                <Navbar
-                    title="Messages"
-                    searchPlaceholder="Search"
-                    onSearch={setSearchQuery}
-                />
-                  <Messages searchQuery={searchQuery} />
+                
+                <Messages />
             </div>
         </div>
     );
