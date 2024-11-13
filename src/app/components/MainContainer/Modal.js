@@ -13,7 +13,7 @@ export const Modal = ({ show, onClose, title, icon }) => {
   };
 
   const togglePasswordVisibility = () => {
-    setIsPasswordVisible(!isPasswordVisible);
+    setIsPasswordVisible(!isPasswordVisible); 
   };
 
   return (
