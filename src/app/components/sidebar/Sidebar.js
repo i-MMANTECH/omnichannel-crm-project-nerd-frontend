@@ -3,7 +3,7 @@
 import React from "react";
 import { Disclosure } from "@headlessui/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { GiHamburgerMenu } from "react-icons/gi";
 import {
   MdOutlineSpaceDashboard,
@@ -17,10 +17,10 @@ import { AiOutlineUserAdd } from "react-icons/ai";
 import { FiHelpCircle } from "react-icons/fi";
 
 function Sidebar() {
-  const router = useRouter();
+  const pathname = usePathname();
   const activeStyle = "text-[#3EBF0F]";
 
-  const isActive = (path) => router && router.pathname === path;
+  const isActive = (path) => pathname.startsWith(path);
 
   return (
     <div>
@@ -32,7 +32,7 @@ function Sidebar() {
         <div className="p-6 w-1/2 h-screen bg-white z-20 fixed top-0 -left-96 lg:left-0 lg:w-60 peer-focus:left-0 peer:transition ease-out delay-150 duration-200">
           <div className="flex flex-col justify-start items-center">
             <h1 className="text-lg font-bold text-blue-800 mb-4">
-              <img src="../../assets/logo.png" />
+              <img src="../../assets/logo.png" alt="Logo" />
             </h1>
 
             <div className="w-full mb-2 border-t border-gray-300">
@@ -45,10 +45,7 @@ function Sidebar() {
                 className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
                   isActive("/dashboard") ? activeStyle : "text-gray-800"
                 }`}>
-
-                <MdOutlineSpaceDashboard
-                  className={`text-xl ${isActive("/dashboard") ? activeStyle : "text-gray-600"}`}
-                />
+                <MdOutlineSpaceDashboard className={`text-xl ${isActive("/dashboard") ? activeStyle : "text-gray-600"}`} />
                 <h3 className={`text-sm font-medium ${isActive("/dashboard") ? activeStyle : "text-gray-800"}`}>
                   Dashboard
                 </h3>
@@ -59,10 +56,7 @@ function Sidebar() {
                 className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
                   isActive("/users") ? activeStyle : "text-gray-800"
                 }`}>
-
-                <MdOutlinePeople
-                  className={`text-xl ${isActive("/users") ? activeStyle : "text-gray-600"}`}
-                />
+                <MdOutlinePeople className={`text-xl ${isActive("/users") ? activeStyle : "text-gray-600"}`} />
                 <h3 className={`text-sm font-medium ${isActive("/users") ? activeStyle : "text-gray-800"}`}>
                   Users
                 </h3>
@@ -73,10 +67,7 @@ function Sidebar() {
                 className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
                   isActive("/messages") ? activeStyle : "text-gray-800"
                 }`}>
-
-                <BiMessageSquareDots
-                  className={`text-xl ${isActive("/messages") ? activeStyle : "text-gray-600"}`}
-                />
+                <BiMessageSquareDots className={`text-xl ${isActive("/messages") ? activeStyle : "text-gray-600"}`} />
                 <h3 className={`text-sm font-medium ${isActive("/messages") ? activeStyle : "text-gray-800"}`}>
                   Messages
                 </h3>
@@ -87,10 +78,7 @@ function Sidebar() {
                 className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
                   isActive("/tasks") ? activeStyle : "text-gray-800"
                 }`}>
-
-                <FaRegComments
-                  className={`text-xl ${isActive("/tasks") ? activeStyle : "text-gray-600"}`}
-                />
+                <FaRegComments className={`text-xl ${isActive("/tasks") ? activeStyle : "text-gray-600"}`} />
                 <h3 className={`text-sm font-medium ${isActive("/tasks") ? activeStyle : "text-gray-800"}`}>
                   Tasks
                 </h3>
@@ -101,10 +89,7 @@ function Sidebar() {
                 className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
                   isActive("/customers") ? activeStyle : "text-gray-800"
                 }`}>
-
-                <AiOutlineUserAdd
-                  className={`text-xl ${isActive("/customers") ? activeStyle : "text-gray-600"}`}
-                />
+                <AiOutlineUserAdd className={`text-xl ${isActive("/customers") ? activeStyle : "text-gray-600"}`} />
                 <h3 className={`text-sm font-medium ${isActive("/customers") ? activeStyle : "text-gray-800"}`}>
                   Customers
                 </h3>
@@ -115,10 +100,7 @@ function Sidebar() {
                 className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
                   isActive("/reports") ? activeStyle : "text-gray-800"
                 }`}>
-
-                <MdOutlineNotifications
-                  className={`text-xl ${isActive("/reports") ? activeStyle : "text-gray-600"}`}
-                />
+                <MdOutlineNotifications className={`text-xl ${isActive("/reports") ? activeStyle : "text-gray-600"}`} />
                 <h3 className={`text-sm font-medium ${isActive("/reports") ? activeStyle : "text-gray-800"}`}>
                   Reports
                 </h3>
@@ -129,27 +111,20 @@ function Sidebar() {
                 className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
                   isActive("/notifications") ? activeStyle : "text-gray-800"
                 }`}>
-
-                <MdOutlineNotifications
-                  className={`text-xl ${isActive("/notifications") ? activeStyle : "text-gray-600"}`}
-                />
+                <MdOutlineNotifications className={`text-xl ${isActive("/notifications") ? activeStyle : "text-gray-600"}`} />
                 <h3 className={`text-sm font-medium ${isActive("/notifications") ? activeStyle : "text-gray-800"}`}>
                   Notifications
                 </h3>
               </Link>
             </div>
 
-                {/* Second navigations */}
             <div className="w-full mt-6 pt-6">
               <Link
                 href="/settings"
                 className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
                   isActive("/settings") ? activeStyle : "text-gray-800"
                 }`}>
-
-                <MdOutlineSettings
-                  className={`text-xl ${isActive("/settings") ? activeStyle : "text-gray-600"}`}
-                />
+                <MdOutlineSettings className={`text-xl ${isActive("/settings") ? activeStyle : "text-gray-600"}`} />
                 <h3 className={`text-sm font-medium ${isActive("/settings") ? activeStyle : "text-gray-800"}`}>
                   Settings
                 </h3>
@@ -160,21 +135,17 @@ function Sidebar() {
                 className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
                   isActive("/help") ? activeStyle : "text-gray-800"
                 }`}>
-
-                <FiHelpCircle
-                  className={`text-xl ${isActive("/help") ? activeStyle : "text-gray-600"}`}
-                />
+                <FiHelpCircle className={`text-xl ${isActive("/help") ? activeStyle : "text-gray-600"}`} />
                 <h3 className={`text-sm font-medium ${isActive("/help") ? activeStyle : "text-gray-800"}`}>
                   Help and Support
                 </h3>
               </Link>
             </div>
 
-            <div className="w-full mt- border-t border-gray-200 pt-3">
+            <div className="w-full mt-3 border-t border-gray-200 pt-3">
               <Link
                 href="/agent-profile"
                 className="flex items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200">
-                  
                 <img
                   src="../../assets/user-profile-image.png"
                   alt="Agent"

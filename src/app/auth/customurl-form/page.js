@@ -20,6 +20,16 @@ const CustomUrlForm = () => {
         const storedData = sessionStorage.getItem('signUpData');
         if (storedData) {
             setUserData(JSON.parse(storedData));
+        } 
+        else {
+            router.push('/auth/sign-up');
+        }
+    }, []);
+
+    useEffect(() => {
+        const storedData = sessionStorage.getItem('signUpData');
+        if (storedData) {
+            setUserData(JSON.parse(storedData));
         }
     }, []);
 
@@ -43,9 +53,8 @@ const CustomUrlForm = () => {
             );
             console.log("User registration successful:", response.data);
 
-            router.push('/success-page');
+            router.push('/successPage');
         } catch (error) {
-            console.error("Error registering user:", error.response || error);
 
             if (error.response && error.response.data && error.response.data.error) {
                 setErrorMessages(error.response.data.error);
@@ -58,14 +67,14 @@ const CustomUrlForm = () => {
     };
 
     return (
-        <div className="min-h-screen flex bg-gray-100" style={{ height: '100vh' }}>
+        <div className="min-h-screen flex bg-gray-100" style={{ height: '100%' }}>
             <div className="w-1/2 flex flex-col">
                 <div className="flex-grow">
                     <img
                         src="/assets/sign-up-home-screen-image.png"
                         alt="Create Password"
                         className="h-full w-full object-cover"
-                        style={{ height: 360 }}
+                        style={{ height: 380 }}
                     />
                 </div>
 

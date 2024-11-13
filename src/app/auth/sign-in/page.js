@@ -15,11 +15,26 @@ const SignIn = () => {
     const [loading, setLoading] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    const getUserDomain = () => {
+        if (process.env.NODE_ENV === 'development') {
+            return 'Fueledbyramencoa1';
+        } else {
+            const subdomain = window.location.hostname.split('.')[0];
+            return subdomain;
+        }
+    };
+
     useEffect(() => {
+        const subdomain = getUserDomain();
+        if (!subdomain) {
+            router.push('/auth/sign-up');
+        }
+    
         if (user) {
             router.push('/');
         }
     }, [user, router]);
+    
 
     const handleInputChange = (event) => {
         const { id, value } = event.target;
@@ -40,6 +55,10 @@ const SignIn = () => {
             const response = await axios.post(`http://staging.core.nativetalkcrm.com/api/auth/signin/`, {
                 email,
                 password,
+            }, {
+                headers: {
+                    'User-Domain': getUserDomain(),
+                }
             });
             login(response.data);
             router.push('/');
@@ -53,14 +72,14 @@ const SignIn = () => {
     const isFormValid = email && password;
 
     return (
-        <div className="flex min-h-screen" style={{ height: '100vh' }}>
+        <div className="flex min-h-screen" style={{ height: '100%', overflow: 'hidden' }}>
             <div className="w-1/2 flex flex-col">
                 <div className="flex-grow">
                     <img
                         src="/assets/sign-in-home-screen-image.png"
                         alt="Create Password"
                         className="h-full w-full object-cover"
-                        style={{ height: 360 }}
+                        style={{ height: 380 }}
                     />
                 </div>
 
@@ -119,7 +138,7 @@ const SignIn = () => {
                                 <input type="checkbox" className="form-checkbox text-[#3EBF0F]" />
                                 <span className="ml-2 text-sm text-gray-600">Remember Me</span>
                             </label>
-                            <a href="#" className="text-sm text-[#3EBF0F] hover:underline">Forgot Password?</a>
+                            <a href="/auth/reset-password" className="text-sm text-[#3EBF0F] hover:underline">Forgot Password?</a>
                         </div>
                         <button
                             type="submit"
