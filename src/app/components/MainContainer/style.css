@@ -63,13 +63,16 @@
 }
 
 .main-container .icon {
-  background-color: var(--greyscale-25);
-  border-radius: 1003.06px;
-  height: 40.12px;
-  overflow: hidden;
-  position: relative;
-  width: 40.12px;
+  display: flex;
+  width: 40.122px;
+  height: 40.122px;
+  padding: 8.906px 8.171px 7.216px 7.951px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 1003.058px;
+  background: var(--Greyscale-25, #F8F9FB);
 }
+
 
 .main-container .text {
   align-items: flex-start;

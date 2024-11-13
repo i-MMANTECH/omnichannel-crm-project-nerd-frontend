@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { socialMediaData } from "./socialMediaData";
 import "./style.css";
 import { Modal } from "./Modal";
@@ -29,7 +28,7 @@ export const MainContainer = () => {
             <div key={media.id} className="link-account">
               <div className="name">
                 <div className="icon">
-                  <FontAwesomeIcon icon={media.icon} size="2x" />
+                  <img src={media.icon} alt={media.title} />
                 </div>
                 <div className="text">
                   <div className="title">{media.title}</div>
@@ -53,7 +52,7 @@ export const MainContainer = () => {
           ))}
         </div>
 
-        <Modal show={showModal} onClose={closeModal} title={`Connect to ${modalTitle}`} icon={<FontAwesomeIcon icon={modalIcon} size="4x" />}>
+        <Modal show={showModal} onClose={closeModal} title={`Connect to ${modalTitle}`} icon={<img src={modalIcon} alt={modalTitle} style={{ width: '60px', height: '60px' }} />}>
           <p>Details and steps to connect to {modalTitle} go here.</p>
         </Modal>
       </div>

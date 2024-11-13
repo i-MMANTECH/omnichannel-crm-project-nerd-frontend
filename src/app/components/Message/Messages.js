@@ -105,7 +105,6 @@ export const Messages = () => {
   const handleInputChange = (e) => {
     setMessage(e.target.value);
   };
-  console.log(typeof parseInt(currentUser?.user_id) === originalUsers[0].id)
   
   const handleSendMessage = () => {
     if (message.trim() !== "") {
