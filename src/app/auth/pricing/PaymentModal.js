@@ -17,7 +17,7 @@ const PaymentModal = ({ selectedPlan, closeModal }) => {
     const total = planPrice - discount;
 
     const handlePayment = () => {
-        console.log("Payment initiated with:", { cardNumber, expiry, cvv, cardHolderName, billingAddress, phoneNumber });
+        // console.log("Payment initiated with:", { cardNumber, expiry, cvv, cardHolderName, billingAddress, phoneNumber });
     };
 
     return (

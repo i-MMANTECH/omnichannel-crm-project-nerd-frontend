@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -10,15 +10,15 @@ const EmailConfirmation = () => {
     const [activeInput, setActiveInput] = useState(0);
     const [userData, setUserData] = useState(null);
     const [timer, setTimer] = useState(59);
-    const [errorMessage, setErrorMessage] = useState(null); // New state for error message
+    const [errorMessage, setErrorMessage] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const inputRefs = useRef([]);
 
     useEffect(() => {
         const storedData = sessionStorage.getItem('signUpData');
         if (storedData) {
             setUserData(JSON.parse(storedData));
-        } 
-        else {
+        } else {
             router.push('/auth/sign-up');
         }
     }, []);
@@ -36,11 +36,11 @@ const EmailConfirmation = () => {
     };
 
     const handleChange = (value, index) => {
-        if (/^\d$/.test(value)) { 
+        if (/^\d$/.test(value)) {
             const newCode = [...code];
             newCode[index] = value;
             setCode(newCode);
-            
+
             if (index < code.length - 1) {
                 setActiveInput(index + 1);
                 inputRefs.current[index + 1].focus();
@@ -80,16 +80,15 @@ const EmailConfirmation = () => {
                     otp: verificationCode
                 });
                 if (response.data.success) {
-                    console.log("Verification successful:", response.data);
-                    router.push("/auth/passwordCreation");
+                    router.push("/auth/password-create");
                 } else {
-                    setErrorMessage(response.data.message); // Display error message on failure
+                    setErrorMessage(response.data.message);
                 }
             } catch (error) {
                 setCode(['', '', '', '', '', '']);
                 setErrorMessage(error.response?.data?.message || "An error occurred. Please try again.");
             } finally {
-                setIsSubmitting(false);
+                setIsSubmitting(false); 
             }
         } else {
             setErrorMessage("Please enter a 6-digit code.");
@@ -104,18 +103,16 @@ const EmailConfirmation = () => {
                     { email: userData.email }
                 );
                 if (response.data.success) {
-                    setTimer(59); // Reset the timer
-                    setErrorMessage(null); // Clear any previous error messages
+                    setTimer(59);
+                    setErrorMessage(null);
                 } else {
                     setErrorMessage(response.data.message || "Failed to resend OTP. Please try again.");
                 }
             } catch (error) {
                 setErrorMessage(error.response?.data?.message || "An error occurred. Please try again.");
-                console.error("Error resending OTP:", error);
             }
         }
     };
-    
 
     return (
         <div className="flex min-h-screen flex-col md:flex-row" style={{ height: "100%" }}>

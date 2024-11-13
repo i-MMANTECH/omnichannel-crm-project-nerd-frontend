@@ -65,7 +65,6 @@ const ForgotPassword = () => {
             router.push('/auth/success-page');
         } catch (error) {
             setIsSubmitting(false);
-            console.error("Error changing password:", error);
             setPasswordError("Failed to change password. Please try again.");
         }
     };
