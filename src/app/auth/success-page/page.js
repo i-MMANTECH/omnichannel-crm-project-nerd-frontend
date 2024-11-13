@@ -7,15 +7,25 @@ const SuccessPage = () => {
     const router = useRouter();
 
     const handleGoToDashboard = () => {
-        router.push('/'); 
-        sessionStorage.removeItem('resetPwdData');
+        const storedData = JSON.parse(sessionStorage.getItem('signUpData'));
+        const companyUsername = storedData?.company_username;
+
+        if (process.env.NODE_ENV !== 'production') {
+            router.push('/auth/sign-in');
+        } else if (companyUsername) {
+            window.location.href = `http://${companyUsername}.staging.nativetalkcrm.com/auth/sign-in`;
+        } else {
+            router.push('/auth/sign-up');
+        }
+
+        sessionStorage.removeItem('signUpData');
     };
 
     useEffect(() => {
-        const storedData = sessionStorage.getItem('resetPwdData');
+        const storedData = sessionStorage.getItem('signUpData');
         if (!storedData) {
-            router.push('/auth/sign-in');
-        } 
+            router.push('/auth/sign-up');
+        }
     }, []);
 
     return (

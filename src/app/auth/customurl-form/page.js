@@ -51,9 +51,7 @@ const CustomUrlForm = () => {
                     company_username: url
                 }
             );
-            console.log("User registration successful:", response.data);
-
-            router.push('/successPage');
+            router.push('/success-page');
         } catch (error) {
 
             if (error.response && error.response.data && error.response.data.error) {
