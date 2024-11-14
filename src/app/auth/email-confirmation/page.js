@@ -21,7 +21,7 @@ const EmailConfirmation = () => {
         } else {
             router.push('/auth/sign-up');
         }
-    }, []);
+    }, [router]);
 
     useEffect(() => {
         if (timer > 0) {

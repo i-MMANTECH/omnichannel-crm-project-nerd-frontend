@@ -24,14 +24,7 @@ const CustomUrlForm = () => {
         else {
             router.push('/auth/sign-up');
         }
-    }, []);
-
-    useEffect(() => {
-        const storedData = sessionStorage.getItem('signUpData');
-        if (storedData) {
-            setUserData(JSON.parse(storedData));
-        }
-    }, []);
+    }, [router]);
 
     const handleSubmit = async () => {
         if (!userData) {
