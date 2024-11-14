@@ -9,6 +9,16 @@
     justify-content: center;
     align-items: center;
   }
+
+  .modal-icon-container {
+    display: flex;
+    padding: 8.906px 8.171px 7.216px 7.951px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 1003.058px;
+    background: var(--Greyscale-25, #F8F9FB);
+  }
+  
   
   .modal-content {
     display: flex;

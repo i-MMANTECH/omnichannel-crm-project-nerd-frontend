@@ -17,7 +17,7 @@ const SignIn = () => {
 
     const getUserDomain = () => {
         if (process.env.NODE_ENV === 'development') {
-            return 'Fueledbyramenco1';
+            return 'Fueledbyramenco';
         } else {
             const subdomain = window.location.hostname.split('.')[0];
             return subdomain;

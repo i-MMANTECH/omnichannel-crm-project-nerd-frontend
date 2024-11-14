@@ -7,15 +7,19 @@ import {
   faUser,
   faFile,
   faImage,
+  faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import './messageInput.css';
 
 const MessageInput = ({ onInputChange, onSendMessage }) => {
   const [showAttachOptions, setShowAttachOptions] = useState(false);
   const [inputText, setInputText] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedAudio, setSelectedAudio] = useState(null);
 
   const imageInputRef = useRef(null);
   const documentInputRef = useRef(null);
+  const audioInputRef = useRef(null);
 
   const handleFileSelect = (type) => {
     if (type === "user") {
@@ -24,6 +28,8 @@ const MessageInput = ({ onInputChange, onSendMessage }) => {
       documentInputRef.current.click();
     } else if (type === "image") {
       imageInputRef.current.click();
+    } else if (type === "audio") {
+      audioInputRef.current.click();
     }
   };
 
@@ -50,24 +56,36 @@ const MessageInput = ({ onInputChange, onSendMessage }) => {
   };
 
   const sendMessage = () => {
-    if (inputText.trim()) {
-      onSendMessage(inputText); 
-      setInputText(""); 
+    if (inputText.trim() || selectedImage || selectedAudio) {
+      onSendMessage({ 
+        text: inputText, 
+        image: selectedImage, 
+        audio: selectedAudio 
+      });
+      setInputText("");
+      setSelectedImage(null);
+      setSelectedAudio(null);
     }
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setSelectedImage(file);
       console.log("Image file selected:", file);
     }
   };
 
-  const handleDocumentChange = (e) => {
+  const handleAudioChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      console.log("Document file selected:", file);
+      setSelectedAudio(file);
+      console.log("Audio file selected:", file);
     }
+  };
+
+  const removeSelectedImage = () => {
+    setSelectedImage(null);
   };
 
   return (
@@ -91,8 +109,17 @@ const MessageInput = ({ onInputChange, onSendMessage }) => {
           onKeyDown={handleKeyDown}
           rows={inputText.split("\n").length}
         />
+
+        {selectedImage && (
+          <div className="image-preview">
+            <img src={URL.createObjectURL(selectedImage)} alt="Preview" className="preview-img" />
+            <button className="remove-image" onClick={removeSelectedImage}>
+              <FontAwesomeIcon icon={faTimes} />
+            </button>
+          </div>
+        )}
       </div>
-      {inputText ? (
+      {inputText || selectedImage || selectedAudio ? (
         <button className="send-button" onClick={sendMessage}>
           <FontAwesomeIcon icon={faPaperPlane} />
         </button>
@@ -111,10 +138,10 @@ const MessageInput = ({ onInputChange, onSendMessage }) => {
       />
       <input
         type="file"
-        accept=".pdf,.doc,.docx,.txt"
+        accept="audio/*"
         style={{ display: "none" }}
-        ref={documentInputRef}
-        onChange={handleDocumentChange}
+        ref={audioInputRef}
+        onChange={handleAudioChange}
       />
     </div>
   );
