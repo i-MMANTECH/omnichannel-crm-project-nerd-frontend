@@ -61,6 +61,16 @@ function Sidebar() {
                   Users
                 </h3>
               </Link>
+              <Link
+                href="/channels"
+                className={`flex mb-1 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 ${
+                  isActive("/channels") ? activeStyle : "text-gray-800"
+                }`}>
+                <MdOutlinePeople className={`text-xl ${isActive("/channels") ? activeStyle : "text-gray-600"}`} />
+                <h3 className={`text-sm font-medium ${isActive("/channels") ? activeStyle : "text-gray-800"}`}>
+                Channels
+                </h3>
+              </Link>
 
               <Link
                 href="/messages"

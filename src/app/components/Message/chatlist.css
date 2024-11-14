@@ -120,7 +120,6 @@
 
 .frame {
     align-items: center;
-    background-color: var(--greyscale-25);
     border-radius: 8px;
     display: flex;
     gap: 5px;

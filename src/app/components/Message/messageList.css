@@ -76,3 +76,17 @@
     color: var(--primary100-base);
   }
   
+  .audio-message-player {
+    width: 100%;
+    max-width: 250px;
+    margin-top: 5px;
+  }
+  
+  .image-message {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-top: 5px;
+  }
+  
+  

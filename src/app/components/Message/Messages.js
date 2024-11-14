@@ -17,17 +17,62 @@ const originalUsers = [
     avatarIcon: faInstagram,
     unreadCount: 2,
     messages: [
-      { text: "Hello Chioma! How's everything going?", time: "09:10", status: "SENT" },
-      { text: "I wanted to check in on the project status.", time: "09:15", status: "DELIVERED" },
-      { text: "Let me know if there’s anything you need from my side.", time: "09:20", status: "READ" },
-      { text: "Are we still on track for the deadline?", time: "09:25", status: "DELIVERED" },
-      { text: "Please update me when you have a moment.", time: "09:30", status: "FAILED" },
-      { text: "I'm here if you need any assistance.", time: "09:35", status: "SENDING" },
-      { text: "Do you need any additional resources?", time: "09:40", status: "DELIVERED" },
-      { text: "Looking forward to your response.", time: "09:45", status: "READ" },
-      { text: "Just checking in again to ensure everything is okay.", time: "09:50", status: "SENT" },
-      { text: "Any updates on the current task?", time: "09:55", status: "SENT" },
-      { text: "Please let me know when you're available.", time: "10:00", status: "DELIVERED" },
+      { 
+        text: "Hello Chioma! How's everything going?", 
+        image: "", 
+        audio: "", 
+        time: "09:10", 
+        status: "SENT",
+        messageType: "text"
+      },
+      { 
+        text: "I wanted to check in on the project status.", 
+        image: "", 
+        audio: "", 
+        time: "09:15", 
+        status: "DELIVERED", 
+        messageType: "text"
+      },
+      { 
+        text: "Here's the image you requested.", 
+        image: "../../assets/requested_image.png", 
+        audio: "", 
+        time: "09:20", 
+        status: "READ", 
+        messageType: "text-image"
+      },
+      { 
+        text: "", 
+        image: "../../assets/another_image.png", 
+        audio: "", 
+        time: "09:25", 
+        status: "DELIVERED", 
+        messageType: "image"
+      },
+      { 
+        text: "Failed", 
+        image: "", 
+        audio: "../../assets/audio_file.mp3", 
+        time: "09:30", 
+        status: "FAILED", 
+        messageType: "audio"
+      },
+      { 
+        text: "I'm here if you need any assistance.", 
+        image: "", 
+        audio: "", 
+        time: "09:35", 
+        status: "SENDING", 
+        messageType: "text"
+      },
+      { 
+        text: "", 
+        image: "", 
+        audio: "../../assets/voice_note.mp3", 
+        time: "09:45", 
+        status: "READ", 
+        messageType: "audio"
+      },
     ],
   },
   {
@@ -39,7 +84,14 @@ const originalUsers = [
     avatarIcon: faInstagram,
     unreadCount: 1,
     messages: [
-      { text: "Hi Sade, let me know what works for you.", time: "09:30", status: "READ" },
+      { 
+        text: "Hi Sade, let me know what works for you.", 
+        image: "", 
+        audio: "", 
+        time: "09:30", 
+        status: "READ", 
+        messageType: "text"
+      },
     ],
   },
   {
@@ -51,7 +103,14 @@ const originalUsers = [
     avatarIcon: faInstagram,
     unreadCount: 0,
     messages: [
-      { text: "Here's the image you requested.", time: "09:25", status: "DELIVERED" },
+      { 
+        text: "Here's the image you requested.", 
+        image: "../../assets/bola_image.png", 
+        audio: "", 
+        time: "09:25", 
+        status: "DELIVERED", 
+        messageType: "text-image"
+      },
     ],
   },
   {
@@ -63,7 +122,14 @@ const originalUsers = [
     avatarIcon: faInstagram,
     unreadCount: 0,
     messages: [
-      { text: "Here's the image you requested.", time: "09:25", status: "SENT" },
+      { 
+        text: "", 
+        image: "../../assets/nkechi_image.png", 
+        audio: "", 
+        time: "09:25", 
+        status: "SENT", 
+        messageType: "image"
+      },
     ],
   },
   {
@@ -75,7 +141,14 @@ const originalUsers = [
     avatarIcon: faInstagram,
     unreadCount: 0,
     messages: [
-      { text: "Here's the image you requested.", time: "09:25", status: "FAILED" },
+      { 
+        text: "Here's the image you requested.", 
+        image: "../../assets/chidi_image.png", 
+        audio: "", 
+        time: "09:25", 
+        status: "FAILED", 
+        messageType: "text-image"
+      },
     ],
   },
   {
@@ -87,10 +160,18 @@ const originalUsers = [
     avatarIcon: faInstagram,
     unreadCount: 0,
     messages: [
-      { text: "Here's the image you requested.", time: "09:25", status: "SENT" },
+      { 
+        text: "", 
+        image: "../../assets/tunde_image.png", 
+        audio: "", 
+        time: "09:25", 
+        status: "SENT", 
+        messageType: "image"
+      },
     ],
   },
 ];
+
 
 export const Messages = () => {
   const [message, setMessage] = useState("");
@@ -106,19 +187,20 @@ export const Messages = () => {
     setMessage(e.target.value);
   };
   
-  const handleSendMessage = () => {
-    if (message.trim() !== "") {
-      const newMessage = { text: message, time: new Date().toLocaleTimeString(), status: 'DELIVERED' };
-      setActiveUser({
-        ...activeUser,
-        messages: [
-          ...activeUser.messages,
-          { userId: activeUser.id, ...newMessage }
-        ],
-      });
-      setMessage("");
-    }
+  const handleSendMessage = (messageContent) => {
+    const newMessage = {
+      userId: activeUser.id,
+      time: new Date().toLocaleTimeString(),
+      status: "DELIVERED",
+      ...messageContent,
+    };
+    setActiveUser({
+      ...activeUser,
+      messages: [...activeUser.messages, newMessage],
+    });
+    setMessage("");
   };
+  
 
   return (
     <div className="messages m-4">
@@ -132,6 +214,7 @@ export const Messages = () => {
               message={message}
               onInputChange={handleInputChange}
               onSendMessage={handleSendMessage}
+              audioRecordingEnabled
             />
           </>
         ) : (

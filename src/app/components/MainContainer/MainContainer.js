@@ -1,22 +1,58 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { socialMediaData } from "./socialMediaData";
 import "./style.css";
 import { Modal } from "./Modal";
+import { IsLiveChat } from "./IsLiveChat";
+import { useAuth } from "@/app/context/AuthContext";
+import axios from 'axios';
 
 export const MainContainer = () => {
+  const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalIcon, setModalIcon] = useState(null);
+  const [isLiveChat, setIsLiveChat] = useState(false);
+  const [showDisconnectModal, setShowDisconnectModal] = useState(false);
 
   const handleConnectClick = (title, icon) => {
-    setModalTitle(title);
-    setModalIcon(icon);
-    setShowModal(true);
+    if (title === 'Nativetalk Livechat'){
+      setIsLiveChat(true)
+    } else {
+      setModalTitle(title);
+      setModalIcon(icon);
+      setShowModal(true);
+    }
   };
 
   const closeModal = () => {
     setShowModal(false);
+    setShowDisconnectModal(false);
+    setIsLiveChat(false);
   };
+
+  useEffect(() => {
+    const fetchScript = async () => {
+      if (user?.refresh) {
+        try {
+          const response = await axios.get(
+            'http://staging.core.nativetalkcrm.com/api/channels/connected/',
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${user.access}`
+              }
+            }
+          );
+
+          console.log(response.data);
+        } catch (error) {
+          console.error("Failed to fetch connected channels:", error);
+        }
+      }
+    };
+
+    fetchScript();
+  }, [user]);
 
   return (
     <div className="main-container border-l">
@@ -50,11 +86,17 @@ export const MainContainer = () => {
               </div>
             </div>
           ))}
-        </div>
+        </div> 
 
-        <Modal show={showModal} onClose={closeModal} title={`Connect to ${modalTitle}`} icon={<img src={modalIcon} alt={modalTitle} style={{ width: '60px', height: '60px' }} />}>
+        <Modal 
+          show={showModal} 
+          onClose={closeModal} 
+          icon={<img src={modalIcon} alt={modalTitle} style={{ width: '60px', height: '60px' }} />}
+        >
           <p>Details and steps to connect to {modalTitle} go here.</p>
         </Modal>
+
+        {isLiveChat && <IsLiveChat onCancel={closeModal} />}
       </div>
     </div>
   );
