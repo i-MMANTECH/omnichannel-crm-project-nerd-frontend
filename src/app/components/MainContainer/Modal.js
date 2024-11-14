@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import "./modalStyle.css";
 
 export const Modal = ({ show, onClose, title, icon }) => {
-  if (!show) return null;
-
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const handleOverlayClick = (e) => {
@@ -15,6 +13,8 @@ export const Modal = ({ show, onClose, title, icon }) => {
   const togglePasswordVisibility = () => {
     setIsPasswordVisible(!isPasswordVisible); 
   };
+
+  if (!show) return null;
 
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
