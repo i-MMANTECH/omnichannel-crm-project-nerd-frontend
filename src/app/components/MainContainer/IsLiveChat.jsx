@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "@/app/context/AuthContext";
+import copy from "copy-to-clipboard";
 import './IsLiveChat.css';
 
 export const IsLiveChat = ({ onCancel }) => {
@@ -38,16 +39,13 @@ export const IsLiveChat = ({ onCancel }) => {
   }, []);
 
   const formatCodeSnippet = (snippet) => {
-    return snippet.match(/.{1,30}/g).join("\n"); // Breaks the string into chunks of 30 characters
+    return snippet.match(/.{1,30}/g).join("\n"); 
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(codeSnippet)
-      .then(() => {
-        setCopyStatus('Copied!');
-        setTimeout(() => setCopyStatus(''), 2000);
-      })
-      .catch((error) => console.error("Copy failed:", error));
+    copy(codeSnippet);
+    setCopyStatus('Copied!');
+    setTimeout(() => setCopyStatus(''), 2000);
   };
 
   return (
