@@ -18,7 +18,7 @@ const PasswordReset = () => {
         if (email) {
             setIsSubmitting(true);
             try {
-                const response = await axios.post('http://staging.core.nativetalkcrm.com/api/auth/forgot-password/send-otp/', {
+                const response = await axios.post('https://staging.core.nativetalkcrm.com/api/auth/forgot-password/send-otp/', {
                     email: email
                 });
     

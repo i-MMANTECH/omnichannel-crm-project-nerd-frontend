@@ -14,7 +14,7 @@ export const IsLiveChat = ({ onCancel }) => {
       if (user?.refresh) {
         try {
           const response = await axios.post(
-            'http://staging.core.nativetalkcrm.com/api/channels/generate-livechat-script/',
+            'https://staging.core.nativetalkcrm.com/api/channels/generate-livechat-script/',
             {},
             {
               headers: {

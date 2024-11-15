@@ -35,7 +35,7 @@ export const MainContainer = () => {
       if (user?.refresh) {
         try {
           const response = await axios.get(
-            'http://staging.core.nativetalkcrm.com/api/channels/connected/',
+            'https://staging.core.nativetalkcrm.com/api/channels/connected/',
             {
               headers: {
                 'Content-Type': 'application/json',

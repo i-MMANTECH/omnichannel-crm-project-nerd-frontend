@@ -13,7 +13,7 @@ const SuccessPage = () => {
         if (process.env.NODE_ENV !== 'production') {
             router.push('/auth/sign-in');
         } else if (companyUsername) {
-            window.location.href = `http://${companyUsername}.staging.nativetalkcrm.com/auth/sign-in`;
+            window.location.href = `https://${companyUsername}.staging.nativetalkcrm.com/auth/sign-in`;
         } else {
             router.push('/auth/sign-up');
         }

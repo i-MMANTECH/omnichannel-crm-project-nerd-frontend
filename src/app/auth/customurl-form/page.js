@@ -37,7 +37,7 @@ const CustomUrlForm = () => {
 
         try {
             const response = await axios.post(
-                `http://staging.core.nativetalkcrm.com/api/auth/create-account/register/`,
+                `https://staging.core.nativetalkcrm.com/api/auth/create-account/register/`,
                 {
                     ...userData,
                     company_description: 'Voip',
