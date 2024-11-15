@@ -14,7 +14,7 @@ const SuccessPage = () => {
     useEffect(() => {
         const storedData = sessionStorage.getItem('signUpData');
         if (!storedData) {
-            router.push('/auth/sign-up');
+            router.push('/auth/sign-in');
         } 
     }, []);
 
