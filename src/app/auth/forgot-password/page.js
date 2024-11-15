@@ -57,7 +57,7 @@ const ForgotPassword = () => {
         setIsSubmitting(true);
 
         try {
-            await axios.post('http://staging.core.nativetalkcrm.com/api/auth/forgot-password/change-password/', {
+            await axios.post('https://staging.core.nativetalkcrm.com/api/auth/forgot-password/change-password/', {
                 email: userData.email,
                 new_password: password
             });

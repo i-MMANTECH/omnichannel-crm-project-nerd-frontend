@@ -34,7 +34,7 @@ const SignUp = () => {
     
         try {
             const response = await axios.post(
-                'http://staging.core.nativetalkcrm.com/api/auth/create-account/send-otp/',
+                'https://staging.core.nativetalkcrm.com/api/auth/create-account/send-otp/',
                 { email: email }
             );
     

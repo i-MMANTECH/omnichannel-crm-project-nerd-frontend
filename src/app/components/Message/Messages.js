@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { faInstagram } from "@fortawesome/free-brands-svg-icons";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
@@ -177,11 +177,38 @@ export const Messages = () => {
   const [message, setMessage] = useState("");
   const [activeUser, setActiveUser] = useState(null);
   const { user: currentUser } = useAuth();
+  const [socket, setSocket] = useState(null);
 
   const usersWithUserIds = originalUsers.map((user) => ({
     ...user,
     messages: user.messages.map((msg) => ({...msg, userId: user.id})),
   }));
+
+  useEffect(() => {
+    const ws = new WebSocket("ws://staging.core.nativetalkcrm.com:8001/ws/chat/");
+    setSocket(ws);
+
+    ws.onopen = () => {
+      console.log("WebSocket connected");
+    };
+
+    ws.onmessage = (event) => {
+      console.log("Message received:", event.data);
+      setMessages((prev) => [...prev, event.data]);
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket disconnected");
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   const handleInputChange = (e) => {
     setMessage(e.target.value);

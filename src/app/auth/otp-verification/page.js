@@ -75,7 +75,7 @@ const OtpVerification = () => {
         if (verificationCode.length === 6 && userData?.email) {
             setIsSubmitting(true);
             try {
-                const response = await axios.post(`http://staging.core.nativetalkcrm.com/api/auth/forgot-password/verify-otp/`, {
+                const response = await axios.post(`https://staging.core.nativetalkcrm.com/api/auth/forgot-password/verify-otp/`, {
                     email: userData.email,
                     otp: verificationCode
                 });

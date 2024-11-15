@@ -52,7 +52,7 @@ const SignIn = () => {
         setError('');
 
         try {
-            const response = await axios.post(`http://staging.core.nativetalkcrm.com/api/auth/signin/`, {
+            const response = await axios.post(`https://staging.core.nativetalkcrm.com/api/auth/signin/`, {
                 email,
                 password,
             }, {
