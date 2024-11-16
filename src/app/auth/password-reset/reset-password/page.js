@@ -3,6 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import Footer from '@/app/components/Footer';
+import { useError } from '@/context/ErrorContext';
+import { useApi } from '@/services/axiosConfig';
+import { toast } from 'react-toastify';
+import Image from 'next/image';
+
 
 const ForgotPassword = () => {
     const router = useRouter();
@@ -13,7 +19,8 @@ const ForgotPassword = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [passwordError, setPasswordError] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { axiosInstance, loading } = useApi();
+    const { handleApiError } = useError();
 
     useEffect(() => {
         const parsedData = sessionStorage.getItem('resetPwdData');
@@ -54,18 +61,14 @@ const ForgotPassword = () => {
             return;
         }
 
-        setIsSubmitting(true);
-
         try {
-            await axios.post('https://staging.core.nativetalkcrm.com/api/auth/forgot-password/change-password/', {
+            await axiosInstance.post('/auth/forgot-password/change-password/', {
                 email: userData.email,
                 new_password: password
             });
-            setIsSubmitting(false);
-            router.push('/auth/success-page');
+            router.push('success');
         } catch (error) {
-            setIsSubmitting(false);
-            setPasswordError("Failed to change password. Please try again.");
+            handleApiError(error);
         }
     };
 
@@ -110,18 +113,20 @@ const ForgotPassword = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center h-screen p-8">
-            <div className="w-full max-w-md text-center">
-                <div className="flex justify-center mb-4">
-                    <img src='/assets/logo.png' alt="Logo" />
+        <div className="flex flex-col min-h-screen items-center items-center justify-center" style={{ height: "100%" }}>
+            <div className="w-full max-w-md  mt-[100px]">
+                <div className="flex justify-center mb-8">
+                    <img src="../../assets/logo.png" alt="Logo" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-3">Reset your password</h2>
-                <p className="text-gray-500 mb-6">
-                Set your new password with minimum 8 characters with a combination of letters and numbers
+                <h2 className="text-2xl font-bold text-gray-800 text-center dark:text-gray-200  mb-2">
+                    Reset your password
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400 text-center mb-8">
+                    Set your new password with minimum 8 characters with a combination of letters and numbers
                 </p>
 
                 <div className="mb-4">
-                    <label className="block text-gray-700 font-semibold mb-1">Password</label>
+                    <label htmlFor="confirm_password" className="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Password <span className="text-red-500">*</span></label>
                     <div className="relative">
                         <input
                             type={showPassword ? 'text' : 'password'}
@@ -133,7 +138,12 @@ const ForgotPassword = () => {
                             onClick={togglePasswordVisibility}
                             className="absolute inset-y-0 right-0 px-3 text-gray-600"
                         >
-                            {showPassword ? '🙈' : '👁️'}
+                            <Image
+                                src={showPassword ? "/assets/show-password.svg" : "/assets/hide-password.svg"}
+                                alt="Show Password"
+                                width={24}
+                                height={24}
+                                />
                         </button>
                     </div>
                     <div className="flex items-center mt-2 space-x-1">
@@ -150,7 +160,7 @@ const ForgotPassword = () => {
                 </div>
 
                 <div className="mb-4">
-                    <label className="block text-gray-700 font-semibold mb-1">Confirm Password</label>
+                    <label htmlFor="confirm_password" className="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Confirm Password <span className="text-red-500">*</span></label>
                     <div className="relative">
                         <input
                             type={showConfirmPassword ? 'text' : 'password'}
@@ -162,7 +172,12 @@ const ForgotPassword = () => {
                             onClick={toggleConfirmPasswordVisibility}
                             className="absolute inset-y-0 right-0 px-3 text-gray-600"
                         >
-                            {showConfirmPassword ? '🙈' : '👁️'}
+                            <Image
+                                src={showConfirmPassword ? "/assets/show-password.svg" : "/assets/hide-password.svg"}
+                                alt="Show Password"
+                                width={24}
+                                height={24}
+                                />
                         </button>
                     </div>
                 </div>
@@ -175,18 +190,16 @@ const ForgotPassword = () => {
 
                 <button
                     onClick={handleSubmit}
-                    className={`w-full text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${isFormValid ? 'bg-[#3EBF0F]' : 'bg-gray-300 cursor-not-allowed'}`}
-                    disabled={!isFormValid || isSubmitting}
+                    className={`w-full mt-5 text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${isFormValid ? 'bg-[#3EBF0F]' : 'bg-gray-300 cursor-not-allowed'}`}
+                    disabled={!isFormValid || loading}
                 >
-                    {isSubmitting ? "Processing..." : "Proceed"}
+                    Proceed
                 </button>
             </div>
 
-            <p className="text-xs text-gray-400 mt-6 pt-6">
-                © 2024 NativeTalk Technologies. All rights reserved. 
-                <a href="#" className="text-[#111827] hover:underline">Terms & Conditions</a> | 
-                <a href="#" className="text-[#111827] hover:underline">Privacy Policy</a>
-            </p>
+            <div className="mt-auto text-center mb-5">
+                <Footer />
+            </div>
         </div>
     );
 };

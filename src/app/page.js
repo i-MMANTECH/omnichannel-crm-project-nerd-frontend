@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 const Page = () => {
     const { user } = useContext(AuthContext); 
     const router = useRouter();
-  
+ 
 
     useEffect(() => {
         if (user) {

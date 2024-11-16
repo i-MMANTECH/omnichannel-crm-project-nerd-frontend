@@ -2,7 +2,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
+import Footer from '@/app/components/Footer';
+import { useError } from '@/context/ErrorContext';
+import { useApi } from '@/services/axiosConfig';
+import { toast } from 'react-toastify';
+import { formatTime } from '@/utils/timeUtils';
+
 
 const OtpVerification = () => {
     const router = useRouter();
@@ -10,8 +15,8 @@ const OtpVerification = () => {
     const [activeInput, setActiveInput] = useState(0);
     const [userData, setUserData] = useState(null);
     const [timer, setTimer] = useState(59);
-    const [errorMessage, setErrorMessage] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { axiosInstance, loading } = useApi();
+    const { handleApiError } = useError();
     const inputRefs = useRef([]);
 
     useEffect(() => {
@@ -73,26 +78,23 @@ const OtpVerification = () => {
     const handleSubmit = async () => {
         const verificationCode = code.join('');
         if (verificationCode.length === 6 && userData?.email) {
-            setIsSubmitting(true);
             try {
-                const response = await axios.post(`https://staging.core.nativetalkcrm.com/api/auth/forgot-password/verify-otp/`, {
+                const response = await axiosInstance.post(`/auth/forgot-password/verify-otp/`, {
                     email: userData.email,
                     otp: verificationCode
                 });
                 if (response.data.status ) {
-                    router.push("/auth/forgot-password");
+                    router.push("reset-password");
                 } else {
                     setCode(['', '', '', '', '', '']);
-                    setErrorMessage(response.data.message);
+                    toast.error(response.data.message);
                 }
             } catch (error) {
                 setCode(['', '', '', '', '', '']);
-                setErrorMessage(error.response?.data?.message || "An error occurred. Please try again.");
-            } finally {
-                setIsSubmitting(false);
+                handleApiError(error)
             }
         } else {
-            setErrorMessage("Please enter a 6-digit code.");
+            toast.error("Please enter a 6-digit code.");
         }
     };
     
@@ -100,33 +102,34 @@ const OtpVerification = () => {
     const handleResendCode = async () => {
         if (timer === 0 && userData?.email) {
             try {
-                const response = await axios.post(
-                    'http://staging.core.nativetalkcrm.com/api/auth/forgot-password/send-otp/',
+                const response = await axiosInstance.post('/auth/forgot-password/send-otp/',
                     { email: userData.email }
                 );
                 if (response.data.success) {
                     setTimer(59);
-                    setErrorMessage(null);
                 } else {
-                    setErrorMessage(response.data.message || "Failed to resend OTP. Please try again.");
+                    toast.error(response.data.message || "Failed to resend OTP. Please try again.");
                 }
             } catch (error) {
-                setErrorMessage(error.response?.data?.message || "An error occurred. Please try again.");
+                handleApiError(error);
             }
         }
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center" style={{ height: "100vh" }}>
-            <div className="w-full max-w-sm p-8">
-                <h2 className="text-2xl font-bold text-left text-gray-800 mt-6 mb-2">
+        <div className="flex flex-col min-h-screen items-center justify-center" style={{ height: "100%" }}>
+            <div className="w-full max-w-sm p-8 mt-[100px]">
+                <div className="flex justify-center mb-8">
+                    <img src="../../assets/logo.png" alt="Logo" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 text-center dark:text-gray-200  mb-2">
                     Confirm email address
                 </h2>
-                <p className="text-left text-gray-600 mb-6">
+                <p className="text-gray-500 dark:text-gray-400 text-center mb-8">
                     Please enter the 6-digit code we sent to <br /> {userData?.email ? maskEmail(userData.email) : "your email"}
                 </p>
 
-                <div className="flex justify-center mb-6" onPaste={handlePaste}>
+                <div className="flex justify-center mb-6 mt-8" onPaste={handlePaste}>
                     {code.map((digit, index) => (
                         <input
                             key={index}
@@ -142,26 +145,22 @@ const OtpVerification = () => {
                     ))}
                 </div>
 
-                {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
-
                 <button
                     onClick={handleSubmit}
-                    className={`w-full bg-[#3EBF0F] text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`w-full bg-[#3EBF0F] mt-5 text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     style={{ width: 300 }}
-                    disabled={isSubmitting}
+                    disabled={loading}
                 >
-                    {isSubmitting ? 'Processing...' : 'Continue'}
+                    Continue
                 </button>
 
                 <p className="text-center text-gray-500 mt-4">
-                    Resend code in {timer > 0 ? timer : <span onClick={handleResendCode} className="text-blue-500 cursor-pointer">Resend now</span>}
+                    Resend code in {timer > 0 ? <span className='font-bold'>{formatTime(timer)}</span> : <span onClick={handleResendCode} className="text-blue-500 cursor-pointer">Resend now</span>}
                 </p>
 
-                <div className="text-center mt-auto">
-                    <p className="text-xs text-gray-400">
-                        © 2024 NativeTalk Technologies. All rights reserved. <a href="#" className="text-[#111827] hover:underline">Terms & Conditions</a> | <a href="#" className="text-[#111827] hover:underline">Privacy Policy</a>
-                    </p>
-                </div>
+            </div>
+            <div className="mt-auto text-center mb-5">
+                <Footer />
             </div>
         </div>
     );

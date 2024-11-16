@@ -40,8 +40,14 @@ export const Modal = ({ show, onClose, title, icon }) => {
               className="show-password-btn"
               onClick={togglePasswordVisibility}
             >
-              <span role="img" aria-label={isPasswordVisible ? "monkey-icon" : "eye-icon"}>
-                {isPasswordVisible ? "🙈" : "👁️"}
+              <span role="img" aria-label={isPasswordVisible ? "show-password" : "hide-password"}>
+              <Image
+                  src={isPasswordVisible ? "/assets/show-password.svg" :"/assets/hide-password.svg"}
+                  alt="Show Password"
+                  width={24}
+                  height={24}
+                />
+                
               </span>
             </button>
           </div>
