@@ -1,28 +1,23 @@
 "use client";
 
-import React, { useState, useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import axios from "axios";
 import { useRouter } from 'next/navigation';
+import { useError } from '@/context/ErrorContext';
+import { useApi } from '@/services/axiosConfig';
+import { getUserDomain } from '@/utils/getUserDomain';
+import Footer from '@/app/components/Footer';
+import Image from 'next/image';
 
 const SignIn = () => {
     const router = useRouter();
+    const { axiosInstance, loading } = useApi();
+    const { handleApiError } = useError();
     const { user, login } = useContext(AuthContext);
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-    const getUserDomain = () => {
-        if (process.env.NODE_ENV === 'development') {
-            return 'Fueledbyramenco';
-        } else {
-            const subdomain = window.location.hostname.split('.')[0];
-            return subdomain;
-        }
-    };
 
     useEffect(() => {
         const subdomain = getUserDomain();
@@ -48,24 +43,17 @@ const SignIn = () => {
 
     const handleSignIn = async (event) => {
         event.preventDefault();
-        setLoading(true);
-        setError('');
 
         try {
-            const response = await axios.post(`https://staging.core.nativetalkcrm.com/api/auth/signin/`, {
+            const response = await axiosInstance.post('/auth/signin/', {
                 email,
                 password,
-            }, {
-                headers: {
-                    'User-Domain': getUserDomain(),
-                }
             });
+
             login(response.data);
             router.push('/');
         } catch (error) {
-            setError("Login failed. Please check your credentials.");
-            setLoading(false);
-            console.error("Login failed:", error);
+            handleApiError(error);            
         }
     };
 
@@ -94,32 +82,34 @@ const SignIn = () => {
                 </div>
             </div>
 
-            <div className="w-1/2 flex items-center justify-center p-8">
-                <div className="w-full max-w-md">
-                    <h2 className="text-2xl font-bold text-gray-800 text-left mb-2">Welcome Back</h2>
-                    <p className="text-gray-500 text-left mb-6">Enter your details to login</p>
-                    {error && <p className="text-red-500 text-center">{error}</p>}
+            <div className="w-1/2 flex flex-col items-center justify-center p-8">
+                <div className="w-full max-w-md mt-[100px]">
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 text-left mb-2">Welcome Back</h2>
+                    <p className="text-gray-500 dark:text-gray-400 text-left mb-6">Enter your details to login</p>
                     <form onSubmit={handleSignIn}>
                         <div className="mb-4">
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                                Email Address
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Email Address <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="email"
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#3EBF0F] focus:border-[#3EBF0F] sm:text-sm"
+                                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-300 focus:outline-none focus:ring-[#3EBF0F] focus:border-[#3EBF0F] sm:text-sm"
                                 id="email"
-                                placeholder="Enter email"
+                                placeholder="address@email.com"
                                 value={email}
                                 onChange={handleInputChange}
                                 required
                             />
                         </div>
                         <div className="relative">
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Password <span className="text-red-500">*</span>
+                            </label>
                             <input
                                 type={showConfirmPassword ? 'text' : 'password'}
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#3EBF0F] focus:border-[#3EBF0F] sm:text-sm"
+                                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-300 focus:outline-none focus:ring-[#3EBF0F] focus:border-[#3EBF0F] sm:text-sm"
                                 id="password"
-                                placeholder="Enter password"
+                                placeholder="*********"
                                 value={password}
                                 onChange={handleInputChange}
                                 required
@@ -128,24 +118,30 @@ const SignIn = () => {
                                 type="button"
                                 className="absolute inset-y-0 right-0 flex items-center px-3"
                                 onClick={handleTogglePasswordVisibility}
-                                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                                aria-label={showConfirmPassword ? "hide password" : "show password"}
                             >
-                                {showConfirmPassword ? '🙈' : '👁️'}
+                                <Image
+                                    src={showConfirmPassword ? "/assets/show-password.svg" : "/assets/hide-password.svg"}
+                                    alt="Show Password"
+                                    width={24}
+                                    height={24}
+                                    />
                             </button>
                         </div>
                         <div className="flex items-center justify-between mb-4 mt-3">
                             <label className="flex items-center">
                                 <input type="checkbox" className="form-checkbox text-[#3EBF0F]" />
-                                <span className="ml-2 text-sm text-gray-600">Remember Me</span>
+                                <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Remember Me</span>
                             </label>
                             <a href="/auth/password-reset" className="text-sm text-[#3EBF0F] hover:underline">Forgot Password?</a>
                         </div>
                         <button
                             type="submit"
-                            className={`w-full py-2 rounded-md text-white focus:outline-none ${isFormValid ? 'bg-[#3EBF0F] hover:bg-[#34a60e]' : 'bg-[#EEEFF2] cursor-not-allowed'}`}
+                            className={`w-full py-2 rounded-md text-white focus:outline-none 
+                                ${isFormValid ? 'bg-[#3EBF0F] hover:bg-[#34a60e]' : 'bg-[#EEEFF2] cursor-not-allowed text-gray-500 disabled:text-gray-400'}`}
                             disabled={!isFormValid || loading}
                         >
-                            {loading ? "Logging in..." : "Login"}
+                            Login
                         </button>
                         <div className="flex items-center my-4">
                             <hr className="flex-grow border-gray-300" />
@@ -161,15 +157,14 @@ const SignIn = () => {
                         </button>
                     </form>
                     <div className="text-center mt-6">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                             You're new here? <a href="/auth/sign-up" className="text-[#3EBF0F] hover:underline">Create Account</a>
                         </p>
                     </div>
-                    <div style={{ width: 500 }} className="text-xs mt-6 pt-6">
-                        <p className="text-xs text-gray-400 mt-6 pt-5">
-                            © 2024 NativeTalk Technologies. All rights reserved. <a href="#" className="text-[#111827] hover:underline">Terms & Conditions</a> | <a href="#" className="text-[#111827] hover:underline">Privacy Policy</a>
-                        </p>
-                    </div>
+                    
+                </div>
+                <div style={{ width: 500 }} className="text-xs mt-auto pt-6">
+                    <Footer />
                 </div>
             </div>
         </div>

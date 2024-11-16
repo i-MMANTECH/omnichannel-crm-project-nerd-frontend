@@ -2,19 +2,22 @@
 
 import React, { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { AuthContext } from '../../context/AuthContext';
+import Footer from '@/app/components/Footer';
+import { useApi } from '@/services/axiosConfig';
+import { useError } from '@/context/ErrorContext';
+import { toast } from 'react-toastify';
 
 const SignUp = () => {
     const router = useRouter();
+    const { axiosInstance, loading } = useApi();
     const [company_name, setCompanyName] = useState('');
     const [email, setEmail] = useState('');
     const [phone_number, setPhoneNumber] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
     const { user } = useContext(AuthContext);
+    const { handleApiError } = useError();
 
     useEffect(() => {
         if (user) {
@@ -26,43 +29,33 @@ const SignUp = () => {
         event.preventDefault();
     
         if (!company_name || !email || !phone_number) {
-            setError("Please fill in all fields");
+            toast.dark(errorMessage);
             return;
         }
-    
-        setLoading(true);
-    
+        
         try {
-            const response = await axios.post(
-                'https://staging.core.nativetalkcrm.com/api/auth/create-account/send-otp/',
-                { email: email }
+            const response = await axiosInstance.post('/auth/create-account/send-otp/', 
+            {
+                email
+            });
+            
+            sessionStorage.setItem('signUpData', JSON.stringify({ company_name, email, phone_number }));
+            sessionStorage.setItem(
+                'signUpData',
+                JSON.stringify({ company_name, email, phone_number })
             );
-    
-            if (response.status === 200) {
-                sessionStorage.setItem('signUpData', JSON.stringify({ company_name, email, phone_number }));
-                sessionStorage.setItem(
-                    'signUpData',
-                    JSON.stringify({ company_name, email, phone_number })
-                );
 
-                router.push("/auth/email-confirmation");
-            } else {
-                setError("Failed to send OTP. Please try again.");
-            }
-        } catch (err) {
-            console.error("Error sending OTP:", err);
-            const errorMessage = err.response?.data?.error || "An error occurred. Please try again later.";
-            setError(errorMessage);
-        } finally {
-            setLoading(false);
-        }
+            router.push("sign-up/verify-otp");
+        } catch (error) {
+            handleApiError(error);
+        } 
     };
     
 
     const allFieldsFilled = company_name && email && phone_number;
 
     return (
-        <div className="flex" style={{ height: "100%" }}>
+        <div className="flex min-h-screen" style={{ height: '100%', overflow: 'hidden' }}>
             <div className="w-1/2 flex flex-col">
                 <div className="flex-grow">
                     <img
@@ -82,14 +75,14 @@ const SignUp = () => {
                 </div>
             </div>
 
-            <div className="w-1/2 flex items-center justify-center p-8">
-                <div className="w-full max-w-md">
-                    <h2 className="text-2xl font-bold text-gray-800 text-left mb-3">Manage your employees easily! </h2>
-                    <p className="text-gray-500 text-left mb-6">Enter your details to login!</p>
+            <div className="w-1/2 flex flex-col items-center justify-center p-8">
+                <div className="w-full max-w-md mt-[100px]">
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 text-left mb-2">Manage your employees easily! </h2>
+                    <p className="text-gray-500 dark:text-gray-400 text-left mb-6">Get started for free today!</p>
                     
                     <form onSubmit={handleSignUp}>
                         <div className="mb-4">
-                            <label htmlFor="company_name" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="company_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Company Name <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -104,7 +97,8 @@ const SignUp = () => {
                         </div>
                         
                         <div className="mb-4">
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                            
+                            <label htmlFor="email"  className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Work Email <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -119,7 +113,7 @@ const SignUp = () => {
                         </div>
                         
                         <div className="mb-4">
-                            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="phoneNumber"  className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Phone Number <span className="text-red-500">*</span>
                             </label>
                             <PhoneInput
@@ -132,27 +126,24 @@ const SignUp = () => {
                             />
                         </div>
 
-                        {error && <p className="text-red-500">{error}</p>}
-
                         <button
                             type="submit"
-                            className={`w-full text-white py-2 rounded-md focus:outline-none ${allFieldsFilled ? 'bg-[#3EBF0F] hover:bg-green-700' : 'bg-[#EEEFF2]'}`}
+                            className={`w-full py-2 rounded-md text-white focus:outline-none mt-5
+                                ${allFieldsFilled ? 'bg-[#3EBF0F] hover:bg-[#34a60e]' : 'bg-[#EEEFF2] cursor-not-allowed text-gray-500 disabled:text-gray-400'}`}
                             disabled={!allFieldsFilled || loading}
                         >
-                            {loading ? "Processing..." : "Continue"}
+                            Continue
                         </button>
                     </form>
 
-                     <div className="text-left mt-6">
+                    <div className="text-left mt-6">
                         <p className="text-sm text-gray-600">
                             Already have an account? <a href="/auth/sign-in" className="text-[#3EBF0F] hover:underline">Login Here</a>
                         </p>
                     </div>
-                    <div style={{ width: 500, marginBottom: -90 }} className="text-xs mt-6 pt-6">
-                        <p className="text-xs text-gray-400 text-left">
-                            © 2024 NativeTalk Technologies. All rights reserved. <a href="#" className="text-[#111827] hover:underline">Terms & Conditions</a> | <a href="#" className="text-[#111827] hover:underline">Privacy Policy</a>
-                        </p>
-                    </div>
+                </div>
+                <div style={{ width: 500 }} className="text-xs mt-auto pt-6">
+                    <Footer />
                 </div>
             </div>
         </div>

@@ -3,6 +3,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import Footer from '@/app/components/Footer';
+import { useError } from '@/context/ErrorContext';
+import { useApi } from '@/services/axiosConfig';
+import { toast } from 'react-toastify';
+
 
 const EmailConfirmation = () => {
     const router = useRouter();
@@ -11,7 +16,8 @@ const EmailConfirmation = () => {
     const [userData, setUserData] = useState(null);
     const [timer, setTimer] = useState(59);
     const [errorMessage, setErrorMessage] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { axiosInstance, loading } = useApi();
+    const { handleApiError } = useError();
     const inputRefs = useRef([]);
 
     useEffect(() => {
@@ -33,6 +39,12 @@ const EmailConfirmation = () => {
     const maskEmail = (email) => {
         const [localPart, domain] = email.split('@');
         return `${localPart.slice(0, 3)}${'*'.repeat(localPart.length - 3)}@${domain}`;
+    };
+
+    const formatTime = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
     };
 
     const handleChange = (value, index) => {
@@ -73,49 +85,45 @@ const EmailConfirmation = () => {
     const handleSubmit = async () => {
         const verificationCode = code.join('');
         if (verificationCode.length === 6 && userData?.email) {
-            setIsSubmitting(true);
             try {
-                const response = await axios.post(`https://staging.core.nativetalkcrm.com/api/auth/create-account/verify-otp/`, {
+                const response = await axiosInstance.post(`/auth/create-account/verify-otp/`, {
                     email: userData.email,
                     otp: verificationCode
                 });
                 if (response.data.success) {
-                    router.push("/auth/password-create");
+                    router.push("create-password");
                 } else {
-                    setErrorMessage(response.data.message);
+                    toast.error((response.data.message || "Failed to resend OTP. Please try again."))
                 }
             } catch (error) {
                 setCode(['', '', '', '', '', '']);
-                setErrorMessage(error.response?.data?.message || "An error occurred. Please try again.");
-            } finally {
-                setIsSubmitting(false); 
+                handleApiError(error)
             }
         } else {
-            setErrorMessage("Please enter a 6-digit code.");
+            toast.dark("Please enter a 6-digit code.");
         }
     };
 
     const handleResendCode = async () => {
         if (timer === 0 && userData?.email) {
             try {
-                const response = await axios.post(
-                    'http://staging.core.nativetalkcrm.com/api/auth/create-account/send-otp/',
+                const response = await axiosInstance.post(
+                    '/auth/create-account/send-otp/',
                     { email: userData.email }
                 );
                 if (response.data.success) {
                     setTimer(59);
-                    setErrorMessage(null);
                 } else {
-                    setErrorMessage(response.data.message || "Failed to resend OTP. Please try again.");
+                    toast.error((response.data.message || "Failed to resend OTP. Please try again."))
                 }
             } catch (error) {
-                setErrorMessage(error.response?.data?.message || "An error occurred. Please try again.");
+                handleApiError(error);
             }
         }
     };
 
     return (
-        <div className="flex min-h-screen flex-col md:flex-row" style={{ height: "100%" }}>
+        <div className="flex min-h-screen" style={{ height: '100%', overflow: 'hidden' }}>
             <div className="md:w-1/2 flex flex-col">
                 <div className="flex-grow">
                     <img
@@ -135,53 +143,54 @@ const EmailConfirmation = () => {
                 </div>
             </div>
 
-            <div style={{ marginTop: '100px' }} className="md:w-1/2 w-full flex flex-col items-center justify-center mt-6 pt-6 p-8">
-                <h2 className="text-2xl font-bold text-left text-gray-800 mt-6 mb-2">
-                    Confirm email address
-                </h2>
-                <p className="text-left text-gray-600 mb-6">
-                    Please enter the 6 digit code we sent to <br /> {userData?.email ? maskEmail(userData.email) : "your email"}
-                </p>
+            <div className="w-1/2 flex flex-col items-center justify-center p-8">
+                <div className='w-full max-w-md mt-[150px]'>
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 text-left mb-2">
+                        Confirm email address
+                    </h2>
+                    <p className="text-gray-500 dark:text-gray-400 text-left mb-8">
+                        Please enter the 6 digit code we sent to <br /> {userData?.email ? maskEmail(userData.email) : "your email"}
+                    </p>
 
-                <div className="flex justify-center mb-6" onPaste={handlePaste}>
-                    {code.map((digit, index) => (
-                        <input
-                            key={index}
-                            type="text"
-                            value={digit}
-                            maxLength={1}
-                            ref={(el) => inputRefs.current[index] = el}
-                            onChange={(e) => handleChange(e.target.value, index)}
-                            onKeyDown={(e) => handleKeyDown(e, index)}
-                            className={`w-10 h-10 border-2 rounded-md text-center text-lg mx-1 ${
-                                activeInput === index ? 'border-green-500' : 'border-gray-300'
-                            } focus:outline-none`}
-                            aria-label="OTP input"
-                        />
-                    ))}
+                    <div className="flex mb-6 mt-8" onPaste={handlePaste}>
+                        {code.map((digit, index) => (
+                            <input
+                                key={index}
+                                type="text"
+                                value={digit}
+                                maxLength={1}
+                                ref={(el) => inputRefs.current[index] = el}
+                                onChange={(e) => handleChange(e.target.value, index)}
+                                onKeyDown={(e) => handleKeyDown(e, index)}
+                                className={`w-10 h-10 border-2 rounded-md text-center text-lg mx-1 ${
+                                    activeInput === index ? 'border-green-500' : 'border-gray-300'
+                                } focus:outline-none`}
+                                aria-label="OTP input"
+                            />
+                        ))}
+                    </div>
+
+                    
+                    <div className='mt-5 w-fit d-flex'>
+                        <button
+                            onClick={handleSubmit}
+                            className={`w-full bg-[#3EBF0F] mt-5  text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${
+                                loading ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                            style={{ width: 300 }}
+                            disabled={loading}
+                        >
+                            Continue
+                        </button>
+
+                        <p className="text-gray-500 dark:text-gray-400 text-center mt-4">
+                            Resend code in {timer > 0 ? <span className='font-bold'>{formatTime(timer)}</span> : <span onClick={handleResendCode} className="text-blue-500 cursor-pointer">Resend now</span>}
+                        </p>
+                    </div>
                 </div>
 
-                {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
-
-                <button
-                    onClick={handleSubmit}
-                    className={`w-full bg-[#3EBF0F] text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${
-                        isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                    style={{ width: 300 }}
-                    disabled={isSubmitting}
-                >
-                    {isSubmitting ? 'Processing...' : 'Continue'}
-                </button>
-
-                <p className="text-center text-gray-500 mt-4">
-                    Resend code in {timer > 0 ? timer : <span onClick={handleResendCode} className="text-blue-500 cursor-pointer">Resend now</span>}
-                </p>
-
-                <div className="text-center mt-auto">
-                    <p className="text-xs text-gray-400">
-                        © 2024 NativeTalk Technologies. All rights reserved. <a href="#" className="text-[#111827] hover:underline">Terms & Conditions</a> | <a href="#" className="text-[#111827] hover:underline">Privacy Policy</a>
-                    </p>
+                <div style={{ width: 500 }} className="text-xs mt-auto pt-6">
+                    <Footer />
                 </div>
             </div>
         </div>

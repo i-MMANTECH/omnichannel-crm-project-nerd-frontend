@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 export const AuthContext = createContext();
 
@@ -12,6 +13,7 @@ export const AuthProvider = ({ children }) => {
     const login = (userData) => {
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
+        toast.success('Login Successful');
     };
 
     const logout = () => {
@@ -55,7 +57,14 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
-        if (storedUser) setUser(JSON.parse(storedUser));
+        if (storedUser) {
+            try {
+                const parsedUser = JSON.parse(storedUser);
+                setUser(parsedUser);
+            } catch (error) {
+                console.error("Error parsing user data from localStorage:", error);
+            }
+        }
 
         const handleStorageChange = () => {
             const storedUser = localStorage.getItem('user');

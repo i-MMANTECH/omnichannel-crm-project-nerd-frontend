@@ -2,17 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Footer from '@/app/components/Footer';
+import Image from 'next/image';
+import NProgress from '@/services/nprogressConfig';
+import { toast } from 'react-toastify';
+
 
 const PasswordCreation = () => {
     const router = useRouter();
+
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordStrength, setPasswordStrength] = useState(0);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [userData, setUserData] = useState(null);
-    const [passwordError, setPasswordError] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         const storedData = sessionStorage.getItem('signUpData');
@@ -38,12 +42,10 @@ const PasswordCreation = () => {
         const value = e.target.value;
         setPassword(value);
         setPasswordStrength(evaluatePasswordStrength(value));
-        setPasswordError('');
     };
 
     const handleConfirmPasswordChange = (e) => {
         setConfirmPassword(e.target.value);
-        setPasswordError('');
     };
 
     const togglePasswordVisibility = () => {
@@ -62,14 +64,18 @@ const PasswordCreation = () => {
     }, [password]);
 
     const handleSubmit = () => {
+        NProgress.setColor('green')    
+        NProgress.start();            
         if (password !== confirmPassword) {
-            setPasswordError("Passwords do not match");
+            NProgress.setColor('red')
+            toast.error("Passwords do not match");
+            NProgress.done();
             return;
         }
-
-        setIsSubmitting(true);
-        sessionStorage.setItem('signUpData', JSON.stringify({ ...userData, password }));
-        router.push('/auth/customurl-form');
+        
+        sessionStorage.setItem('signUpData', JSON.stringify({ ...userData, password }));        
+        router.push('custom-url');
+        NProgress.done();
     };
 
     const getPasswordStrengthColor = () => {
@@ -105,7 +111,7 @@ const PasswordCreation = () => {
     const isFormValid = password.length >= 6 && confirmPassword.length >= 6;
 
     return (
-        <div style={{height: '100%'}} className="flex h-screen overflow-hidden">
+        <div className="flex min-h-screen" style={{ height: '100%', overflow: 'hidden' }}>
             <div className="w-1/2 flex flex-col">
                 <div className="flex-grow">
                     <img
@@ -127,15 +133,15 @@ const PasswordCreation = () => {
                 </div>
             </div>
 
-            <div className="w-1/2 flex flex-col justify-center items-center p-8 overflow-hidden">
-                <div className="w-full max-w-md flex-grow mt-6">
-                    <h2 className="text-2xl font-bold text-gray-800 text-left mb-3 mt-6">Create Your Password</h2>
-                    <p className="text-gray-500 text-left mb-6">
-                        Set a password with at least 6 characters, combining letters and numbers.
-                    </p>
+            <div className="w-1/2 flex flex-col items-center justify-center p-8">
+                <div className="w-full max-w-md flex-grow mt-6 mt-[100px]">
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 text-left mb-2">Create Your Password</h2>
+                    <p className="text-gray-500 dark:text-gray-400 text-left mb-6">Set a password with at least 6 characters, combining letters and numbers.</p>
 
                     <div className="mb-4">
-                        <label className="block text-gray-700 font-semibold mb-1">Password</label>
+                        <label htmlFor="password" className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Password <span className="text-red-500">*</span>
+                        </label>
                         <div className="relative">
                             <input
                                 type={showPassword ? 'text' : 'password'}
@@ -147,7 +153,13 @@ const PasswordCreation = () => {
                                 onClick={togglePasswordVisibility}
                                 className="absolute inset-y-0 right-0 px-3 text-gray-600"
                             >
-                                {showPassword ? '🙈' : '👁️'}
+                                <Image
+                                    src={showPassword ? "/assets/show-password.svg" : "/assets/hide-password.svg"}
+                                    alt="Show Password"
+                                    width={24}
+                                    
+                                    height={24}
+                                    />
                             </button>
                         </div>
                         <div className="flex items-center mt-2 space-x-1">
@@ -169,7 +181,9 @@ const PasswordCreation = () => {
                     </div>
 
                     <div className="mb-4">
-                        <label className="block text-gray-700 font-semibold mb-1">Confirm Password</label>
+                        <label htmlFor="confirm_password" className="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">
+                            Confirm <span className="text-red-500">*</span>
+                        </label>
                         <div className="relative">
                             <input
                                 type={showConfirmPassword ? 'text' : 'password'}
@@ -181,34 +195,29 @@ const PasswordCreation = () => {
                                 onClick={toggleConfirmPasswordVisibility}
                                 className="absolute inset-y-0 right-0 px-3 text-gray-600"
                             >
-                                {showConfirmPassword ? '🙈' : '👁️'}
+                                <Image
+                                    src={showConfirmPassword ? "/assets/show-password.svg" : "/assets/hide-password.svg"}
+                                    alt="Show Password"
+                                    width={24}
+                                    
+                                    height={24}
+                                    />
                             </button>
                         </div>
                     </div>
 
-                    {passwordError && (
-                        <p className="text-red-500 text-sm mb-4">
-                            {passwordError}
-                        </p>
-                    )}
-
                     <button
                         onClick={handleSubmit}
-                        className={`w-full text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${isFormValid ? 'bg-[#3EBF0F]' : 'bg-gray-300 cursor-not-allowed'}`}
-                        disabled={!isFormValid || isSubmitting}
+                        className={`w-full text-white mt-5 py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${isFormValid ? 'bg-[#3EBF0F]' : 'bg-gray-300 cursor-not-allowed'}`}
+                        disabled={!isFormValid}
                     >
-                        {isSubmitting ? "Processing..." : "Continue"}
+                        Continue
                     </button>
                 </div>
-
-                <div style={{ width: 500 }} className="text-center mt-auto pt-6">
-                    <p className="text-xs text-gray-400 mt-6 pt-6">
-                        © 2024 NativeTalk Technologies. All rights reserved. 
-                        <a href="#" className="text-[#111827] hover:underline">Terms & Conditions</a> | 
-                        <a href="#" className="text-[#111827] hover:underline">Privacy Policy</a>
-                    </p>
+                <div style={{ width: 500 }} className="text-xs mt-auto pt-6">
+                    <Footer />
                 </div>
-            </div>
+            </div>      
         </div>
     );
 };

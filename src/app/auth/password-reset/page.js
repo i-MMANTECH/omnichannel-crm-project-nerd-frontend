@@ -2,13 +2,16 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
+import { useError } from '@/context/ErrorContext';
+import { useApi } from '@/services/axiosConfig';
+import { toast } from 'react-toastify';
+import Footer from '@/app/components/Footer';
 
 const PasswordReset = () => {
     const router = useRouter();
+    const { axiosInstance, loading } = useApi();
+    const { handleApiError } = useError();
     const [email, setEmail] = useState('');
-    const [errorMessage, setErrorMessage] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleChange = (e) => {
         setEmail(e.target.value);
@@ -16,64 +19,62 @@ const PasswordReset = () => {
 
     const handleSubmit = async () => {
         if (email) {
-            setIsSubmitting(true);
             try {
-                const response = await axios.post('https://staging.core.nativetalkcrm.com/api/auth/forgot-password/send-otp/', {
+                const response = await axiosInstance.post('/auth/forgot-password/send-otp/', {
                     email: email
                 });
     
                 if (response.data.success) {
                     sessionStorage.setItem('resetPwdData', JSON.stringify({ email }));
-                    router.push("/auth/otp-verification");
+                    router.push("password-reset/verify-otp");
                 } else {
-                    setErrorMessage(response.data.message);
+                    toast.error(response.data.message);
                 }
             } catch (error) {
-                setErrorMessage(error.response?.data?.message || "An error occurred. Please try again.");
-            } finally {
-                setIsSubmitting(false);
-            }
+                handleApiError(error);
+            } 
         } else {
-            setErrorMessage("Please enter your email address.");
+            toast.error("Please enter your email address.");
         }
     };
     
 
     return (
-        <div style={{ height: '100vh' }} className="flex min-h-screen flex-col items-center justify-center bg-white">
-            <div className="flex min-h-screen items-center justify-center">
-                <div className="w-full max-w-md p-8 bg-white">
-                    <div className="flex justify-center mb-4">
+        <div style={{ height: '100%', overflow: 'hidden' }} className="flex min-h-screen flex-col items-center justify-center">
+            <div className="flex items-center justify-center mt-[100px]">
+                <div className="w-full max-w-md p-8">
+                    <div className="flex justify-center mb-8">
                         <img src="../../assets/logo.png" alt="Logo" />
                     </div>
-                    <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
+                    <h2 className="text-2xl font-bold text-gray-800 text-center dark:text-gray-200  mb-2">
                         Forgot Password
                     </h2>
-                    <p className="text-center text-gray-600 mb-6">
+                    <p className="text-gray-500 dark:text-gray-400 text-center mb-6">
                         Enter your email address below, we'll send you an OTP
                     </p>
 
                     <div className="mb-4">
+                        <label htmlFor="email" className="block text-sm mb-2 font-medium text-gray-700 dark:text-gray-300">
+                            Email Address <span className="text-red-500">*</span>
+                        </label>
                         <input
                             type="email"
                             value={email}
                             onChange={handleChange}
-                            className="w-full border border-gray-300 rounded-md p-2 text-lg focus:outline-none focus:ring focus:ring-[#3EBF0F]"
-                            placeholder="Email Address"
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-300 focus:outline-none focus:ring-[#3EBF0F] focus:border-[#3EBF0F] sm:text-sm"
+                            placeholder="mycompany@email.com"
                         />
                     </div>
 
-                    {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
-
                     <button
                         onClick={handleSubmit}
-                        className={`w-full bg-[#3EBF0F] text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        disabled={isSubmitting}
+                        className={`w-full mt-5 bg-[#3EBF0F] text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={loading}
                     >
-                        {isSubmitting ? 'Processing...' : 'Proceed'}
+                        Proceed
                     </button>
 
-                    <div className="text-center mt-4">
+                    <div className="text-center mt-5">
                         <a href="/auth/sign-in" className="text-[#3EBF0F] hover:underline">
                             Back to login
                         </a>
@@ -81,12 +82,8 @@ const PasswordReset = () => {
                 </div>
             </div>
 
-            <div className="mt-auto text-center">
-                <p className="text-xs text-gray-400">
-                    © 2024 NativeTalk Technologies. All rights reserved.
-                    <a href="#" className="text-[#111827] hover:underline"> Terms & Conditions</a> | 
-                    <a href="#" className="text-[#111827] hover:underline"> Privacy Policy</a>
-                </p>
+            <div className="mt-auto text-center mb-5">
+                <Footer />
             </div>
         </div>
     );
