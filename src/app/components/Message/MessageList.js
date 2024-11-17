@@ -24,7 +24,12 @@ const MessageList = ({ activeUser, currentUserId }) => {
               {msg.text && <p style={{ whiteSpace: "pre-wrap" }}>{msg.text}</p>}
               {msg.image && (
                 <div className="message-image">
-                  <img src={msg.image} alt="Attachment" className="image-message" />
+                  <Image src={msg.image}
+                            alt="Attachment"
+                            className="image-message"
+                            width={100}
+                            height={100}
+                            />
                 </div>
               )}
               {msg.audio && (

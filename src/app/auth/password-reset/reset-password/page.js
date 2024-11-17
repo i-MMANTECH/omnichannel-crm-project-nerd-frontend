@@ -116,7 +116,11 @@ const ForgotPassword = () => {
         <div className="flex flex-col min-h-screen items-center items-center justify-center" style={{ height: "100%" }}>
             <div className="w-full max-w-md  mt-[100px]">
                 <div className="flex justify-center mb-8">
-                    <img src="../../assets/logo.png" alt="Logo" />
+                    <Image src="/assets/nativetalk-logo.svg" 
+                            alt="Logo" 
+                            width={100}
+                            height={100}
+                            />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 text-center dark:text-gray-200  mb-2">
                     Reset your password

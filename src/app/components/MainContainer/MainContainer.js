@@ -3,6 +3,8 @@ import { socialMediaData } from "./socialMediaData";
 import "./style.css";
 import { Modal } from "./Modal";
 import { IsLiveChat } from "./IsLiveChat";
+import Image from "next/image";
+
 
 export const MainContainer = () => {
   const [showModal, setShowModal] = useState(false);
@@ -37,7 +39,10 @@ export const MainContainer = () => {
             <div key={media.id} className="link-account">
               <div className="name">
                 <div className="icon">
-                  <img src={media.icon} alt={media.title} />
+                  <Image src={media.icon} alt={media.title}
+                    width={50}
+                    height={50}
+            />
                 </div>
                 <div className="text">
                   <div className="title">{media.title}</div>
@@ -64,7 +69,13 @@ export const MainContainer = () => {
         <Modal 
           show={showModal} 
           onClose={closeModal} 
-          icon={<img src={modalIcon} alt={modalTitle} style={{ width: '60px', height: '60px' }} />}
+          icon={
+            <Image src={modalIcon} alt={modalTitle}
+            width={60}
+            height={60}
+            />
+            
+          }
         >
           <p>Details and steps to connect to {modalTitle} go here.</p>
         </Modal>

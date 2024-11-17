@@ -46,11 +46,17 @@ const SuccessPage = () => {
     return (
         <div className="min-h-screen flex flex-col justify-center items-center">
             <div className="mb-8">
-                <img src={'../../assets/logo.png'} alt="Native Talk Logo" className="h-8" />
+                    <Image src='/assets/nativetalk-logo.svg' alt="Logo"
+                    width={100}
+                    height={100}
+                    />
             </div>
 
             <div className="relative top-7 mt-2">
-                <img src={'../../assets/checkmark.png'} alt="Success Checkmark" className="" />
+                <Image src={'../../assets/checkmark.png'} alt="Success Checkmark"
+                    width={100}
+                    height={100}
+                    />
             </div>
 
             <h2 className="text-3xl font-bold text-black dark:text-white leading-tight mb-2">Success!</h2>            

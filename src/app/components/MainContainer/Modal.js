@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import "./modalStyle.css";
+import Image from "next/image";
+
 
 export const Modal = ({ show, onClose, title, icon }) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -41,6 +43,7 @@ export const Modal = ({ show, onClose, title, icon }) => {
               onClick={togglePasswordVisibility}
             >
               <span role="img" aria-label={isPasswordVisible ? "show-password" : "hide-password"}>
+                
               <Image
                   src={isPasswordVisible ? "/assets/show-password.svg" :"/assets/hide-password.svg"}
                   alt="Show Password"

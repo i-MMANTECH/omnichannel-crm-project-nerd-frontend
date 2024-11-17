@@ -4,6 +4,7 @@ import Pagination from '../../components/pagination/Pagination';
 import { FaPhone } from "react-icons/fa6";
 import { MdOutlineEmail } from "react-icons/md";
 import { FaRegClock } from "react-icons/fa6";
+import Image from 'next/image';
 
 const UserTable = ({ searchQuery, users }) => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -103,11 +104,12 @@ const UserTable = ({ searchQuery, users }) => {
                             {displayedUsers.map((user, index) => (
                                 <tr key={index} className="hover:bg-gray-50">
                                     <td className="py-3 px-4 border-b flex items-center space-x-3">
-                                        <img
-                                            src={user.image}
+                                        <Image src={user.image}
                                             alt={`${user.name}'s avatar`}
+                                            width={100}
+                                            height={100}
                                             className="w-10 h-10 rounded-full"
-                                        />
+                                            />
                                         <span>{user.name}</span>
                                     </td>
                                     <td className="py-3 px-4 border-b">

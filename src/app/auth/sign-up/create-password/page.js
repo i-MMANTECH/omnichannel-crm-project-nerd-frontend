@@ -114,18 +114,22 @@ const PasswordCreation = () => {
         <div className="flex min-h-screen" style={{ height: '100%', overflow: 'hidden' }}>
             <div className="w-1/2 flex flex-col">
                 <div className="flex-grow">
-                    <img
-                        src="/assets/sign-up-home-screen-image.png"
-                        alt="Create Password"
-                        className="h-full w-full object-cover"
-                        style={{ height: 500 }}
-                    />
+                    <Image src="/assets/sign-up-home-screen-image.png"
+                            alt="Create Password"
+                            className="h-full w-full object-cover"
+                            width={100}
+                            height={500}
+                            />
                 </div>
                 
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
                 
                 <div className="bg-black p-8 text-white flex flex-col items-start">
-                    <img src='/assets/logo.png' alt="Logo" />
+                    <Image src="/assets/nativetalk-logo.svg" 
+                            alt="Logo" 
+                            width={100}
+                            height={100}
+                            />
                     <h2 className="text-3xl font-bold text-white leading-tight mt-4">
                         Let's empower your <br /> employees today.
                     </h2>

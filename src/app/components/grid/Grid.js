@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faClock, faTh, faSort, faFilter, faEnvelope, faCommentDots, faEllipsis } from '@fortawesome/free-solid-svg-icons';
+import Image from 'next/image';
+
 
 const roleStyles = {
   Manager: 'bg-[#E7FEF8] text-[#40C4AA]',
@@ -118,11 +120,13 @@ const Grid = ({ searchQuery }) => {
           <div key={user.id} className="bg-white border rounded-lg">
             <div className='flex justify-between items-center p-2 border-b'>
               <div className='flex items-center space-x-2'>
-                <img
-                  src={user.image}
+                 <Image  src={user.image}
                   alt={user.name}
                   className="w-10 h-10 rounded-full"
+                  width={100}
+                  height={100}
                 />
+             
                 <h3 className="text-lg font-semibold">{user.name}</h3>
               </div>
 
@@ -140,10 +144,11 @@ const Grid = ({ searchQuery }) => {
               </p>
               
               <div className='flex items-center'> 
-                <img className='mr-1'
-                  src="../../assets/active-Icon.png" 
-                  style={{ width: '20px', height: '20px' }}
+                <Image src="/assets/active-Icon.png"
+                  className='mr-1' 
                   alt="active icon" 
+                  width={20}
+                  height={20}
                 />
                 <span className={`inline-block px-2 py-1 rounded-full text-sm font-medium ${roleStyles[user.role]} mb-2`}>
                   <span className={`inline-block w-2 h-2 mr-1 rounded-full ${user.isActive ? 'bg-purple-500' : 'bg-gray-300'}`}></span>
@@ -154,7 +159,10 @@ const Grid = ({ searchQuery }) => {
 
               <div className='flex justify-between items-center text-gray-500 mt-2 border-t pt-2'>
                 <div className="flex items-center space-x-2">
-                  <img src="../../assets/mark-icon.png" alt="mark icon"/> 
+                  <Image src="../../assets/mark-icon.png" alt="mark icon"
+                      width={50}
+                      height={50}
+                  />
                   <span>{user.mark}</span>
                   <span style={{marginLeft: 10}}>
                     <FontAwesomeIcon icon={faCommentDots} /> {user.comments}

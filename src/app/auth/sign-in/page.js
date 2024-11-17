@@ -9,6 +9,7 @@ import { getUserDomain } from '@/utils/getUserDomain';
 import Footer from '@/app/components/Footer';
 import Image from 'next/image';
 
+
 const SignIn = () => {
     const router = useRouter();
     const { axiosInstance, loading } = useApi();
@@ -63,18 +64,22 @@ const SignIn = () => {
         <div className="flex min-h-screen" style={{ height: '100%', overflow: 'hidden' }}>
             <div className="w-1/2 flex flex-col">
                 <div className="flex-grow">
-                    <img
-                        src="/assets/sign-in-home-screen-image.png"
-                        alt="Create Password"
-                        className="h-full w-full object-cover"
-                        style={{ height: 500 }}
-                    />
+                    <Image src="/assets/sign-in-home-screen-image.png"
+                            className="h-full w-full object-cover"
+                            alt="Create Password"
+                            width={500}
+                            height={500}
+                            />
                 </div>
 
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
 
                 <div className="bg-black p-8 text-white flex flex-col items-start">
-                    <img src='/assets/logo.png' alt="Logo" />
+                    <Image src="/assets/nativetalk-logo.svg" 
+                            alt="Logo" 
+                            width={100}
+                            height={100}
+                            />
                     <h2 className="text-3xl font-bold text-white leading-tight mt-4">
                         Let's empower your <br /> employees today.
                     </h2>
@@ -151,7 +156,12 @@ const SignIn = () => {
                             type="button"
                             className="w-full bg-white border border-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-100 focus:outline-none flex items-center justify-center"
                         >
-                            <img src="https://img.icons8.com/color/16/000000/google-logo.png" alt="Google" className="mr-2" />
+                            <Image src="https://img.icons8.com/color/16/000000/google-logo.png"
+                                alt="Google" 
+                                className='mr-2'
+                                width={10}
+                                height={10}
+                                />
                             Sign in with Google
                         </button>
                     </form>
