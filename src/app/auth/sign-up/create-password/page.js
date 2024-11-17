@@ -118,7 +118,7 @@ const PasswordCreation = () => {
                         src="/assets/sign-up-home-screen-image.png"
                         alt="Create Password"
                         className="h-full w-full object-cover"
-                        style={{ height: 380 }}
+                        style={{ height: 500 }}
                     />
                 </div>
                 
@@ -157,7 +157,6 @@ const PasswordCreation = () => {
                                     src={showPassword ? "/assets/show-password.svg" : "/assets/hide-password.svg"}
                                     alt="Show Password"
                                     width={24}
-                                    
                                     height={24}
                                     />
                             </button>

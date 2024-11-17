@@ -1,12 +1,14 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
 import { toast } from 'react-toastify';
+import {useApi} from '.././services/axiosConfig'
+import NProgress from '@/services/nprogressConfig';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+    const { axiosInstance } = useApi();
     const [user, setUser] = useState(null);
     const [refreshInterval, setRefreshInterval] = useState(null);
 
@@ -17,12 +19,16 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
+        NProgress.setColor('green')
+        NProgress.start()
         setUser(null);
         localStorage.removeItem('user');
         if (refreshInterval) {
             clearInterval(refreshInterval);
             setRefreshInterval(null);
         }
+        toast.success('Logout successful')
+        NProgress.done()
     };
 
     const refreshToken = async () => {
@@ -35,8 +41,7 @@ export const AuthProvider = ({ children }) => {
 
             const payload = { refresh: storedUser.refresh };
 
-            const response = await axios.post(
-                'http://staging.core.nativetalkcrm.com/api/auth/token/refresh/',
+            const response = await axiosInstance.post('/auth/token/refresh/',
                 payload,
                 {
                     headers: { 'Content-Type': 'application/json' }
@@ -92,3 +97,4 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+

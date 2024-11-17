@@ -59,7 +59,7 @@ const CustomUrlForm = () => {
                         src="/assets/sign-up-home-screen-image.png"
                         alt="Create Password"
                         className="h-full w-full object-cover"
-                        style={{ height: 380 }}
+                        style={{ height: 500 }}
                     />
                 </div>
 

@@ -130,7 +130,7 @@ const EmailConfirmation = () => {
                         src="/assets/sign-up-home-screen-image.png"
                         alt="Create Password"
                         className="h-full w-full object-cover"
-                        style={{ height: 380 }}
+                        style={{ height: 500 }}
                     />
                 </div>
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
@@ -184,7 +184,7 @@ const EmailConfirmation = () => {
                         </button>
 
                         <p className="text-gray-500 dark:text-gray-400 text-center mt-4">
-                            Resend code in {timer > 0 ? <span className='font-bold'>{formatTime(timer)}</span> : <span onClick={handleResendCode} className="text-blue-500 cursor-pointer">Resend now</span>}
+                            {timer > 0 ? <span className='font-bold'>Resend code in {formatTime(timer)}</span> : <span onClick={handleResendCode} className="text-blue-500 cursor-pointer">Resend now</span>}
                         </p>
                     </div>
                 </div>

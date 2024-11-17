@@ -4,7 +4,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
-import { AuthContext } from '../../context/AuthContext';
+import { AuthContext } from '@/context/AuthContext';
 import Footer from '@/app/components/Footer';
 import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
@@ -62,7 +62,7 @@ const SignUp = () => {
                         src="/assets/sign-up-home-screen-image.png"
                         alt="Create Password"
                         className="h-full w-full object-cover"
-                        style={{ height: 380 }}
+                        style={{ height: 500 }}
                     />
                 </div>
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
@@ -147,6 +147,7 @@ const SignUp = () => {
                 </div>
             </div>
         </div>
+
     );
 };
 

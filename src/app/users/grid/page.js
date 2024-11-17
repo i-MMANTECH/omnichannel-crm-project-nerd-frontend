@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useContext, useEffect } from 'react';
-import { AuthContext } from '../../context/AuthContext';
+import { AuthContext } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/app/components/sidebar/Sidebar';
 import Navbar from '@/app/components/navbar/Navbar';
