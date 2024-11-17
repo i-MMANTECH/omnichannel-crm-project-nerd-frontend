@@ -65,19 +65,21 @@
 }
 
 .main-container .name {
-  align-items: center;
-  display: inline-flex;
+  display: flex;
+  align-items: center; 
+  justify-content: center;
   flex: 0 0 auto;
   gap: 12.04px;
-  position: relative;
 }
 
 .main-container .icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background-color: var(--greyscale-25);
   border-radius: 1003.06px;
   height: 40.12px;
   overflow: hidden;
-  position: relative;
   width: 40.12px;
 }
 

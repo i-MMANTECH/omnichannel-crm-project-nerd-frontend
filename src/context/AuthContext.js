@@ -1,12 +1,13 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
 import { toast } from 'react-toastify';
+import {useApi} from '.././services/axiosConfig'
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+    const { axiosInstance } = useApi();
     const [user, setUser] = useState(null);
     const [refreshInterval, setRefreshInterval] = useState(null);
 
@@ -35,8 +36,7 @@ export const AuthProvider = ({ children }) => {
 
             const payload = { refresh: storedUser.refresh };
 
-            const response = await axios.post(
-                'http://staging.core.nativetalkcrm.com/api/auth/token/refresh/',
+            const response = await axiosInstance.post('/api/auth/token/refresh/',
                 payload,
                 {
                     headers: { 'Content-Type': 'application/json' }

@@ -1,0 +1,13 @@
+.modal-content {
+    position: absolute;
+    bottom: -20px;
+    left: 5px;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 230px;
+    width: 40%;
+    transform: translateY(-50%);
+    border-radius: 8px;
+    border: 1px solid var(--Greyscale-100, #DFE1E6);
+    background: var(--Greyscale-0, #FFF);
+  }

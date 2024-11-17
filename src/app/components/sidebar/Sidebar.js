@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Disclosure } from "@headlessui/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -14,13 +14,39 @@ import {
 import { FaRegComments } from "react-icons/fa";
 import { BiMessageSquareDots } from "react-icons/bi";
 import { AiOutlineUserAdd } from "react-icons/ai";
-import { FiHelpCircle } from "react-icons/fi";
+import { FiHelpCircle, FiLogOut } from "react-icons/fi";
+import "./Sidebar.css";
+import { useAuth } from "../../../context/AuthContext"; 
+
 
 function Sidebar() {
+  const { logout } = useAuth(); 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const modalRef = useRef(null);
+
   const pathname = usePathname();
   const activeStyle = "text-[#3EBF0F]";
 
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
   const isActive = (path) => pathname.startsWith(path);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        setIsModalOpen(false);
+      }
+    };
+
+    if (isModalOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isModalOpen]);
 
   return (
     <div>
@@ -152,21 +178,48 @@ function Sidebar() {
               </Link>
             </div>
 
-            <div className="w-full mt-3 border-t border-gray-200 pt-3">
-              <Link
-                href="/agent-profile"
-                className="flex items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200">
+            <div className="w-full mt- border-t border-gray-200 pt-3" onClick={openModal}>
+              <div className="flex items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200">
                 <img
                   src="../../assets/user-profile-image.png"
                   alt="Agent"
-                  className="w-8 h-8 rounded-full"
+                  className="w-8 h-8 rounded-full profile-icon cursor-pointer"
                 />
                 <div className="text-sm">
                   <h3 className="font-medium text-gray-800">Denise Adebayo</h3>
                   <p className="text-xs text-gray-500">Agent</p>
                 </div>
-              </Link>
+              </div>
             </div>
+
+            {isModalOpen && (
+              <div className="modal-container fixed inset-0">
+                <div
+                  className="modal-content bg-white mb-5"
+                  ref={modalRef}
+                >
+                  <Link
+                    href="/agent-profile"
+                    className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-100"
+                  >
+                    <img
+                      src="../../assets/user-profile-image.png"
+                      alt="Agent"
+                      className="w-8 h-8 rounded-full"
+                    />
+                    <h3 className="text-gray-800 font-medium">View Profile</h3>
+                  </Link>
+
+                  <div
+                    className="flex items-center gap-3 rounded-md hover:bg-gray-100 cursor-pointer"
+                    onClick={logout}
+                  >
+                    <FiLogOut className="text-red-500 text-xl" />
+                    <h3 className="text-red-500 font-medium">Logout</h3>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </Disclosure>
