@@ -155,7 +155,7 @@ const OtpVerification = () => {
                 </button>
 
                 <p className="text-center text-gray-500 mt-4">
-                    Resend code in {timer > 0 ? <span className='font-bold'>{formatTime(timer)}</span> : <span onClick={handleResendCode} className="text-blue-500 cursor-pointer">Resend now</span>}
+                    {timer > 0 ? <span className='font-bold'>Resend code in {formatTime(timer)}</span> : <span onClick={handleResendCode} className="text-blue-500 cursor-pointer">Resend now</span>}
                 </p>
 
             </div>

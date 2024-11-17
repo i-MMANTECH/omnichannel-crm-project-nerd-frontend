@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { socialMediaData } from "./socialMediaData";
 import "./style.css";
 import { Modal } from "./Modal";
 import { IsLiveChat } from "./IsLiveChat";
-import { useAuth } from "@/app/context/AuthContext";
-import axios from 'axios';
 
 export const MainContainer = () => {
-  const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalIcon, setModalIcon] = useState(null);
@@ -29,30 +26,6 @@ export const MainContainer = () => {
     setShowDisconnectModal(false);
     setIsLiveChat(false);
   };
-
-  useEffect(() => {
-    const fetchScript = async () => {
-      if (user?.refresh) {
-        try {
-          const response = await axios.get(
-            'https://staging.core.nativetalkcrm.com/api/channels/connected/',
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${user.access}`
-              }
-            }
-          );
-
-          console.log(response.data);
-        } catch (error) {
-          console.error("Failed to fetch connected channels:", error);
-        }
-      }
-    };
-
-    fetchScript();
-  }, [user]);
 
   return (
     <div className="main-container border-l">

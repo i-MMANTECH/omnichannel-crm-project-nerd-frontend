@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { useAuth } from "@/app/context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import copy from "copy-to-clipboard";
 import './IsLiveChat.css';
+import { useApi } from "@/services/axiosConfig";
+import { useError } from "@/context/ErrorContext";
 
 export const IsLiveChat = ({ onCancel }) => {
   const { user } = useAuth();
   const [codeSnippet, setCodeSnippet] = useState('Script not found.');
   const [copyStatus, setCopyStatus] = useState('');
+  const { axiosInstance, loading } = useApi();
+  const { handleApiError } = useError();
 
   useEffect(() => {
     const fetchScript = async () => {
       if (user?.refresh) {
         try {
-          const response = await axios.post(
-            'https://staging.core.nativetalkcrm.com/api/channels/generate-livechat-script/',
+          const response = await axiosInstance.post('/channels/generate-livechat-script/',
             {},
             {
               headers: {
@@ -26,11 +28,9 @@ export const IsLiveChat = ({ onCancel }) => {
 
           if (response.data?.script_url) {
             setCodeSnippet(response.data.script_url);
-          } else {
-            console.error("No script_url in response:", response.data);
-          }
+          } 
         } catch (error) {
-          console.error("Failed to fetch live chat script:", error);
+          handleApiError(error)
         }
       }
     };

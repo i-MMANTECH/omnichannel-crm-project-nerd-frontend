@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext, useEffect, useState } from 'react';
-import { AuthContext } from '../../context/AuthContext';
+import { AuthContext } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
@@ -17,7 +17,7 @@ const SignIn = () => {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         const subdomain = getUserDomain();
@@ -38,7 +38,7 @@ const SignIn = () => {
     };
 
     const handleTogglePasswordVisibility = () => {
-        setShowConfirmPassword((prev) => !prev);
+        setShowPassword((prev) => !prev);
     };
 
     const handleSignIn = async (event) => {
@@ -67,7 +67,7 @@ const SignIn = () => {
                         src="/assets/sign-in-home-screen-image.png"
                         alt="Create Password"
                         className="h-full w-full object-cover"
-                        style={{ height: 380 }}
+                        style={{ height: 500 }}
                     />
                 </div>
 
@@ -101,13 +101,13 @@ const SignIn = () => {
                                 required
                             />
                         </div>
+                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Password <span className="text-red-500">*</span>
+                        </label>
                         <div className="relative">
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Password <span className="text-red-500">*</span>
-                            </label>
                             <input
-                                type={showConfirmPassword ? 'text' : 'password'}
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-300 focus:outline-none focus:ring-[#3EBF0F] focus:border-[#3EBF0F] sm:text-sm"
+                                type={showPassword ? 'text' : 'password'}
+                                className="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-300 focus:outline-none focus:ring-[#3EBF0F] focus:border-[#3EBF0F] sm:text-sm"
                                 id="password"
                                 placeholder="*********"
                                 value={password}
@@ -115,13 +115,12 @@ const SignIn = () => {
                                 required
                             />
                             <button
-                                type="button"
-                                className="absolute inset-y-0 right-0 flex items-center px-3"
+                                className="absolute inset-y-0 right-0 px-3 text-gray-600"
                                 onClick={handleTogglePasswordVisibility}
-                                aria-label={showConfirmPassword ? "hide password" : "show password"}
+                                aria-label={showPassword ? "hide password" : "show password"}
                             >
                                 <Image
-                                    src={showConfirmPassword ? "/assets/show-password.svg" : "/assets/hide-password.svg"}
+                                    src={showPassword ? "/assets/show-password.svg" : "/assets/hide-password.svg"}
                                     alt="Show Password"
                                     width={24}
                                     height={24}

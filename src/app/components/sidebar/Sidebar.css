@@ -1,0 +1,9 @@
+.modal-content {
+    position: absolute;
+    bottom: 55px;
+    left: 3px;
+    padding: 20px;
+    transform: translateY(-50%);
+    border-radius: 8px;
+    border: 1px solid var(--Greyscale-100, #DFE1E6);
+  }
