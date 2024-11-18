@@ -94,8 +94,8 @@ footer a {
 }
 
 #nprogress .bar {
-  background: #3EBF0F !important;  /* Green color */
-  height: 3px;  /* Adjust the height of the bar */
+  background: #3EBF0F !important;  
+  height: 3px; 
 }
 
 #nprogress .peg {
@@ -103,7 +103,6 @@ footer a {
 }
 
 #nprogress .spinner .spinner-icon {
-  /* display: none !important;  ; */
   border-top-color: #3EBF0F;
   border-left-color: #3EBF0F;
   

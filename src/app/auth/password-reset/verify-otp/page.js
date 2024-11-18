@@ -26,7 +26,7 @@ const OtpVerification = () => {
             setUserData(JSON.parse(parsedData));
         } 
         else {
-            router.push('/auth/sign-up');
+            router.push('/auth/sign-in');
         }
     }, [router]);
 
@@ -160,7 +160,7 @@ const OtpVerification = () => {
                 </button>
 
                 <p className="text-center text-gray-500 mt-4">
-                    {timer > 0 ? <span className='font-bold'>Resend code in {formatTime(timer)}</span> : <span onClick={handleResendCode} className="text-blue-500 cursor-pointer">Resend now</span>}
+                    {timer > 0 ? <span>Resend code in <span className='font-bold'>{formatTime(timer)}</span></span> : <span onClick={handleResendCode} className="text-blue-500 cursor-pointer">Resend now</span>}
                 </p>
 
             </div>

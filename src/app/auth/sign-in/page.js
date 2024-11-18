@@ -63,19 +63,20 @@ const SignIn = () => {
     return (
         <div className="flex min-h-screen" style={{ height: '100%', overflow: 'hidden' }}>
             <div className="w-1/2 flex flex-col">
-                <div className="flex-grow">
-                    <Image src="/assets/sign-in-home-screen-image.png"
-                            className="h-full w-full object-cover"
-                            alt="Create Password"
-                            width={500}
-                            height={500}
-                            />
+                <div className='flex-grow'>
+                    <img
+                        src="/assets/sign-in-image.png"
+                        alt="Create Password"
+                        className="object-cover w-full h-full"
+                        style={{height: 542}}
+                    />
                 </div>
+
 
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
 
                 <div className="bg-black p-8 text-white flex flex-col items-start">
-                    <Image src="/assets/nativetalk-logo.svg" 
+                    <Image src="/assets/nativetalk-logo2.svg" 
                             alt="Logo" 
                             width={100}
                             height={100}
@@ -156,11 +157,11 @@ const SignIn = () => {
                             type="button"
                             className="w-full bg-white border border-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-100 focus:outline-none flex items-center justify-center"
                         >
-                            <Image src="https://img.icons8.com/color/16/000000/google-logo.png"
+                            <Image src="/assets/google.svg"
                                 alt="Google" 
                                 className='mr-2'
-                                width={10}
-                                height={10}
+                                width={25}
+                                height={25}
                                 />
                             Sign in with Google
                         </button>

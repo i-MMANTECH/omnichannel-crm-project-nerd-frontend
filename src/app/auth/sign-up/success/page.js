@@ -6,6 +6,8 @@ import { AuthContext } from '@/context/AuthContext';
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
 import Footer from '../../../components/Footer';
+import Image from 'next/image';
+
 
 const SuccessPage = () => {
     const router = useRouter();
@@ -50,12 +52,14 @@ const SuccessPage = () => {
                     width={100}
                     height={100}
                     />
+                
             </div>
 
             <div className="relative top-7 mt-2">
-                <Image src={'../../assets/checkmark.png'} alt="Success Checkmark"
-                    width={100}
-                    height={100}
+                <Image src='/assets/checkmark.svg' alt="Success Checkmark"
+                    width={150}
+                    height={150}
+                    
                     />
             </div>
 

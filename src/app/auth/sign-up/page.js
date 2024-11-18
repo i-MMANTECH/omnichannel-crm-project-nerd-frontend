@@ -9,6 +9,8 @@ import Footer from '@/app/components/Footer';
 import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
 import { toast } from 'react-toastify';
+import Image from 'next/image';
+
 
 const SignUp = () => {
     const router = useRouter();
@@ -58,17 +60,17 @@ const SignUp = () => {
         <div className="flex min-h-screen" style={{ height: '100%', overflow: 'hidden' }}>
             <div className="w-1/2 flex flex-col">
                 <div className="flex-grow">
-                <Image src="/assets/sign-up-home-screen-image.png"
-                                alt="Create Password"
-                                className="h-full w-full object-cover"
-                                width={500}
-                                height={500}
-                                />
+                    <img
+                        src="/assets/sign-up-image.png"
+                        alt="Create Password"
+                        className="object-cover w-full h-full"
+                        style={{height: 542}}
+                    />
                     
                 </div>
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
                 <div className="bg-black p-8 text-white flex flex-col items-start">
-                    <Image src="/assets/nativetalk-logo.svg" 
+                    <Image src="/assets/nativetalk-logo2.svg" 
                             alt="Logo" 
                             width={100}
                             height={100}
@@ -126,7 +128,7 @@ const SignUp = () => {
                                 value={phone_number}
                                 onChange={setPhoneNumber}
                                 inputClass="custom-phone-input mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                                containerClass="custom-phone-container w-full"
+                                containerClass="custom-phone-container w-full "
                                 placeholder="(123) 456-7890"
                             />
                         </div>
@@ -142,8 +144,8 @@ const SignUp = () => {
                     </form>
 
                     <div className="text-left mt-6">
-                        <p className="text-sm text-gray-600">
-                            Already have an account? <a href="/auth/sign-in" className="text-[#3EBF0F] hover:underline">Login Here</a>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">
+                            Already have an account? <a href="/auth/sign-in" className="text-[#3EBF0F] hover:underline"> Login Here</a>
                         </p>
                     </div>
                 </div>

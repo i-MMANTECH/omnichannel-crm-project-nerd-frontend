@@ -27,7 +27,7 @@ const ForgotPassword = () => {
         if (parsedData) {
             setUserData(JSON.parse(parsedData));
         } else {
-            router.push('/auth/sign-up');
+            router.push('/auth/sign-in');
         }
     }, [router]);
 
