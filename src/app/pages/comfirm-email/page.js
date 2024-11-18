@@ -27,7 +27,11 @@ const ConfirmEmail = () => {
     return (
         <div className="min-h-screen flex flex-col justify-center items-center bg-white">
             <div className="mb-6">
-                <img src={'../../assets/logo.png'} alt="Native Talk Logo" className="h-10" />
+                <Image src="/assets/nativetalk-logo.svg" 
+                            alt="Logo" 
+                            width={100}
+                            height={100}
+                            />
             </div>
 
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Confirm email address</h2>

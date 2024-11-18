@@ -34,6 +34,15 @@ input {
   background-color: var(--input-background) !important;
 }
 
+.body-theme {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+.pointer {
+  cursor: pointer;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
@@ -85,8 +94,8 @@ footer a {
 }
 
 #nprogress .bar {
-  background: #3EBF0F !important;  /* Green color */
-  height: 3px;  /* Adjust the height of the bar */
+  background: #3EBF0F !important;  
+  height: 3px; 
 }
 
 #nprogress .peg {
@@ -94,7 +103,6 @@ footer a {
 }
 
 #nprogress .spinner .spinner-icon {
-  /* display: none !important;  ; */
   border-top-color: #3EBF0F;
   border-left-color: #3EBF0F;
   

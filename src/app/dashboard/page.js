@@ -29,7 +29,7 @@ const Page = () => {
                     searchPlaceholder="Search"
                     onSearch={setSearchQuery}
                 />
-               <Dashboard searchQuery={searchQuery}/>
+                <Dashboard searchQuery={searchQuery}/>
             </div>
         </div>
     );

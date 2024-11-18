@@ -3,6 +3,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import Image from 'next/image';
+
 
 const PaymentModal = ({ selectedPlan, closeModal }) => {
     const [cardNumber, setCardNumber] = useState('');
@@ -32,7 +34,11 @@ const PaymentModal = ({ selectedPlan, closeModal }) => {
                     <div className="col-span-7">
                         <h3 className="text-lg font-bold mb-2">{selectedPlan} Plan</h3>
                         {/* <h4 className="text-md font-semibold mb-2">Card Details</h4> */}
-                        <img src="../../assets/card-details-icon.png"/>
+                        <Image src="/assets/card-details-icon.png" 
+                            alt="Logo" 
+                            width={50}
+                            height={50}
+                            />
                         <label className="text-sm mb-1">Card Number</label>
                         <input
                             type="text"

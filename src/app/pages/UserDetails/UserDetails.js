@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 
 const UserDetails = ({ userInfo }) => {
   const [activeTab, setActiveTab] = useState('workSchedule');
@@ -18,11 +19,12 @@ const UserDetails = ({ userInfo }) => {
         <div className="flex flex-col sm:flex-row p-6">
           {/* Profile Card */}
           <div style={{width: 700, height: 200}} className="flex flex-col items-center rounded-lg border p-4">
-            <img style={{width: 50, height: 50}}
-              src="https://via.placeholder.com/150"
-              alt={userInfo.name}
-              className="w-24 h-24 rounded-full mb-4"
-            />
+            <Image src="https://via.placeholder.com/150"
+                            className="w-24 h-24 rounded-full mb-4"
+                            alt={userInfo.name}
+                            width={50}
+                            height={50}
+                            />
             <h3 className="text-xl font-semibold">{userInfo.name}</h3>
             <p className="text-gray-500">{userInfo.email}</p>
             <div className="mt-2 flex items-center">

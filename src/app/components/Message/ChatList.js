@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH, faSearch, faUserCircle } from "@fortawesome/free-solid-svg-icons";
 import "./chatlist.css";
+import { faEllipsisH, faSearch } from "@fortawesome/free-solid-svg-icons";
+import './chatlist.css'
+import Image from "next/image";
 
 const ChatList = ({ users, activeUser, setActiveUser }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -64,7 +67,10 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
             <div className="frame">
               <div className="avatar">
                 {user.profileImage ? (
-                  <img src={user.profileImage} alt="User Profile" className="icon-avatar" />
+                   <Image src={user.profileImage} alt="User Profile" className="icon-avatar"
+                            width={100}
+                            height={100}
+                            />
                 ) : (
                   <FontAwesomeIcon
                     icon={faUserCircle}

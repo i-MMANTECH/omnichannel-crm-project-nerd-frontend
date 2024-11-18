@@ -2,7 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import {useApi} from '.././services/axiosConfig'
+import { useApi } from '.././services/axiosConfig';
+import NProgress from '@/services/nprogressConfig';
 
 export const AuthContext = createContext();
 
@@ -18,55 +19,56 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
+        NProgress.setColor('green');
+        NProgress.start();
         setUser(null);
         localStorage.removeItem('user');
         if (refreshInterval) {
             clearInterval(refreshInterval);
             setRefreshInterval(null);
         }
+        toast.success('Logout successful');
+        NProgress.done();
     };
 
     const refreshToken = async () => {
         try {
-          const storedUser = JSON.parse(localStorage.getItem("user"));
-          if (!storedUser?.refresh) {
-            console.error("No refresh token found");
-            return;
-          }
-      
-          const payload = { refresh: storedUser.refresh };      
-      
-          const response = await axiosInstance.post(
-            "/auth/token/refresh/",
-            payload,
-            {
-              headers: { "Content-Type": "application/json" },
+            const storedUser = JSON.parse(localStorage.getItem("user"));
+            if (!storedUser?.refresh) {
+                console.error("No refresh token found");
+                return;
             }
-          );
-      
-          if (response.status === 200 && response.data.access && response.data.refresh) {
-            const updatedUser = {
-              ...storedUser,
-              access: response.data.access,
-              refresh: response.data.refresh,
-            };
-            setUser(updatedUser);
-            localStorage.setItem("user", JSON.stringify(updatedUser));
-          } else {
-            console.error("Failed to refresh token:", response.data);
-          }
+
+            const payload = { refresh: storedUser.refresh };
+
+            const response = await axiosInstance.post(
+                "/auth/token/refresh/",
+                payload,
+                { headers: { "Content-Type": "application/json" } }
+            );
+
+            if (response.status === 200 && response.data.access && response.data.refresh) {
+                const updatedUser = {
+                    ...storedUser,
+                    access: response.data.access,
+                    refresh: response.data.refresh,
+                };
+                setUser(updatedUser);
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+            } else {
+                console.error("Failed to refresh token:", response.data);
+            }
         } catch (error) {
-          if (error.response) {
-            console.error("Refresh token request failed:", {
-              status: error.response.status,
-              data: error.response.data,
-            });
-          } else {
-            console.error("An unexpected error occurred:", error.message);
-          }
+            if (error.response) {
+                console.error("Refresh token request failed:", {
+                    status: error.response.status,
+                    data: error.response.data,
+                });
+            } else {
+                console.error("An unexpected error occurred:", error.message);
+            }
         }
-      };
-      
+    };
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -96,6 +98,12 @@ export const AuthProvider = ({ children }) => {
             return () => clearInterval(interval);
         }
     }, [user, refreshInterval]);
+
+    useEffect(() => {
+        if (refreshInterval) {
+            return () => clearInterval(refreshInterval);
+        }
+    }, [refreshInterval]);
 
     return (
         <AuthContext.Provider value={{ user, login, logout }}>

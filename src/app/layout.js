@@ -1,6 +1,7 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from '../context/AuthContext';
+import { AuthProvider } from "@/context/AuthContext";
 import { ErrorProvider } from "@/context/ErrorContext";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';

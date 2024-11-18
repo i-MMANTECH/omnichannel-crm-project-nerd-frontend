@@ -8,6 +8,7 @@ import {
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import "./messageInput.css";
+import Image from "next/image";
 
 const MessageInput = ({ onInputChange, onSendMessage }) => {
   const [showAttachOptions, setShowAttachOptions] = useState(false);
@@ -23,7 +24,7 @@ const MessageInput = ({ onInputChange, onSendMessage }) => {
   const handleInputChangeInternal = (e) => {
     const text = e.target.value;
     setInputText(text);
-    onInputChange(e); 
+    onInputChange(e);
   };
 
   const handleKeyDown = (e) => {
@@ -88,10 +89,12 @@ const MessageInput = ({ onInputChange, onSendMessage }) => {
         />
         {selectedImage && (
           <div className="image-preview">
-            <img
+            <Image
               src={URL.createObjectURL(selectedImage)}
               alt="Preview"
               className="preview-img"
+              width={100}
+              height={100}
             />
             <button className="remove-image" onClick={removeSelectedImage}>
               <FontAwesomeIcon icon={faTimes} />

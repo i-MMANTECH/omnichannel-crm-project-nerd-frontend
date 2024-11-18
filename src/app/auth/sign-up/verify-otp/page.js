@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
 import Footer from '@/app/components/Footer';
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
 import { toast } from 'react-toastify';
+import Image from 'next/image';
 
 
 const EmailConfirmation = () => {
@@ -126,16 +126,21 @@ const EmailConfirmation = () => {
         <div className="flex min-h-screen" style={{ height: '100%', overflow: 'hidden' }}>
             <div className="md:w-1/2 flex flex-col">
                 <div className="flex-grow">
-                    <img
-                        src="/assets/sign-up-home-screen-image.png"
-                        alt="Create Password"
-                        className="h-full w-full object-cover"
-                        style={{ height: 380 }}
-                    />
+
+                        <img
+                            src="/assets/sign-up-image.png"
+                            alt="Sign up"
+                            className="object-cover w-full h-full"
+                            style={{height: 542}}
+                        />
                 </div>
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
                 <div className="bg-black p-8 text-white flex flex-col items-start">
-                    <img src='/assets/logo.png' alt="Logo" />
+                    <Image src="/assets/nativetalk-logo2.svg" 
+                        alt="Logo" 
+                        width={100}
+                        height={100}
+                        />
                     <h2 className="text-3xl font-bold text-white leading-tight mt-4">
                         Let's empower your <br /> employees today.
                     </h2>
@@ -184,7 +189,7 @@ const EmailConfirmation = () => {
                         </button>
 
                         <p className="text-gray-500 dark:text-gray-400 text-center mt-4">
-                            Resend code in {timer > 0 ? <span className='font-bold'>{formatTime(timer)}</span> : <span onClick={handleResendCode} className="text-blue-500 cursor-pointer">Resend now</span>}
+                            {timer > 0 ? <span className='font-bold'>Resend code in {formatTime(timer)}</span> : <span onClick={handleResendCode} className="text-blue-500 cursor-pointer">Resend now</span>}
                         </p>
                     </div>
                 </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faCheckDouble, faCircleExclamation, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import Image from "next/image";
 import "./messageList.css";
 
 const MessageList = ({ chatHistory, currentUserId }) => {
@@ -26,7 +27,6 @@ const MessageList = ({ chatHistory, currentUserId }) => {
         return null;
     }
   };
-  
 
   if (!chatHistory || chatHistory.length === 0) return null;
 
@@ -41,7 +41,13 @@ const MessageList = ({ chatHistory, currentUserId }) => {
               {msg.content_type === "text" && <p style={{ whiteSpace: "pre-wrap" }}>{msg.content}</p>}
               {msg.content_type === "image" && (
                 <div className="message-image">
-                  <img src={msg.content} alt="Attachment" className="image-message" />
+                  <Image
+                    src={msg.content}
+                    alt="Attachment"
+                    className="image-message"
+                    width={100}
+                    height={100}
+                  />
                 </div>
               )}
               {msg.content_type === "audio" && (
@@ -53,7 +59,7 @@ const MessageList = ({ chatHistory, currentUserId }) => {
             <div className="message-meta">
               <span className="message-time">{new Date(msg.created_at).toLocaleTimeString()}</span>
               {getIconForStatus(msg.status) && (
-                <FontAwesomeIcon className="ms-1" style={{fontSize:12}} icon={getIconForStatus(msg.status)} />
+                <FontAwesomeIcon className="ms-1" style={{ fontSize: 12 }} icon={getIconForStatus(msg.status)} />
               )}
             </div>
           </div>

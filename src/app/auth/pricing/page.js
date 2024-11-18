@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import PaymentModal from './PaymentModal';
+import Image from 'next/image';
 
 const Pricing = () => {
     const [billingCycle, setBillingCycle] = useState('monthly');
@@ -72,7 +73,13 @@ const Pricing = () => {
 
     return (
         <div>
-            <img className='m-5' src='../../assets/logo.png' alt="Logo" style={styles.logo} />
+            <Image src="/assets/nativetalk-logo.svg" 
+                            style={styles.logo}
+                            className='m-5'
+                            alt="Logo" 
+                            width={100}
+                            height={100}
+                            />
             <div style={styles.container} className="max-w-5xl mx-auto p-8 bg-white">
                 <p className='pl-4 text-Greyscale/100'>Nativetalk Pricing</p>
 
