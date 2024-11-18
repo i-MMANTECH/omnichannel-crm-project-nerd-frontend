@@ -1,9 +1,17 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
-import './chatHeader.css'
+import { faEllipsisH, faUserCircle } from "@fortawesome/free-solid-svg-icons";
+import "./chatHeader.css";
 
 const ChatHeader = ({ activeUser }) => {
+  if (!activeUser) return null;
+
+  const formattedTime = new Date(activeUser.time).toLocaleString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+
   return (
     <div className="header">
       <div className="avatar-woman">
@@ -11,15 +19,15 @@ const ChatHeader = ({ activeUser }) => {
           <img src={activeUser.profileImage} alt="User Profile" className="icon-avatar-large" />
         ) : (
           <FontAwesomeIcon
-            icon={activeUser.avatarIcon}
+            icon={faUserCircle} 
             className="icon-avatar-large"
             size="2x"
           />
         )}
       </div>
       <div className="info">
-        <div className="text-wrapper-2">{activeUser.name}</div>
-        <div className="title-4">Last Seen {activeUser.time}</div>
+        <div className="text-wrapper-2">{activeUser.name || "Unknown User"}</div>
+        <div className="title-4">Last Seen {formattedTime}</div>
       </div>
       <FontAwesomeIcon icon={faEllipsisH} className="icon-instance-node" />
     </div>

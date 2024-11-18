@@ -14,13 +14,6 @@ const Page = () => {
 
    
 
-    useEffect(() => {
-        if (!user) {
-            router.push('/auth/sign-in');
-        }
-    }, [user, router]);
-
-    if (!user) return null;
 
     return (
         <div className="flex min-h-screen bg-gray-100">

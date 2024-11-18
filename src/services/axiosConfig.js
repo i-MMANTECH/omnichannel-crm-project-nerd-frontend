@@ -44,5 +44,18 @@ export const useApi = () => {
         }
     );
 
+    axiosInstance.interceptors.request.use(
+        (config) => {
+          const user = JSON.parse(localStorage.getItem("user"));
+          if (user?.access) {
+            config.headers["Authorization"] = `Bearer ${user.access}`;
+          }
+          return config;
+        },
+        (error) => {
+          return Promise.reject(error);
+        }
+      );
+
     return { axiosInstance, loading };
 };

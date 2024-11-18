@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEllipsisH, faSearch } from "@fortawesome/free-solid-svg-icons";
-import './chatlist.css'
+import { faEllipsisH, faSearch, faUserCircle } from "@fortawesome/free-solid-svg-icons";
+import "./chatlist.css";
 
 const ChatList = ({ users, activeUser, setActiveUser }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -10,9 +10,23 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
     setSearchTerm(e.target.value);
   };
 
-  const filteredUsers = users.filter((user) =>
+  const contacts = users?.contacts || [];
+
+  const filteredUsers = contacts.filter((user) =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const formatTime = (time) => {
+    const date = new Date(time);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const truncateMessage = (message, maxLength) => {
+    if (message.length > maxLength) {
+      return `${message.slice(0, maxLength)}...`;
+    }
+    return message;
+  };
 
   return (
     <div className="list-chat">
@@ -40,11 +54,11 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
         </div>
       </div>
       <div className="divider"></div>
-      <div className="div-2" style={{ overflowY: 'auto', maxHeight: '300px' }}>
+      <div className="div-2" style={{ overflowY: "auto", maxHeight: "300px" }}>
         {filteredUsers.map((user) => (
           <div
             key={user.id}
-            className={`message ${user?.id === activeUser?.id ? 'selected-user' : ''}`}
+            className={`message ${user?.id === activeUser?.id ? "selected-user" : ""}`}
             onClick={() => setActiveUser(user)}
           >
             <div className="frame">
@@ -53,7 +67,7 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
                   <img src={user.profileImage} alt="User Profile" className="icon-avatar" />
                 ) : (
                   <FontAwesomeIcon
-                    icon={user.avatarIcon}
+                    icon={faUserCircle}
                     className="icon-avatar"
                     size="2x"
                   />
@@ -61,21 +75,18 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
               </div>
               <div className="content">
                 <div className="div-3">
-                  <div className="title">{user.name}</div>
-                  <div className="title-2">{user.time}</div>
+                  <div className="title">{user.name || "Unknown User"}</div>
+                  <div className="title-2">{formatTime(user.lastMessageTime)}</div>
                 </div>
                 <div className="div-3">
-                  <p className="label">{user.lastMessage}</p>
+                  <p className="label">{truncateMessage(user.lastMessage, 30)}</p>
                   <div className="frame-3">
                     {user.unreadCount > 0 && (
                       <div className="title-wrapper">
                         <div className="title-3">{user.unreadCount}</div>
                       </div>
                     )}
-                    <FontAwesomeIcon
-                      icon={faEllipsisH}
-                      className="dots-horizontal"
-                    />
+                    <FontAwesomeIcon icon={faEllipsisH} className="dots-horizontal" />
                   </div>
                 </div>
               </div>
