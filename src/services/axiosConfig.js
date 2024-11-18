@@ -8,8 +8,8 @@ export const useApi = () => {
     const [loading, setLoading] = useState(false);
 
     const axiosInstance = axios.create({
-        // baseURL: 'https://staging.core.nativetalkcrm.com/api',
-        baseURL: process.env.NEXT_PUBLIC_API_URL,
+        baseURL: 'https://staging.core.nativetalkcrm.com/api',
+        // baseURL: process.env.NEXT_PUBLIC_API_URL,
         headers: {
         'User-Domain': getUserDomain(),
         },
