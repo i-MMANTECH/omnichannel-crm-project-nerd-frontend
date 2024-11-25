@@ -79,7 +79,7 @@ function Sidebar() {
               </Link>
 
               <Link
-                href="/users"
+                href="/nativecrm/users"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/users") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
                 <Image
@@ -127,7 +127,7 @@ function Sidebar() {
               </Link>
 
               <Link
-                href="/customers"
+                href="/nativecrm/customers"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/customers") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
                 <Image

@@ -18,3 +18,15 @@
     color: #F36F4A;
   }
   
+  .styled-th {
+    color: var(--Greyscale-500, #666D80);
+    font-family: "Encode Sans";
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 150%; /* 21px */
+    letter-spacing: 0.2px;
+    text-align: left;
+    padding: 12px 16px; /* Adjust spacing as needed */
+    border-bottom: 1px solid #E0E0E0; /* Optional for visual separation */
+}

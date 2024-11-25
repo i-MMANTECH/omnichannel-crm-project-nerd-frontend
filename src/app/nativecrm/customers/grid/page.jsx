@@ -1,24 +1,14 @@
 "use client";
 
-import React, { useState, useContext, useEffect } from 'react';
-import { AuthContext } from '../../../context/AuthContext';
-import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
 import Sidebar from '@/app/components/sidebar/Sidebar';
 import Navbar from '@/app/components/navbar/Navbar';
-import Grid from '@/app/components/grid/Grid';
+import CustomerGrid from '@/app/components/CustomerGrid/CustomerGrid';
 
 const Page = () => {
-    const { user } = useContext(AuthContext);
-    const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
 
-    useEffect(() => {
-        if (!user) {
-            router.push('/auth/sign-in');
-        }
-    }, [user, router]);
-
-    if (!user) return null;
+  
 
     return (
         <div className="flex min-h-screen bg-gray-100">
@@ -29,7 +19,7 @@ const Page = () => {
                     searchPlaceholder="Search"
                     onSearch={setSearchQuery}
                 />
-                <Grid searchQuery={searchQuery} />
+                <CustomerGrid searchQuery={searchQuery} />
             </div>
         </div>
     );

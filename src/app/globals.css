@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Encode+Sans:wght@100..900&display=swap');
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -24,16 +27,17 @@
   }
 }
 
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: "Encode Sans", sans-serif;
 }
 
 input {
   background-color: var(--input-background) !important;
 }
-
 .body-theme {
   color: var(--foreground);
   background: var(--background);

@@ -22,34 +22,8 @@
     width: 40px;
   }
   
-
-  .messages .info {
-    align-items: flex-start;
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    flex-grow: 1;
-    gap: 4px;
-    justify-content: center;
-    position: relative;
-}
-
-.messages .text-wrapper-2 {
-    align-self: stretch;
-    color: var(--greyscale-900);
-    font-family: var(--body-large-semibold-16px-font-family);
-    font-size: var(--body-large-semibold-16px-font-size);
-    font-style: var(--body-large-semibold-16px-font-style);
-    font-weight: var(--body-large-semibold-16px-font-weight);
-    letter-spacing: var(--body-large-semibold-16px-letter-spacing);
-    line-height: var(--body-large-semibold-16px-line-height);
-    margin-top: -1.00px;
-    position: relative;
-}
-
 .messages .title-4 {
     align-self: stretch;
-    color: var(--greyscale-400);
     font-family: var(--body-small-regular-12px-font-family);
     font-size: var(--body-small-regular-12px-font-size);
     font-style: var(--body-small-regular-12px-font-style);

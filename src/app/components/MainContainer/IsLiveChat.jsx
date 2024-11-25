@@ -50,11 +50,11 @@ export const IsLiveChat = ({ onCancel }) => {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-live">
-        <h1 className="title">Nativetalk Chat</h1>
-        <p className="text">Please copy the script to embed in your website</p>
+      <div className="modal-live rounded-xl body-theme">
+        <h1 className="text-2xl font-bold text-black dark:text-white py-2">Nativetalk Chat</h1>
+        <p className="text mb-5">Please copy the script to embed in your website</p>
         <div className="code-snippet">
-          <pre>
+          <pre className="text-black dark:text-white">
             {formatCodeSnippet(codeSnippet).split("\n").map((line, index) => (
               <h1 key={index}>{line}</h1>
             ))}

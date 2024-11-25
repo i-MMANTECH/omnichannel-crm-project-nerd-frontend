@@ -3,7 +3,7 @@
 import Navbar from "@/app/components/navbar/Navbar";
 import Sidebar from "@/app/components/sidebar/Sidebar";
 import { useParams } from "next/navigation"
-import UserDatils from "../../../../components/UserDatails/page"
+import CustomerDetails from "../../../../../components/CustomerDetails/page"
 
 export default function Page(){
     const params = useParams()
@@ -20,13 +20,13 @@ export default function Page(){
     return(
         <div className="flex min-h-screen bg-white">
         <Sidebar />
-        <div style={{ marginLeft: '240px', zIndex: 100 }} className="flex-1 flex flex-col">
+        <div style={{ marginLeft: '240px', zIndex: 100 }} className="flex-1 flex flex-col border-l">
             <Navbar
                 title="Customer Details"
                 searchPlaceholder="Search"
             />
             
-                <UserDatils user={user} />
+            <CustomerDetails user={user} />
         </div>
     </div>
     )

@@ -4,18 +4,24 @@ import "./style.css";
 import { Modal } from "./Modal";
 import { IsLiveChat } from "./IsLiveChat";
 import Image from "next/image";
+import { IsEmail } from "./IsEmail";
 
 export const MainContainer = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalIcon, setModalIcon] = useState(null);
   const [isLiveChat, setIsLiveChat] = useState(false);
+  const [isEmail, setIsEmail] = useState(false);
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
 
   const handleConnectClick = (title, icon) => {
     if (title === 'Nativetalk Livechat'){
       setIsLiveChat(true)
-    } else {
+    } 
+    else if (title === 'Email'){
+      setIsEmail(true)
+    } 
+    else {
       setModalTitle(title);
       setModalIcon(icon);
       setShowModal(true);
@@ -26,6 +32,7 @@ export const MainContainer = () => {
     setShowModal(false);
     setShowDisconnectModal(false);
     setIsLiveChat(false);
+    setIsEmail(false)
   };
 
   return (
@@ -83,6 +90,7 @@ export const MainContainer = () => {
         </Modal>
 
         {isLiveChat && <IsLiveChat onCancel={closeModal} />}
+        {isEmail && <IsEmail onCancel={closeModal} />}
       </div>
     </div>
   );
