@@ -61,24 +61,29 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            try {
-                const parsedUser = JSON.parse(storedUser);
-                setUser(parsedUser);
-            } catch (error) {
-                console.error("Error parsing user data from localStorage:", error);
-            }
-        }
-
-        const handleStorageChange = () => {
+        if (typeof window !== 'undefined') {
             const storedUser = localStorage.getItem('user');
-            setUser(storedUser ? JSON.parse(storedUser) : null);
-        };
-        window.addEventListener('storage', handleStorageChange);
-
-        return () => window.removeEventListener('storage', handleStorageChange);
+            if (storedUser) {
+                try {
+                    const parsedUser = JSON.parse(storedUser);
+                    setUser(parsedUser);
+                } catch (error) {
+                    console.error("Error parsing user data from localStorage:", error);
+                }
+            }
+    
+            const handleStorageChange = () => {
+                const storedUser = localStorage.getItem('user');
+                setUser(storedUser ? JSON.parse(storedUser) : null);
+            };
+            window.addEventListener('storage', handleStorageChange);
+    
+            return () => {
+                window.removeEventListener('storage', handleStorageChange);
+            };
+        }
     }, []);
+    
 
     useEffect(() => {
         if (user && !refreshInterval) {

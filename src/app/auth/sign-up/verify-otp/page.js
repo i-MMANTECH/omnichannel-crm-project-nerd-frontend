@@ -189,7 +189,7 @@ const EmailConfirmation = () => {
                         </button>
 
                         <p className="text-gray-500 dark:text-gray-400 text-center mt-4">
-                            {timer > 0 ? <span className='font-bold'>Resend code in {formatTime(timer)}</span> : <span onClick={handleResendCode} className="text-blue-500 cursor-pointer">Resend now</span>}
+                            {timer > 0 ? <span >Resend code in <span className='font-bold'>{formatTime(timer)}</span></span> : <span onClick={handleResendCode} className="text-blue-500 cursor-pointer">Resend now</span>}
                         </p>
                     </div>
                 </div>

@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faCheckDouble, faCircleExclamation, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import './messageList.css';
+import Image from "next/image";
+
 
 const MessageList = ({ activeUser, currentUserId }) => {
   const messageEndRef = useRef(null);
