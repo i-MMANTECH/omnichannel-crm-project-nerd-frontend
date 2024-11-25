@@ -36,20 +36,7 @@
   --otherswhite: #ffffff;
 }
 
-.messages {
-    align-items: flex-start;
-    background-color: var(--greyscale-0);
-    border: 1px solid;
-    border-color: var(--greyscale-100);
-    border-radius: 16px;
-    display: flex;
-    overflow: hidden;
-    position: relative;
-    width: 1104px;
-    height: 80vh;
-    width: 95%;
-    max-width: 1104px;
-  }
+
   
   .messages .overlap-group-3 {
     height: 20px;
@@ -97,7 +84,6 @@
   }
   
   .messages .detail {
-    align-items: center;
     align-self: stretch;
     border-color: var(--greyscale-100);
     border-left-style: solid;
@@ -105,7 +91,6 @@
     display: flex;
     flex: 1;
     flex-direction: column;
-    flex-grow: 1;
     position: relative;
   }
   

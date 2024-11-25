@@ -64,7 +64,7 @@ const MessageInput = ({ onInputChange, onSendMessage }) => {
   };
 
   return (
-    <div className="type">
+    <div className="type absolute bottom-0">
       <div className="write-area">
         <div className="attach-icon" onClick={handleAttachClick}>
           <FontAwesomeIcon icon={faPaperclip} />

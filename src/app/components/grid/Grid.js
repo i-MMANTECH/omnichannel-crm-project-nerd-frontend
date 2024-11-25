@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faClock, faTh, faSort, faFilter, faEnvelope, faCommentDots, faEllipsis } from '@fortawesome/free-solid-svg-icons';
-import Image from 'next/image';
+import { useApi } from '@/services/axiosConfig';
+import { useError } from '@/context/ErrorContext';
 
 
 const roleStyles = {
@@ -81,6 +82,10 @@ const usersData = [
 ];
 
 const Grid = ({ searchQuery }) => {
+  const { axiosInstance } = useApi();
+  const { handleApiError } = useError();
+  
+  
   const [view, setView] = useState('grid');
 
   const filteredUsers = useMemo(() => {
@@ -88,6 +93,20 @@ const Grid = ({ searchQuery }) => {
       user.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [searchQuery]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const {data} = await axiosInstance.get("/users");
+        // setUsers(response.data);
+        console.log(data)
+      } catch (error) {
+        handleApiError(error)
+      }
+    };
+
+    fetchUsers();
+  }, []); 
 
   return (
     <div className="p-6 min-h-screen border-l-2 border-gray-100 bg-white">
@@ -120,11 +139,10 @@ const Grid = ({ searchQuery }) => {
           <div key={user.id} className="bg-white border rounded-lg">
             <div className='flex justify-between items-center p-2 border-b'>
               <div className='flex items-center space-x-2'>
-                 <Image  src={user.image}
+                 <img  src={user.image}
                   alt={user.name}
                   className="w-10 h-10 rounded-full"
-                  width={100}
-                  height={100}
+                  
                 />
              
                 <h3 className="text-lg font-semibold">{user.name}</h3>
@@ -144,11 +162,9 @@ const Grid = ({ searchQuery }) => {
               </p>
               
               <div className='flex items-center'> 
-                <Image src="/assets/active-Icon.png"
+                <img src="/assets/active-Icon.png"
                   className='mr-1' 
                   alt="active icon" 
-                  width={20}
-                  height={20}
                 />
                 <span className={`inline-block px-2 py-1 rounded-full text-sm font-medium ${roleStyles[user.role]} mb-2`}>
                   <span className={`inline-block w-2 h-2 mr-1 rounded-full ${user.isActive ? 'bg-purple-500' : 'bg-gray-300'}`}></span>
@@ -159,9 +175,8 @@ const Grid = ({ searchQuery }) => {
 
               <div className='flex justify-between items-center text-gray-500 mt-2 border-t pt-2'>
                 <div className="flex items-center space-x-2">
-                  <Image src="/assets/mark-icon.png" alt="mark icon"
-                      width={50}
-                      height={50}
+                  <img src="/assets/mark-icon.png" alt="mark icon"
+                      
                   />
                   <span>{user.mark}</span>
                   <span style={{marginLeft: 10}}>

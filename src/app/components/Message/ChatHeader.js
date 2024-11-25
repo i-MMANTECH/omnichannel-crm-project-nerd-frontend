@@ -25,8 +25,8 @@ const ChatHeader = ({ activeUser }) => {
           />
         )}
       </div>
-      <div className="info">
-        <div className="text-wrapper-2">{activeUser.name || "Unknown User"}</div>
+      <div className="info flex flex-col relative grow justify-center gap-2 bottom-1">
+        <div className="text-black dark:text-white">{activeUser.name || "Unknown User"}</div>
         <div className="title-4">Last Seen {formattedTime}</div>
       </div>
       <FontAwesomeIcon icon={faEllipsisH} className="icon-instance-node" />

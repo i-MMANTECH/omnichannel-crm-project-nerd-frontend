@@ -1,23 +1,14 @@
 "use client";
 
-import React, { useState, useContext, useEffect } from 'react';
-import { AuthContext } from '../../../context/AuthContext';
-import { useRouter } from 'next/navigation';
-import Sidebar from '../../components/sidebar/Sidebar';
-import Navbar from '../../components/navbar/Navbar';
+import React from 'react';
 import { Messages } from '../../components/Message/Messages';
 
 const Page = () => {
-    const { user } = useContext(AuthContext);
-    const router = useRouter();
-    const [searchQuery, setSearchQuery] = useState("");
-
-
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
-            <div style={{ marginLeft: '240px', zIndex: 100, backgroundColor: 'white' }} className="flex-1 flex flex-col border-l">
-            <Messages />
+        <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh]">      
+            <div className='relative body-theme flex-1 flex flex-col '>    
+                <Messages />
             </div>
         </div>
     );

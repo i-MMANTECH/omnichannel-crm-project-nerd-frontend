@@ -16,6 +16,7 @@ export const Messages = () => {
   const [socket, setSocket] = useState(null);
   const [users, setUsers] = useState([]);
   const [chatHistory, setChatHistory] = useState([]);
+  const [companyId, setCompanyId] = useState('');
 
   const handleSendMessage = (messageContent) => {
     const payload = {
@@ -64,6 +65,29 @@ export const Messages = () => {
   };
 
   useEffect(() => {
+    const fetchScript = async () => {
+        try {
+          const response = await axiosInstance.get('/companies/details/',
+            {},
+            {
+              headers: {
+                'Content-Type': 'application/json',
+              }
+            }
+          );
+
+          if (response.data.company) {
+            setCompanyId(response.data.company.id);
+          } 
+        } catch (error) {
+          handleApiError(error)
+        }
+    };
+
+    fetchScript();
+  }, []);
+
+  useEffect(() => {
     if (activeUser) {
       axiosInstance
         .get(`/communication/history/?lead_id=${activeUser.id}`)
@@ -87,8 +111,9 @@ export const Messages = () => {
       });
   }, []);
   
-  useEffect(() => {
-    const ws = new WebSocket("ws://ws-staging.core.nativetalkcrm.com/ws/chat/?uuid=1&type=company");
+ useEffect(() => {
+  if (companyId) {
+    const ws = new WebSocket(`ws://ws-staging.core.nativetalkcrm.com/ws/chat/?uuid=${companyId}&type=company`);
     setSocket(ws);
 
     ws.onopen = () => {
@@ -98,8 +123,9 @@ export const Messages = () => {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       const message = data.message;
-      console.log("Message content:", message.content);
-      setChatHistory((prev) => [...prev, message]);
+      if (message.content.lead_receiver === activeUser?.id) {
+        setChatHistory((prev) => [...prev, message]);
+      }
     };
 
     ws.onerror = (error) => {
@@ -113,30 +139,33 @@ export const Messages = () => {
     return () => {
       ws.close();
     };
-  }, []);
+  }
+}, [companyId]);
 
   const handleInputChange = (e) => {
     setMessage(e.target.value);
   };
 
   return (
-    <div className="messages m-4">
+    <div className="overflow-y-hidden messages flex items-start body-theme border border-gray-500 rounded-lg relative h-[80vh] m-4">
       <ChatList users={users} activeUser={activeUser} setActiveUser={setActiveUser} />
       <div className="detail">
         {activeUser ? (
           <>
             <ChatHeader activeUser={activeUser} />
-            <MessageList 
-              chatHistory={chatHistory} 
-              currentUserId={currentUser?.user_id} 
-              />
+            <div className="flex items-center grow">
+              <MessageList 
+                chatHistory={chatHistory} 
+                currentUserId={currentUser?.user_id} 
+                />
 
-            <MessageInput
-              message={message}
-              onInputChange={handleInputChange}
-              onSendMessage={handleSendMessage}
-              audioRecordingEnabled
-            />
+              <MessageInput
+                message={message}
+                onInputChange={handleInputChange}
+                onSendMessage={handleSendMessage}
+                audioRecordingEnabled
+              />
+            </div>
           </>
         ) : (
           <div className="no-chat-selected">Select a user to start chatting</div>

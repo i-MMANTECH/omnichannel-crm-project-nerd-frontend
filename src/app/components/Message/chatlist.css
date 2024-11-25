@@ -1,45 +1,3 @@
-
-.list-chat {
-    align-items: flex-start;
-    display: inline-flex;
-    flex-direction: column;
-    margin-bottom: -68px;
-    position: relative;
-    cursor: pointer;
-}
-
-.tab {
-    align-items: flex-start;
-    background-color: var(--greyscale-0);
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    justify-content: center;
-    padding: 24px 24px 0;
-    width: 100%;
-}
-
-.field {
-    align-items: center;
-    border-radius: 8px;
-    display: inline-flex;
-    flex-direction: column;
-    gap: 10px;
-    justify-content: center;
-}
-
-.input-area {
-    align-items: center;
-    border: 1px solid var(--greyscale-100);
-    border-radius: 8px;
-    display: flex;
-    gap: 10px;
-    height: 40px;
-    justify-content: center;
-    padding: 16px 20px;
-    width: 302px;
-}
-
 .search {
     height: 20px;
     width: 20px;
@@ -86,16 +44,6 @@
     width: 85px;
 }
 
-.div {
-    color: var(--greyscale-900);
-    font-family: var(--body-medium-semibold-14px-font-family);
-    font-size: var(--body-medium-semibold-14px-font-size);
-    font-weight: var(--body-medium-semibold-14px-font-weight);
-    line-height: var(--body-medium-semibold-14px-line-height);
-    text-align: center;
-    white-space: nowrap;
-}
-
 .divider {
     width: 100%;
 }
@@ -107,24 +55,6 @@
     width: 350px;
     overflow-y: auto;
     max-height: 300px;
-}
-
-.message {
-    align-items: center;
-    background-color: var(--greyscale-0);
-    display: flex;
-    gap: 20px;
-    padding: 0px;
-    width: 100%;
-}
-
-.frame {
-    align-items: center;
-    border-radius: 8px;
-    display: flex;
-    gap: 5px;
-    padding: 8px;
-    width: 330px;
 }
 
 .avatar {
@@ -144,21 +74,6 @@
     height: 55px;
     justify-content: space-between;
     width: 250px;
-}
-
-.div-3 {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-}
-
-.title {
-    color: var(--greyscale-900);
-    font-family: var(--body-medium-medium-14px-font-family);
-    font-size: var(--body-medium-medium-14px-font-size);
-    font-weight: var(--body-medium-medium-14px-font-weight);
-    line-height: var(--body-medium-medium-14px-line-height);
-    white-space: nowrap;
 }
 
 .title-2 {
@@ -206,15 +121,6 @@
     width: 20px;
 }
 
-
-.div-2 {
-    align-items: flex-start;
-    display: flex;
-    flex-direction: column;
-    width: 350px;
-    overflow-y: auto;
-    max-height: 300px;
-}
 
 .div-2::-webkit-scrollbar {
     width: 6px;
