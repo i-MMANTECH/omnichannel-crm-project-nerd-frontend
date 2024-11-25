@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { socialMediaData } from "./socialMediaData";
 import "./style.css";
 import { Modal } from "./Modal";
@@ -29,23 +29,24 @@ export const MainContainer = () => {
   };
 
   return (
-    <div className="main-container border-l">
-      <div className="frame">
-        <p className="text-wrapper">Select the channels you want to connect</p>
+    <div className="main-container max-w-full body-theme pl-10 w-full">
+      <div className="frame min-h-full">
+        <p className="text-lg">Select the channels you want to connect</p>
 
-        <div className="div">
+        <div className="flex justify-between w-full flex-wrap">
           {socialMediaData.map((media) => (
-            <div key={media.id} className="link-account">
-              <div className="name">
-                <div className="icon">
+            <div key={media.id} className="link-account p-5 flex mb-8 cursor-pointer items-center border">
+              <div className="flex items-center justify-center gap-3">
+                <div >
                   <Image src={media.icon} alt={media.title}
-                    width={50}
-                    height={50}
-            />
+                    width={40}
+                    height={40}
+                />
                 </div>
-                <div className="text">
-                  <div className="title">{media.title}</div>
-                  <p className="p">
+
+                <div>
+                  <div >{media.title}</div>
+                  <p className="text-sm">
                     {media.description.split("\n").map((line, index) => (
                       <React.Fragment key={index}>
                         {line}
@@ -54,12 +55,14 @@ export const MainContainer = () => {
                     ))}
                   </p>
                 </div>
-              </div>
-              <div
-                className={`chip ${media.status === "Connected" ? "connected" : ""}`}
-                onClick={() => handleConnectClick(media.title, media.icon)}
-              >
-                <div className="title-2">{media.status}</div>
+
+                <div
+                  className={`chip ${media.status === "Connected" ? "connected" : ""}`}
+                  onClick={() => handleConnectClick(media.title, media.icon)}
+                >
+                  <div className="title-2">{media.status}</div>
+                </div>
+
               </div>
             </div>
           ))}

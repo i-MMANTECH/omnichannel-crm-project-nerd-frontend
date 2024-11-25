@@ -159,7 +159,7 @@ const Grid = ({ searchQuery }) => {
 
               <div className='flex justify-between items-center text-gray-500 mt-2 border-t pt-2'>
                 <div className="flex items-center space-x-2">
-                  <Image src="../../assets/mark-icon.png" alt="mark icon"
+                  <Image src="/assets/mark-icon.png" alt="mark icon"
                       width={50}
                       height={50}
                   />
