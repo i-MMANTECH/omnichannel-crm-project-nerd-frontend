@@ -11,7 +11,7 @@ const Page = () => {
 
     useEffect(() => {
         if (user) {
-            router.push('/dashboard');
+            router.push('/nativecrm');
         } else {
             router.push('/auth/sign-in');
         }

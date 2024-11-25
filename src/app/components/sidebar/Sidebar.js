@@ -5,16 +5,6 @@ import { Disclosure } from "@headlessui/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { GiHamburgerMenu } from "react-icons/gi";
-import {
-  MdOutlineSpaceDashboard,
-  MdOutlinePeople,
-  MdOutlineNotifications,
-  MdOutlineSettings,
-} from "react-icons/md";
-import { FaRegComments } from "react-icons/fa";
-import { BiMessageSquareDots } from "react-icons/bi";
-import { AiOutlineUserAdd } from "react-icons/ai";
-import { FiHelpCircle } from "react-icons/fi";
 import "./Sidebar.css";
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
@@ -80,8 +70,8 @@ function Sidebar() {
                     className={`${isActive("/dashboard") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
                     style={{marginLeft: '2px'}}
                     alt="Users"
-                    width={15}
-                    height={15}
+                    width={16}
+                    height={16}
                   />
                 <h3 className={`text-sm font-medium ${isActive("/dashboard") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
                   Dashboard
@@ -105,17 +95,7 @@ function Sidebar() {
               </Link>
 
               <Link
-                href="/channels"
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/channels") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
-              >
-                <MdOutlinePeople className={`text-xl ${isActive("/channels") ? activeStyle : "text-gray-600 dark:text-gray-400"}`} />
-                <h3 className={`text-sm font-medium ${isActive("/channels") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
-                  Channels
-                </h3>
-              </Link>
-
-              <Link
-                href="/messages"
+                href="/nativecrm/messages"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/messages") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
                 <Image
@@ -198,7 +178,7 @@ function Sidebar() {
             <div className="self-end mt-auto w-full">
               <div className="mb-5">
                 <Link
-                  href="/settings"
+                  href="/nativecrm/settings"
                   className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/settings") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
                 >
                   <Image
