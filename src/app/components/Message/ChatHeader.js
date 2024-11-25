@@ -1,30 +1,33 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
-import './chatHeader.css'
-import Image from "next/image";
-
+import { faEllipsisH, faUserCircle } from "@fortawesome/free-solid-svg-icons";
+import "./chatHeader.css";
 
 const ChatHeader = ({ activeUser }) => {
+  if (!activeUser) return null;
+
+  const formattedTime = new Date(activeUser.time).toLocaleString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+
   return (
     <div className="header">
       <div className="avatar-woman">
         {activeUser.profileImage ? (
-          <Image src={activeUser.profileImage} alt="User Profile" className="icon-avatar-large"
-          width={100}
-          height={100}
-          />
+          <img src={activeUser.profileImage} alt="User Profile" className="icon-avatar-large" />
         ) : (
           <FontAwesomeIcon
-            icon={activeUser.avatarIcon}
+            icon={faUserCircle} 
             className="icon-avatar-large"
             size="2x"
           />
         )}
       </div>
-      <div className="info">
-        <div className="text-wrapper-2">{activeUser.name}</div>
-        <div className="title-4">Last Seen {activeUser.time}</div>
+      <div className="info flex flex-col relative grow justify-center gap-2 bottom-1">
+        <div className="text-black dark:text-white">{activeUser.name || "Unknown User"}</div>
+        <div className="title-4">Last Seen {formattedTime}</div>
       </div>
       <FontAwesomeIcon icon={faEllipsisH} className="icon-instance-node" />
     </div>
@@ -32,3 +35,4 @@ const ChatHeader = ({ activeUser }) => {
 };
 
 export default ChatHeader;
+

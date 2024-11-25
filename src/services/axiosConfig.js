@@ -8,6 +8,7 @@ export const useApi = () => {
     const [loading, setLoading] = useState(false);
 
     const axiosInstance = axios.create({
+        // baseURL: 'https://staging.core.nativetalkcrm.com/api',
         baseURL: process.env.NEXT_PUBLIC_API_URL,
         headers: {
         'User-Domain': getUserDomain(),
@@ -42,6 +43,19 @@ export const useApi = () => {
             return Promise.reject(error);
         }
     );
+
+    axiosInstance.interceptors.request.use(
+        (config) => {
+          const user = JSON.parse(localStorage.getItem("user"));
+          if (user?.access) {
+            config.headers["Authorization"] = `Bearer ${user.access}`;
+          }
+          return config;
+        },
+        (error) => {
+          return Promise.reject(error);
+        }
+      );
 
     return { axiosInstance, loading };
 };

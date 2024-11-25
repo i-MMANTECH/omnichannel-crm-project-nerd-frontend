@@ -9,11 +9,7 @@
 
 
 .main-container {
-  height: 85vh;
-  width: 100%;
-  max-width: 1104px;
   overflow-x: hidden;
-  background-color: white;
 }
 
 .main-container .frame {
@@ -21,48 +17,12 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  margin: 10px;
   position: relative;
-  top: 20px;
-  width: 95%;
-  max-width: 1048px;
-}
-
-.main-container .text-wrapper {
-  align-self: stretch;
-  color: #000000;
-  font-family: var(--body-large-regular-16px-font-family);
-  font-size: var(--body-large-regular-16px-font-size);
-  font-style: var(--body-large-regular-16px-font-style);
-  font-weight: var(--body-large-regular-16px-font-weight);
-  letter-spacing: var(--body-large-regular-16px-letter-spacing);
-  line-height: var(--body-large-regular-16px-line-height);
-  margin-top: -1.00px;
-  position: relative;
-}
-
-.main-container .div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: space-between;
-  width: 100%;
 }
 
 .main-container .link-account {
-  align-items: center;
-  border-radius: 8px;
-  border: 1.003px solid var(--Greyscale-100, #DFE1E6);
-  background: var(--Greyscale-0, #FFF);
-  display: flex;
-  height: 94.11px;
-  justify-content: space-between;
-  padding: 16.05px;
-  position: relative;
-  width: 337px;
-  flex: 1 1 calc(33% - 20px);
-  box-sizing: border-box;
-}
+  border-radius: 8px;  
+} 
 
 .main-container .name {
   display: flex;
@@ -84,15 +44,6 @@
 }
 
 
-.main-container .text {
-  align-items: flex-start;
-  display: inline-flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  gap: 2.01px;
-  position: relative;
-}
-
 .main-container .title {
   color: var(--greyscale-900);
   font-family: var(--body-medium-semibold-14px-font-family);
@@ -107,37 +58,22 @@
   width: fit-content;
 }
 
-.main-container .p {
-  color: var(--Greyscale-400, #808897);
-  font-family: "Encode Sans";
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 160%; 
-  letter-spacing: 0.4px;
-
-}
-
 .main-container .chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 4px 8px;
   height: 24px;
+  padding: 4px 8px;
   border-radius: 6px;
-  font-size: 12px;
   font-weight: 600;
+  font-size: 12px;
   cursor: pointer;
 }
 
 .main-container .chip.connected {
   background-color: var(--primary-25);
   color: var(--primary-100-base);
-  pointer-events: none;
-  font-family: "Encode Sans";
-  font-size: 12px;
-  font-weight: bold;
 }
 
 .main-container .chip:not(.connected) {
@@ -145,12 +81,3 @@
   color: var(--greyscale-400);
 }
 
-
-.main-container .title-2 {
-font-family: "Encode Sans";
-font-size: 14px;
-font-style: normal;
-font-weight: 600;
-line-height: 150%;
-letter-spacing: 0.2px;
-}

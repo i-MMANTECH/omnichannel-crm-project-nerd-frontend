@@ -17,28 +17,9 @@
     height: auto;
     padding: 32px;
     gap: 32px;
-    border-radius: 16px;
-    background: var(--Greyscale-0, #FFF);
 }
 
-.modal-live .title {
-    color: var(--Greyscale-900, #0D0D12);
-    text-align: left;
-    font-family: "Encode Sans", sans-serif;
-    font-size: 24px;
-    font-weight: 700;
-    line-height: 130%;
-    margin-bottom: 12px; 
-}
 
-.modal-live .text {
-    color: var(--Greyscale-500, #666D80);
-    font-family: "Encode Sans", sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 160%;
-    margin-bottom: 20px; 
-}
 
 .modal-live .code-snippet {
     display: flex;
@@ -57,7 +38,7 @@
     margin: 0;
     font-family: "Courier New", Courier, monospace;
     font-size: 14px;
-    color: var(--Greyscale-900, #0D0D12);
+    flex: 1;
     overflow: hidden; 
 }
 

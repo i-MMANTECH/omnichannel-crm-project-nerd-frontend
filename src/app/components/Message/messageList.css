@@ -1,13 +1,4 @@
-.message-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 24px 36px;
-    width: 100%;
-    max-height: 400px;
-    overflow-y: auto;
-  }
-  
+
   .message-list::-webkit-scrollbar {
     width: 6px;
   }
@@ -89,4 +80,6 @@
     margin-top: 5px;
   }
   
-  
+  .message-time {
+    font-size: 12px;
+  }

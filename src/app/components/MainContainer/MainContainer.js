@@ -1,22 +1,27 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { socialMediaData } from "./socialMediaData";
 import "./style.css";
 import { Modal } from "./Modal";
 import { IsLiveChat } from "./IsLiveChat";
 import Image from "next/image";
-
+import { IsEmail } from "./IsEmail";
 
 export const MainContainer = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalIcon, setModalIcon] = useState(null);
   const [isLiveChat, setIsLiveChat] = useState(false);
+  const [isEmail, setIsEmail] = useState(false);
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
 
   const handleConnectClick = (title, icon) => {
     if (title === 'Nativetalk Livechat'){
       setIsLiveChat(true)
-    } else {
+    } 
+    else if (title === 'Email'){
+      setIsEmail(true)
+    } 
+    else {
       setModalTitle(title);
       setModalIcon(icon);
       setShowModal(true);
@@ -27,26 +32,28 @@ export const MainContainer = () => {
     setShowModal(false);
     setShowDisconnectModal(false);
     setIsLiveChat(false);
+    setIsEmail(false)
   };
 
   return (
-    <div className="main-container border-l">
-      <div className="frame">
-        <p className="text-wrapper">Select the channels you want to connect</p>
+    <div className="main-container max-w-full body-theme pl-10 w-full">
+      <div className="frame min-h-full">
+        <p className="text-lg">Select the channels you want to connect</p>
 
-        <div className="div">
+        <div className="flex justify-between w-full flex-wrap">
           {socialMediaData.map((media) => (
-            <div key={media.id} className="link-account">
-              <div className="name">
-                <div className="icon">
+            <div key={media.id} className="link-account p-5 flex mb-8 cursor-pointer items-center border">
+              <div className="flex items-center justify-center gap-3">
+                <div >
                   <Image src={media.icon} alt={media.title}
-                    width={50}
-                    height={50}
-            />
+                    width={40}
+                    height={40}
+                />
                 </div>
-                <div className="text">
-                  <div className="title">{media.title}</div>
-                  <p className="p">
+
+                <div>
+                  <div >{media.title}</div>
+                  <p className="text-sm">
                     {media.description.split("\n").map((line, index) => (
                       <React.Fragment key={index}>
                         {line}
@@ -55,12 +62,14 @@ export const MainContainer = () => {
                     ))}
                   </p>
                 </div>
-              </div>
-              <div
-                className={`chip ${media.status === "Connected" ? "connected" : ""}`}
-                onClick={() => handleConnectClick(media.title, media.icon)}
-              >
-                <div className="title-2">{media.status}</div>
+
+                <div
+                  className={`chip ${media.status === "Connected" ? "connected" : ""}`}
+                  onClick={() => handleConnectClick(media.title, media.icon)}
+                >
+                  <div className="title-2">{media.status}</div>
+                </div>
+
               </div>
             </div>
           ))}
@@ -81,6 +90,7 @@ export const MainContainer = () => {
         </Modal>
 
         {isLiveChat && <IsLiveChat onCancel={closeModal} />}
+        {isEmail && <IsEmail onCancel={closeModal} />}
       </div>
     </div>
   );

@@ -1,9 +1,25 @@
-import React from 'react';
-import { FaSearch, FaBell } from 'react-icons/fa';
+'use client'
 
-const Navbar = ({ title, searchPlaceholder, onSearch }) => {
+import React, { useEffect, useState } from 'react';
+import { FaSearch, FaBell } from 'react-icons/fa';
+import { usePathname } from 'next/navigation';
+
+
+const Navbar = ({ searchPlaceholder, onSearch }) => {
+    const path = usePathname();
+    const [title, setTitle] = useState("Page Title");
+    
+    useEffect(() => {
+        const pathParts = path.split('/');
+        const lastPart = pathParts[pathParts.length - 1];
+
+        const capitalizedTitle = lastPart.charAt(0).toUpperCase() + lastPart.slice(1).toLowerCase();
+
+        setTitle(capitalizedTitle || "");
+    }, [path]);
+
     return (
-        <div  className="body-theme shadow-md p-4 flex items-center justify-between border-b">
+        <div className="fixed top-0 right-0 w-10/12 z-30 body-theme shadow-md p-4 flex items-center justify-between ">
             <h1 className="text-xl font-bold">{title}</h1>
             <div className="flex items-center space-x-4">
                 <div className="relative">

@@ -4,70 +4,37 @@ import {
   faMicrophone,
   faPaperclip,
   faPaperPlane,
-  faUser,
-  faFile,
   faImage,
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
-import './messageInput.css';
-import Image from "next/image";
-
+import "./messageInput.css";
 
 const MessageInput = ({ onInputChange, onSendMessage }) => {
   const [showAttachOptions, setShowAttachOptions] = useState(false);
   const [inputText, setInputText] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
-  const [selectedAudio, setSelectedAudio] = useState(null);
 
   const imageInputRef = useRef(null);
-  const documentInputRef = useRef(null);
-  const audioInputRef = useRef(null);
 
-  const handleFileSelect = (type) => {
-    if (type === "user") {
-      console.log("User file selected!");
-    } else if (type === "document") {
-      documentInputRef.current.click();
-    } else if (type === "image") {
-      imageInputRef.current.click();
-    } else if (type === "audio") {
-      audioInputRef.current.click();
-    }
+  const handleAttachClick = () => {
+    setShowAttachOptions((prev) => !prev);
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      if (e.shiftKey) {
-        e.preventDefault();
-        setInputText((prevText) => prevText + "\n");
-      } else {
-        e.preventDefault();
-        sendMessage();
-      }
-    }
-  };
-
-  const handleInputChange = (e) => {
+  const handleInputChangeInternal = (e) => {
     const text = e.target.value;
     setInputText(text);
     onInputChange(e);
   };
 
-  const handleAttachClick = () => {
-    setShowAttachOptions(!showAttachOptions);
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   };
 
-  const sendMessage = () => {
-    if (inputText.trim() || selectedImage || selectedAudio) {
-      onSendMessage({ 
-        text: inputText, 
-        image: selectedImage, 
-        audio: selectedAudio 
-      });
-      setInputText("");
-      setSelectedImage(null);
-      setSelectedAudio(null);
-    }
+  const handleFileSelect = () => {
+    imageInputRef.current.click();
   };
 
   const handleImageChange = (e) => {
@@ -78,54 +45,61 @@ const MessageInput = ({ onInputChange, onSendMessage }) => {
     }
   };
 
-  const handleAudioChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedAudio(file);
-      console.log("Audio file selected:", file);
-    }
-  };
-
   const removeSelectedImage = () => {
     setSelectedImage(null);
   };
 
+  const sendMessage = () => {
+    if (!inputText.trim()) return;
+
+    const messagePayload = {
+      text: inputText.trim(),
+    };
+
+    onSendMessage(messagePayload);
+
+    setInputText("");
+    setSelectedImage(null);
+    setShowAttachOptions(false);
+  };
+
   return (
-    <div className="type">
+    <div className="type absolute bottom-0">
       <div className="write-area">
         <div className="attach-icon" onClick={handleAttachClick}>
           <FontAwesomeIcon icon={faPaperclip} />
         </div>
         {showAttachOptions && (
           <div className="attach-options">
-            <FontAwesomeIcon icon={faUser} className="attach-option" onClick={() => handleFileSelect("user")} />
-            <FontAwesomeIcon icon={faFile} className="attach-option" onClick={() => handleFileSelect("document")} />
-            <FontAwesomeIcon icon={faImage} className="attach-option" onClick={() => handleFileSelect("image")} />
+            <FontAwesomeIcon
+              icon={faImage}
+              className="attach-option"
+              onClick={handleFileSelect}
+            />
           </div>
         )}
         <textarea
           placeholder="Write message here..."
           className="message-input"
           value={inputText}
-          onChange={handleInputChange}
+          onChange={handleInputChangeInternal}
           onKeyDown={handleKeyDown}
           rows={inputText.split("\n").length}
         />
-
         {selectedImage && (
           <div className="image-preview">
-            <Image src={URL.createObjectURL(selectedImage)} alt="Preview" className="preview-img"
-                            width={100}
-                            height={100}
-                            />
-                           
+            <img
+              src={URL.createObjectURL(selectedImage)}
+              alt="Preview"
+              className="preview-img"
+            />
             <button className="remove-image" onClick={removeSelectedImage}>
               <FontAwesomeIcon icon={faTimes} />
             </button>
           </div>
         )}
       </div>
-      {inputText || selectedImage || selectedAudio ? (
+      {inputText ? (
         <button className="send-button" onClick={sendMessage}>
           <FontAwesomeIcon icon={faPaperPlane} />
         </button>
@@ -141,13 +115,6 @@ const MessageInput = ({ onInputChange, onSendMessage }) => {
         style={{ display: "none" }}
         ref={imageInputRef}
         onChange={handleImageChange}
-      />
-      <input
-        type="file"
-        accept="audio/*"
-        style={{ display: "none" }}
-        ref={audioInputRef}
-        onChange={handleAudioChange}
       />
     </div>
   );

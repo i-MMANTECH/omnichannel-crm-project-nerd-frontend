@@ -5,16 +5,6 @@ import { Disclosure } from "@headlessui/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { GiHamburgerMenu } from "react-icons/gi";
-import {
-  MdOutlineSpaceDashboard,
-  MdOutlinePeople,
-  MdOutlineNotifications,
-  MdOutlineSettings,
-} from "react-icons/md";
-import { FaRegComments } from "react-icons/fa";
-import { BiMessageSquareDots } from "react-icons/bi";
-import { AiOutlineUserAdd } from "react-icons/ai";
-import { FiHelpCircle } from "react-icons/fi";
 import "./Sidebar.css";
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
@@ -73,39 +63,48 @@ function Sidebar() {
             <div className="my-3 pb-3 w-full">
               <Link
                 href="/dashboard"
-                className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/dashboard") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/dashboard") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
-                <MdOutlineSpaceDashboard className={`text-xl ${isActive("/dashboard") ? activeStyle : "text-gray-600 dark:text-gray-400"}`} />
+                <Image
+                    src="/assets/dashboard.svg"
+                    className={`${isActive("/dashboard") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                    style={{marginLeft: '2px'}}
+                    alt="Users"
+                    width={16}
+                    height={16}
+                  />
                 <h3 className={`text-sm font-medium ${isActive("/dashboard") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
                   Dashboard
                 </h3>
               </Link>
 
               <Link
-                href="/users"
-                className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/users") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                href="/nativecrm/users"
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/users") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
-                <MdOutlinePeople className={`text-xl ${isActive("/users") ? activeStyle : "text-gray-600 dark:text-gray-400"}`} />
+                <Image
+                    src="/assets/users-plus.svg"
+                    className={`${isActive("/users") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                    alt="Users"
+                    width={20}
+                    height={20}
+                  />
                 <h3 className={`text-sm font-medium ${isActive("/users") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
                   Users
                 </h3>
               </Link>
 
               <Link
-                href="/channels"
-                className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/channels") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                href="/nativecrm/messages"
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/messages") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
-                <MdOutlinePeople className={`text-xl ${isActive("/channels") ? activeStyle : "text-gray-600 dark:text-gray-400"}`} />
-                <h3 className={`text-sm font-medium ${isActive("/channels") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
-                  Channels
-                </h3>
-              </Link>
-
-              <Link
-                href="/messages"
-                className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/messages") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
-              >
-                <BiMessageSquareDots className={`text-xl ${isActive("/messages") ? activeStyle : "text-gray-600 dark:text-gray-400"}`} />
+                <Image
+                    src="/assets/mail-icon.svg"
+                    className={`${isActive("/messages") ? activeStyle : "text-gray-600 dark:text-gray-400"}`} 
+                    alt="Messages"
+                    width={20}
+                    height={20}
+                  />
                 <h3 className={`text-sm font-medium ${isActive("/messages") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
                   Messages
                 </h3>
@@ -113,19 +112,31 @@ function Sidebar() {
 
               <Link
                 href="/tasks"
-                className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/tasks") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/tasks") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
-                <FaRegComments className={`text-xl ${isActive("/tasks") ? activeStyle : "text-gray-600 dark:text-gray-400"}`} />
+                <Image
+                    src="/assets/tasks.svg"
+                    className={`${isActive("/tasks") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                    alt="Tasks"
+                    width={20}
+                    height={20}
+                  />
                 <h3 className={`text-sm font-medium ${isActive("/tasks") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
                   Tasks
                 </h3>
               </Link>
 
               <Link
-                href="/customers"
-                className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/customers") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                href="/nativecrm/customers"
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/customers") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
-                <AiOutlineUserAdd className={`text-xl ${isActive("/customers") ? activeStyle : "text-gray-600 dark:text-gray-400"}`} />
+                <Image
+                    src="/assets/customers.svg"
+                    className={`${isActive("/customers") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                    alt="Customers"
+                    width={20}
+                    height={20}
+                  />
                 <h3 className={`text-sm font-medium ${isActive("/customers") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
                   Customers
                 </h3>
@@ -133,9 +144,15 @@ function Sidebar() {
 
               <Link
                 href="/reports"
-                className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/reports") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/reports") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
-                <MdOutlineNotifications className={`text-xl ${isActive("/reports") ? activeStyle : "text-gray-600 dark:text-gray-400"}`} />
+                <Image
+                    src="/assets/reports.svg"
+                    className={`${isActive("/reports") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                    alt="Reports"
+                    width={20}
+                    height={20}
+                  />
                 <h3 className={`text-sm font-medium ${isActive("/reports") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
                   Reports
                 </h3>
@@ -143,9 +160,15 @@ function Sidebar() {
 
               <Link
                 href="/notifications"
-                className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/notifications") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/notifications") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
-                <MdOutlineNotifications className={`text-xl ${isActive("/notifications") ? activeStyle : "text-gray-600 dark:text-gray-400"}`} />
+                <Image
+                    src="/assets/bell.svg"
+                    className={`${isActive("/notifications") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                    alt="Bell"
+                    width={20}
+                    height={20}
+                  />
                 <h3 className={`text-sm font-medium ${isActive("/notifications") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
                   Notifications
                 </h3>
@@ -155,10 +178,16 @@ function Sidebar() {
             <div className="self-end mt-auto w-full">
               <div className="mb-5">
                 <Link
-                  href="/settings"
+                  href="/nativecrm/settings"
                   className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/settings") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
                 >
-                  <MdOutlineSettings className={`text-xl ${isActive("/settings") ? activeStyle : "text-gray-600 dark:text-gray-400"}`} />
+                  <Image
+                    src="/assets/settings.svg"
+                    className={`${isActive("/settings") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                    alt="Settings"
+                    width={20}
+                    height={20}
+                  />
                   <h3 className={`text-sm font-medium ${isActive("/settings") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
                     Settings
                   </h3>
@@ -168,7 +197,13 @@ function Sidebar() {
                   href="/help"
                   className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/help") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
                 >
-                  <FiHelpCircle className={`text-xl ${isActive("/help") ? activeStyle : "text-gray-600 dark:text-gray-400"}`} />
+                  <Image
+                    src="/assets/support.svg"
+                    className={`${isActive("/help") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                    alt="Support"
+                    width={20}
+                    height={20}
+                  />
                   <h3 className={`text-sm font-medium ${isActive("/help") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
                     Help and Support
                   </h3>
@@ -200,9 +235,9 @@ function Sidebar() {
             </div>
 
             {isModalOpen && (
-              <div className="modal-container fixed inset-0 w-60 px-5">
+              <div className="modal-container fixed inset-0 w-60 px-2">
                 <div
-                  className="modal-content body-theme mx-6"
+                  className="flex flex-col justify-center items-center body-theme absolute bottom-[120px] rounded p-3 border mx-6"
                   ref={modalRef}
                 >
                   <div className="flex flex-col gap-4 px-2">

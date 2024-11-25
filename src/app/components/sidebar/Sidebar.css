@@ -6,4 +6,7 @@
     transform: translateY(-50%);
     border-radius: 8px;
     border: 1px solid var(--Greyscale-100, #DFE1E6);
-  }
+    background: var(--Greyscale-0, #FFF);
+    max-width: 230px;
+    width: 40%;
+}

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEllipsisH, faSearch } from "@fortawesome/free-solid-svg-icons";
-import './chatlist.css'
+import { faEllipsisH, faSearch, faUserCircle } from "@fortawesome/free-solid-svg-icons";
+import "./chatlist.css";
 import Image from "next/image";
 
 const ChatList = ({ users, activeUser, setActiveUser }) => {
@@ -11,19 +11,32 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
     setSearchTerm(e.target.value);
   };
 
-  const filteredUsers = users.filter((user) =>
+  const contacts = users?.contacts || [];
+
+  const filteredUsers = contacts.filter((user) =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const formatTime = (time) => {
+    const date = new Date(time);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const truncateMessage = (message, maxLength) => {
+    if (message.length > maxLength) {
+      return `${message.slice(0, maxLength)}...`;
+    }
+    return message;
+  };
+
   return (
-    <div className="list-chat">
-      <div className="tab">
-        <div className="field">
-          <div className="input-area">
+    <div className="flex items-start flex-col relative body-theme  px-2">
+      <div className="body-theme justify-center gap-5 p-5 flex items-start flex-col w-full">
+        <div className="w-full">
+          <div className="flex items-center justify-center h-[40px] gap-5 rounded border border-gray-500 p-5 ">
             <input
               type="text"
               placeholder="Search message..."
-              className="search-input"
               value={searchTerm}
               onChange={handleSearchChange}
               aria-label="Search messages"
@@ -36,50 +49,50 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
             <div className="active">All</div>
           </div>
           <div className="active-wrapper">
-            <div className="div">Unread</div>
+            <div>Unread</div>
           </div>
         </div>
       </div>
       <div className="divider"></div>
-      <div className="div-2" style={{ overflowY: 'auto', maxHeight: '300px' }}>
+      <div className="flex flex-col items-start" >
         {filteredUsers.map((user) => (
           <div
             key={user.id}
-            className={`message ${user?.id === activeUser?.id ? 'selected-user' : ''}`}
+            className={`flex items-center rounded ${user?.id === activeUser?.id ? "bg-gray-100 dark:bg-neutral-900" : ""}`}
             onClick={() => setActiveUser(user)}
           >
-            <div className="frame">
+            <div className="flex items-center gap-3 p-3 cursor-pointer rounded">
               <div className="avatar">
                 {user.profileImage ? (
-                   <Image src={user.profileImage} alt="User Profile" className="icon-avatar"
-                            width={100}
-                            height={100}
-                            />
+                  <Image
+                    src={user.profileImage}
+                    alt="User Profile"
+                    className="icon-avatar"
+                    width={100}
+                    height={100}
+                  />
                 ) : (
                   <FontAwesomeIcon
-                    icon={user.avatarIcon}
+                    icon={faUserCircle}
                     className="icon-avatar"
                     size="2x"
                   />
                 )}
               </div>
               <div className="content">
-                <div className="div-3">
-                  <div className="title">{user.name}</div>
-                  <div className="title-2">{user.time}</div>
+                <div className="flex justify-between w-full">
+                  <div className="text-black dark:text-white">{user.name || "Unknown User"}</div>
+                  <div className="title-2">{formatTime(user.lastMessageTime)}</div>
                 </div>
-                <div className="div-3">
-                  <p className="label">{user.lastMessage}</p>
+                <div className="flex justify-between w-full">
+                  <p className="label">{truncateMessage(user.lastMessage, 30)}</p>
                   <div className="frame-3">
                     {user.unreadCount > 0 && (
                       <div className="title-wrapper">
                         <div className="title-3">{user.unreadCount}</div>
                       </div>
                     )}
-                    <FontAwesomeIcon
-                      icon={faEllipsisH}
-                      className="dots-horizontal"
-                    />
+                    <FontAwesomeIcon icon={faEllipsisH} className="dots-horizontal" />
                   </div>
                 </div>
               </div>
