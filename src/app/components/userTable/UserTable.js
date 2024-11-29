@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Pagination from "../../components/pagination/Pagination";
-import "./userTable.css";
+import "./UserTable.css";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 
@@ -12,6 +12,7 @@ const UserTable = ({ searchQuery }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+  const [displayedUsers] = useState([])
 
   useEffect(() => {
     const fetchUsers = async () => {
