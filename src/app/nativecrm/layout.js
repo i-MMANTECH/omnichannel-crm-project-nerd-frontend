@@ -1,8 +1,5 @@
 import localFont from "next/font/local";
 import "../globals.css";
-import { AuthProvider } from "@/context/AuthContext";
-import { ErrorProvider } from "@/context/ErrorContext";
-import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import Sidebar from "../components/sidebar/Sidebar";
 import Navbar from "../components/navbar/Navbar";
@@ -26,34 +23,16 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <AuthProvider>
-          <ErrorProvider>
-            <div className="flex min-h-screen w-full bg-gray-100 body-theme">
-              <Sidebar />
-              <div className="flex-1 flex relative min-h-screen flex-col ml-10 pt-20">
-                <Navbar
-                  searchPlaceholder="Search"
-                />
-                <div className="overflow-x-hidden z-10 mt-5 ml-40 body-theme">{children}</div>
-              </div>
-            </div>
-
-            <ToastContainer
-              position="top-right"
-              autoClose={1000}
-              hideProgressBar={false}
-              newestOnTop={false}
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
+    <div>
+        <div className="flex min-h-screen w-full bg-gray-100 body-theme">
+          <Sidebar />
+          <div className="flex-1 flex relative min-h-screen flex-col ml-10 pt-20">
+            <Navbar
+              searchPlaceholder="Search"
             />
-          </ErrorProvider>
-        </AuthProvider>
-      </body>
-    </html>
+            <div className="overflow-x-hidden z-10 mt-5 ml-40 body-theme">{children}</div>
+          </div>
+        </div>
+      </div>
   );
 }

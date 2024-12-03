@@ -5,7 +5,7 @@ import './IsLiveChat.css';
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 
-export const IsLiveChat = ({ onCancel }) => {
+export const ConnectLiveChatModal = ({ onCancel }) => {
   const { user } = useAuth();
   const [codeSnippet, setCodeSnippet] = useState('Script not found.');
   const [copyStatus, setCopyStatus] = useState('');

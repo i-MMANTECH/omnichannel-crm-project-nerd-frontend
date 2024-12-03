@@ -104,6 +104,7 @@ export const Messages = () => {
     axiosInstance
       .get("/communication/contacts/")
       .then((response) => {
+        console.log("contacts list ", response.data)
         setUsers(response.data);
       })
       .catch((error) => {
@@ -113,7 +114,10 @@ export const Messages = () => {
   
  useEffect(() => {
   if (companyId) {
-    const ws = new WebSocket(`wss://ws-staging.nativetalkcrm.com/ws/chat/?uuid=${companyId}&type=company`);
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const wsUrl = `${protocol}://ws-staging.core.nativetalkcrm.com/ws/chat/?uuid=${companyId}&type=company`;
+
+    const ws = new WebSocket(wsUrl);
     setSocket(ws);
 
     ws.onopen = () => {

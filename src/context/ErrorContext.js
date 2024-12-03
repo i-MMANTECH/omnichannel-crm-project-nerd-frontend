@@ -10,7 +10,6 @@ export const ErrorProvider = ({ children }) => {
 
     const handleApiError = (error) => {
         const errorData = error?.response?.data?.error;
-
         if (errorData && typeof errorData === 'object') {
             for (let field in errorData) {
                 if (errorData.hasOwnProperty(field)) {

@@ -1,18 +1,13 @@
 "use client";
 
-import React, { useContext, useEffect, useState } from 'react';
-import Sidebar from '../../components/sidebar/Sidebar';
-import Navbar from '../../components/navbar/Navbar';
-import Dashboard from '../../components/dashboard/Dashboard';
-import NProgress from '@/services/nprogressConfig';
-
+import React, { useState } from 'react';
 
 const Page = () => {
-    const [searchQuery, setSearchQuery] = useState("");
-
     return (
-        <div className="flex min-h-screen bg-gray-100">
-
+        <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh]">      
+            <div className='relative body-theme flex-1 flex flex-col '>    
+                Hello Fellas, hold on, We're still cooking!
+            </div>
         </div>
     );
 };

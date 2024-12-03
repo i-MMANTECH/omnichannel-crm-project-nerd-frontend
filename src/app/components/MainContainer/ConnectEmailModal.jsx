@@ -3,38 +3,33 @@ import copy from "copy-to-clipboard";
 import './IsLiveChat.css';
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
+import { useAuth } from "@/context/AuthContext";
 
-export const IsEmail = ({ onCancel }) => {
-  const [codeSnippet, setCodeSnippet] = useState('');
+export const ConnectEmailModal = ({ onCancel }) => {
+  const [emailForwarder, setEmailForwarder] = useState('');
   const [copyStatus, setCopyStatus] = useState('');
   const { axiosInstance, loading } = useApi();
   const { handleApiError } = useError();
 
-  useEffect(() => {
-    const fetchScript = async () => {
-        try {
-          const response = await axiosInstance.get('/companies/details/',
-            {},
-            {
-              headers: {
-                'Content-Type': 'application/json',
-              }
-            }
-          );
+  const fetchEmailForwarder = async () => {
+    try {
+      const response = await axiosInstance.get('/companies/details/')
 
-          if (response.data.company) {
-            setCodeSnippet(response.data.company.username);
-          } 
-        } catch (error) {
-          handleApiError(error)
-        }
-    };
+      if (response.data.company) {
+        console.log(response.data)
+        setEmailForwarder(response.data.company.email_forwarding);
+      } 
+    } catch (error) {
+      handleApiError(error)
+    }
+  };
 
-    fetchScript();
+  useEffect(() => {    
+    fetchEmailForwarder();
   }, []);
 
   const handleCopy = () => {
-    copy(codeSnippet);
+    copy(emailForwarder);
     setCopyStatus('Copied!');
     setTimeout(() => setCopyStatus(''), 2000);
   };
@@ -58,18 +53,18 @@ export const IsEmail = ({ onCancel }) => {
           Email
         </p>
 
-        <div className="ms-6 justify-center flex w-[382px] p-[16px_19px] items-center gap-[10px] rounded-[0px_16px_16px_16px] bg-[#F8F9FB]">
+        <div className="ms-6 justify-center flex p-[16px_19px] items-center gap-[10px] rounded-[0px_16px_16px_16px] bg-[#F8F9FB]">
           {loading ? (
             <p>Loading...</p>
           ) : (
             <>
-              <p className="text-[16px] font-normal leading-[150%] font-[Encode Sans] text-[#0D0D12]">
+              <p className="font-normal text-[#0D0D12]">
                 Copy your forwarding email address below:
-                <strong className="block text-[18px] font-bold leading-[135%]">
-                  {codeSnippet}@parse.nativetalkcrm.com
+                <strong className="block font-bold ">
+                  {emailForwarder}
                 </strong>
               </p>
-              <button onClick={handleCopy} disabled={!codeSnippet}>
+              <button onClick={handleCopy} disabled={!emailForwarder}>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                         <path d="M9 15C9 12.1716 9 10.7574 9.87868 9.87868C10.7574 9 12.1716 9 15 9H16C18.8284 9 20.2426 9 21.1213 9.87868C22 10.7574 22 12.1716 22 15V16C22 18.8284 22 20.2426 21.1213 21.1213C20.2426 22 18.8284 22 16 22H15C12.1716 22 10.7574 22 9.87868 21.1213C9 20.2426 9 18.8284 9 16V15Z" stroke="#C1C7CF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         <path d="M16.9999 9C16.9975 6.04291 16.9528 4.51121 16.092 3.46243C15.9258 3.25989 15.7401 3.07418 15.5376 2.90796C14.4312 2 12.7875 2 9.5 2C6.21252 2 4.56878 2 3.46243 2.90796C3.25989 3.07417 3.07418 3.25989 2.90796 3.46243C2 4.56878 2 6.21252 2 9.5C2 12.7875 2 14.4312 2.90796 15.5376C3.07417 15.7401 3.25989 15.9258 3.46243 16.092C4.51121 16.9528 6.04291 16.9975 9 16.9999" stroke="#C1C7CF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -78,7 +73,7 @@ export const IsEmail = ({ onCancel }) => {
             </>
           )}
         </div>
-        {copyStatus && <p className="copy-status">{copyStatus}</p>}
+        {copyStatus && <p className="copy-status text-center">{copyStatus}</p>}
 
             <p className="mb-5 mt-2 text-center text-[16px] font-semibold leading-[150%] tracking-[0.2px] font-[Encode Sans]">
                 Follow the instructions below
