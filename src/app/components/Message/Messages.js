@@ -113,7 +113,7 @@ export const Messages = () => {
   
  useEffect(() => {
   if (companyId) {
-    const ws = new WebSocket(`ws://ws-staging.core.nativetalkcrm.com/ws/chat/?uuid=${companyId}&type=company`);
+    const ws = new WebSocket(`wss://ws-staging.nativetalkcrm.com/ws/chat/?uuid=${companyId}&type=company`);
     setSocket(ws);
 
     ws.onopen = () => {
