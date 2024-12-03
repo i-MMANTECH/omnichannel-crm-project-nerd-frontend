@@ -1,18 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { socialMediaData } from "./socialMediaData";
 import "./style.css";
 import { Modal } from "./Modal";
-import { IsLiveChat } from "./IsLiveChat";
+import { ConnectLiveChatModal } from "./ConnectLiveChatModal";
 import Image from "next/image";
-import { IsEmail } from "./IsEmail";
+import { ConnectEmailModal } from "./ConnectEmailModal";
+import { useApi } from "@/services/axiosConfig";
+import { useError } from "@/context/ErrorContext";
 
 export const MainContainer = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalIcon, setModalIcon] = useState(null);
   const [isLiveChat, setIsLiveChat] = useState(false);
+  const { axiosInstance, loading } = useApi();
   const [isEmail, setIsEmail] = useState(false);
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
+  const [channels, setChannels] = useState([])
+  const { handleApiError } = useError();
+
 
   const handleConnectClick = (title, icon) => {
     if (title === 'Nativetalk Livechat'){
@@ -35,26 +40,42 @@ export const MainContainer = () => {
     setIsEmail(false)
   };
 
+  useEffect(() => {
+    const getChannels = async() => {
+      try {
+        const response = await axiosInstance.get('/channels/all/')
+        console.log(response)
+          
+        setChannels(response.data.channels);
+      } catch(error) {
+        handleApiError(error)
+      }
+    }
+
+    getChannels()
+  }, [])
+
+
   return (
     <div className="main-container max-w-full body-theme pl-10 w-full">
       <div className="frame min-h-full">
         <p className="text-lg">Select the channels you want to connect</p>
 
-        <div className="flex justify-between w-full flex-wrap">
-          {socialMediaData.map((media) => (
-            <div key={media.id} className="link-account p-5 flex mb-8 cursor-pointer items-center border">
-              <div className="flex items-center justify-center gap-3">
+        <div className="grid grid-cols-3 gap-x-5 justify-between w-full flex-wrap">
+          {channels.map((channel) => (
+            <div key={channel.id} className="rounded-lg p-4 flex mb-6 items-center border">
+              <div className="flex items-center justify-between w-full h-full gap-3">
                 <div >
-                  <Image src={media.icon} alt={media.title}
+                  <img src={channel.image} alt={channel.name}
                     width={40}
                     height={40}
                 />
                 </div>
 
                 <div>
-                  <div >{media.title}</div>
+                  <div >{channel.name}</div>
                   <p className="text-sm">
-                    {media.description.split("\n").map((line, index) => (
+                    {channel.description.split("\n").map((line, index) => (
                       <React.Fragment key={index}>
                         {line}
                         <br />
@@ -64,10 +85,10 @@ export const MainContainer = () => {
                 </div>
 
                 <div
-                  className={`chip ${media.status === "Connected" ? "connected" : ""}`}
-                  onClick={() => handleConnectClick(media.title, media.icon)}
+                  className={`cursor-pointer chip ${channel.connected ? "connected" : ""}`}
+                  onClick={() => handleConnectClick(channel.name, channel.image)}
                 >
-                  <div className="title-2">{media.status}</div>
+                  <div className="title-2">{channel.connected ? "Connected" : "Connect"}</div>
                 </div>
 
               </div>
@@ -89,8 +110,8 @@ export const MainContainer = () => {
           <p>Details and steps to connect to {modalTitle} go here.</p>
         </Modal>
 
-        {isLiveChat && <IsLiveChat onCancel={closeModal} />}
-        {isEmail && <IsEmail onCancel={closeModal} />}
+        {isLiveChat && <ConnectLiveChatModal onCancel={closeModal} />}
+        {isEmail && <ConnectEmailModal onCancel={closeModal} />}
       </div>
     </div>
   );

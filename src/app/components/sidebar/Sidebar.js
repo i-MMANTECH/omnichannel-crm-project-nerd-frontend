@@ -62,7 +62,7 @@ function Sidebar() {
 
             <div className="my-3 pb-3 w-full">
               <Link
-                href="/dashboard"
+                href="/nativecrm/dashboard"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/dashboard") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
                 <Image
@@ -111,7 +111,7 @@ function Sidebar() {
               </Link>
 
               <Link
-                href="/tasks"
+                href="/nativecrm/tasks"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/tasks") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
                 <Image
@@ -143,7 +143,7 @@ function Sidebar() {
               </Link>
 
               <Link
-                href="/reports"
+                href="/nativecrm/reports"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/reports") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
                 <Image
@@ -159,7 +159,7 @@ function Sidebar() {
               </Link>
 
               <Link
-                href="/notifications"
+                href="/nativecrm/notifications"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/notifications") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
                 <Image
@@ -194,7 +194,7 @@ function Sidebar() {
                 </Link>
 
                 <Link
-                  href="/help"
+                  href="/nativecrm/support"
                   className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/help") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
                 >
                   <Image

@@ -1,3 +1,5 @@
+'use client'
+
 export const getUserDomain = () => {
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;

@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useApi } from '.././services/axiosConfig';
 import NProgress from '@/services/nprogressConfig';
+import { useRouter } from 'next/navigation';
 
 export const AuthContext = createContext();
 
@@ -11,6 +12,7 @@ export const AuthProvider = ({ children }) => {
     const { axiosInstance } = useApi();
     const [user, setUser] = useState(null);
     const [refreshInterval, setRefreshInterval] = useState(null);
+    const router = useRouter();
 
     const login = (userData) => {
         setUser(userData);
@@ -18,17 +20,21 @@ export const AuthProvider = ({ children }) => {
         toast.success('Login Successful');
     };
 
-    const logout = () => {
+    const logout = () => {    
         NProgress.setColor('green');
         NProgress.start();
         setUser(null);
         localStorage.removeItem('user');
+        
         if (refreshInterval) {
             clearInterval(refreshInterval);
             setRefreshInterval(null);
         }
+        
         toast.success('Logout successful');
         NProgress.done();
+        
+        router.push('/auth/sign-in');
     };
 
     const refreshToken = async () => {
