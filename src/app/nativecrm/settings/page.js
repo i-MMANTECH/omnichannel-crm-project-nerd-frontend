@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import SettingsSidebar from "@/app/components/settings/SettingsSidebar";
-import IntegrateChannels from "@/app/components/settings/channels/IntegrateChannels";
+import SettingsSidebar from "@/app/components/Settings/SettingsSidebar";
+import IntegrateChannels from "@/app/components/Settings/channels/IntegrateChannels";
 import { useRouter } from 'next/navigation';
 
 

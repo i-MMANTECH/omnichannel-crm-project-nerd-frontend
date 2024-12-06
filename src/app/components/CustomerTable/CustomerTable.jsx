@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import Pagination from '../../components/pagination/Pagination';
+import Pagination from '../Pagination/Pagination';
 import './style.css';
 
 const CustomerTable = ({ searchQuery, customers }) => {
@@ -37,50 +37,13 @@ const CustomerTable = ({ searchQuery, customers }) => {
             case "Instagram":
                 return "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png";
             default:
-                return "https://via.placeholder.com/24/000000/FFFFFF?text=?"; // Placeholder for unknown channels
+                return "https://via.placeholder.com/24/000000/FFFFFF?text=?";
         }
     };
     
 
     return (
-        <div className="p-6 body-theme min-h-screen border-l">
-            <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2">
-                        <button className="flex items-center space-x-1 border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-50">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M14 6V4C14 2.89543 13.1046 2 12 2L8 2M14 6H8M14 6V10M2 6L2 4C2 2.89543 2.89543 2 4 2L8 2M2 6L8 6M2 6L2 10M8 6L8 2M8 6V10M8 14H12C13.1046 14 14 13.1046 14 12V10M8 14H4C2.89543 14 2 13.1046 2 12L2 10M8 14V10M8 10L14 10M8 10H2" stroke="#F36F4A" strokeWidth="1.33333" strokeLinejoin="round"/>
-                            </svg>
-                            <span className="text-sm font-medium text-gray-600">Table View</span>
-                            <span className="text-gray-500">&#x25BC;</span>
-                        </button>
-
-                        <span className="h-6 border-l border-gray-300 mx-2"></span>
-
-                        <button className="flex items-center space-x-1 border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-50">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M4.99984 4L2.6665 6.33333M4.99984 4L7.33317 6.33333M4.99984 4V12M10.9998 12L8.6665 9.66667M10.9998 12L13.3332 9.66667M10.9998 12V4" stroke="#808897" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            <span className="text-sm font-medium text-gray-600">Sort by</span>
-                        </button>
-
-                        <button className="flex items-center space-x-1 border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-50">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M13.3333 2H2.66667C2.29848 2 2 2.29848 2 2.66667V3.7468C2 4.33065 2.25513 4.88535 2.69842 5.26531L5.96825 8.06802C6.41154 8.44799 6.66667 9.00269 6.66667 9.58654V14L9.33333 12.6667V9.58654C9.33333 9.00269 9.58846 8.44799 10.0318 8.06802L13.3016 5.26531C13.7449 4.88535 14 4.33065 14 3.7468V2.66667C14 2.29848 13.7015 2 13.3333 2Z" stroke="#808897" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            <span className="text-sm font-medium text-gray-600">Filter</span>
-                        </button>
-                        </div>
-                    </div>
-
-                <button className="px-4 py-2 rounded-md shadow-sm" style={{ backgroundColor: '#3EBF0F' }}>
-                    + New Customers
-                </button>
-                </div>
-
-
-                {/* Table */}
+            <>
                 <div className="overflow-auto">
                     <table className="min-w-full body-theme">
                         <thead className="bg-gray-100 dark:bg-neutral-900">
@@ -176,8 +139,7 @@ const CustomerTable = ({ searchQuery, customers }) => {
                     onPageSizeChange={handlePageSizeChange}
                     pageSize={pageSize}
                 />
-            </div>
-        </div>
+        </>
     );
 };
 

@@ -65,10 +65,10 @@ export const MainContainer = () => {
           {channels.map((channel) => (
             <div key={channel.id} className="rounded-lg p-4 flex mb-6 items-center border">
               <div className="flex items-center justify-between w-full h-full gap-3">
-                <div >
+                <div className="rounded-full p-2 bg-[#F8F9FB]">
                   <img src={channel.image} alt={channel.name}
-                    width={40}
-                    height={40}
+                    width={80}
+                    height={80}
                 />
                 </div>
 
