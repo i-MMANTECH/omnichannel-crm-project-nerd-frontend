@@ -32,8 +32,8 @@ function SettingsSidebar({ onSidebarClick }) {
     <div >
       <Disclosure as="nav" className="fixed">
         <div >
-          <div className="mb-2 border-t border-gray-300 dark:border-gray-600">
-            <h2 className="text-sm text-gray-500 dark:text-gray-400 pl-4 mt-5">General Settings</h2>
+          <div className="mb-2">
+            <h2 className="text-sm text-gray-500 dark:text-gray-400 pl-4 ">General Settings</h2>
             
             <div className="my-3 pb-3">
               <button

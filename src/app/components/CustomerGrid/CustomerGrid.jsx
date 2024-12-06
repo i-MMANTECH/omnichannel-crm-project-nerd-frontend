@@ -1,8 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faTh, faSort, faFilter, faEnvelope, faEllipsis } from '@fortawesome/free-solid-svg-icons';
+import CustomerTable from '../CustomerTable/CustomerTable';
+import Link from 'next/link';
+import CreateCustomerModal from './CreateCustomerModal';
 
-const customerData = [
+const customers = [
   {
     id: 1,
     name: 'Ogechi Arinze',
@@ -13,6 +16,8 @@ const customerData = [
     lastActive: '2d',
     image: 'https://via.placeholder.com/40',
     mark: 1,
+    tag: 'Task',
+    channels: ['WhatsApp', 'Facebook'],
   },
   {
     id: 2,
@@ -24,6 +29,8 @@ const customerData = [
     lastActive: '5d',
     image: 'https://via.placeholder.com/40',
     mark: 1,
+    tag: 'Task',
+    channels: ['WhatsApp', 'Facebook'],
   },
   {
     id: 3,
@@ -35,6 +42,8 @@ const customerData = [
     lastActive: '3h',
     image: 'https://via.placeholder.com/40',
     mark: 1,
+    tag: 'Task',
+    channels: ['WhatsApp', 'Facebook'],
   },
   {
     id: 4,
@@ -46,6 +55,8 @@ const customerData = [
     lastActive: '1w',
     image: 'https://via.placeholder.com/40',
     mark: 1,
+    tag: 'Task',
+    channels: ['WhatsApp', 'Facebook'],
   },
   {
     id: 5,
@@ -57,6 +68,8 @@ const customerData = [
     lastActive: '12h',
     image: 'https://via.placeholder.com/40',
     mark: 1,
+    tag: 'Task',
+    channels: ['WhatsApp', 'Facebook'],
   },
   {
     id: 6,
@@ -68,21 +81,44 @@ const customerData = [
     lastActive: '30m',
     image: 'https://via.placeholder.com/40',
     mark: 1,
-    isActive: true,
+    tag: 'Task',
+    channels: ['WhatsApp', 'Facebook'],
   },
 ];
 
 const CustomerGrid = ({ searchQuery }) => {
-  const [view, setView] = useState('grid');
+  const savedView = localStorage.getItem('view') || 'grid';
+  const [customersData, setCustomersData] = useState(customers)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [view, setView] = useState(savedView);
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
   const filteredCustomer = useMemo(() => {
-    return customerData.filter(customer =>
+    return customersData.filter(customer =>
       customer.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [searchQuery]);
 
+  useEffect(() => {
+    localStorage.setItem('view', view);
+
+    const fetchCustomers = async () => {
+      try {
+        const { data } = await axiosInstance.get('/customers');
+        const backendUsers = data.result || [];
+        setCustomersData((prevUsers) => [...prevUsers, ...backendUsers]);
+      } catch (error) {
+        handleApiError(error);
+      }
+    };
+
+    fetchCustomers();
+  }, [view]);
+
   return (
-    <div className="p-6 min-h-screen border-l-2 border-gray-100 bg-white">
+    <div className="p-6 min-h-screen border-l-2 border-gray-100 bg-theme border-l">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center space-x-4">
           <button
@@ -101,15 +137,20 @@ const CustomerGrid = ({ searchQuery }) => {
             <span className="text-sm font-medium">Filter</span>
           </button>
         </div>
-        <button className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm">
+        <button 
+        onClick={openModal}
+        className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm">
           + New Customer
         </button>
       </div>
 
-     {/* User Cards */}
-      <div className={`grid gap-6 ${view === 'grid' ? 'grid-cols-3' : 'grid-cols-1'}`}>
-        {filteredCustomer.map((customer) => (
-          <div key={customer.id} className="bg-white border rounded-lg">
+      {view === 'list' ? (
+        <CustomerTable searchQuery={searchQuery} customers={filteredCustomer} />
+      ) : (
+        <div className="grid gap-6 grid-cols-3">
+          {filteredCustomer.map((customer) => (
+            <Link key={customer.id} style={{color:"inherit", textDecoration:"none"}} href={`/nativecrm/customers/customer-details/${customer.id}`}>
+            <div className="bg-theme border rounded-lg">
             <div className='flex justify-between items-center p-2 border-b'>
               <div className='flex items-center space-x-2'>
                  <img  src={customer.image}
@@ -152,7 +193,6 @@ const CustomerGrid = ({ searchQuery }) => {
                   </div>
                 </div>
 
-
               <div className="flex">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 21" fill="none">
                   <path
@@ -170,8 +210,12 @@ const CustomerGrid = ({ searchQuery }) => {
               </div>
             </div>
           </div>
-        ))}
-      </div>
+          </Link>
+          ))}
+        </div>
+      )}
+
+      <CreateCustomerModal isModalOpen={isModalOpen} closeModal={closeModal}/>
     </div>
   );
 };

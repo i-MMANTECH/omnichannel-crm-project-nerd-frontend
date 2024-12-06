@@ -1,26 +1,47 @@
 'use client'
 
 import React, { useEffect, useState } from 'react';
-import { FaSearch, FaBell } from 'react-icons/fa';
-import { usePathname } from 'next/navigation';
+import { FaSearch, FaBell, FaArrowLeft } from 'react-icons/fa';
+import { usePathname, useRouter } from 'next/navigation';
+import chevronLeft from '/public/assets/chevron-left.svg';
+
+import Image from 'next/image';
 
 
 const Navbar = ({ searchPlaceholder, onSearch }) => {
     const path = usePathname();
-    const [title, setTitle] = useState("Page Title");
-    
+    const router = useRouter();
+    const [title, setTitle] = useState("");
+
     useEffect(() => {
         const pathParts = path.split('/');
-        const lastPart = pathParts[pathParts.length - 1];
+        let lastPart = pathParts[pathParts.length - 1];
 
-        const capitalizedTitle = lastPart.charAt(0).toUpperCase() + lastPart.slice(1).toLowerCase();
+        if (/\d+$/.test(lastPart)) {
+            lastPart = pathParts[pathParts.length - 2];
+        }
 
-        setTitle(capitalizedTitle || "");
+        const formattedTitle = lastPart
+            .replace(/-/g, ' ')
+            .replace(/\b\w/g, (char) => char.toUpperCase());
+
+        setTitle(formattedTitle || "Page Title");
     }, [path]);
 
+    const goBack = () => {
+        router.back();
+    };
+
+    const showBackButton = path.split('/').length > 3;
+
     return (
-        <div className="fixed top-0 right-0 w-10/12 z-30 body-theme shadow-md p-4 flex items-center justify-between ">
-            <h1 className="text-xl font-bold">{title}</h1>
+        <div className="fixed top-0 right-0 w-10/12 body-theme px-4 py-5 z-10 border-b border-gray-300 dark:border-gray-600 flex items-center justify-between">
+            <div className='flex items-center gap-2'>
+                {showBackButton && (
+                    <Image src={chevronLeft} className='bg-white rounded-lg border border-[#DFE1E6] p-2 cursor-pointer' onClick={goBack} width={35} height={35} />
+                )}
+                <h1 className="text-xl font-bold ml-2">{title}</h1>
+            </div>    
             <div className="flex items-center space-x-4">
                 <div className="relative">
                     <input

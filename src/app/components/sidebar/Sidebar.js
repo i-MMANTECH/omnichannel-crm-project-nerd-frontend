@@ -46,9 +46,9 @@ function Sidebar() {
           <GiHamburgerMenu className="block md:hidden h-6 w-6" aria-hidden="true" />
         </Disclosure.Button>
 
-        <div className="body-theme p-6 w-1/2 h-screen z-20 fixed top-0 -left-96 lg:left-0 lg:w-60 peer-focus:left-0 peer:transition ease-out delay-150 duration-200">
+        <div className="body-theme z-20 p-6 pt-3 w-1/2 h-screen fixed top-0 -left-96 lg:left-0 lg:w-60 peer-focus:left-0 peer:transition ease-out delay-150 duration-200">
           <div className="flex flex-col justify-start items-start h-full relative">
-            <div className="mb-4">
+            <div className="py-5">
               <Image src="/assets/nativetalk-logo.svg" 
               alt="Logo" 
               width={100}
@@ -56,11 +56,11 @@ function Sidebar() {
               />
             </div>
 
-            <div className="w-full mb-2 border-t border-gray-300 dark:border-gray-600">
-              <h2 className="text-sm text-gray-500 dark:text-gray-400 pl-4 mt-2">Main Menu</h2>
+            <div className="w-full mb-2 border-t border-gray-300 dark:border-gray-600 ">
+              <h2 className="text-sm text-gray-500 dark:text-gray-400 pl-4 mt-4">Main Menu</h2>
             </div>
 
-            <div className="my-3 pb-3 w-full">
+            <div className="mt-2  pb-3 w-full">
               <Link
                 href="/nativecrm/dashboard"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/dashboard") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
@@ -242,7 +242,7 @@ function Sidebar() {
                 >
                   <div className="flex flex-col gap-4 px-2">
                     <Link
-                      href="/agent-profile"
+                      href="/nativecrm/agent-profile"
                       className="flex items-center gap-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       <Image
