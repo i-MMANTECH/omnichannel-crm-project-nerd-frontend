@@ -54,7 +54,7 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
         </div>
       </div>
       <div className="divider"></div>
-      <div className="flex flex-col items-start" >
+      <div className="flex flex-col overflow-y-auto h-[60vh] items-start" >
         {filteredUsers.map((user) => (
           <div
             key={user.id}
