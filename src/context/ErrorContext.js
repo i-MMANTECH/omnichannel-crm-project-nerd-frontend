@@ -3,19 +3,22 @@
 import React, { createContext, useContext, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
+import { useAuth } from './AuthContext';
 
 const ErrorContext = createContext();
 
 export const ErrorProvider = ({ children }) => {
     const [error, setError] = useState('');
     const router = useRouter();
+    const { logout } = useAuth;
 
     const handleApiError = (error) => {
         console.error("API Error:", error);
         const errorData = error?.response?.data?.error;
 
         if (error?.response?.status === 401) {
-            toast.error("Session expired. Please sign in again.");
+            toast.error(typeof errorData === "string" ? errorData : "Unauthorized request.");
+            logout()
             router.push('/auth/sign-in');
             return;
         }
@@ -25,7 +28,7 @@ export const ErrorProvider = ({ children }) => {
                 if (errorData.hasOwnProperty(field)) {
                     const fieldErrors = errorData[field];
                     fieldErrors.forEach((msg) => {
-                        toast.error(`${msg}`);
+                        toast.error(`${field} ${msg}`);
                         return;
                     });
                 }

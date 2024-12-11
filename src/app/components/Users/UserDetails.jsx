@@ -81,7 +81,7 @@ export default function UserDetails({ user }) {
               <p className="user-left-name">{ user?.phone_number || '--' }</p>
             </div>
 
-            <p className="mt-5 font-medium text-[14px] font-normal text-left">
+            <p className="mt-5 text-left">
               Other Information
             </p>
             <hr className="w-[318px] h-[1px] bg-[#DFE1E6] mt-2" />

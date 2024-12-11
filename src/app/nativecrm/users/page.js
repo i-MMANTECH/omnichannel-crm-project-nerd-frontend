@@ -4,21 +4,9 @@ import React, { useEffect, useState, useMemo } from 'react';
 import UserGrid from '@/app/components/Users/UserGrid';
 import UserTable from '@/app/components/Users/UserTable';
 import CreateUserModal from '@/app/components/Users/CreateUserModal';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
 import Image from 'next/image';
-import {
-    faPhone,
-    faClock,
-    faTh,
-    faSort,
-    faFilter,
-    faEnvelope,
-    faCommentDots,
-    faEllipsis,
-    faUser,
-  } from '@fortawesome/free-solid-svg-icons';
   import table from '/public/assets/table.svg'
   import grid from '/public/assets/grid.svg'
   import sort from '/public/assets/sort.svg'
@@ -26,75 +14,6 @@ import {
   import NoDataFound from '@/app/components/NoDataFound';
   import empty from '/public/assets/empty.svg'
   
-const users = [
-    {
-      id: 1,
-      name: 'Ogechi Arinze',
-      email: 'ogecharinze@gmail.com',
-      phone: '+234 810 179 0957',
-      role: 'Manager',
-      comments: 15,
-      lastActive: '2d',
-      image: 'https://via.placeholder.com/40',
-      mark: 1,
-    },
-    {
-      id: 2,
-      name: 'Samuel Johnson',
-      email: 'samuelj@gmail.com',
-      phone: '+234 810 123 4567',
-      role: 'Agent',
-      comments: 10,
-      lastActive: '5d',
-      image: 'https://via.placeholder.com/40',
-      mark: 1,
-    },
-    {
-      id: 3,
-      name: 'Amara Eze',
-      email: 'amaraeze@gmail.com',
-      phone: '+234 813 123 7890',
-      role: 'Team Member',
-      comments: 7,
-      lastActive: '3h',
-      image: 'https://via.placeholder.com/40',
-      mark: 1,
-    },
-    {
-      id: 4,
-      name: 'Chidi Okafor',
-      email: 'chidiokafor@gmail.com',
-      phone: '+234 818 456 7890',
-      role: 'Manager',
-      comments: 20,
-      lastActive: '1w',
-      image: 'https://via.placeholder.com/40',
-      mark: 1,
-    },
-    {
-      id: 5,
-      name: 'Fatima Bello',
-      email: 'fatimabello@gmail.com',
-      phone: '+234 802 987 6543',
-      role: 'Agent',
-      comments: 12,
-      lastActive: '12h',
-      image: 'https://via.placeholder.com/40',
-      mark: 1,
-    },
-    {
-      id: 6,
-      name: 'Tunde Balogun',
-      email: 'tundebalogun@gmail.com',
-      phone: '+234 809 345 6789',
-      role: 'Team Member',
-      comments: 5,
-      lastActive: '30m',
-      image: 'https://via.placeholder.com/40',
-      mark: 1,
-      isActive: true,
-    },
-  ];
 
 const Users = () => {
     const [searchQuery, setSearchQuery] = useState("");
@@ -127,7 +46,6 @@ const Users = () => {
           setView(storedView);
         }
     }, []);
-
     
     const toggleView = () => {
         const newView = view === 'grid' ? 'list' : 'grid';

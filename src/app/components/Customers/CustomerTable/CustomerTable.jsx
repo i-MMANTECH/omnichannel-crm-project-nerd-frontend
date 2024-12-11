@@ -1,32 +1,20 @@
-import React, { useState, useMemo } from 'react';
-import Pagination from '../Pagination/Pagination';
+import React, { useState } from 'react';
+import Pagination from '../../Pagination/Pagination';
 import './style.css';
+import { useRouter } from 'next/navigation';
+import UserAvatar from '../../UserAvatar';
 
 const CustomerTable = ({ searchQuery, customers }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10); 
-    const totalPages = Math.ceil(customers.length / pageSize);
+    const router = useRouter()
 
-    const handlePageChange = (page) => {
-        setCurrentPage(page);
-    };
+    const handlePageChange = (page) => setCurrentPage(page);
 
     const handlePageSizeChange = (size) => {
         setPageSize(size);
         setCurrentPage(1); 
     };
-
-    const filteredCustomers = useMemo(() => {
-        return customers.filter(customer =>
-            customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            customer.role.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    }, [searchQuery, customers]);
-
-    const displayedCustomers = filteredCustomers.slice(
-        (currentPage - 1) * pageSize,
-        currentPage * pageSize
-    );
 
     const getChannelIcon = (channel) => {
         switch (channel) {
@@ -87,7 +75,7 @@ const CustomerTable = ({ searchQuery, customers }) => {
                         </thead>
                         
                         <tbody>
-                            {displayedCustomers.map((customer, index) => (
+                            {customers?.map((customer, index) => (
                                 <tr  style={{
                                     width: '100px',
                                     flexShrink: 0,
@@ -97,20 +85,20 @@ const CustomerTable = ({ searchQuery, customers }) => {
                                     fontWeight: 500,
                                     lineHeight: '150%',
                                     letterSpacing: '0.2px'
-                                }} key={index} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer">
-                                    <td className="py-3 px-4 border-b border-gray-500 flex items-center space-x-3">
-                                        <img 
-                                            src={customer.image}
-                                            alt={`${customer.name}'s avatar`}
-                                            className="w-10 h-10 rounded-full"
+                                }} key={index} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer" 
+                                onClick={() => router.push(`customers/${customer.id}`)}
+                                >
+                                    <td className="py-3 px-4 border-b flex items-center space-x-3">
+                                        <UserAvatar
+                                            name={`${customer.first_name} ${customer.last_name}` || "--"}
                                         />
-                                        <span>{customer.name}</span>
+                                        <span>{`${customer.first_name} ${customer.last_name}` || "--"}</span>
                                     </td>
-                                    <td className="py-3 px-4 border-b border-gray-500">{customer.email}</td>
-                                    <td className="py-3 px-4 border-b border-gray-500">{customer.phone}</td>
-                                    <td className="py-3 px-4 border-b border-gray-500">
+                                    <td className="py-3 px-4 border-b">{customer.email}</td>
+                                    <td className="py-3 px-4 border-b ">{customer.phone_number}</td>
+                                    <td className="py-3 px-4 border-b">
                                         <div className="flex items-center space-x-2">
-                                            {customer.channels.map((channel, idx) => (
+                                            {customer.channels?.map((channel, idx) => (
                                                 <div
                                                     key={idx}
                                                     className="channel-icon-container"
@@ -125,20 +113,23 @@ const CustomerTable = ({ searchQuery, customers }) => {
                                             ))}
                                         </div>
                                     </td>
-                                    <td className="py-3 px-4 border-b border-gray-500">{customer.tag}</td>
+                                    <td className="py-3 px-4 border-b">
+                                        {customer.tags?.length > 0 &&
+                                            <div className='flex flex-col'>
+                                                <p className="ms-1 text-right text-[#936DFF] bg-[#F4F0FF] font-encode-sans text-xs font-medium leading-[18px] tracking-[0.4px] flex px-[6.913px] py-[1.728px] justify-center items-center gap-[3.456px] rounded-[3.456px] ">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="3.456" height="3.456" viewBox="0 0 5 5" fill="none">
+                                                        <circle cx="2.64075" cy="2.65589" r="1.72816" fill="var(--Violet-100, #936DFF)" />
+                                                    </svg>
+                                                    {customer.tags?.map((tag) => (tag))}
+                                                </p>
+                                            </div>
+                                        }
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
-
-                <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                    onPageSizeChange={handlePageSizeChange}
-                    pageSize={pageSize}
-                />
         </>
     );
 };

@@ -1,42 +1,10 @@
-.user-top-content {
-  display: flex;
-  justify-content: space-around;
-  width: 100%;
-  }
 
-.user-left  {
-  width: 330px;
-  height: 150px !important;
-}
-
-.user-left-image{
+.customer-left-image{
   width: 64px;
 height: 64px;
 flex-shrink: 0;
 }
-
-.user-left-name {
-  font-family: "Encode Sans", sans-serif;
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 150%;
-  letter-spacing: 0.2px;
-  text-align: center;
-  color: #0D0D12;
-}
-
-.user-left-email{
-  color: #666D80;
-  text-align: center;
-  font-family: "Encode Sans", sans-serif;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 160%;
-  letter-spacing: 0.4px;
-}
-
-.user-flex-role{
+.customer-flex-role{
   width: 100%;
   display: flex;
   align-items: center;
@@ -127,7 +95,6 @@ flex-shrink: 0;
 }
 
 .not-selected {
-  color: #0d0d12;
   font-weight: 600;
   font-size: 14px;
   line-height: 150%;

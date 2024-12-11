@@ -4,11 +4,11 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEllipsisH } from '@fortawesome/free-solid-svg-icons';
-import AssignedMessages from "../Users/AssignedMessages";
+import CustomerAssignedMessages from "./AssignedMessages";
 import Notes from "./Notes";
 import './style.css';
 
-export default function Page({ user }) {
+export default function CustomerDetails({ customer }) {
   const [selected, setSelected] = useState("notes");
 
   return (
