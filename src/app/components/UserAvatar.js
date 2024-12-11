@@ -15,14 +15,14 @@ const getInitials = (name) => {
     return initials;
 };
 
-const UserAvatar = ({ name }) => {
+const UserAvatar = ({ name, width='w-10', height='h-10' }) => {
     const initials = getInitials(name);
     const randomColor = getRandomColor(); // Generate a random background color
 
     return (
         <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg"
-            style={{ backgroundColor: randomColor }} // Apply the random color
+            className={`${width} ${height} rounded-full flex items-center justify-center text-white font-bold text-lg`}
+            style={{ backgroundColor: randomColor }}
         >
             {initials}
         </div>

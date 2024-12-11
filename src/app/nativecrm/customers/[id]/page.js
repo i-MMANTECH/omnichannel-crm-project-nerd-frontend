@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import UserDetails from "@/app/components/Users/UserDetails";
+import CustomerDetails from "@/app/components/Customers/CustomerDetails";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 
@@ -11,25 +11,25 @@ export default function Page() {
     const { handleApiError } = useError();
     const { id } = useParams();
 
-    const [user, setUser] = useState(null);
+    const [customer, setCustomer] = useState(null);
 
     useEffect(() => {
-        async function fetchUser() {
+        async function fetchCustomer() {
             try {
-                const response = await axiosInstance.get(`/users/${id}`);
-                setUser(response.data.user); 
+                const response = await axiosInstance.get(`/customers/${id}/`);
+                setCustomer(response.data.customer);
             } catch (error) {
                 handleApiError(error);
             }
         }
 
-        if (id) fetchUser();
-    }, []);
+        if (id) fetchCustomer();
+    }, [id]);
 
     return (
         <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh]">      
             <div className='relative body-theme flex-1 flex flex-col '>
-                {user && <UserDetails user={user} />}
+                {customer && <CustomerDetails  customer={customer} />}
             </div>
         </div>
     );
