@@ -30,7 +30,7 @@ const UserGrid = ({ searchQuery, users }) => {
     {users?.length > 0 ? (  
         <div className="grid gap-6 grid-cols-3">
           {users.map((user) => (
-            <Link key={user.id} style={{color:"inherit", textDecoration:"none"}} href={`/nativecrm/users/user-details/${user.id}`}>
+            <Link key={user.id} style={{color:"inherit", textDecoration:"none"}} href={`/nativecrm/users/${user.id}`}>
             <div className="body-theme border rounded-lg">
               <div className="flex justify-between items-center p-2 border-b">
                 <div className="flex items-center space-x-2">
@@ -63,7 +63,9 @@ const UserGrid = ({ searchQuery, users }) => {
                         user.isActive ? 'bg-purple-500' : 'bg-gray-300'
                       }`}
                     ></span>
-                    {user.roles[0].name}
+                    {users.roles?.map((role) => (
+                      role?.name
+                    ))}                    
                   </span>
                 </div>
                 <div className="flex justify-between items-center mt-2 border-t pt-2">

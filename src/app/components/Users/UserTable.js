@@ -58,7 +58,7 @@ const UserTable = ({ searchQuery, users }) => {
             </thead>
             <tbody>
               {users.map((user, index) => (
-                <tr key={index} onClick={() => router.push(`users/user-details/${user.id}`)} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer">
+                <tr key={index} onClick={() => router.push(`users/${user.id}`)} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer">
                   <td className="py-3 px-4 border-b flex items-center space-x-3">
                     <UserAvatar
                       name={user.name || "--"}
@@ -96,13 +96,7 @@ const UserTable = ({ searchQuery, users }) => {
             </tbody>
           </table>
         </div>
-        <Pagination
-          currentPage={currentPage}
-          totalPages={Math.ceil(users.length / pageSize)}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
-          pageSize={pageSize}
-        />
+
       </div>
     </div>
   );
