@@ -10,10 +10,15 @@ import ListView from "./ListView";
 import TableView from "./TableView";
 
 export default function Task() {
-  const [view, setView] = useState(() => {
+  const [view, setView] = useState("kanban");
+
+  useEffect(() => {
+    // This will ensure localStorage is accessed only in the browser
     const savedView = localStorage.getItem("view");
-    return savedView ? savedView : "kanban";
-  });
+    if (savedView) {
+      setView(savedView);
+    }
+  }, []); // Empty dependency array ensures this runs only once after the component mounts
 
   const toggleView = () => {
     setView((prevView) => {
@@ -23,10 +28,6 @@ export default function Task() {
       return nextView;
     });
   };
-
-  useEffect(() => {
-    localStorage.setItem("view", view);
-  }, [view]);
 
   return (
     <div className="p-6 min-h-screen border-l-2 border-gray-100 bg-white">

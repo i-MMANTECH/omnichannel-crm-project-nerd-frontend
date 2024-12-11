@@ -115,7 +115,7 @@ export const Messages = () => {
  useEffect(() => {
   if (companyId) {
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const wsUrl = `${protocol}://ws-staging.core.nativetalkcrm.com/ws/chat/?uuid=${companyId}&type=company`;
+    const wsUrl = `${protocol}://ws-staging.nativetalkcrm.com/ws/chat/?uuid=${companyId}&type=company`;
 
     const ws = new WebSocket(wsUrl);
     setSocket(ws);
