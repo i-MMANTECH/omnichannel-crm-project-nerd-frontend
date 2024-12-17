@@ -16,6 +16,17 @@ export default function UserDetails({ user }) {
     console.log("user is", user)
   }, [])
 
+  const getRoleStyle = (role) => {
+    switch (role) {
+      case "User":
+        return { backgroundColor: "#F4F0FF", color: "#936DFF" };
+      case "Admin":
+        return { backgroundColor: "#FEF1ED", color: "#F36F4A" };
+      default:
+        return {};
+    }
+  };
+
   const name = useMemo(() => {
     if (user?.name) {
       return `${user?.first_name} ${user?.last_name}`
@@ -31,6 +42,7 @@ export default function UserDetails({ user }) {
           <div className="px-6 py-4 flex flex-col items-center gap-1 h-fit rounded-lg border border-gray-200 body-theme">
             {user?.profile && <Image 
               className="user-left-image mt-2" 
+              alt="bio"
               source={user?.profile ? { uri: user.profile } : undefined} 
             />}
             {!user?.profile && <UserAvatar name={user?.name ? user?.name : '--'} />}
@@ -38,8 +50,16 @@ export default function UserDetails({ user }) {
             <p className="user-left-name">{ name }</p>
             <p className="user-left-email">{ user?.email }</p>
             <div className="flex w-full mt-4 items-center justify-between">
-              <p className="pt-1 pb-1 pl-2 pr-2 text-right text-[#40C4AA] font-medium text-[12px] leading-[18px] tracking-[0.4px] font-normal bg-[#E7FEF8] rounded-sm">
-                { user?.role || '--' }
+              <p className="py-1 pl-2 pr-2 text-right text-[#40C4AA] font-medium text-[12px] font-normal rounded-sm">
+                {user?.roles.map((role) => (
+                      <span
+                        key={role.id}
+                        className="px-2 py-1 rounded"
+                        style={getRoleStyle(role.name)}
+                      >
+                        {role.name}
+                      </span>
+                    ))}
               </p>
               <p className="text-right font-medium text-sm bg-[#F8F9FB] dark:bg-gray-800 px-2 py-1 rounded">
                 Last seen: { user?.last_active || '--'}
@@ -64,7 +84,17 @@ export default function UserDetails({ user }) {
               <p className="font-medium text-[14px] font-normal text-left">
                 Role
               </p>
-              <p className="user-left-name">{ user?.role || '--'}</p>
+              <p className="user-left-name">
+                {user?.roles.map((role) => (
+                      <span
+                        key={role.id}
+                        className="px-2 py-1 rounded"
+                        style={getRoleStyle(role.name)}
+                      >
+                        {role.name}
+                      </span>
+                    ))}  
+              </p>
             </div>
 
             <div className="flex items-center justify-between mt-2">

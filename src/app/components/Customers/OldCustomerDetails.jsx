@@ -23,7 +23,7 @@ export default function CustomerDetails({ customer }) {
              <div className="flex gap-6 mt-4">
               <div className="flex flex-col items-center gap-2">
                 <div className="flex w-8 h-8 p-2 justify-center items-center gap-2 rounded-md border border-gray-100 bg-white shadow-sm text-gray-600">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 17 16" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 17 16" stroke="currentColor">
                   <path d="M8.61164 9.82798L6.91797 8.13712C6.37282 7.59287 6.37282 6.71048 6.91797 6.16623C7.40516 5.67985 7.46403 4.91134 7.05658 4.35665L5.6659 2.46343C5.25421 1.90296 4.43898 1.84072 3.94671 2.33217C3.19724 3.08039 2.69543 4.07059 2.75475 5.12706C3.04456 10.2884 7.08224 13.7386 11.6484 13.9953C12.6955 14.0542 13.6707 13.5486 14.4123 12.8082C14.9119 12.3094 14.8486 11.4834 14.2789 11.0663L12.3984 9.68959C11.8428 9.28282 11.073 9.34159 10.5858 9.82798C10.0407 10.3722 9.1568 10.3722 8.61164 9.82798Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 </div>

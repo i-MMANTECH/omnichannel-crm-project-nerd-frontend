@@ -1,22 +1,48 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import SuccessModal from "../SuccessModal";
+import { selectStyles } from "../selectStyles";
+import Select from 'react-select';
+
 
 const CreateUserModal = ({ isModalOpen, closeModal }) => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
+  const [roles, setRoles] = useState();
 
   const [formData, setFormData] = useState({
     email: "",
-    userRole: "",
+    role_id: "",
   });
+
+  useEffect(() => {
+    if (isModalOpen) {
+      fetchRoles()
+    }
+  }, [isModalOpen])
+  
+  const fetchRoles = async () => {
+      try {
+          const response = await axiosInstance.get("/users/roles/");
+          setRoles(response.data.results);
+      } catch (error) {
+          handleApiError(error);
+      }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+  const handleUserRoleChange = (selectedOption) => {
+    setFormData({ 
+        ...formData, 
+        role_id: selectedOption ? selectedOption.value : '' 
+    });
+};
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -73,18 +99,21 @@ const CreateUserModal = ({ isModalOpen, closeModal }) => {
 
               <div className="mt-3">
                 <label >User Role</label>
-                <select
+                <Select
                   name="userRole"
-                  value={formData.userRole}
-                  onChange={handleChange}
-                  className="w-full body-theme border border-gray-300 rounded-md p-2 mt-2 focus:outline-none"
-                  required
-                >
-                  <option value="">Choose role</option>
-                  <option value="manager">Manager</option>
-                  <option value="agent">Agent</option>
-                  <option value="team-member">Team Member</option>
-                </select>
+                  options={roles?.map(role => ({ 
+                      value: role.id, 
+                      label: role.name 
+                  }))}
+                  classNamePrefix="select"
+                  onChange={handleUserRoleChange}
+                  value={formData.role_id ? { 
+                      value: formData.role_id, 
+                      label: roles?.find(role => role.id === formData.role_id)?.name
+                  } : null}
+                  placeholder="User Role"
+                  styles={selectStyles}
+              />
               </div>
 
               <div className="col-span-2 flex justify-end mt-4">

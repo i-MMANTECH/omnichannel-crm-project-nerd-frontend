@@ -49,7 +49,7 @@ export const ConnectEmailModal = ({ onCancel }) => {
           </svg>
         </div>
 
-        <p class="mb-3 text-center text-2xl font-bold text-black dark:text-white py-2">
+        <p className="mb-3 text-center text-2xl font-bold text-black dark:text-white py-2">
           Email
         </p>
 

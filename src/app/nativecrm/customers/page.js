@@ -32,7 +32,6 @@ const Page = () => {
                 const { data } = await axiosInstance.get('/customers');
                 const customers = data.results || [];
 
-                console.log('customers are', customers)
                 setCustomers(customers);
             } catch (error) {
                 handleApiError(error);
@@ -42,7 +41,6 @@ const Page = () => {
         fetchCustomers();
 
         const storedView = localStorage.getItem('view');
-        console.log('stored view is ', storedView)
         if (storedView) {
             setView(storedView);
         }
