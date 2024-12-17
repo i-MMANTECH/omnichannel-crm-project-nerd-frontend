@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEllipsisH } from '@fortawesome/free-solid-svg-icons';
 import CustomerAssignedMessages from "./AssignedMessages";
+import AssignedMessages from "../Users/AssignedMessages";
 import Notes from "./Notes";
 import './style.css';
 
