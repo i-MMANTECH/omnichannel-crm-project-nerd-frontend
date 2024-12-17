@@ -4,7 +4,7 @@ import React, {useState} from 'react';
 import './style.css';
 import ProgessBar from './ProgessBar';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-import ChatData from './ChatData';
+// import ChatData from './ChatData';
 import StatsCard from './StatsCard';
 import './style.css';
 
@@ -46,7 +46,7 @@ const Dashboard = () => {
 
         <StatsCard/>
         <ProgessBar />
-        <ChatData/>
+        {/* <ChatData/> */}
     </div>
   );
 };

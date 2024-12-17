@@ -1,0 +1,16 @@
+.task-card {
+    transition: all 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.task-card.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transition: all 0.2s ease-in-out;
+}
+
+.task-card.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
