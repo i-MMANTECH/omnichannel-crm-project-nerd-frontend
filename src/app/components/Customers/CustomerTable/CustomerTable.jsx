@@ -3,6 +3,7 @@ import Pagination from '../../Pagination/Pagination';
 import './style.css';
 import { useRouter } from 'next/navigation';
 import UserAvatar from '../../UserAvatar';
+import Image from 'next/image';
 
 const CustomerTable = ({ searchQuery, customers }) => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -89,9 +90,14 @@ const CustomerTable = ({ searchQuery, customers }) => {
                                 onClick={() => router.push(`customers/${customer.id}`)}
                                 >
                                     <td className="py-3 px-4 border-b flex items-center space-x-3">
-                                        <UserAvatar
-                                            name={`${customer.first_name} ${customer.last_name}` || "--"}
-                                        />
+                                        {customer?.image && <Image 
+                                            alt="profile pic"
+                                            width={10}
+                                            height={10}
+                                            className="customer-left-image mt-2 w-10 h-10 rounded-full" 
+                                            src={customer.image} 
+                                            />}
+                                        {!customer?.image && <UserAvatar name={`${customer.first_name} ${customer.last_name}`} width="w-10" height="h-10" />}
                                         <span>{`${customer.first_name} ${customer.last_name}` || "--"}</span>
                                     </td>
                                     <td className="py-3 px-4 border-b">{customer.email}</td>

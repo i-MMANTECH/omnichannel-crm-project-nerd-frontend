@@ -17,7 +17,7 @@ const getInitials = (name) => {
 
 const UserAvatar = ({ name, width='w-10', height='h-10' }) => {
     const initials = getInitials(name);
-    const randomColor = getRandomColor(); // Generate a random background color
+    const randomColor = getRandomColor();
 
     return (
         <div

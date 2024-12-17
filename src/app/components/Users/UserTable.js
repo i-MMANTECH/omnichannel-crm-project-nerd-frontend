@@ -19,11 +19,7 @@ const UserTable = ({ searchQuery, users }) => {
 
   const getRoleStyle = (role) => {
     switch (role) {
-      case "Manager":
-        return { backgroundColor: "#E7FEF8", color: "#40C4AA" };
-      case "Agent":
-        return { backgroundColor: "#EDF9FF", color: "#1285FE" };
-      case "Team Member":
+      case "User":
         return { backgroundColor: "#F4F0FF", color: "#936DFF" };
       case "Admin":
         return { backgroundColor: "#FEF1ED", color: "#F36F4A" };

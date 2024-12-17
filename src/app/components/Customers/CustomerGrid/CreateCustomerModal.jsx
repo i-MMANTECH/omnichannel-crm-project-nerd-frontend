@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import SuccessModal from "../../SuccessModal";
 import Image from "next/image";
 import Select from 'react-select';
+import { selectStyles } from "../../selectStyles";
 
 
 const CreateCustomerModal = ({ isModalOpen, closeModal }) => {
@@ -29,51 +28,58 @@ const CreateCustomerModal = ({ isModalOpen, closeModal }) => {
         whatsapp: "",
         tiktok: "",
         tag: [],
-        country: "Nigeria",
-        state: "",
+        country: {id: 160, name: "Nigeria"},
+        state: {},
     });
 
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
 
-    useEffect(() => {
-        const fetchInitialData = async () => {
-            try {
-                const countriesResponse = await axiosInstance.get("/countries");
-                setCountries(countriesResponse.data);
+    // const fetchInitialData = async () => {
+    //     try {
+    //         const countriesResponse = await axiosInstance.get("/users/countries/");
+    //         setCountries(countriesResponse.data.countries);
+    //         fetchStates();
+    //     } catch (error) {
+    //         console.log('country error', error.response)
+    //         handleApiError(error);
+    //     }
+    // };
 
-                const tagsResponse = await axiosInstance.get("/tags");
-                setTags(tagsResponse.data);
-            } catch (error) {
-                handleApiError(error);
-            }
-        };
+    // const fetchStates = async () => {
+    //     if (formData.country) {
+    //         try {
+    //             const statesResponse = await axiosInstance.get(`/users/countries/${formData.country.id}/states/`);
+    //             console.log(statesResponse)
+    //             setStates('state response is ', statesResponse.data.states);
+    //         } catch (error) {
+    //             handleApiError(error);
+    //         }
+    //     }
+    // };
 
-        if (isModalOpen) {
-            fetchInitialData();
-        }
-    }, [isModalOpen]);
+    // useEffect(() => {
+    //     if (isModalOpen) {
+    //         fetchInitialData();
+    //     }
+    // }, [isModalOpen]);
 
-    useEffect(() => {
-        const fetchStates = async () => {
-            if (formData.country) {
-                try {
-                    const statesResponse = await axiosInstance.get(`/states?countryId=${formData.country.id}`);
-                    setStates(statesResponse.data);
-                } catch (error) {
-                    handleApiError(error);
-                }
-            }
-        };
-
-        fetchStates();
-    }, [formData.country]);
+    // useEffect(() => {
+    //     if (isModalOpen) {
+    //         fetchStates();
+    //     }
+    // }, [formData.country]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
 
+    const handleGenderChange = (selectedOption) => {
+        setFormData({ ...formData, gender: selectedOption ? selectedOption.value : '' });
+    };
+
+    
     const handleImageUpload = (e) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -112,18 +118,31 @@ const CreateCustomerModal = ({ isModalOpen, closeModal }) => {
                 state: formData.state?.id
             };
 
-            const formDataWithImage = new FormData();
-            Object.entries(submissionData).forEach(([key, value]) => {
-                formDataWithImage.append(key, value);
+            const formDataToSubmit = new FormData();
+
+            Object.keys(submissionData).forEach(key => {
+                const value = submissionData[key];
+                if (value !== null && value !== undefined) {
+                    if (Array.isArray(value)) {
+                        value.forEach(item => {
+                            formDataToSubmit.append(key, item);
+                        });
+                    } else {
+                        formDataToSubmit.append(key, value);
+                    }
+                }
             });
 
             if (image) {
-                formDataWithImage.append('profileImage', image);
+                formDataToSubmit.append('image', image);
             }
-            console.log('submissionData is ', submissionData)
 
 
-            const response = await axiosInstance.post("/customers/", submissionData)
+            const response = await axiosInstance.post("/customers/", formDataToSubmit, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
 
             if (response.status === 201) {
                 closeModal();
@@ -235,17 +254,19 @@ const CreateCustomerModal = ({ isModalOpen, closeModal }) => {
                             </div>
                             <div>
                                 <label className="text-sm">Gender</label>
-                                <select
+
+                                <Select
                                     name="gender"
-                                    value={formData.gender}
-                                    onChange={handleChange}
-                                    className="w-full border body-theme rounded-md p-2 mt-2"
-                                    required
-                                >
-                                    <option>Select gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                </select>
+                                    options={[
+                                        { value: 'male', label: 'Male' },
+                                        { value: 'female', label: 'Female' }
+                                    ]}
+                                    classNamePrefix="select"
+                                    onChange={handleGenderChange}
+                                    value={formData.gender ? { value: formData.gender, label: formData.gender.charAt(0).toUpperCase() + formData.gender.slice(1) } : null}
+                                    placeholder="Select gender"
+                                    styles={selectStyles}
+                                />
                             </div>
                             <div>
                                 <label className="text-sm ">Phone Number</label>
@@ -327,17 +348,16 @@ const CreateCustomerModal = ({ isModalOpen, closeModal }) => {
                                         value: tag.id, 
                                         label: tag.name 
                                     }))}
-                                    className="basic-multi-select"
                                     classNamePrefix="select"
                                     onChange={handleTagChange}
                                     value={formData?.tags}
                                     placeholder="Select tags"
-                                    classNames="body-theme"
+                                    styles={selectStyles}
                                 />
                             </div>
 
                             {/* Country Dropdown */}
-                            <div>
+                            {/* <div>
                                 <label className="text-sm">Country</label>
                                 <Select
                                     name="country"
@@ -351,11 +371,12 @@ const CreateCustomerModal = ({ isModalOpen, closeModal }) => {
                                         label: formData.country.name 
                                     } : null}
                                     placeholder="Select country"
+                                    styles={selectStyles}
                                 />
-                            </div>
+                            </div> */}
 
                             {/* State Dropdown */}
-                            <div>
+                            {/* <div>
                                 <label className="text-sm">State</label>
                                 <Select
                                     name="state"
@@ -370,8 +391,9 @@ const CreateCustomerModal = ({ isModalOpen, closeModal }) => {
                                     } : null}
                                     placeholder="Select state"
                                     isDisabled={!formData.country}
+                                    styles={selectStyles}
                                 />
-                            </div>
+                            </div> */}
 
                             {/* Form submission buttons */}
                             <div className="col-span-2 flex justify-end mt-4">

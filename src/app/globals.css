@@ -13,6 +13,8 @@
   --link-color: #3EBF0F;
   --link-hover: #34a60e;
   --footer-link: #111827;
+  --link-color-rgb: 62, 191, 15;
+  --input-text-rgb: 0, 0, 0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -24,6 +26,7 @@
     --link-color: #3EBF0F;
     --link-hover: #3EBF0F;
     --footer-link: #3EBF0F;
+    --input-text-rgb: 237, 237, 237;
   }
 }
 
