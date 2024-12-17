@@ -26,7 +26,7 @@ export default function RootLayout({ children }) {
     <div>
         <div className="flex min-h-screen w-full bg-gray-100 body-theme">
           <Sidebar />
-          <div className="flex-1 flex relative min-h-screen flex-col ml-10 pt-20">
+          <div className="flex-1 flex relative flex-col ml-10 mt-20">
             <Navbar
               searchPlaceholder="Search"
             />

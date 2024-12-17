@@ -35,7 +35,7 @@ const Navbar = ({ searchPlaceholder, onSearch }) => {
     const showBackButton = path.split('/').length > 3;
 
     return (
-        <div className="fixed top-0 right-0 w-10/12 body-theme px-4 py-5 z-10 border-b border-gray-300 dark:border-gray-600 flex items-center justify-between">
+        <div className="fixed top-0 right-0 w-10/12 pr-10 body-theme px-4 py-5 z-10 border-b border-gray-300 dark:border-gray-600 flex items-center justify-between">
             <div className='flex items-center gap-2'>
                 {showBackButton && (
                     <Image src={chevronLeft} className='bg-white rounded-lg border border-[#DFE1E6] p-2 cursor-pointer' onClick={goBack} width={35} height={35} />
