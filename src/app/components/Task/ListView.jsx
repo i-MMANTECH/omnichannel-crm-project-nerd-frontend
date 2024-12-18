@@ -1,6 +1,7 @@
 import React from "react";
 import getStatusSvg from "./getStatusSvg";
 import UserAvatar from "../UserAvatar";
+import Image from "next/image";
 
 
 const TaskCard = ({ title, date, priority, assignees, status }) => {

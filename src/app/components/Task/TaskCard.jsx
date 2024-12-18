@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { useDraggable } from "@dnd-kit/core";
 import UserAvatar from "../UserAvatar";
+import Image from "next/image";
 
 
 const TaskCard = ({ task}) => {

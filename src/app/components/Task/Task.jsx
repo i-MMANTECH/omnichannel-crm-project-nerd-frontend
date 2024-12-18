@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTh, faSort, faFilter } from "@fortawesome/free-solid-svg-icons";
@@ -9,6 +11,7 @@ import SuccessModal from "../SuccessModal";
 import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 
+
 export default function Task() {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
@@ -17,28 +20,33 @@ export default function Task() {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [view, setView] = useState(() => {
-    const savedView = localStorage.getItem("view");
-    if (savedView) {
-      setView(savedView);
+    if (typeof window !== "undefined") {
+      const savedView = localStorage.getItem("view");
+      return savedView || "kanban";
     }
-  }, []); // Empty dependency array ensures this runs only once after the component mounts
+    return "kanban";
+  }, []);
 
   const toggleView = () => {
     setView((prevView) => {
-      const nextView =
-        prevView === "kanban"
-          ? "list"
-          : prevView === "list"
-          ? "table"
-          : "kanban";
-      localStorage.setItem("view", nextView);
-      return nextView;
+        const nextView =
+            prevView === "kanban"
+                ? "list"
+                : prevView === "list"
+                ? "table"
+                : "kanban";
+        if (typeof window !== "undefined") {
+            localStorage.setItem("view", nextView); 
+        }
+        return nextView;
     });
   };
 
   useEffect(() => {
-    localStorage.setItem("view", view);
-  }, [view]);
+    if (typeof window !== "undefined") {
+        localStorage.setItem("view", view);
+    }
+}, [view]);
 
   const fetchTasks = async () => {
     setLoading(true);
