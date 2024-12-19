@@ -36,7 +36,6 @@ export default function AssignedMessages() {
   
     const handleChatSelect = (chat) => {
       setSelectedChat(chat);
-      // Fetch chat history (for now, we'll use dummy data)
       const history = [
         {
           user_sender: 1,
@@ -58,7 +57,7 @@ export default function AssignedMessages() {
   
     const handleSendMessage = (messagePayload) => {
       const newMessage = {
-        user_sender: 1, // Assuming the current user ID is 1
+        user_sender: 1,
         content: messagePayload.text,
         content_type: "text",
         created_at: new Date(),
@@ -66,7 +65,6 @@ export default function AssignedMessages() {
       };
       setChatHistory((prev) => [...prev, newMessage]);
   
-      // Simulate message sending
       setTimeout(() => {
         setChatHistory((prev) =>
           prev.map((msg) =>

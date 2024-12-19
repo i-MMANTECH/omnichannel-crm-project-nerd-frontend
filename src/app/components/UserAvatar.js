@@ -11,7 +11,10 @@ const getRandomColor = () => {
 
 const getInitials = (name) => {
     const nameParts = name.split(' ');
-    const initials = nameParts.map((part) => part.charAt(0).toUpperCase()).join('');
+    const initials = nameParts
+        .slice(0, 2)
+        .map((part) => part.charAt(0).toUpperCase())
+        .join('');
     return initials;
 };
 

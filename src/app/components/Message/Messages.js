@@ -6,6 +6,8 @@ import ChatList from "./ChatList";
 import { useAuth } from "@/context/AuthContext";
 import "./style.css";
 import { useApi } from "@/services/axiosConfig";
+import { useError } from '@/context/ErrorContext';
+
 
 export const Messages = () => {
   const { axiosInstance } = useApi();
@@ -17,6 +19,7 @@ export const Messages = () => {
   const [users, setUsers] = useState([]);
   const [chatHistory, setChatHistory] = useState([]);
   const [companyId, setCompanyId] = useState('');
+  const { handleApiError } = useError();
 
   const handleSendMessage = (messageContent) => {
     const payload = {

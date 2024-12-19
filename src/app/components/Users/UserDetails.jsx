@@ -1,7 +1,7 @@
 'use client'
 
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import AssignedMessages from "./AssignedMessages";
 import WorkSchedule from "./WorkSchedule";
 import './UserDetailsStyle.css';
@@ -11,10 +11,6 @@ import Image from "next/image";
 
 export default function UserDetails({ user }) {
   const [selected, setSelected] = useState("work-schedule");
-  
-  useEffect(() => {
-    console.log("user is", user)
-  }, [])
 
   const getRoleStyle = (role) => {
     switch (role) {
