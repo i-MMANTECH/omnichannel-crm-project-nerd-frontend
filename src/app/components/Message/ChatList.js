@@ -69,6 +69,7 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
                   <div>
                     {user.profileImage ? (
                       <Image
+                        loader={() => user.profileImage}
                         src={user.profileImage}
                         alt="User Profile"
                         className="icon-avatar"
@@ -87,6 +88,7 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
                     <div>
                       {user.channel?.image && (
                         <Image
+                          loader={() => user.channel?.image}
                           src={`${user.channel?.image}`}
                           alt={`${user.channel?.name} Icon`}
                           className="absolute bottom-0 right-0 rounded-full bg-white p-[3.5px]"

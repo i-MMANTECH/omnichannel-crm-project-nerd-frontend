@@ -21,6 +21,7 @@ const ChatHeader = ({ activeUser }) => {
         <div>
           {activeUser.profileImage ? (
             <Image
+              loader={() => activeUser.profileImage}
               src={activeUser.profileImage}
               alt="User Profile"
               className="icon-avatar-large"
@@ -39,7 +40,8 @@ const ChatHeader = ({ activeUser }) => {
           <div>
             {activeUser.channel?.image && (
               <Image
-                src={`https://core-staging.nativetalkcrm.com${activeUser.channel?.image}`}
+                loader={() => activeUser.channel?.image}
+                src={`${activeUser.channel?.image}`}
                 alt={`${activeUser.channel?.name} Icon`}
                 className="absolute -bottom-1 -right-1 rounded-full bg-white p-[3.5px]"
                 width={18}
