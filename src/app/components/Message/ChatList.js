@@ -8,6 +8,7 @@ import UserAvatar from "../UserAvatar";
 const ChatList = ({ users, activeUser, setActiveUser }) => {
   const [searchTerm, setSearchTerm] = useState("");
 
+  console.log(users)
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -86,7 +87,7 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
                     <div>
                       {user.channel?.image && (
                         <Image
-                          src={`https://core-staging.nativetalkcrm.com${user.channel?.image}`}
+                          src={`${user.channel?.image}`}
                           alt={`${user.channel?.name} Icon`}
                           className="absolute bottom-0 right-0 rounded-full bg-white p-[3.5px]"
                           width={18}
