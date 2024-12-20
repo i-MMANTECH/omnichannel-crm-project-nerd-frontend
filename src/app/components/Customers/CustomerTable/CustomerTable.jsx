@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Pagination from '../../Pagination/Pagination';
 import './style.css';
 import { useRouter } from 'next/navigation';
 import UserAvatar from '../../UserAvatar';
@@ -94,7 +93,7 @@ const CustomerTable = ({ searchQuery, customers }) => {
                                             alt="profile pic"
                                             width={10}
                                             height={10}
-                                            className="customer-left-image mt-2 w-10 h-10 rounded-full" 
+                                            className="mt-2 w-10 h-10 rounded-full" 
                                             src={customer.image} 
                                             />}
                                         {!customer?.image && <UserAvatar name={`${customer.first_name} ${customer.last_name}`} width="w-10" height="h-10" />}

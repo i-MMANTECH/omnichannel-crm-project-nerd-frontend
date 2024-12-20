@@ -79,14 +79,13 @@ flex-shrink: 0;
   color: #3ebf0f;
   font-weight: 600;
   font-size: 14px;
-  line-height: 150%;
   position: relative;
 }
 
 .selected::after {
   content: "";
   position: absolute;
-  bottom: -8px;
+  bottom: -6px;
   left: 0;
   right: 0;
   height: 3px;

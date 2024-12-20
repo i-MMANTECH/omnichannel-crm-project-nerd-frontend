@@ -1,6 +1,6 @@
 import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserCircle } from '@fortawesome/free-solid-svg-icons';
+import UserAvatar from '../UserAvatar';
+
 
 const dummyNotes = [
   {
@@ -24,17 +24,22 @@ const Notes = () => {
   return (
     <div className="space-y-4">
       {dummyNotes.map(note => (
-        <div key={note.id} className="flex p-3 items-start gap-3 self-stretch rounded-lg border border-[#DFE1E6] bg-white shadow-md">
-          <div className="flex w-[32px] h-[32px] p-[8px_16px] justify-center items-center gap-2 rounded-lg bg-[#F6F6F6]">
-            <FontAwesomeIcon icon={faUserCircle} className="text-gray-500" />
-          </div>
+        <div key={note.id} className="flex p-3 items-start gap-3 self-stretch rounded-lg border border-[#DFE1E6] body-theme shadow-md">
+          {note?.user?.image && <Image 
+              alt="profile pic"
+              width={8}
+              height={8}
+              className="customer-left-image mt-2 w-8 h-8 rounded-full" 
+              src={note?.user?.image} 
+              />}
+          {!note?.user?.image && <UserAvatar name={note?.user?.first_name ? `${note?.user.first_name} ${note?.user.last_name}`: '--'} width="w-8" height="h-8" />}
 
           <div className="flex-1">
-            <p className="text-gray-800">{note.text}</p>
+            <p className='pr-4'>{note.text}</p>
           </div>
 
           <div className="flex-shrink-0">
-            <p className="text-gray-600">{note.date}</p>
+            <p >{note.date}</p>
           </div>
         </div>
       ))}

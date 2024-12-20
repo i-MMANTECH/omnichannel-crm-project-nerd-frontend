@@ -8,7 +8,6 @@ import UserAvatar from "../UserAvatar";
 const ChatList = ({ users, activeUser, setActiveUser }) => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  console.log(users)
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };

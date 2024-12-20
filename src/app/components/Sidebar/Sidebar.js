@@ -16,7 +16,7 @@ function Sidebar() {
   const modalRef = useRef(null);
 
   const pathname = usePathname();
-  const activeStyle = "text-[#3EBF0F]";
+  const activeStyle = "active";
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -46,7 +46,7 @@ function Sidebar() {
           <GiHamburgerMenu className="block md:hidden h-6 w-6" aria-hidden="true" />
         </Disclosure.Button>
 
-        <div className="body-theme z-20 p-6 pt-3 w-1/2 h-screen fixed top-0 -left-96 lg:left-0 lg:w-60 peer-focus:left-0 peer:transition ease-out delay-150 duration-200">
+        <div className="body-theme sidebar z-20 p-6 pt-3 w-1/2 h-screen fixed top-0 -left-96 lg:left-0 lg:w-60 peer-focus:left-0 peer:transition ease-out delay-150 duration-200">
           <div className="flex flex-col justify-start items-start h-full relative">
             <div className="py-5">
               <Image src="/assets/nativetalk-logo.svg" 
@@ -63,7 +63,7 @@ function Sidebar() {
             <div className="mt-2  pb-3 w-full">
               <Link
                 href="/nativecrm/dashboard"
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/dashboard") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
               >
                 <Image
                     src="/assets/dashboard.svg"
@@ -73,103 +73,103 @@ function Sidebar() {
                     width={16}
                     height={16}
                   />
-                <h3 className={`text-sm font-medium ${isActive("/dashboard") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
+                <h3 className={`text-sm font-medium ${isActive("/dashboard") ? activeStyle : ""}`}>
                   Dashboard
                 </h3>
               </Link>
 
               <Link
                 href="/nativecrm/users"
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/users") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
               >
                 <Image
                     src="/assets/users-plus.svg"
-                    className={`${isActive("/users") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                    className={`${isActive("/users") ? activeStyle : ""}`}
                     alt="Users"
                     width={20}
                     height={20}
                   />
-                <h3 className={`text-sm font-medium ${isActive("/users") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
+                <h3 className={`text-sm font-medium ${isActive("/users") ? activeStyle : ""}`}>
                   Users
                 </h3>
               </Link>
 
               <Link
                 href="/nativecrm/messages"
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/messages") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
               >
                 <Image
                     src="/assets/mail-icon.svg"
-                    className={`${isActive("/messages") ? activeStyle : "text-gray-600 dark:text-gray-400"}`} 
+                    className={`${isActive("/messages") ? activeStyle : ""}`} 
                     alt="Messages"
                     width={20}
                     height={20}
                   />
-                <h3 className={`text-sm font-medium ${isActive("/messages") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
+                <h3 className={`text-sm font-medium ${isActive("/messages") ? activeStyle : ""}`}>
                   Messages
                 </h3>
               </Link>
 
               <Link
                 href="/nativecrm/tasks"
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/tasks") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
               >
                 <Image
                     src="/assets/tasks.svg"
-                    className={`${isActive("/tasks") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                    className={`${isActive("/tasks") ? activeStyle : ""}`}
                     alt="Tasks"
                     width={20}
                     height={20}
                   />
-                <h3 className={`text-sm font-medium ${isActive("/tasks") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
+                <h3 className={`text-sm font-medium ${isActive("/tasks") ? activeStyle : ""}`}>
                   Tasks
                 </h3>
               </Link>
 
               <Link
                 href="/nativecrm/customers"
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/customers") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
               >
                 <Image
                     src="/assets/customers.svg"
-                    className={`${isActive("/customers") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                    className={`${isActive("/customers") ? activeStyle : ""}`}
                     alt="Customers"
                     width={20}
                     height={20}
                   />
-                <h3 className={`text-sm font-medium ${isActive("/customers") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
+                <h3 className={`text-sm font-medium ${isActive("/customers") ? activeStyle : ""}`}>
                   Customers
                 </h3>
               </Link>
 
               <Link
                 href="/nativecrm/reports"
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/reports") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
               >
                 <Image
                     src="/assets/reports.svg"
-                    className={`${isActive("/reports") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                    className={`${isActive("/reports") ? activeStyle : ""}`}
                     alt="Reports"
                     width={20}
                     height={20}
                   />
-                <h3 className={`text-sm font-medium ${isActive("/reports") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
+                <h3 className={`text-sm font-medium ${isActive("/reports") ? activeStyle : ""}`}>
                   Reports
                 </h3>
               </Link>
 
               <Link
                 href="/nativecrm/notifications"
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/notifications") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
               >
                 <Image
                     src="/assets/bell.svg"
-                    className={`${isActive("/notifications") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                    className={`${isActive("/notifications") ? activeStyle : ""}`}
                     alt="Bell"
                     width={20}
                     height={20}
                   />
-                <h3 className={`text-sm font-medium ${isActive("/notifications") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
+                <h3 className={`text-sm font-medium ${isActive("/notifications") ? activeStyle : ""}`}>
                   Notifications
                 </h3>
               </Link>
@@ -179,32 +179,32 @@ function Sidebar() {
               <div className="mb-5">
                 <Link
                   href="/nativecrm/settings"
-                  className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/settings") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                  className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
                 >
                   <Image
                     src="/assets/settings.svg"
-                    className={`${isActive("/settings") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                    className={`${isActive("/settings") ? activeStyle : ""}`}
                     alt="Settings"
                     width={20}
                     height={20}
                   />
-                  <h3 className={`text-sm font-medium ${isActive("/settings") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
+                  <h3 className={`text-sm font-medium ${isActive("/settings") ? activeStyle : ""}`}>
                     Settings
                   </h3>
                 </Link>
 
                 <Link
                   href="/nativecrm/support"
-                  className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/help") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                  className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
                 >
                   <Image
                     src="/assets/support.svg"
-                    className={`${isActive("/help") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                    className={`${isActive("/help") ? activeStyle : ""}`}
                     alt="Support"
                     width={20}
                     height={20}
                   />
-                  <h3 className={`text-sm font-medium ${isActive("/help") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
+                  <h3 className={`text-sm font-medium ${isActive("/help") ? activeStyle : ""}`}>
                     Help and Support
                   </h3>
                 </Link>
