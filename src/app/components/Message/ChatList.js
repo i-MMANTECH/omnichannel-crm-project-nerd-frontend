@@ -6,17 +6,10 @@ import Image from "next/image";
 import UserAvatar from "../UserAvatar";
 
 const ChatList = ({ users, activeUser, setActiveUser }) => {
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
 
   const contacts = users?.contacts || [];
 
-  const filteredUsers = contacts.filter((user) =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = contacts
 
   const formatTime = (time) => {
     const date = new Date(time);
@@ -29,32 +22,10 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
     }
     return message;
   };
+  
 
   return (
     <div className="flex items-start flex-col relative body-theme  px-2">
-      <div className="body-theme justify-center gap-5 p-5 flex items-start flex-col w-full">
-        <div className="w-full">
-          <div className="flex items-center justify-center h-[40px] gap-5 rounded border border-gray-500 p-5">
-            <input
-              type="text"
-              placeholder="Search message..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              aria-label="Search messages"
-            />
-            <FontAwesomeIcon icon={faSearch} className="search" />
-          </div>
-        </div>
-        <div className="flex gap-5 w-full">
-          <div className="tab-atom">
-            <div className="active">Leads</div>
-          </div>
-          <div className="tab-atom">
-            <div>Customers</div>
-          </div>
-        </div>
-      </div>
-      <div className="divider"></div>
       <div className="flex flex-col overflow-y-auto h-[60vh] items-start">
         {filteredUsers.map((user) => {
           return(
@@ -71,9 +42,9 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
                         loader={() => user.profileImage}
                         src={user.profileImage}
                         alt="User Profile"
-                        className="icon-avatar"
                         width={100}
                         height={100}
+                        className="w-11 h-11 rounded-full"
                       />
                     ) : (
                       <UserAvatar

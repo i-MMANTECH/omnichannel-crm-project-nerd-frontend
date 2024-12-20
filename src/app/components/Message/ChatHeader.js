@@ -49,9 +49,9 @@ const ChatHeader = ({ activeUser }) => {
               loader={() => activeUser.profileImage}
               src={activeUser.profileImage}
               alt="User Profile"
-              className="icon-avatar-large"
               width={70}
               height={70}
+              className="w-9 h-9 rounded-full"
             />
           ) : (
             <UserAvatar
