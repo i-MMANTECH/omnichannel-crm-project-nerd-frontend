@@ -8,6 +8,9 @@ import "./style.css";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from '@/context/ErrorContext';
 import { useRouter } from "next/navigation";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEllipsisH, faSearch, faUserCircle } from "@fortawesome/free-solid-svg-icons";
+
 
 
 export const Messages = () => {
@@ -22,53 +25,41 @@ export const Messages = () => {
   const [companyId, setCompanyId] = useState('');
   const { handleApiError } = useError();
   const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("leads");
 
+  useEffect(() => {
+    if (activeTab == 'customers') {
+      fetchCustomerChatList()
+    } else {
+      fetchLeadsChatList()
+    }
+  }, [activeTab])
 
-  const handleSendMessage = (messageContent) => {
-    const payload = {
-      lead_id: activeUser.id,
-      content: messageContent.text || "",
-      content_type: "text",
-    };
-  
-    axiosInstance
-      .post("/communication/send-to-lead/", payload)
-      .then((response) => {
-        console.log("Message sent successfully:", response.data);
-  
-        setActiveUser((prevUser) => {
-          const updatedMessages = prevUser.messages
-            ? [...prevUser.messages, {
-                id: response.data.id,
-                content: messageContent.text,
-                content_type: "text",
-                created_at: new Date().toISOString(),
-                status: "SENT",
-                user_sender: currentUser?.user_id,
-                lead_receiver: activeUser.id,
-              }]
-            : [{
-                id: response.data.id,
-                content: messageContent.text,
-                content_type: "text",
-                created_at: new Date().toISOString(),
-                status: "SENT",
-                user_sender: currentUser?.user_id,
-                lead_receiver: activeUser.id,
-              }];
-          
-          return {
-            ...prevUser,
-            messages: updatedMessages,
-          };
-        });
-  
-        setMessage("");
-      })
-      .catch((error) => {
-        console.error("Error sending message:", error);
-      });
-  };
+  useEffect(() => {
+    if (activeUser) {
+      if (activeTab == 'customers') {
+        axiosInstance
+          .get(`/communication/customer-chat-history/${activeUser.id}`)
+          .then((response) => {
+            console.log(response.data.results.messages)
+            setChatHistory(response.data.results.messages || []);
+          })
+          .catch((error) => {
+            handleApiError(error)
+          });
+      } else {
+        axiosInstance
+          .get(`/communication/history/?lead_id=${activeUser.id}`)
+          .then((response) => {
+            setChatHistory(response.data.messages || []);
+          })
+          .catch((error) => {
+            handleApiError(error)
+          });
+      }
+    }
+  }, [activeUser, activeTab]);
 
   useEffect(() => {
     const fetchScript = async () => {
@@ -91,31 +82,6 @@ export const Messages = () => {
     };
 
     fetchScript();
-  }, []);
-
-  useEffect(() => {
-    if (activeUser) {
-      axiosInstance
-        .get(`/communication/history/?lead_id=${activeUser.id}`)
-        .then((response) => {
-          setChatHistory(response.data.messages || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching chat history:", error);
-        });
-    }
-  }, [activeUser]);
-  
-  useEffect(() => {
-    axiosInstance
-      .get("/communication/contacts/")
-      .then((response) => {
-        console.log("contacts list ", response.data)
-        setUsers(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching users:", error);
-      });
   }, []);
   
  useEffect(() => {
@@ -149,8 +115,85 @@ export const Messages = () => {
     return () => {
       ws.close();
     };
+    }
+  }, [companyId]);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const fetchCustomerChatList = () => {
+    axiosInstance
+      .get("/communication/chatted-customers/")
+      .then((response) => {
+        setUsers(response.data);
+      })
+      .catch((error) => {
+        handleApiError(error)
+      });
   }
-}, [companyId]);
+
+  const fetchLeadsChatList = () => {
+    axiosInstance
+      .get("/communication/contacts/")
+      .then((response) => {
+        setUsers(response.data);
+      })
+      .catch((error) => {
+        handleApiError(error)
+      });
+  }
+
+  const handleSendMessage = (messageContent) => {
+    const payload = {
+      lead_id: activeUser.id,
+      content: messageContent.text || "",
+      content_type: "text",
+    };
+
+    let url = '/communication/'
+    if (activeTab == 'customers') {
+      url += '/send-to-customer/'
+    } else {
+      url += '/send-to-lead/'
+    }
+  
+    axiosInstance
+      .post(url, payload)
+      .then((response) => {  
+        setActiveUser((prevUser) => {
+          const updatedMessages = prevUser.messages
+            ? [...prevUser.messages, {
+                id: response.data.id,
+                content: messageContent.text,
+                content_type: "text",
+                created_at: new Date().toISOString(),
+                status: "SENT",
+                user_sender: currentUser?.user_id,
+                lead_receiver: activeUser.id,
+              }]
+            : [{
+                id: response.data.id,
+                content: messageContent.text,
+                content_type: "text",
+                created_at: new Date().toISOString(),
+                status: "SENT",
+                user_sender: currentUser?.user_id,
+                lead_receiver: activeUser.id,
+              }];
+          
+          return {
+            ...prevUser,
+            messages: updatedMessages,
+          };
+        });
+  
+        setMessage("");
+      })
+      .catch((error) => {
+        handleApiError(error)
+      });
+  };
 
   const handleInputChange = (e) => {
     setMessage(e.target.value);
@@ -187,8 +230,35 @@ export const Messages = () => {
           </div>
         </div>
       </div>
+
       <div className="overflow-y-hidden messages flex items-start  border border-gray-500 rounded-lg relative h-[80vh] m-4">
-        <ChatList users={users} activeUser={activeUser} setActiveUser={setActiveUser} />
+        <div>
+          <div className="body-theme justify-center gap-5 p-5 flex items-start flex-col w-full">
+            <div className="w-full">
+              <div className="flex items-center justify-center h-[40px] gap-5 rounded border border-gray-500 p-5">
+                <input
+                  type="text"
+                  placeholder="Search message..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  aria-label="Search messages"
+                />
+                <FontAwesomeIcon icon={faSearch} className="search" />
+              </div>
+            </div>
+            <div className="flex gap-3 w-full ">
+              <div className="tab-atom">
+                <div className={`px-4 pb-1 ${activeTab === 'leads' ? 'active' : ""}`} onClick={() => setActiveTab('leads')}>Leads</div>
+              </div>
+              <div className="tab-atom">
+                <div className={`px-4 pb-1 ${activeTab === 'customers' ? 'active' : ""}`} onClick={() => setActiveTab('customers')}>Customers</div>
+              </div>
+            </div>
+          </div>
+
+          <ChatList users={users} activeUser={activeUser} setActiveUser={setActiveUser} />
+        </div>
+        
         <div className="detail">
           {activeUser ? (
             <>
