@@ -49,7 +49,9 @@ input {
 .pointer {
   cursor: pointer;
 }
-
+.sidebar .active {
+  color: var(--link-color);
+}
 body {
   color: var(--foreground);
   background: var(--background);
