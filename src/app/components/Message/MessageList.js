@@ -2,11 +2,13 @@ import React, { useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faCheckDouble, faCircleExclamation, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import "./messageList.css";
+import Image from "next/image";
 
 const MessageList = ({ chatHistory, currentUserId }) => {
   const messageEndRef = useRef(null);
 
   useEffect(() => {
+    console.log('chat history is ', chatHistory)
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatHistory]);
 
@@ -37,7 +39,25 @@ const MessageList = ({ chatHistory, currentUserId }) => {
         return (
           <div className={`chat ${isUserMessage ? "chat-right" : "chat-left"}`} key={index}>
             <div className={`bubble-chat ${isUserMessage ? "bubble-chat-user" : "bubble-chat-other"}`}>
-              {msg.content_type === "text" && <p style={{ whiteSpace: "pre-wrap" }}>{msg.content}</p>}
+              <div className="relative" >
+                {msg.content_type === "text" && 
+                  <p style={{ whiteSpace: "pre-wrap" }}>{msg.content}</p>
+                }
+                {msg.customer_receiver && (
+                    <div >
+                      {msg.channel.image && (
+                        <Image
+                          loader={() => msg.channel.image}
+                          src={`${msg.channel.image}`}
+                          alt={`${msg.channel.image} Icon`}
+                          className="absolute bottom--20 right-[-20px] rounded-full bg-white p-[3.5px]"
+                          width={18}
+                          height={18}
+                        />
+                      )}
+                    </div>
+                )}
+              </div>
               {msg.content_type === "image" && (
                 <div className="message-image">
                   <img src={msg.content} alt="Attachment" className="image-message" />
