@@ -38,7 +38,7 @@ function SettingsSidebar({ onSidebarClick }) {
             <div className="my-3 pb-3">
               <button
                   onClick={() => onSidebarClick('role-management')}
-                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('role-management') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                  className={`hidden flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('role-management') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
                 <Image
                     src="/assets/users-plus.svg"
@@ -69,7 +69,7 @@ function SettingsSidebar({ onSidebarClick }) {
               
               <button
                   onClick={() => onSidebarClick('report-settings')}
-                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('report-settings') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                  className={`hidden flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('report-settings') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
                 <Image
                     src="/assets/reports.svg"
@@ -85,7 +85,7 @@ function SettingsSidebar({ onSidebarClick }) {
 
               <button
                   onClick={() => onSidebarClick('data-backup')}
-                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('data-backup') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                  className={`hidden flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('data-backup') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
                 <Image
                     src="/assets/cloud-upload.svg"
@@ -101,7 +101,7 @@ function SettingsSidebar({ onSidebarClick }) {
               </button>
               <button
                   onClick={() => onSidebarClick('notification-settings')}
-                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('notification-settings') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                  className={`hidden flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('notification-settings') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
                 <Image
                     src="/assets/bell.svg"
@@ -117,7 +117,7 @@ function SettingsSidebar({ onSidebarClick }) {
 
               <button
                   onClick={() => onSidebarClick('task-management')}
-                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('task-management') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                  className={`hidden flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('task-management') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
                 <Image
                     src="/assets/tasks.svg"
@@ -133,7 +133,7 @@ function SettingsSidebar({ onSidebarClick }) {
 
               <button
                   onClick={() => onSidebarClick('security-settings')}
-                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('security-settings') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                  className={`hidden flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('security-settings') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
                 <Image
                     src="/assets/security.svg"

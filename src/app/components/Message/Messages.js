@@ -42,8 +42,8 @@ export const Messages = () => {
         axiosInstance
           .get(`/communication/customer-chat-history/${activeUser.id}`)
           .then((response) => {
-            console.log(response.data.results.messages)
-            setChatHistory(response.data.results.messages || []);
+            const messages = response.data.results.messages || [];
+            setChatHistory(messages.reverse());
           })
           .catch((error) => {
             handleApiError(error)
@@ -152,14 +152,24 @@ export const Messages = () => {
     };
 
     let url = '/communication/'
-    if (activeTab == 'customers') {
-      url += '/send-to-customer/'
+    let dataToSend = payload;
+    if (activeTab === "customers") {
+      url += "send-to-customer/";
+  
+      const formData = new FormData();
+      formData.append("customer_id", activeUser.id);
+      formData.append("content", messageContent.text || "");
+      formData.append("channel_id", 2);
+  
+      dataToSend = formData;
     } else {
-      url += '/send-to-lead/'
+      url += "send-to-lead/";
     }
   
     axiosInstance
-      .post(url, payload)
+      .post(url, dataToSend, {
+        headers: activeTab === "customers" ? { "Content-Type": "multipart/form-data" } : {},
+      })
       .then((response) => {  
         setActiveUser((prevUser) => {
           const updatedMessages = prevUser.messages
