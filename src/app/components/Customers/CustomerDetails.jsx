@@ -166,23 +166,23 @@ export default function CustomerDetails({ customer }) {
           </div>
         </div>
 
-        <div className="hidden">
-          <div className="flex flex-selected justify-start gap-4 w-full">
+        <div className="w-full">
+          <div className="flex flex-selected justify-start gap-4 w-full mt-4">
             <p
-              className={`cursor-pointer ${selected === "work-schedule" ? "selected" : "not-selected"}`}
+              className={`cursor-pointer pb-2 px-10 ${selected === "work-schedule" ? "selected" : "not-selected"}`}
               onClick={() => setSelected("work-schedule")}
             >
-              Work Schedule
+              Notes
             </p>
             <p
-              className={`cursor-pointer ${selected === "assigned-messages" ? "selected" : "not-selected"}`}
+              className={`cursor-pointer pb-2 px-10  ${selected === "assigned-messages" ? "selected" : "not-selected"}`}
               onClick={() => setSelected("assigned-messages")}
             >
-              Assigned Messages
+              Messages
             </p>
           </div>
 
-          <div className="mt-6 w-full">
+          <div className="mt-10 w-full ">
             {selected === "work-schedule" && (
               <Notes/>
             
