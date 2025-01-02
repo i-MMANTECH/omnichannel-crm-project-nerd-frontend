@@ -1,6 +1,6 @@
 "use client";
 
-import { MainContainer } from '../../MainContainer/MainContainer';
+import { MainContainer } from './MainContainer';
 
 const IntegrateChannels = () => {
     return (

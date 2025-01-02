@@ -149,18 +149,18 @@ function SettingsSidebar({ onSidebarClick }) {
               </button>
 
               <button
-                  onClick={() => onSidebarClick('plans-billing')}
-                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('plans-billing') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                  onClick={() => onSidebarClick('plans-and-billings')}
+                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('plans-and-billings') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
                 <Image
                     src="/assets/invoice.svg"
-                    className={`${isActive("/plans-billing") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                    className={`${isActive("/plans-and-billings") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
                     style={{marginLeft: '2px'}}
                     alt="Users"
                     width={20}
                     height={20}
                   />
-                <h3 className={`text-sm font-medium ${isActive("/plans-billing") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
+                <h3 className={`text-sm font-medium ${isActive("/plans-and-billings") ? activeStyle : "text-gray-800 dark:text-gray-200"}`}>
                   Plans & Billing
                 </h3>
               </button>

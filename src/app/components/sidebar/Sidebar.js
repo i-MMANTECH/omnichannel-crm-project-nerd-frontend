@@ -178,8 +178,13 @@ function Sidebar() {
             <div className="self-end mt-auto w-full">
               <div className="mb-5">
                 <Link
-                  href="/nativecrm/settings"
+                  href="/nativecrm/settings#channels-integration"
                   className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
+                  onClick={(e) => {
+                    if (window.location.pathname === "/nativecrm/settings") {
+                      e.preventDefault();
+                    }
+                  }}
                 >
                   <Image
                     src="/assets/settings.svg"

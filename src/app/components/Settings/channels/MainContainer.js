@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import "./style.css";
-import { Modal } from "./Modal";
-import { ConnectLiveChatModal } from "./ConnectLiveChatModal";
+import "../settingsStyles.css";
+import { Modal } from "../../MainContainer/Modal";
+import { ConnectLiveChatModal } from "../../MainContainer/ConnectLiveChatModal";
 import Image from "next/image";
-import { ConnectEmailModal } from "./ConnectEmailModal";
+import { ConnectEmailModal } from "../../MainContainer/ConnectEmailModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 

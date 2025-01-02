@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import SettingsSidebar from "@/app/components/Settings/SettingsSidebar";
 import IntegrateChannels from "@/app/components/Settings/channels/IntegrateChannels";
+import PlansAndBillings from '@/app/components/Settings/plans-and-billings/PlansAndBillings';
 import { useRouter } from 'next/navigation';
 
 
@@ -19,7 +20,7 @@ export default function Settings() {
 
   const handleSidebarClick = (section) => {
     setCurrentSection(section);
-    router.push(`${pathname}#${section}`);
+    window.location.href = `${pathname}#${section}`;
   };
 
   const renderContent = () => {
@@ -38,14 +39,15 @@ export default function Settings() {
         return <div>Task Management Component</div>;
       case 'security-settings':
         return <div>Security Settings Component</div>;
-      case 'plans-billing':
-        return <div>Plans & Billing Component</div>;
+      case 'plans-and-billings':
+        return <PlansAndBillings />;
       default:
         return <div>Select a setting from the sidebar</div>;
     }
   };
 
   return (
+    <div> 
     <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh]">      
       <div className='relative w-1/5 border-e border-gray-300 dark:border-gray-600'>
         <SettingsSidebar onSidebarClick={handleSidebarClick} />
@@ -53,6 +55,7 @@ export default function Settings() {
       <div className="flex-1">
         {renderContent()}
       </div>
+    </div>
     </div>
   );
 }
