@@ -14,7 +14,7 @@ export default function ProgessBar() {
   const timeLabels = [0, 25, 50, 75, 100];
 
   return (
-    <div className="mt-5 h-[320px] flex flex-col items-start flex-shrink-0 w-[900px] rounded-[12px] border border-[#DFE1E6] bg-white shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)]">
+    <div className="mt-5 h-[320px] flex flex-col items-start flex-shrink-0 rounded-[12px] border border-[#DFE1E6] bg-white shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)]">
       <div className="flex items-center gap-4 p-4 self-stretch border-b border-[#DFE1E6]">
         <span>Task Completion Rate</span>
       </div>
