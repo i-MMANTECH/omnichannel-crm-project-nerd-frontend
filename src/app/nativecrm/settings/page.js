@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import SettingsSidebar from "@/app/components/Settings/SettingsSidebar";
 import IntegrateChannels from "@/app/components/Settings/channels/IntegrateChannels";
 import PlansAndBillings from '@/app/components/Settings/plans-and-billings/PlansAndBillings';
+import RoleManagement from '@/app/components/Settings/role-management/RoleManagement';
 import { useRouter } from 'next/navigation';
 
 
@@ -26,7 +27,7 @@ export default function Settings() {
   const renderContent = () => {
     switch (currentSection) {
       case 'role-management':
-        return <div>Role Management Component</div>;
+        return <RoleManagement />;
       case 'channels-integration':
         return <IntegrateChannels />;
       case 'report-settings':

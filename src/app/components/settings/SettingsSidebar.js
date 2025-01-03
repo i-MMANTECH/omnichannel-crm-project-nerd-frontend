@@ -2,15 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Disclosure } from "@headlessui/react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GiHamburgerMenu } from "react-icons/gi";
-import {
-  MdOutlineSpaceDashboard,
-  MdOutlinePeople,
-  MdOutlineNotifications,
-  MdOutlineSettings,
-} from "react-icons/md";
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
 
@@ -38,7 +30,7 @@ function SettingsSidebar({ onSidebarClick }) {
             <div className="my-3 pb-3">
               <button
                   onClick={() => onSidebarClick('role-management')}
-                  className={`hidden flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('role-management') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('role-management') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
                 <Image
                     src="/assets/users-plus.svg"
