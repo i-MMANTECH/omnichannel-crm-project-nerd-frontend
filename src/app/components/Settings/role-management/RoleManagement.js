@@ -21,7 +21,6 @@ const RoleManagement = () => {
     const getRoles = async() => {
       try {
         const response = await axiosInstance.get('/users/roles/')
-        console.log(response)
           
         setRoles(response.data.results);
       } catch(error) {

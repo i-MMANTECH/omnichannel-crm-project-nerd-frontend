@@ -1,27 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Drawer from '../../Drawer';
+import { useError } from '@/context/ErrorContext';
+import { useApi } from '@/services/axiosConfig';
 
 const CreateRoleDrawer = ({ show, onClose }) => {
   const [roleName, setRoleName] = useState("");
   const [description, setDescription] = useState("");
-  const [permissions, setPermissions] = useState({
-    messaging: false,
-    taskManagement: true,
-    reportsAnalytics: false,
-  });
+  const [availablePermissions, setAvailablePermissions] = useState([]);
+  const [selectedPermissions, setSelectedPermissions] = useState([]);
+  const { axiosInstance } = useApi();
+  const { handleApiError } = useError();
 
-  const handlePermissionChange = (permission) => {
-    setPermissions({
-      ...permissions,
-      [permission]: !permissions[permission],
+  useEffect(() => {
+    const fetchPermissions = async () => {
+      try {
+        const response = await axiosInstance.get('/users/permissions/');
+        setAvailablePermissions(response.data.results);
+      } catch (error) {
+        handleApiError(error);
+      }
+    };
+
+    if (show) {
+      fetchPermissions();
+    }
+  }, [show]);
+
+  const handlePermissionChange = (permissionId) => {
+    setSelectedPermissions(prev => {
+      if (prev.includes(permissionId)) {
+        return prev.filter(id => id !== permissionId);
+      } else {
+        return [...prev, permissionId];
+      }
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission
-    console.log({ roleName, description, permissions });
-    onClose();
+    return
+
+    try {
+      const response = await axiosInstance.post('/users/roles/', {
+        name: roleName,
+        description: description,
+        permissions: selectedPermissions
+      });
+      
+      setRoles(response.data.results);
+      onClose();
+      setRoleName("");
+      setDescription("");
+      setSelectedPermissions([]);
+    } catch (error) {
+      handleApiError(error);
+    }
   };
 
   const footerContent = (
@@ -81,28 +114,24 @@ const CreateRoleDrawer = ({ show, onClose }) => {
         <div className="mb-6">
           <h3 className="font-semibold text-lg mb-6">Permissions</h3>
           <div className="mt-3 px-3">
-            {[
-              { label: "Messaging", key: "messaging" },
-              { label: "Task Management", key: "taskManagement" },
-              { label: "Reports and Analytics", key: "reportsAnalytics" },
-            ].map((perm) => (
-              <div key={perm.key} className="flex items-center justify-between mb-8">
-                <span>{perm.label}</span>
+            {availablePermissions.map((perm) => (
+              <div key={perm.id} className="flex items-center justify-between mb-8">
+                <span>{perm.name}</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={permissions[perm.key]}
-                    onChange={() => handlePermissionChange(perm.key)}
+                    checked={selectedPermissions.includes(perm.id)}
+                    onChange={() => handlePermissionChange(perm.id)}
                     className="sr-only peer"
                   />
                   <div
                     className={`w-11 h-6 rounded-full transition-colors ${
-                      permissions[perm.key] ? "bg-[#3EBF0F]" : "bg-gray-300"
+                      selectedPermissions.includes(perm.id) ? "bg-[#3EBF0F]" : "bg-gray-300"
                     }`}
                   >
                     <div
                       className={`w-6 h-6 body-theme rounded-full transition-transform ${
-                        permissions[perm.key] ? "translate-x-5" : "translate-x-0"
+                        selectedPermissions.includes(perm.id) ? "translate-x-5" : "translate-x-0"
                       }`}
                     />
                   </div>
