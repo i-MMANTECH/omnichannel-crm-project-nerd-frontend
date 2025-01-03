@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 // import CreateRoleM   odal from "./CreateRoleModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEllipsisH, faUserCircle } from "@fortawesome/free-solid-svg-icons";
+import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
+import CreateRoleDrawer from "./CreateRoleDrawer";
 
 const RoleManagement = () => {
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
-  const [isModalOpen1, setIsModalOpen1] = useState(false);
-  const [isModalOpen2, setIsModalOpen2] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const roles = [
     { id: 1, name: "Admin", description: "Admin can see & manage all", default: true },
@@ -49,7 +49,7 @@ const RoleManagement = () => {
             + Invite Users
           </button>
           <button 
-            onClick={() => setIsModalOpen1(true)}
+            onClick={() => setIsDrawerOpen(true)}
             className="bg-[#3EBF0F]  py-2 px-4 rounded-lg hover:bg-green-600">
             + New Role
           </button>
@@ -103,10 +103,10 @@ const RoleManagement = () => {
         ))}
       </div>
 
-      {/* <CreateRoleModal
-        isOpen={isModalOpen1}
-        onClose={() => setIsModalOpen1(false)}
-      /> */}
+      <CreateRoleDrawer 
+          show={isDrawerOpen} 
+          onClose={() => setIsDrawerOpen(false)} 
+        />
       </div>
     </div>
   );
