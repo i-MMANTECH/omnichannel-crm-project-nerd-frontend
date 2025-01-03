@@ -30,7 +30,7 @@ export default function RootLayout({ children }) {
             <Navbar
               searchPlaceholder="Search"
             />
-            <div className="overflow-x-hidden z-10 mt-5 ml-40 body-theme">{children}</div>
+            <div className="overflow-x-hidden mt-5 ml-40 body-theme">{children}</div>
           </div>
         </div>
       </div>
