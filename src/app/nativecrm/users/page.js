@@ -13,38 +13,57 @@ import Image from 'next/image';
   import filter from '/public/assets/filter.svg'
   import NoDataFound from '@/app/components/NoDataFound';
   import empty from '/public/assets/empty.svg'
+  import { useSearchParams, useRouter, usePathname } from 'next/navigation';
   
 
 const Users = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [users, setUsers] = useState([]);
     const [view, setView] = useState('list');
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const openModal = () => setIsModalOpen(true);
-    const closeModal = () => setIsModalOpen(false);
+
     const { handleApiError } = useError()
     const { axiosInstance, loading } = useApi()
 
-    useEffect(() => {
-        const fetchUsers = async () => {
-          try {
-            const { data } = await axiosInstance.get('/users');
-            const users = data.results || [];
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
 
-            console.log('users are', users)
-            setUsers(users);
-          } catch (error) {
-            handleApiError(error);
-          }
-        };
-    
-        fetchUsers();
+    const isModalOpen = searchParams.get('action') === 'invite-user';
 
-        const storedView = localStorage.getItem('view');
-        console.log('stored view is ', storedView)
-        if (storedView) {
-          setView(storedView);
+    const openModal = () => {
+      // Create new URLSearchParams with existing parameters
+      const params = new URLSearchParams(searchParams);
+      params.set('action', 'invite-user');
+      // Update URL without full page reload
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const closeModal = () => {
+    const params = new URLSearchParams(searchParams);
+    params.delete('action');
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  useEffect(() => {
+      const fetchUsers = async () => {
+        try {
+          const { data } = await axiosInstance.get('/users');
+          const users = data.results || [];
+
+          console.log('users are', users)
+          setUsers(users);
+        } catch (error) {
+          handleApiError(error);
         }
+      };
+  
+      fetchUsers();
+
+      const storedView = localStorage.getItem('view');
+
+      if (storedView) {
+        setView(storedView);
+      }
     }, []);
     
     const toggleView = () => {
@@ -94,7 +113,7 @@ const Users = () => {
                   view === 'list' ? (
                       <UserTable searchQuery={searchQuery} users={users} />
                   ) : (
-                  <UserGrid searchQuery={searchQuery} users={users} />
+                      <UserGrid searchQuery={searchQuery} users={users} />
                   )
                 ): (
                   <div className="min-h-96 flex items-center justify-center">

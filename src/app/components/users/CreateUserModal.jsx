@@ -37,13 +37,13 @@ const CreateUserModal = ({ isModalOpen, closeModal }) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+  
   const handleUserRoleChange = (selectedOption) => {
     setFormData({ 
         ...formData, 
         role_id: selectedOption ? selectedOption.value : '' 
     });
-};
-
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

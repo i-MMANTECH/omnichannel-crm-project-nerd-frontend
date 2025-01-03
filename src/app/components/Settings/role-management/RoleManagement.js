@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import CreateRoleDrawer from "./CreateRoleDrawer";
 import { useApi } from "@/services/axiosConfig";
+import { useRouter } from "next/navigation";
 
 
 const RoleManagement = () => {
@@ -12,6 +13,7 @@ const RoleManagement = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [roles, setRoles] = useState([])
   const { axiosInstance, loading } = useApi();
+  const router = useRouter();
 
   const toggleMenu = (id) => {
     setMenuOpen(menuOpen === id ? null : id);
@@ -40,7 +42,9 @@ const RoleManagement = () => {
             <p  className="text-md mb-3">Admins can create new roles and assign permissions to these roles</p>
         </div>
         <div className="flex gap-3">
-          <button className=" py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700">
+          <button 
+            onClick={() => router.push('/nativecrm/users?action=invite-user')}
+            className=" py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700">
             + Invite Users
           </button>
           <button 
