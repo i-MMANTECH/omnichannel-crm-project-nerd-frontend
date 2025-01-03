@@ -28,7 +28,7 @@ const CreateRoleDrawer = ({ show, onClose }) => {
     <div className="flex justify-start gap-3">
       <button
         type="button"
-        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
         onClick={onClose}
       >
         Cancel

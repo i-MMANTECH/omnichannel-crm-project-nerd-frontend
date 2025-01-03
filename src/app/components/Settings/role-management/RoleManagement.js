@@ -3,42 +3,38 @@ import React, { useState, useRef, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import CreateRoleDrawer from "./CreateRoleDrawer";
+import { useApi } from "@/services/axiosConfig";
+
 
 const RoleManagement = () => {
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-  const roles = [
-    { id: 1, name: "Admin", description: "Admin can see & manage all", default: true },
-    { id: 2, name: "Manager", description: "Self-manage their information" },
-    { id: 3, name: "Agent", description: "Admin can see & manage all" },
-    { id: 4, name: "Team Member", description: "Admin can see & manage all" },
-    { id: 5, name: "Team Member", description: "Admin can see & manage all" },
-    { id: 6, name: "Team Member", description: "Admin can see & manage all" },
-    { id: 7, name: "Team Member", description: "Admin can see & manage all" },
-  ];
+  const [roles, setRoles] = useState([])
+  const { axiosInstance, loading } = useApi();
 
   const toggleMenu = (id) => {
     setMenuOpen(menuOpen === id ? null : id);
   };
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuOpen(null);
+    const getRoles = async() => {
+      try {
+        const response = await axiosInstance.get('/users/roles/')
+        console.log(response)
+          
+        setRoles(response.data.results);
+      } catch(error) {
+        handleApiError(error)
       }
-    };
+    }
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+    getRoles()
+  }, [])
 
   return (
     <div className="overflow-x-hidden flex flex-col pr-10">
-    <div className="main-container max-w-full body-theme pl-10 w-full">
+    <div className="main-container  body-theme pl-10 w-full min-h-80">
       <div className="flex justify-between items-center mb-6">
         <div>
             <h2 className="text-lg font-semibold mb-2">Admin</h2>
@@ -93,12 +89,7 @@ const RoleManagement = () => {
                 )}
               </div>
             </div>
-            <p className="mt-2">{role.description}</p>
-            {role.default && (
-              <span className="mt-2 inline-block bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
-                Default
-              </span>
-            )}
+            <p className="mt-2">{role.description ?? 'No description'}</p>
           </div>
         ))}
       </div>
