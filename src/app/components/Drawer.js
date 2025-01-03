@@ -7,7 +7,8 @@ const Drawer = ({
   subtitle,
   width = '35%',
   backgroundClose = true,
-  children 
+  children,
+  footer
 }) => {
   // Handle ESC key press
   useEffect(() => {
@@ -44,40 +45,23 @@ const Drawer = ({
       }}
     >
       <div 
-        className="bg-white h-full shadow-xl"
+        className="body-theme h-full shadow-xl pt-5"
         style={{ width }}
         onClick={e => e.stopPropagation()}
       >
         <div className="h-full flex flex-col">
           {/* Header */}
-          <div className="p-4 border-b">
+          <div className="px-6 pt-3">
             <div className="flex items-start space-x-4">
-              <button 
-                onClick={onClose}
-                className="p-1 hover:bg-gray-100 rounded-full"
-              >
-                <svg 
-                  className="w-6 h-6" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M6 18L18 6M6 6l12 12" 
-                  />
-                </svg>
-              </button>
+
               <div className="flex-1">
                 {title && (
-                  <h4 className="text-lg font-medium text-gray-900">
+                  <h4 className="text-lg font-medium ">
                     {title}
                   </h4>
                 )}
                 {subtitle && (
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm  mt-1">
                     {subtitle}
                   </p>
                 )}
@@ -86,9 +70,16 @@ const Drawer = ({
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto py-4 px-6">
             {children}
           </div>
+
+          {/* Footer */}
+          {footer && (
+            <div className="p-6 border-t border-gray-200 flex-shrink-0">
+                {footer}
+            </div>
+            )}
         </div>
       </div>
     </div>

@@ -24,16 +24,36 @@ const CreateRoleDrawer = ({ show, onClose }) => {
     onClose();
   };
 
+  const footerContent = (
+    <div className="flex justify-start gap-3">
+      <button
+        type="button"
+        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+        onClick={onClose}
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        form="roleForm"
+        className="px-4 py-2 bg-[#3EBF0F] text-white rounded-lg hover:bg-green-600"
+      >
+        Create
+      </button>
+    </div>
+  );
+
   return (
     <Drawer
       show={show}
       onClose={onClose}
       title="Create New Role"
       width="35%"
+      footer={footerContent}
     >
-      <form onSubmit={handleSubmit} className="py-2">
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">New Role *</label>
+      <form id="roleForm" onSubmit={handleSubmit} className="py-2">
+        <div className="mb-5">
+          <label className="block text-sm font-medium mb-2">New Role *</label>
           <input
             type="text"
             className="w-full border border-gray-300 rounded-lg p-2"
@@ -44,10 +64,10 @@ const CreateRoleDrawer = ({ show, onClose }) => {
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Description</label>
+        <div className="mb-5">
+          <label className="block text-sm font-medium mb-2">Description</label>
           <textarea
-            className="w-full border border-gray-300 rounded-lg p-2"
+            className="w-full border border-gray-300 body-theme rounded-lg p-2"
             placeholder="Give a short description of the role"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -59,14 +79,14 @@ const CreateRoleDrawer = ({ show, onClose }) => {
         </div>
 
         <div className="mb-6">
-          <h3 className="font-semibold text-lg">Permissions</h3>
-          <div className="mt-3">
+          <h3 className="font-semibold text-lg mb-6">Permissions</h3>
+          <div className="mt-3 px-3">
             {[
               { label: "Messaging", key: "messaging" },
               { label: "Task Management", key: "taskManagement" },
               { label: "Reports and Analytics", key: "reportsAnalytics" },
             ].map((perm) => (
-              <div key={perm.key} className="flex items-center justify-between mb-3">
+              <div key={perm.key} className="flex items-center justify-between mb-8">
                 <span>{perm.label}</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -81,7 +101,7 @@ const CreateRoleDrawer = ({ show, onClose }) => {
                     }`}
                   >
                     <div
-                      className={`w-6 h-6 bg-white rounded-full transition-transform ${
+                      className={`w-6 h-6 body-theme rounded-full transition-transform ${
                         permissions[perm.key] ? "translate-x-5" : "translate-x-0"
                       }`}
                     />
@@ -90,22 +110,6 @@ const CreateRoleDrawer = ({ show, onClose }) => {
               </div>
             ))}
           </div>
-        </div>
-
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-[#3EBF0F] text-white rounded-lg hover:bg-green-600"
-          >
-            Create
-          </button>
         </div>
       </form>
     </Drawer>
