@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState} from 'react';
-import Profile from '@/app/components/AgentProfile/Profile';
+import Profile from '@/app/components/Profile/Profile';
 
 const Page = () => {
     const [searchQuery, setSearchQuery] = useState("");

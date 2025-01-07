@@ -1,66 +1,107 @@
-import React, {useState} from 'react';
-import AgentGeneral from './AgentGeneral';
+import React, {useEffect, useMemo, useState} from 'react';
+import AgentGeneral from './General';
 import AgentNotification from './AgentNotification';
-import AgentActivityLog from './AgentActivityLog';
+import ActivityLog from './ActivityLog';
 import AgentSecuritySettings from './AgentSecuritySettings';
 import './agentProfile.css';
 import UserAvatar from '../UserAvatar';
 import Image from 'next/image';
+import { useApi } from '@/services/axiosConfig';
+import { useError } from '@/context/ErrorContext';
+import { getRoleStyle } from '@/utils/getRoleStyle';
 
 
 export default function Profile() {
+    const { axiosInstance } = useApi();
+    const { handleApiError } = useError();
+    const [userProfile, setUserProfile] = useState({})
+
     const [selected, setSelected] = useState("general");
 
-    const userProfile = {
-        name: "Pristia Candra",
-        email: "Prista@gmail.com",
-        phone: "089318298493",
-        website: "fueledbyramenco.nativetalkcrm.com",
-        role: "Admin",
-        lastLogin: "Oct 23, 2022",
-        profileImage: ""
-    };
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            try {
+                const resp = await axiosInstance.get(`/users/me`)
+                setUserProfile(resp.data.user)
+            } catch(error) {
+                handleApiError(error)
+            }
+        }
+
+        fetchUserProfile()
+    }, []);
+
+    const userName = useMemo(() => {
+        if (userProfile?.first_name && user?.last_name) {
+          return userProfile?.first_name + " " + userProfile?.last_name
+        } else if(userProfile?.first_name) {
+          return userProfile?.first_name
+        } else {
+          return '--'
+        }
+    }, [userProfile])
+
+    // const userProfile = {
+    //     name: "Pristia Candra",
+    //     email: "Prista@gmail.com",
+    //     phone: "089318298493",
+    //     website: "fueledbyramenco.nativetalkcrm.com",
+    //     role: "Admin",
+    //     lastLogin: "Oct 23, 2022",
+    //     profileImage: ""
+    // };
 
     return (
         <div className="flex justify-center my-5 gap-2">
-            <div className="flex flex-col items-center gap-6 w-[300px]  p-6 rounded-lg border border-[#DFE1E6]  h-[500px] overflow-y-auto">
-                {userProfile.profileImage ? (
-                    <Image
-                        src={userProfile.profileImage}
-                        alt="User Profile"                        
-                        className="w-[100px] rounded-full object-cover" 
-                        width={70}
-                        height={70}
-                    />
-                ) : (
-                    <UserAvatar
-                    name={userProfile.name}
-                    width="w-20"
-                    height="h-20"
-                    />
-                )}    
-                <p className="text-center text-xl font-bold self-stretch">
-                    {userProfile.name}
-                </p>
-                <div className="flex justify-center items-center gap-1 text-right text-[#F36F4A] w-auto p-[2px_8px] rounded-md bg-[#FEF1ED] text-[12px] font-medium leading-[1.5] tracking-[0.4px]">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="4"
-                        height="4"
-                        viewBox="0 0 4 4"
-                        fill="none"
-                        className="flex-shrink-0 fill-[#F36F4A]"
-                    >
-                        <circle cx="2" cy="2" r="2" fill="#F36F4A" />
-                    </svg>
-                    {userProfile.role}
+            <div className="flex flex-col p-5 rounded-lg border border-[#DFE1E6] h-fit overflow-y-auto">
+                <div className='flex flex-col items-center gap-3 w-[300px]'>
+                    {userProfile?.image ? (
+                        <Image
+                            src={userProfile?.image}
+                            alt="User Profile"                        
+                            className="w-[100px] rounded-full object-cover" 
+                            width={70}
+                            height={70}
+                        />
+                    ) : (
+                        <UserAvatar
+                        name={userName}
+                        width="w-20"
+                        height="h-20"
+                        />
+                    )}    
+                    <p className="text-center text-xl font-bold self-stretch mt-3">
+                        {userName}
+                    </p>
+                    <div className="flex justify-center items-center gap-1 text-right admin w-auto p-[2px_8px] rounded-md text-sm font-medium">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="4"
+                            height="4"
+                            viewBox="0 0 4 4"
+                            fill="none"
+                            className="flex-shrink-0 fill-[#F36F4A]"
+                        >
+                            <circle cx="2" cy="2" r="2" fill="#F36F4A" />
+                        </svg>
+                        {userProfile?.roles?.map((role) => (
+                            <span
+                                key={role.id}
+                                className="px-2 py-1 rounded"
+                                style={getRoleStyle(role.name)}
+                            >
+                                {role.name}
+                            </span>
+                        ))}
+                    </div>
+                    <p className=" text-center text-sm ">
+                        {userProfile?.url}
+                    </p>
                 </div>
-                <p className=" text-center text-sm ">
-                    {userProfile.website}
-                </p>
-                <div className="flex h-[1px] items-center self-stretch bg-[#DFE1E6]"></div>
 
-                <div style={{ marginLeft: "-90px" }} className="flex flex-col gap-3">
+                <div className="flex h-[1px] items-center self-stretch bg-[#DFE1E6] mt-5 mb-5"></div>
+
+                <div  className="flex flex-col gap-3 items-start w-100 ">
                     <div className="flex items-center gap-[10px]">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -79,7 +120,7 @@ export default function Profile() {
                             />
                         </svg>
                         <p className="text-sm font-medium">
-                            {userProfile.email}
+                            {userProfile?.email}
                         </p>
                     </div>
 
@@ -102,11 +143,11 @@ export default function Profile() {
                         </svg>
 
                         <p className="text-sm font-medium">
-                            {userProfile.phone}
+                            {userProfile?.phone_number}
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-[10px]">
+                    <div className="hidden flex items-center gap-[10px]">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                             <path 
                                 d="M8 3H6C4.34315 3 3 4.34315 3 6V9M8 3V2M8 3H16M8 3V4M16 3H18C19.6569 3 21 4.34315 21 6V9M16 3V2M16 3V4M3 9V19C3 20.6569 4.34315 22 6 22H18C19.6569 22 21 20.6569 21 19V9M3 9H21M13.5 12.5H16.5L14 17.5M10.5 14V16C10.5 16.8284 9.82843 17.5 9 17.5C8.17157 17.5 7.5 16.8284 7.5 16V14C7.5 13.1716 8.17157 12.5 9 12.5C9.82843 12.5 10.5 13.1716 10.5 14Z" 
@@ -118,7 +159,7 @@ export default function Profile() {
                         </svg>
 
                         <p className="text-sm font-medium">
-                            {userProfile.lastLogin}
+                            {userProfile?.lastLogin}
                         </p>
                     </div>
                 </div>
@@ -156,7 +197,7 @@ export default function Profile() {
 
                 {selected === "general" && <AgentGeneral />}
                 {selected === "notification" && <AgentNotification />}
-                {selected === "activity-log" && <AgentActivityLog />}
+                {selected === "activity-log" && <ActivityLog />}
                 {selected === "security-settings" && <AgentSecuritySettings />}
             </div>
         </div>

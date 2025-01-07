@@ -41,6 +41,10 @@
 input {
   background-color: var(--input-background) !important;
 }
+.admin {
+  color: #F36F4A; 
+  background-color: #FEF1ED;
+}
 .body-theme {
   color: var(--foreground);
   background: var(--background);
