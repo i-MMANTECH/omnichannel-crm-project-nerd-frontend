@@ -5,6 +5,7 @@ import { useError } from "@/context/ErrorContext";
 import { formatDateTime } from "@/utils/timeUtils";
 import Select from 'react-select';
 import { selectStyles } from "../selectStyles";
+import { toast } from 'react-toastify';
 
 
 const GeneralProfile = () => {
@@ -164,10 +165,16 @@ const GeneralProfile = () => {
     if (!hasChanges) return;
 
     try {
-      await axiosInstance.put("/api/agent/update", formData);
-      setOriginalData(formData);
-      alert("Data updated successfully!");
+      const resp = await axiosInstance.put("/users/me/update/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      setOriginalData(resp?.data?.user);
+      toast.success(resp?.data?.message)
     } catch (error) {
+      console.log('error is ', error)
+
       handleApiError(error);
       alert("Failed to save data. Please try again.");
     }
@@ -178,8 +185,8 @@ const GeneralProfile = () => {
   };
 
   const genderOptions = [
-    { value: 'Female', label: 'Female' },
-    { value: 'Male', label: 'Male' }
+    { value: 'female', label: 'Female' },
+    { value: 'male', label: 'Male' }
   ];
 
   return (
@@ -225,7 +232,7 @@ const GeneralProfile = () => {
             type="text"
             name="url"
             value={formData.url || ''}
-            onChange={handleChange}
+            disabled
             className="w-full border rounded-md p-2 focus:ring-blue-200"
           />
         </div>
@@ -330,7 +337,7 @@ const GeneralProfile = () => {
           onClick={handleSave}
           disabled={!hasChanges || isSaving}
         >
-          {isSaving ? 'Saving...' : 'Save'}
+          Save
         </button>
       </div>
     </div>
