@@ -247,7 +247,7 @@ function Sidebar() {
                 >
                   <div className="flex flex-col gap-4 px-2">
                     <Link
-                      href="/nativecrm/agent-profile"
+                      href="/nativecrm/profile"
                       className="flex items-center gap-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       <Image

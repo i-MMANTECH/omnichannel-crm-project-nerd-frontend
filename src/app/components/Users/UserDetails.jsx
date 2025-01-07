@@ -7,21 +7,13 @@ import WorkSchedule from "./WorkSchedule";
 import './UserDetailsStyle.css';
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
+import { getRoleStyle } from "@/utils/getRoleStyle";
 
 
 export default function UserDetails({ user }) {
   const [selected, setSelected] = useState("work-schedule");
 
-  const getRoleStyle = (role) => {
-    switch (role) {
-      case "User":
-        return { backgroundColor: "#F4F0FF", color: "#936DFF" };
-      case "Admin":
-        return { backgroundColor: "#FEF1ED", color: "#F36F4A" };
-      default:
-        return {};
-    }
-  };
+
 
   const name = useMemo(() => {
     if (user?.name) {
