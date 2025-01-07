@@ -13,7 +13,6 @@ const ActivityLog = () => {
     const getActivityLogs = async () => {
         try {
             const resp = await axiosInstance.get(`/activity-logs/`)
-            console.log(resp)
             setActivityLogs(resp.data.logs)
         } catch(error) {
             handleApiError(error)

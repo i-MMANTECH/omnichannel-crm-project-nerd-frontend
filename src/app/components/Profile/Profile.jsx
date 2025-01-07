@@ -32,7 +32,7 @@ export default function Profile() {
     }, []);
 
     const userName = useMemo(() => {
-        if (userProfile?.first_name && user?.last_name) {
+        if (userProfile?.first_name && userProfile?.last_name) {
           return userProfile?.first_name + " " + userProfile?.last_name
         } else if(userProfile?.first_name) {
           return userProfile?.first_name
@@ -40,16 +40,6 @@ export default function Profile() {
           return '--'
         }
     }, [userProfile])
-
-    // const userProfile = {
-    //     name: "Pristia Candra",
-    //     email: "Prista@gmail.com",
-    //     phone: "089318298493",
-    //     website: "fueledbyramenco.nativetalkcrm.com",
-    //     role: "Admin",
-    //     lastLogin: "Oct 23, 2022",
-    //     profileImage: ""
-    // };
 
     return (
         <div className="flex justify-center my-5 gap-2">
@@ -59,9 +49,9 @@ export default function Profile() {
                         <Image
                             src={userProfile?.image}
                             alt="User Profile"                        
-                            className="w-[100px] rounded-full object-cover" 
-                            width={70}
-                            height={70}
+                            width={100}
+                            height={100}
+                            className="rounded-full w-20 h-20" 
                         />
                     ) : (
                         <UserAvatar
