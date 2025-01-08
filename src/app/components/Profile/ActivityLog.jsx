@@ -24,26 +24,11 @@ const ActivityLog = () => {
 
   return (
     <div className="flex mt-5 flex-col p-6 items-start gap-4 self-stretch rounded-lg border border-[#DFE1E6] ">
-      <div className="flex h-[40px] px-[12px] py-[8px] justify-center items-center gap-[8px] rounded-[10px] border border-[#DFE1E6] shadow-[0px_1px_2px_0px_rgba(13,_13,_18,_0.06)]">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M5.33333 2.00065H4C2.89543 2.00065 2 2.89608 2 4.00065V6.00065M5.33333 2.00065V1.33398M5.33333 2.00065H10.6667M5.33333 2.00065V2.66732M10.6667 2.00065H12C13.1046 2.00065 14 2.89608 14 4.00065V6.00065M10.6667 2.00065V1.33398M10.6667 2.00065V2.66732M2 6.00065V12.6673C2 13.7719 2.89543 14.6673 4 14.6673H12C13.1046 14.6673 14 13.7719 14 12.6673V6.00065M2 6.00065H14" stroke="#808897" strokeWidth="1.33333" strokeLinecap="round" />
-        </svg>
-        
-        <p className="text-[#666D80] text-center font-medium text-[14px] leading-[21px] tracking-[0.2px]">
-          Last Login: 23m ago
-        </p>
-
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M8.00008 2.66732C5.05456 2.66732 2.66675 5.05513 2.66675 8.00065C2.66675 9.97474 3.73928 11.6983 5.33341 12.6205M8.00008 2.66732L6.66675 1.33398M8.00008 2.66732L7.00008 4.33398M8.00008 13.334C10.9456 13.334 13.3334 10.9462 13.3334 8.00065C13.3334 6.02657 12.2609 4.30298 10.6667 3.38082M8.00008 13.334L9.33341 14.6673M8.00008 13.334L9.00008 11.6673" stroke="#3EBF0F" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
-
-      <div className="flex h-[1px] items-center gap-2 self-stretch bg-[#DFE1E6]" />
 
       {activityLogs.map((log, index) => {
         if (log.action_type == 'task') {
           return (
-            <div key={index} className="flex flex-col gap-3 p-[16.049px] rounded-[8px] border border-[#DFE1E6] ">
+            <div key={index} className="flex flex-col gap-2 p-[16.049px] rounded-[8px] border border-[#DFE1E6] w-full mb-1">
               <div className='flex items-center gap-3'>
                 {log?.user?.image && <Image
                     alt="profile pic"
@@ -89,7 +74,7 @@ const ActivityLog = () => {
           )
         } else {
           return (
-            <div className="w-[575px] h-[93px] p-[16.049px] rounded-[8px] border border-[#DFE1E6]">
+            <div className="h-[93px] p-[16.049px] rounded-[8px] border border-[#DFE1E6] w-full">
               <div className="flex justify-between items-center w-full">
                 <div className="flex gap-4 justify-between items-center">
                   <div className="w-[24px] h-[24px] flex-shrink-0 rounded-full bg-cover bg-center" style={{backgroundImage: `url(${user.imagePath})`}} />

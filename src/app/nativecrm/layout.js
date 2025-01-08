@@ -27,7 +27,6 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <div>
-      <NotificationProvider>
         <div className="flex min-h-screen w-full bg-gray-100 body-theme">
           <Sidebar />
           <div className="flex-1 flex relative flex-col ml-10 mt-20">
@@ -38,7 +37,6 @@ export default function RootLayout({ children }) {
           </div>
           <NotificationModalContainer />
         </div>
-      </NotificationProvider>
     </div>
   );
 }

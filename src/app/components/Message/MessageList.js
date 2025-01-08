@@ -8,7 +8,6 @@ const MessageList = ({ chatHistory, currentUserId }) => {
   const messageEndRef = useRef(null);
 
   useEffect(() => {
-    console.log('chat history is ', chatHistory)
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatHistory]);
 
