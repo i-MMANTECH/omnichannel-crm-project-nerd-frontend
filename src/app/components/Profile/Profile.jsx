@@ -2,7 +2,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import General from './General';
 import Notification from './Notification';
 import ActivityLog from './ActivityLog';
-import AgentSecuritySettings from './AgentSecuritySettings';
+import SecuritySettings from './SecuritySettings/SecuritySettings';
 import './agentProfile.css';
 import UserAvatar from '../UserAvatar';
 import Image from 'next/image';
@@ -178,7 +178,7 @@ export default function Profile() {
                         Activity log
                     </p>
                     <p
-                        className={`hidden h-[30px] cursor-pointer ${selected === "security-settings" ? "selected" : "not-selected"}`}
+                        className={`h-[30px] cursor-pointer ${selected === "security-settings" ? "selected" : "not-selected"}`}
                         onClick={() => setSelected("security-settings")}
                     >
                         Security settings
@@ -188,7 +188,7 @@ export default function Profile() {
                 {selected === "general" && <General />}
                 {selected === "notification" && <Notification />}
                 {selected === "activity-log" && <ActivityLog />}
-                {selected === "security-settings" && <AgentSecuritySettings />}
+                {selected === "security-settings" && <SecuritySettings />}
             </div>
         </div>
     )

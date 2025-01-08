@@ -1,14 +1,30 @@
 import React, { useState } from "react";
+import SendOtpModal from "./SendOtpModal";
+import VerifyOtpModal from "./VerifyOtpModal";
 import ChangePasswordModal from "./ChangePasswordModal";
-import TwoStepVerificationModal from "./TwoStepVerificationModal";
 
-const AgentSecuritySettings = () => {
+const SecuritySettings = () => {
   const [isTwoStepVerification, setIsTwoStepVerification] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isModalOpen2, setIsModalOpen2] = useState(false);
+  const [isSendOtpModalOpen, setIsSendOtModalOpen] = useState(false);
+  const [isVerifyOtpModalOpen, setIsVerifyOtpModalOpen] = useState(false);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
 
   const handleTwoStepVerificationToggle = () => {
     setIsTwoStepVerification((prev) => !prev);
+  };
+
+  const handleSendOtpSuccess = () => {
+    setIsSendOtModalOpen(false);
+    setTimeout(() => {
+      setIsVerifyOtpModalOpen(true);
+    }, 100);
+  };
+
+  const handleVerifyOtpSuccess = () => {
+    setIsVerifyOtpModalOpen(false);
+    setTimeout(() => {
+      setIsChangePasswordModalOpen(true);
+    }, 100);
   };
 
   const sessions = [
@@ -31,33 +47,39 @@ const AgentSecuritySettings = () => {
 
   return (
     <div className="flex mt-5 flex-col p-6 items-start gap-4 self-stretch rounded-lg border border-[#DFE1E6]">
-      <p className="text-[#0D0D12] font-semibold text-xl leading-[25.2px] tracking-[0.2px] font-encode-sans">
+      <p className="font-semibold text-xl leading-[25.2px] tracking-[0.2px] font-encode-sans">
         Security
       </p>
 
       <div className="flex h-[1px] items-center gap-2 self-stretch bg-[#DFE1E6]" />
 
-      <p className="text-[#0D0D12] font-medium text-xl leading-[25.2px] tracking-[0.2px] font-encode-sans">
-        Password
-      </p>
-
-      <div className="flex justify-between w-full">
-        <p className="text-[#666D80] font-medium text-sm leading-[21px] tracking-[0.2px] font-encode-sans">
-          Set a password to protect your account
-        </p>
-        <div onClick={() => setIsModalOpen(true)} className="cursor-pointer flex items-center justify-center gap-2 p-2.5 rounded-xl border border-[#DFE1E6] shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">
-          Edit
+      <div className="w-full flex items-between justify-between">
+        <div>
+          <p className="font-medium text-xl leading-[25.2px] tracking-[0.2px] font-encode-sans">
+            Password
+          </p>
+          <p className="font-medium text-sm mt-2 leading-[21px] tracking-[0.2px] font-encode-sans">
+            Update your password to protect your account
+          </p>
         </div>
+
+        <button
+          className="px-4 py-2 border h-fit rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+          onClick={() => setIsSendOtModalOpen(true)}
+        >
+          Edit
+        </button>
       </div>
 
-      <div className="flex h-[1px] items-center gap-2 self-stretch bg-[#DFE1E6]" />
+      <div className="hidden flex h-[1px] items-center gap-2 self-stretch bg-[#DFE1E6]" />
 
-      <p className="text-[#0D0D12] font-medium text-xl leading-[25.2px] tracking-[0.2px] font-encode-sans">
-        Two-step verification
-      </p>
+      <div className="hidden"> {/* remove this wrapper to show the hidden component */}
+        <p className="font-medium text-xl leading-[25.2px] tracking-[0.2px] font-encode-sans">
+          Two-step verification
+        </p>
 
       <div className="flex justify-between w-full">
-        <p className="text-[#666D80] font-medium text-sm leading-[21px] tracking-[0.2px] font-encode-sans">
+        <p className="font-medium text-sm leading-[21px] tracking-[0.2px] font-encode-sans">
           We recommend requiring a verification code in addition <br /> to your password
         </p>
 
@@ -82,12 +104,12 @@ const AgentSecuritySettings = () => {
       </div>
 
 
-      <p className="text-[#0D0D12] font-medium text-xl leading-[25.2px] tracking-[0.2px] font-encode-sans">
+      <p className="font-medium text-xl leading-[25.2px] tracking-[0.2px] font-encode-sans">
         Authorized devices
       </p>
 
       <div className="flex h-[1px] items-center gap-2 self-stretch bg-[#DFE1E6]" />
-      <p className="text-[#666D80] font-medium text-xs leading-[21px] tracking-[0.2px] font-encode-sans">
+      <p className="font-medium text-xs leading-[21px] tracking-[0.2px] font-encode-sans">
           These browsers and devices are currently signed in to your account. Remove any unauthorized devices
       </p>
 
@@ -96,13 +118,13 @@ const AgentSecuritySettings = () => {
       {sessions.map((session, index) => (
         <React.Fragment key={index}>
           <div className="flex justify-between items-center w-full">
-            <p className="text-[#0D0D12] font-medium text-sm leading-[21px] tracking-[0.2px] font-encode-sans">
+            <p className="font-medium text-sm leading-[21px] tracking-[0.2px] font-encode-sans">
               {session.browser}
             </p>
-            <p className="text-[#666D80] font-medium text-sm leading-[21px] tracking-[0.2px] font-encode-sans">
+            <p className="font-medium text-sm leading-[21px] tracking-[0.2px] font-encode-sans">
               {session.location}
             </p>
-            <p className="text-[#666D80] font-medium text-sm leading-[21px] tracking-[0.2px] font-encode-sans">
+            <p className="font-medium text-sm leading-[21px] tracking-[0.2px] font-encode-sans">
               {session.status}
             </p>
             <svg
@@ -123,17 +145,28 @@ const AgentSecuritySettings = () => {
           <div className="flex h-[1px] items-center gap-2 self-stretch bg-[#DFE1E6]" />
         </React.Fragment>
       ))}
+    </div>
 
-      <ChangePasswordModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+      <SendOtpModal
+        isModalOpen={isSendOtpModalOpen}
+        closeModal={() => setIsSendOtModalOpen(false)}
+        goToVerifyOtp={handleSendOtpSuccess}
       />
-      <TwoStepVerificationModal
+      <VerifyOtpModal
+        isModalOpen={isVerifyOtpModalOpen}
+        closeModal={() => setIsVerifyOtpModalOpen(false)}
+        goToChangePassword={handleVerifyOtpSuccess}
+      />
+      <ChangePasswordModal
+        isModalOpen={isChangePasswordModalOpen}
+        closeModal={() => setIsChangePasswordModalOpen(false)}
+      />
+      {/* <TwoStepVerificationModal
         isOpen={isModalOpen2}
         onClose={() => setIsModalOpen2(false)}
-      />
+      /> */}
     </div>
   );
 };
 
-export default AgentSecuritySettings;
+export default SecuritySettings;

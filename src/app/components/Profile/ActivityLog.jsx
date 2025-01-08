@@ -48,7 +48,7 @@ const ActivityLog = () => {
                   Updated fields:
                 </p>  
                 <div className="flex flex-col gap-3">
-                  {log?.metadata?.updated_fields.map((info) => {
+                  {log?.metadata?.updated_fields?.map((info) => {
                     return (                      
                       <div className="flex w-fit text-sm p-1 justify-center items-center gap-2 rounded-md bg-[#E7FEF8]">
                         <p className="text-[#40C4AA]">{info}</p>
