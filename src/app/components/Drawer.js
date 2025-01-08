@@ -45,7 +45,7 @@ const Drawer = ({
       }}
     >
       <div 
-        className="body-theme h-full shadow-xl pt-5"
+        className="body-theme h-full shadow-xl z-70  pt-5"
         style={{ width }}
         onClick={e => e.stopPropagation()}
       >

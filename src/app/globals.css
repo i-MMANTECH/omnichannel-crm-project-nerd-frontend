@@ -128,3 +128,28 @@ footer a {
   width: 100%;
   z-index: 10000;
 }
+
+.notification-toast {
+  background: white;
+  color: black;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  cursor: pointer;
+}
+
+.notification-toast:hover {
+  background: #f8f9fa;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .notification-toast {
+    background: #1a1a1a;
+    color: white;
+  }
+  
+  .notification-toast:hover {
+    background: #2d2d2d;
+  }
+}

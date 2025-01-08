@@ -8,6 +8,7 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import "./Sidebar.css";
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
+import { useNotification } from "@/context/NotificationContext";
 
 
 function Sidebar() {
@@ -22,6 +23,8 @@ function Sidebar() {
   const closeModal = () => setIsModalOpen(false);
 
   const isActive = (path) => pathname.startsWith(path);
+  const { toggleNotification } = useNotification()
+  
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -158,9 +161,9 @@ function Sidebar() {
                 </h3>
               </Link>
 
-              <Link
-                href="/nativecrm/notifications"
-                className={`hidden flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
+              <div
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
+                onClick={toggleNotification}
               >
                 <Image
                     src="/assets/bell.svg"
@@ -172,7 +175,7 @@ function Sidebar() {
                 <h3 className={`text-sm font-medium ${isActive("/notifications") ? activeStyle : ""}`}>
                   Notifications
                 </h3>
-              </Link>
+              </div>
             </div>
 
             <div className="self-end mt-auto w-full">
