@@ -9,6 +9,7 @@ import Image from 'next/image';
 import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
 import { getRoleStyle } from '@/utils/getRoleStyle';
+import { formatDateTime } from '@/utils/timeUtils';
 
 
 export default function Profile() {
@@ -137,7 +138,7 @@ export default function Profile() {
                         </p>
                     </div>
 
-                    <div className="hidden flex items-center gap-[10px]">
+                    <div className="flex items-center gap-[10px]">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                             <path 
                                 d="M8 3H6C4.34315 3 3 4.34315 3 6V9M8 3V2M8 3H16M8 3V4M16 3H18C19.6569 3 21 4.34315 21 6V9M16 3V2M16 3V4M3 9V19C3 20.6569 4.34315 22 6 22H18C19.6569 22 21 20.6569 21 19V9M3 9H21M13.5 12.5H16.5L14 17.5M10.5 14V16C10.5 16.8284 9.82843 17.5 9 17.5C8.17157 17.5 7.5 16.8284 7.5 16V14C7.5 13.1716 8.17157 12.5 9 12.5C9.82843 12.5 10.5 13.1716 10.5 14Z" 
@@ -149,7 +150,7 @@ export default function Profile() {
                         </svg>
 
                         <p className="text-sm font-medium">
-                            {userProfile?.lastLogin}
+                            {userProfile?.created_at ? formatDateTime(userProfile?.created_at) : ''}
                         </p>
                     </div>
                 </div>
