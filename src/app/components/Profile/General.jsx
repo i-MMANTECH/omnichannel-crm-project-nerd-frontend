@@ -20,7 +20,9 @@ const GeneralProfile = () => {
   const [states, setStates] = useState([]);
   const [availableRoles, setAvailableRoles] = useState([]);
 
-
+  const inputClasses = "w-full border rounded-md p-2 focus:ring-blue-200";
+  const disabledInputClasses = "w-full border rounded-md p-2 bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200";
+  
   useEffect(() => {
     const fetchInitialData = async () => {
       try {        
@@ -200,7 +202,7 @@ const GeneralProfile = () => {
             name="first_name"
             value={formData.first_name || ''}
             onChange={handleChange}
-            className="w-full border rounded-md p-2 focus:ring-blue-200"
+            className={inputClasses}
           />
         </div>
 
@@ -211,45 +213,35 @@ const GeneralProfile = () => {
             name="last_name"
             value={formData.last_name || ''}
             onChange={handleChange}
-            className="w-full border rounded-md p-2 focus:ring-blue-200"
+            className={inputClasses}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Email Address</label>
+          <label className="block text-sm font-medium mb-1 text-gray-500">Email Address</label>
           <input
             type="email"
             name="email"
             value={formData.email || ''}
             onChange={handleChange}
-            className="w-full border rounded-md p-2 focus:ring-blue-200"
+            disabled
+            className={disabledInputClasses}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">URL</label>
+          <label className="block text-sm font-medium mb-1 text-gray-500">Company URL</label>
           <input
             type="text"
             name="url"
             value={formData.url || ''}
             disabled
-            className="w-full border rounded-md p-2 focus:ring-blue-200"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Account Creation Date</label>
-          <input
-            type="date"
-            name="created_at"
-            value={formatDateTime(formData.created_at)}
-            disabled
-            className="w-full border rounded-md p-2 focus:ring-blue-200 bg-gray-50"
+            className={disabledInputClasses}
           />
         </div>
 
         <div className="flex gap-2">
-          <div className="w-1/3">
+          <div className="w-1/3 hidden">
             <label className="block text-sm font-medium mb-1">Country Code</label>
             <Select
               name="country"
@@ -265,11 +257,11 @@ const GeneralProfile = () => {
           <div className="flex-1">
             <label className="block text-sm font-medium mb-1">Phone Number</label>
             <input
-              type="text"
+              type="tel"
               name="phone_number"
               value={formData.phone_number || ''}
               onChange={handleChange}
-              className="w-full border rounded-md p-2 focus:ring-blue-200"
+              className={inputClasses}
             />
           </div>
         </div>
@@ -297,32 +289,37 @@ const GeneralProfile = () => {
             styles={selectStyles}
           />
         </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1 text-gray-500">Account Creation Date</label>
+          <input
+            name="created_at"
+            value={formData?.created_at ? formatDateTime(formData.created_at) : ''}
+            disabled
+            className={disabledInputClasses}
+          />
+        </div>
       </div>
 
-      {
-        rolePermissions.length > 0 &&
+      {rolePermissions.length > 0 && (
         <div className="mt-6">
           <h3 className="text-md font-semibold mb-4">Role Permissions</h3>
           <div className="grid grid-cols-2 gap-4">
             {rolePermissions.map((permission, index) => (
               <div key={index} className="flex items-center gap-2">
                 <span className="text-sm">{permission}</span>
-                <div
-                  className='w-11 h-6 rounded-full transition-colors bg-gray-300'
-                >
-                  <div
-                    className={`w-6 h-6 body-theme rounded-full transition-transform translate-x-5`}
-                  />
+                <div className="w-11 h-6 rounded-full transition-colors bg-gray-300">
+                  <div className="w-6 h-6 body-theme rounded-full transition-transform translate-x-5" />
                 </div>
               </div>
             ))}
           </div>
         </div>
-      }
+      )}
 
       <div className="flex justify-start gap-4 w-full">
         <button
-          className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
+          className="px-4 py-2 border rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleCancel}
           disabled={!hasChanges || isSaving}
         >

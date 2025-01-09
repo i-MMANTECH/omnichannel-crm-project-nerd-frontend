@@ -9,7 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 
 const NotificationContext = createContext();
 
-const notificationSound = new Audio('/notification-sound.mp3');
+const notificationSound = new Audio('https://core-staging.nativetalkcrm.com/static/notifications/sounds/notification.mp3');
 
 export function NotificationProvider({ children }) {
   const [isNotificationVisible, setIsNotificationVisible] = useState(false);
@@ -56,11 +56,11 @@ export function NotificationProvider({ children }) {
 
         ws.onclose = () => {
           console.log('Notification WebSocket disconnected');
-          
+
           // Attempt to reconnect after a delay
           setTimeout(() => {
             if (user?.user_id) {
-              // initializeWebSocket();
+              initializeWebSocket();
             }
           }, 3000);
         };

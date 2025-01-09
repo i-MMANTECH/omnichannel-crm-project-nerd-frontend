@@ -9,12 +9,17 @@ import "./Sidebar.css";
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
 import { useNotification } from "@/context/NotificationContext";
+import { useError } from "@/context/ErrorContext";
+import { useApi } from "@/services/axiosConfig";
 
 
 function Sidebar() {
   const { logout } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState({})
   const modalRef = useRef(null);
+  const {handleApiError} = useError()
+  const {axiosInstance} = useApi()
 
   const pathname = usePathname();
   const activeStyle = "active";
@@ -24,7 +29,21 @@ function Sidebar() {
 
   const isActive = (path) => pathname.startsWith(path);
   const { toggleNotification } = useNotification()
+
   
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+        try {
+            const resp = await axiosInstance.get(`/users/me`)
+            setUserProfile(resp.data.user)
+        } catch(error) {
+            handleApiError(error)
+        }
+    }
+
+      fetchUserProfile()
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -219,27 +238,45 @@ function Sidebar() {
               </div>
 
               <div className="w-full border-t border-gray-200 dark:border-gray-600 pt-4 pointer" onClick={openModal}>
-                <div className="flex items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700">
-                  <Image
-                    src="/assets/user-profile-image.png"
-                    alt="Agent"
-                    className="w-8 h-8 rounded-full profile-icon cursor-pointer"
-                    width={30}
-                    height={30}
-                  />
-                  <div className="text-sm">
-                    <h3 className="font-medium text-gray-800 dark:text-gray-200">Denise Adebayo</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Agent</p>
+                  <div className="flex items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700">
+                    <Image
+                      src="/assets/user-profile-image.png"
+                      alt="Agent"
+                      className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
+                      width={30}
+                      height={30}
+                    />
+                    <div className="text-sm min-w-0 flex-1">
+                      <h3 className="font-medium text-gray-800 dark:text-gray-200 truncate">
+                        {userProfile?.first_name || userProfile?.last_name
+                          ? `${userProfile.first_name} ${userProfile?.last_name}`
+                          : (
+                            <span title={userProfile?.email}>
+                              {userProfile?.email}
+                            </span>
+                          )}
+                      </h3>
+                      <p 
+                        className="text-xs text-gray-500 dark:text-gray-400 truncate"
+                        title={userProfile?.roles?.map(role => role.name).join(' • ')}
+                      >
+                        {userProfile?.roles?.map((role, index) => (
+                          <span key={role.id}>
+                            {index > 0 && <span className="mx-1">•</span>}
+                            {role.name}
+                          </span>
+                        ))}
+                      </p>
+                    </div>
+                    <Image
+                      src="/assets/chevron-right.svg"
+                      alt="Agent"
+                      className="w-5 h-5 cursor-pointer flex-shrink-0"
+                      width={30}
+                      height={30}
+                    />
                   </div>
-                  <Image
-                    src="/assets/chevron-right.svg"
-                    alt="Agent"
-                    className="w-5 h-5 cursor-pointer"
-                    width={30}
-                    height={30}
-                  />
                 </div>
-              </div>
             </div>
 
             {isModalOpen && (
