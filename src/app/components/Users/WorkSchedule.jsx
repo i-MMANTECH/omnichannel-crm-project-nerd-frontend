@@ -13,6 +13,7 @@ export default function WorkSchedule() {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [activeSchedule, setActiveSchedule] = useState()
     const [inactiveSchedules, setInactiveSchedules] = useState([])
+    const [expandedSchedules, setExpandedSchedules] = useState({});
     const [toggleStates, setToggleStates] = useState({});
   
     const handleToggle1 = () => setIsToggled1(!isToggled1);
@@ -57,6 +58,13 @@ export default function WorkSchedule() {
       }
     };
 
+    const handleExpand = (scheduleId) => {
+      setExpandedSchedules(prev => ({
+        ...prev,
+        [scheduleId]: !prev[scheduleId]
+      }));
+    };
+
     return (
      <div>
         {(() => {
@@ -95,22 +103,6 @@ export default function WorkSchedule() {
       
                         <div className={`toggle-circle ${isToggled1 ? "toggled-circle" : "untoggled-circle"}`} />
                       </div>
-      
-                      <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 25"
-                          fill="none"
-                          className="cursor-pointer"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            clipRule="evenodd"
-                            d="M5.29289 8.79289C5.68342 8.40237 6.31658 8.40237 6.70711 8.79289L12 14.0858L17.2929 8.79289C17.6834 8.40237 18.3166 8.40237 18.7071 8.79289C19.0976 9.18342 19.0976 9.81658 18.7071 10.2071L12.7071 16.2071C12.3166 16.5976 11.6834 16.5976 11.2929 16.2071L5.29289 10.2071C4.90237 9.81658 4.90237 9.18342 5.29289 8.79289Z"
-                            fill="#666D80"
-                          />
-                        </svg>
                     </div>
                   </div>
       
@@ -181,22 +173,6 @@ export default function WorkSchedule() {
       
                         <div className={`toggle-circle ${isToggled1 ? "toggled-circle" : "untoggled-circle"}`} />
                       </div>
-      
-                      <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 25"
-                          fill="none"
-                          className="cursor-pointer"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            clipRule="evenodd"
-                            d="M5.29289 8.79289C5.68342 8.40237 6.31658 8.40237 6.70711 8.79289L12 14.0858L17.2929 8.79289C17.6834 8.40237 18.3166 8.40237 18.7071 8.79289C19.0976 9.18342 19.0976 9.81658 18.7071 10.2071L12.7071 16.2071C12.3166 16.5976 11.6834 16.5976 11.2929 16.2071L5.29289 10.2071C4.90237 9.81658 4.90237 9.18342 5.29289 8.79289Z"
-                            fill="#666D80"
-                          />
-                        </svg>
                     </div>
                   </div>
       
@@ -233,6 +209,7 @@ export default function WorkSchedule() {
             )
           }})()}
   
+  
           {inactiveSchedules.map((schedule, index) => {
               if (schedule.schedule_type === "duration") {
                 return (
@@ -250,7 +227,10 @@ export default function WorkSchedule() {
                             <div className={`toggle-circle ${toggleStates[schedule.id] ? "toggled-circle" : "untoggled-circle"}`} />
                           </div>
                           
-                          <svg className="cursor-pointer" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 25" fill="none">
+                          <svg 
+                          className="cursor-pointer" 
+                          onClick={() => handleExpand(schedule.id)}
+                          xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 25" fill="none">
                               <path
                                 fillRule="evenodd"
                                 clipRule="evenodd"
@@ -261,18 +241,20 @@ export default function WorkSchedule() {
                         </div>
                       </div>
 
-                      <hr className="custom-hr mt-2" />
+                      {expandedSchedules[schedule.id] && (
+                      <>
+                        <hr className="custom-hr mt-2" />
                         <div className="p-4">
                           <div className="mb-2 flex">
                             <p className="font-medium">Standard working hours/day</p>
                             <p className="ms-10 font-bold">{schedule?.standard_duration}</p>
                           </div>
-            
+
                           <div className="mb-2 flex">
                             <p className="font-medium">Total working hours/week</p>
                             <p className="ms-14 font-bold">{schedule.total_weekly_hours}</p>
                           </div>
-            
+
                           <div>
                             <p className="font-medium">Daily working hours</p>
                             <div className="mt-2">
@@ -283,12 +265,14 @@ export default function WorkSchedule() {
                                   className="flex justify-between items-center mb-1">
                                   <p className="flex-1">{item.day}</p>
                                   <p className="font-bold flex-1 text-right">{item.hours}</p>
-                                  <span className=" flex-1 text-right">{item?.custom_duration ? item.custom_duration : schedule.standard_duration}</span>
+                                  <span className="flex-1 text-right">{item?.custom_duration ? item.custom_duration : schedule.standard_duration}</span>
                                 </div>
                               ))}
                             </div>
                           </div>
                         </div>
+                      </>
+                    )}
                     </div>
                   )
                 }
@@ -308,7 +292,10 @@ export default function WorkSchedule() {
                             <div className={`toggle-circle ${toggleStates[schedule.id] ? "toggled-circle" : "untoggled-circle"}`} />
                           </div>
                           
-                          <svg className="cursor-pointer" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 25" fill="none">
+                          <svg 
+                          className="cursor-pointer" 
+                                  onClick={() => handleExpand(schedule.id)}
+                                  xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 25" fill="none">
                               <path
                                 fillRule="evenodd"
                                 clipRule="evenodd"
@@ -319,7 +306,9 @@ export default function WorkSchedule() {
                         </div>
                       </div>
 
-                      <hr className="custom-hr mt-2" />
+                      {expandedSchedules[schedule.id] && (
+                        <>
+                        <hr className="custom-hr mt-2" />
                         <div className="p-4">
                           <div className="mb-2 flex">
                             <p className="font-medium">Standard working hours/day</p>
@@ -347,6 +336,8 @@ export default function WorkSchedule() {
                             </div>
                           </div>
                         </div>
+                        </>
+                      )}
                     </div>
                   )}              
             })
