@@ -95,18 +95,18 @@ flex-shrink: 0;
   padding-bottom: 4px; 
 }
 
+
 .selected {
   color: #3ebf0f;
   font-weight: 600;
   font-size: 14px;
-  line-height: 150%;
   position: relative;
 }
 
 .selected::after {
   content: "";
   position: absolute;
-  bottom: -8px;
+  bottom: -6px;
   left: 0;
   right: 0;
   height: 3px;
@@ -124,3 +124,4 @@ flex-shrink: 0;
   color: #3ebf0f;
   transition: color 0.2s ease-in-out;
 }
+

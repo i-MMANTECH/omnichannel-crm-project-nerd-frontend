@@ -134,8 +134,8 @@ export default function UserDetails({ user }) {
           </div>
         </div>
 
-        <div className="hidden">
-          <div className="flex flex-selected justify-start gap-4 w-full">
+        <div className="w-full">
+          <div className="flex flex-selected justify-start gap-4 w-full mt-4">
             <p
               className={`cursor-pointer ${selected === "work-schedule" ? "selected" : "not-selected"}`}
               onClick={() => setSelected("work-schedule")}
@@ -143,7 +143,7 @@ export default function UserDetails({ user }) {
               Work Schedule
             </p>
             <p
-              className={`cursor-pointer ${selected === "assigned-messages" ? "selected" : "not-selected"}`}
+              className={`cursor-pointer pb-2 px-10 ${selected === "assigned-messages" ? "selected" : "not-selected"}`}
               onClick={() => setSelected("assigned-messages")}
             >
               Assigned Messages
@@ -153,7 +153,7 @@ export default function UserDetails({ user }) {
           <div className="mt-6 w-full">
             {selected === "work-schedule" && (
               <WorkSchedule/>
-            
+             
             )}
             {selected === "assigned-messages" && (
               <AssignedMessages/>
