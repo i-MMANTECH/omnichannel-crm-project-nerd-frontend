@@ -1,34 +1,137 @@
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Drawer from '../Drawer';
+import { useParams } from 'next/navigation';
+import { toast } from 'react-toastify';
 
-export default function WorkSchedulModal({ show, onClose }) {
+export default function WorkScheduleModal({ schedule, show, onClose }) {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
 
-  const [scheduleType, setScheduleType] = useState('duration-based');
+  const [name, setName] = useState('');
+  const [effectiveFrom, setEffectiveFrom] = useState('');
+  const [scheduleType, setScheduleType] = useState('duration');
+  const [duration, setDuration] = useState({ hours: '08', minutes: '00', seconds: '00' });
+  const { id } = useParams()
+
+  const [totalWorkingTime, setTotalWorkingTime] = useState('00h 00m');
+
   const [workingDaysToggle, setWorkingDaysToggle] = useState({
-    Monday: false,
-    Tuesday: false,
-    Wednesday: false,
-    Thursday: false,
-    Friday: false,
-    Saturday: false,
-    Sunday: false,
+    Monday: { isWorking: false, customDuration: { hours: '00', minutes: '00', seconds: '00' } },
+    Tuesday: { isWorking: false, customDuration: { hours: '00', minutes: '00', seconds: '00' } },
+    Wednesday: { isWorking: false, customDuration: { hours: '00', minutes: '00', seconds: '00' } },
+    Thursday: { isWorking: false, customDuration: { hours: '00', minutes: '00', seconds: '00' } },
+    Friday: { isWorking: false, customDuration: { hours: '00', minutes: '00', seconds: '00' } },
+    Saturday: { isWorking: false, customDuration: { hours: '00', minutes: '00', seconds: '00' } },
+    Sunday: { isWorking: false, customDuration: { hours: '00', minutes: '00', seconds: '00' } },
   });
+
+  useEffect(() => {
+    let totalMinutes = 0;
+    const standardMinutes = convertDurationToMinutes(duration);
+
+    Object.keys(workingDaysToggle).forEach((day) => {
+      if (workingDaysToggle[day].isWorking) {
+        const customMinutes = convertDurationToMinutes(workingDaysToggle[day].customDuration);
+        totalMinutes += customMinutes || standardMinutes;
+      }
+    });
+
+    setTotalWorkingTime(convertMinutesToTime(totalMinutes));
+  }, [workingDaysToggle, duration]);
+
+  const convertDurationToMinutes = ({ hours, minutes, seconds }) => {
+    return parseInt(hours) * 60 + parseInt(minutes) + parseInt(seconds) / 60;
+  };
+
+  const convertMinutesToTime = (totalMinutes) => {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = Math.floor(totalMinutes % 60);
+    const seconds = Math.round((totalMinutes % 1) * 60);
   
-  const toggleDay = (day) => {
-    setWorkingDaysToggle((prev) => ({
+    return `${hours}h ${minutes}m ${seconds}s`;
+  };
+  
+  const formatDuration = ({ hours, minutes, seconds }) => {
+    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`;
+  };
+  
+  const handleTimeChange = (e) => {
+    setDuration((prev) => ({
       ...prev,
-      [day]: !prev[day],
+      [e.target.name]: e.target.value,
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form submitted", workingDaysToggle);
+  const hoursOptions = Array.from({ length: 24 }, (_, i) => 
+    `${i + 1}`.padStart(2, '0')
+  );
+  const minutesOptions = ['00', '15', '30', '45'];
+  const secondsOptions = ['00', '15', '30', '45'];
+
+  const toggleDay = (day) => {
+    setWorkingDaysToggle((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        isWorking: !prev[day].isWorking,
+        customDuration: !prev[day].isWorking
+          ? { ...duration }
+          : prev[day].customDuration,
+      },
+    }));
   };
+  
+
+  const handleCustomDurationChange = (day, type, value) => {
+    setWorkingDaysToggle((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        customDuration: {
+          ...prev[day].customDuration,
+          [type]: value,
+        },
+      },
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    const workingDays = Object.keys(workingDaysToggle).map((day) => ({
+      day: day.toLowerCase(),
+      is_working: workingDaysToggle[day].isWorking,
+      custom_duration: formatDuration(workingDaysToggle[day].customDuration),
+    }));
+  
+    if (!name || !effectiveFrom || !duration || !scheduleType || !workingDays) {
+      toast.warning('All fields are required');
+      return;
+    }
+  
+    try {
+      const resp = await axiosInstance.post(`/work-management/work-schedules/`, {
+        user_id: id,
+        name,
+        schedule_type: scheduleType,
+        effective_from: effectiveFrom,
+        standard_duration: formatDuration(duration),
+        working_days: workingDays
+      });
+  
+      if (!schedule) {
+        toast.success('New work schedule added successfully');
+      } else {
+        toast.success('Work schedule updated successfully');
+      }
+
+      onClose()
+    } catch (error) {
+      handleApiError(error);
+    }
+  };  
 
   const Toggle = ({ isToggled, onToggle }) => {
     return (
@@ -53,9 +156,10 @@ export default function WorkSchedulModal({ show, onClose }) {
       <button
         type="submit"
         form="scheduleForm"
+        onClick={handleSubmit}
         className="px-4 py-2 bg-[#3EBF0F] text-white rounded-lg hover:bg-green-600"
       >
-        Create
+        {schedule ? <span>Update</span> : <span>Create</span>}
       </button>
     </div>
   );
@@ -76,14 +180,17 @@ export default function WorkSchedulModal({ show, onClose }) {
                 className="body-theme rounded-xl w-[90%] sm:w-[600px]">
                 <label
                   htmlFor="name"
-                  className="text-sm font-semibold text-gray-700 mb-2 block"
+                  className="text-sm font-semibold mb-2 block"
                 >
                   Name <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input
                   id="name"
                   type="text"
+                  required
                   placeholder="Remote"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   className="w-full h-[52px] p-4 rounded-[12px] border border-[#DFE1E6] body-theme shadow-md focus:border-[#3EBF0F] outline-none mb-4"
                 />
 
@@ -91,13 +198,15 @@ export default function WorkSchedulModal({ show, onClose }) {
                   <div className="flex-1">
                     <label
                       htmlFor="effectiveFrom"
-                      className="mb-2 block text-sm font-medium text-gray-700"
+                      className="mb-2 block text-sm font-medium "
                     >
                       Effective From
                     </label>
                     <input
                       id="effectiveFrom"
                       type="date"
+                      value={effectiveFrom}
+                      onChange={(e) => setEffectiveFrom(e.target.value)}
                       className="w-full h-[52px] p-4 rounded-[12px] border border-[#DFE1E6] body-theme shadow-md focus:border-[#3EBF0F] outline-none"
                     />
                   </div>
@@ -105,22 +214,54 @@ export default function WorkSchedulModal({ show, onClose }) {
                   <div className="flex-1">
                     <label
                       htmlFor="workingHours"
-                      className="mb-2 block text-sm font-medium text-gray-700"
+                      className="mb-2 block text-sm font-medium "
                     >
                       Standard working hours/day
                     </label>
-                    <select
-                      id="workingHours"
-                      className="w-full h-[52px] p-4 rounded-[12px] border border-[#DFE1E6] body-theme shadow-md focus:border-[#3EBF0F] outline-none"
-                    >
-                      <option value="8h 00m">8h 00m</option>
-                      <option value="7h 30m">7h 30m</option>
-                      <option value="9h 00m">9h 00m</option>
-                    </select>
+                    <div id='workingHours' className="flex items-center gap-2">
+                      <select
+                        name="hours"
+                        value={duration.hours}
+                        onChange={handleTimeChange}
+                        className="p-2 rounded border border-gray-300 body-theme"
+                      >
+                        {hoursOptions.map(hour => (
+                          <option key={hour} value={hour}>
+                            {hour}h
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        name="minutes"
+                        value={duration.minutes}
+                        onChange={handleTimeChange}
+                        className="p-2 rounded border border-gray-300 body-theme"
+                      >
+                        {minutesOptions.map(min => (
+                          <option key={min} value={min}>
+                            {min}m
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        name="seconds"
+                        value={duration.seconds}
+                        onChange={handleTimeChange}
+                        className="p-2 rounded border border-gray-300 body-theme"
+                      >
+                        {secondsOptions.map(sec => (
+                          <option key={sec} value={sec}>
+                            {sec}s
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
 
-                <p className="mt-5 font-['Encode Sans'] text-[18px] font-bold leading-[135%]">
+                <p className="mt-10 font-['Encode Sans'] text-[18px] font-bold leading-[135%]">
                   Schedule type
                 </p>
 
@@ -128,14 +269,14 @@ export default function WorkSchedulModal({ show, onClose }) {
                   <div className="flex flex-col items-stretch space-y-2">
                     <button
                       className={`flex justify-between items-center h-[52px] px-4 rounded-lg border ${
-                        scheduleType === 'duration-based'
+                        scheduleType === 'duration'
                           ? 'border-[#3EBF0F]'
-                          : 'border-[#DFE1E6] body-theme text-gray-600'
+                          : 'border-[#DFE1E6] body-theme '
                       }`}
-                      onClick={() => setScheduleType('duration-based')}
+                      onClick={() => setScheduleType('duration')}
                     >
                       <span>Duration-based</span>
-                      {scheduleType === 'duration-based' ? (
+                      {scheduleType === 'duration' ? (
                         <div className="w-[20px] h-[20px] flex items-center justify-center bg-[#3EBF0F] rounded-full">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -175,14 +316,14 @@ export default function WorkSchedulModal({ show, onClose }) {
                   <div className="flex flex-col items-stretch space-y-2">
                     <button
                       className={`flex justify-between items-center h-[52px] px-4 rounded-lg border ${
-                        scheduleType === 'clock-based'
+                        scheduleType === 'clock'
                           ? 'border-[#3EBF0F]'
-                          : 'border-[#DFE1E6] body-theme text-gray-600'
+                          : 'border-[#DFE1E6] body-theme '
                       }`}
-                      onClick={() => setScheduleType('clock-based')}
+                      onClick={() => setScheduleType('clock')}
                     >
                       <span>Clock-based</span>
-                      {scheduleType === 'clock-based' ? (
+                      {scheduleType === 'clock' ? (
                         <div className="w-[20px] h-[20px] flex items-center justify-center bg-[#3EBF0F] rounded-full">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -220,49 +361,84 @@ export default function WorkSchedulModal({ show, onClose }) {
                   </div>
                 </div>
 
-                <p className="mt-5 mb-5 font-['Encode Sans'] text-[18px] font-bold leading-[135%]">
+                <p className="mt-10 mb-5 font-['Encode Sans'] text-[18px] font-bold leading-[135%]">
                   Working Time
                 </p>
 
-                <div className="w-full flex">
-                  <div className="w-full flex h-[56px] p-4 self-stretch rounded-l-[10px] bg-[#F8F9FB]">
-                    <p className="font-semibold text-[12px] leading-[18px] tracking-[0.4px]">
+                <div className="w-full flex ">
+                  <div className="w-full flex h-[56px] px-3 items-center  self-stretch rounded-l-[10px] bg-[#F8F9FB] dark:bg-neutral-800">
+                    <p className="font-semibold text-[12px]">
                       Working Day
                     </p>
                   </div>
 
-                  <div className="w-full flex h-[56px] p-4 self-stretch rounded-r-[10px] bg-[#F8F9FB]">
-                    <p className="font-semibold text-[12px] leading-[18px] tracking-[0.4px]">
+                  <div className="w-full flex px-3 items-center h-[56px] self-stretch rounded-r-[10px] bg-[#F8F9FB] dark:bg-neutral-800">
+                    <p className="font-semibold text-[12px]">
                       Time
                     </p>
                   </div>
                 </div>
 
-                <div>
+                <div className='mt-3'>
                   {Object.keys(workingDaysToggle).map((day) => (
-                    <div key={day} className="flex items-center gap-4"> 
+                    <div key={day} className="flex items-center gap-4">
                       <Toggle
-                        isToggled={workingDaysToggle[day]}
+                        isToggled={workingDaysToggle[day].isWorking}
                         onToggle={() => toggleDay(day)}
                       />
-                      <span className="capitalize font-medium text-gray-700">{day}</span>
+                      <span className="capitalize font-medium">{day}</span>
 
-                      <div className="flex items-center gap-2 ml-auto">
-                        <input
-                          style={{width:'100%'}}
-                          type="time"
-                          id={`${day}-start-time`}
-                          className="w-[80px] h-[34px] p-2 rounded-md border border-[#DFE1E6]"
-                        />
-                      </div>
+                      {workingDaysToggle[day].isWorking ? (
+                        <div className="flex items-center gap-2 ml-auto">
+                          <select
+                            name="hours"
+                            value={workingDaysToggle[day].customDuration?.hours || '00'}
+                            onChange={(e) => handleCustomDurationChange(day, 'hours', e.target.value)}
+                            className="p-2 rounded border border-gray-300 body-theme"
+                          >
+                            {hoursOptions.map(hour => (
+                              <option key={hour} value={hour}>
+                                {hour}h
+                              </option>
+                            ))}
+                          </select>
+
+                          <select
+                            name="minutes"
+                            value={workingDaysToggle[day].customDuration?.minutes || '00'}
+                            onChange={(e) => handleCustomDurationChange(day, 'minutes', e.target.value)}
+                            className="p-2 rounded border border-gray-300 body-theme"
+                          >
+                            {minutesOptions.map(min => (
+                              <option key={min} value={min}>
+                                {min}m
+                              </option>
+                            ))}
+                          </select>
+
+                          <select
+                            name="seconds"
+                            value={workingDaysToggle[day].customDuration?.seconds || '00'}
+                            onChange={(e) => handleCustomDurationChange(day, 'seconds', e.target.value)}
+                            className="p-2 rounded border border-gray-300 body-theme"
+                          >
+                            {secondsOptions.map(sec => (
+                              <option key={sec} value={sec}>
+                                {sec}s
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      ) : (
+                        <span className="ml-auto">Non-working day</span>
+                      )}
                     </div>
                   ))}
                 </div>
 
                 <div className="flex justify-between mt-5">
-                  <p 
-                    className="text-center text-[16px] font-semibold leading-[1.5] tracking-[0.2px]">
-                    Total Working Time: <span className="text-center text-[16px] font-semibold">40h 00m</span>
+                  <p className="text-center text-[16px] font-semibold leading-[1.5] tracking-[0.2px]">
+                    Total Working Time: <span className="text-center text-[16px] font-semibold">{totalWorkingTime}</span>
                   </p>
                 </div>
               </div>
