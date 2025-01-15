@@ -8,13 +8,12 @@ import { toast } from 'react-toastify';
 export default function WorkScheduleModal({ schedule, show, onClose }) {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
+  const { id } = useParams()
 
   const [name, setName] = useState('');
   const [effectiveFrom, setEffectiveFrom] = useState('');
   const [scheduleType, setScheduleType] = useState('duration');
   const [duration, setDuration] = useState({ hours: '08', minutes: '00', seconds: '00' });
-  const { id } = useParams()
-
   const [totalWorkingTime, setTotalWorkingTime] = useState('00h 00m');
 
   const [workingDaysToggle, setWorkingDaysToggle] = useState({
@@ -26,6 +25,30 @@ export default function WorkScheduleModal({ schedule, show, onClose }) {
     Saturday: { isWorking: false, customDuration: { hours: '00', minutes: '00', seconds: '00' } },
     Sunday: { isWorking: false, customDuration: { hours: '00', minutes: '00', seconds: '00' } },
   });
+
+  useEffect(() => {
+    if (schedule) {
+      setName(schedule.name);
+      setEffectiveFrom(schedule.effective_from);
+      setScheduleType(schedule.schedule_type);
+      
+      // Set standard duration
+      if (schedule.standard_duration) {
+        setDuration(parseDuration(schedule.standard_duration));
+      }
+
+      // Set working days
+      const updatedWorkingDays = { ...workingDaysToggle };
+      schedule.working_days.forEach(day => {
+        const dayName = day.day.charAt(0).toUpperCase() + day.day.slice(1);
+        updatedWorkingDays[dayName] = {
+          isWorking: day.is_working,
+          customDuration: day.custom_duration ? parseDuration(day.custom_duration) : parseDuration(schedule.standard_duration)
+        };
+      });
+      setWorkingDaysToggle(updatedWorkingDays);
+    }
+  }, [schedule]);
 
   useEffect(() => {
     let totalMinutes = 0;
@@ -70,6 +93,16 @@ export default function WorkScheduleModal({ schedule, show, onClose }) {
   const minutesOptions = ['00', '15', '30', '45'];
   const secondsOptions = ['00', '15', '30', '45'];
 
+  const parseDuration = (durationString) => {
+    if (!durationString) return { hours: '00', minutes: '00', seconds: '00' };
+    const [hours, minutes, seconds] = durationString.split(':');
+    return {
+      hours: hours.padStart(2, '0'),
+      minutes: minutes.padStart(2, '0'),
+      seconds: seconds.padStart(2, '0')
+    };
+  };
+
   const toggleDay = (day) => {
     setWorkingDaysToggle((prev) => ({
       ...prev,
@@ -110,24 +143,26 @@ export default function WorkScheduleModal({ schedule, show, onClose }) {
       toast.warning('All fields are required');
       return;
     }
+
+    const payload = {
+      user_id: id,
+      name,
+      schedule_type: scheduleType,
+      effective_from: effectiveFrom,
+      standard_duration: formatDuration(duration),
+      working_days: workingDays
+    };
   
     try {
-      const resp = await axiosInstance.post(`/work-management/work-schedules/`, {
-        user_id: id,
-        name,
-        schedule_type: scheduleType,
-        effective_from: effectiveFrom,
-        standard_duration: formatDuration(duration),
-        working_days: workingDays
-      });
-  
-      if (!schedule) {
-        toast.success('New work schedule added successfully');
-      } else {
+      if (schedule) {
+        await axiosInstance.put(`/work-management/work-schedules/${schedule.id}/`, payload);
         toast.success('Work schedule updated successfully');
+      } else {
+        await axiosInstance.post('/work-management/work-schedules/', payload);
+        toast.success('New work schedule added successfully');
       }
 
-      onClose()
+      onClose();
     } catch (error) {
       handleApiError(error);
     }
