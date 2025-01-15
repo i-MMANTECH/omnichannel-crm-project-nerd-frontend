@@ -21,7 +21,7 @@ const ActivityLog = () => {
     }
 
     getActivityLogs()
-  }, []);
+  }, [handleApiError, axiosInstance]);
 
   return (
     <div className="flex mt-5 flex-col p-6 items-start gap-4 self-stretch rounded-lg border border-[#DFE1E6] ">
@@ -75,7 +75,7 @@ const ActivityLog = () => {
           )
         } else {
           return (
-            <div className="h-[93px] p-[16.049px] rounded-[8px] border border-[#DFE1E6] w-full">
+            <div key={index} className="h-[93px] p-[16.049px] rounded-[8px] border border-[#DFE1E6] w-full">
               <div className="flex justify-between items-center w-full">
                 <div className="flex gap-4 justify-between items-center">
                   <div className="w-[24px] h-[24px] flex-shrink-0 rounded-full bg-cover bg-center" style={{backgroundImage: `url(${user.imagePath})`}} />
