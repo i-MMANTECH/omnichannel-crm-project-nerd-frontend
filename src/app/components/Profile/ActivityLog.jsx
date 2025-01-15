@@ -67,7 +67,7 @@ const ActivityLog = () => {
                 </svg>
 
                 <p className="text-[#808897] font-encodeSans text-sm font-medium">
-                  Agent: {log.user.email}
+                  Agent: {log?.user.email}
                 </p>
               </div>
           </div>
@@ -77,9 +77,9 @@ const ActivityLog = () => {
             <div className="h-[93px] p-[16.049px] rounded-[8px] border border-[#DFE1E6] w-full">
               <div className="flex justify-between items-center w-full">
                 <div className="flex gap-4 justify-between items-center">
-                  <div className="w-[24px] h-[24px] flex-shrink-0 rounded-full bg-cover bg-center" style={{backgroundImage: `url(${user.imagePath})`}} />
+                  <div className="w-[24px] h-[24px] flex-shrink-0 rounded-full bg-cover bg-center" style={{backgroundImage: `url(${log?.user.imagePath})`}} />
                   <p className="flex-shrink-0 text-[14px] font-semibold leading-[21px] tracking-[0.2px]">
-                    {user.name}
+                    {log?.user.name}
                   </p>
                   <p className="text-[#267F0C] font-semibold text-[12px] leading-[18px] tracking-[0.4px] flex h-[24.073px] px-[8.024px] py-[4.012px] justify-center items-center gap-[8.024px] rounded-[6.018px] bg-[#EFFFE6]">
                     Whatsapp
