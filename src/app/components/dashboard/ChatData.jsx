@@ -2,8 +2,11 @@ import React, {useState} from 'react';
 import { Doughnut } from "react-chartjs-2";
 import NoDataFound from '../NoDataFound';
 import './style.css';
+import { useRouter } from 'next/navigation';
 
 export default function ChatData(){
+    const router = useRouter();
+
     const [agentsData, setAgentsData] = useState([
         {
           data: [71, 27, 23],
@@ -24,14 +27,14 @@ export default function ChatData(){
 
 
   return (
-    <div className="mt-5 flex justify-between mb-5 w-[940px]">
-      <div className="flex flex-col gap-4 w-[440px] border border-[#DFE1E6] bg-[#FFF] shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] rounded-[16px] ">
+    <div className="mt-5 flex justify-between mb-5 gap-5 w-full">
+      <div className="flex w-6/12 flex-col border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] rounded-[16px] ">
           <div className="flex flex-col items-start gap-[77px] p-[16px_20px] self-stretch border-b border-[#DFE1E6]">
               <span>Quick Actions</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 p-2">
-              <div className="flex flex-col items-start gap-2 px-4 py-4 rounded-[16px] border border-[#DFE1E6] bg-[#FFF] shadow-sm">
+          <div className="grid grid-cols-2 gap-4 p-4 ">
+              <div onClick={() => router.push('/nativecrm/users?action=invite-user')} className="flex flex-col items-start gap-2 px-4 py-4 rounded-[16px] border border-[#DFE1E6] body-theme shadow-sm cursor-pointer">
                   <div className="flex w-[24px] h-[24px] p-[5.333px] justify-center items-center gap-[5.333px] rounded-[5.333px] border border-[#30A808] bg-[#3EBF0F] shadow-[0px_-2.667px_4px_0px_rgba(255,_255,_255,_0.50)_inset,_0px_0.667px_1.333px_0px_rgba(13,_13,_18,_0.10)]">
                       <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -51,10 +54,10 @@ export default function ChatData(){
                       </svg>
                   </div>
 
-                  <span className="font-medium text-[#333]">Create New User</span>
+                  <span className="font-medium">Create New User</span>
               </div>
 
-              <div className="flex flex-col items-start gap-2 px-4 py-4 rounded-[16px] border border-[#DFE1E6] bg-[#FFF] shadow-sm">
+              <div onClick={() => router.push('/nativecrm/tasks?action=new-task')} className="flex flex-col items-start gap-2 px-4 py-4 rounded-[16px] border border-[#DFE1E6]  body-theme shadow-sm cursor-pointer">
                   <div className="flex w-[24px] h-[24px] p-[5.333px] justify-center items-center gap-[5.333px] rounded-[5.333px] border border-[#5F41B4] bg-[#936DFF] shadow-[0px_-2.667px_4px_0px_rgba(255,_255,_255,_0.50)_inset,_0px_0.667px_1.333px_0px_rgba(13,_13,_18,_0.10)]">
                       <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -74,67 +77,67 @@ export default function ChatData(){
                       </svg>
                   </div>
 
-                  <span className="font-medium text-[#333]">Create New Task</span>
+                  <span className="font-medium">Create New Task</span>
               </div>
 
-              <div className="flex flex-col items-start gap-2 px-4 py-4 rounded-[16px] border border-[#DFE1E6] bg-[#FFF] shadow-sm">
-              <div className="flex w-[24px] h-[24px] p-[5.333px] justify-center items-center gap-[5.333px] rounded-[5.333px] border border-[#0B6BEA] bg-[#1285FE] shadow-[0px_-2.667px_4px_0px_rgba(255,_255,_255,_0.50)_inset,_0px_0.667px_1.333px_0px_rgba(13,_13,_18,_0.10)]">
-                  <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="13.333px"
-                      height="13.333px"
-                      viewBox="0 0 14 14"
-                      fill="none"
-                      className="flex-shrink-0"
-                  >
-                      <path
-                      d="M8.66683 4.778C8.66683 5.69847 7.92066 6.44466 7.00016 6.44466C6.07966 6.44466 5.3335 5.69847 5.3335 4.778C5.3335 3.85752 6.07966 3.11133 7.00016 3.11133C7.92066 3.11133 8.66683 3.85752 8.66683 4.778Z"
-                      stroke="white"
-                      strokeWidth="1.33333"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      />
-                      <path
-                      d="M9.77783 2.55566C10.6983 2.55566 11.4445 3.30186 11.4445 4.22233C11.4445 4.90183 11.0378 5.48635 10.4547 5.74583"
-                      stroke="white"
-                      strokeWidth="1.33333"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      />
-                      <path
-                      d="M7.95273 8.11133H6.04795C4.73298 8.11133 3.66699 9.17733 3.66699 10.4923C3.66699 11.0183 4.09339 11.4447 4.61937 11.4447H9.38128C9.90728 11.4447 10.3337 11.0183 10.3337 10.4923C10.3337 9.17733 9.26767 8.11133 7.95273 8.11133Z"
-                      stroke="white"
-                      strokeWidth="1.33333"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      />
-                      <path
-                      d="M10.7305 7.55566C12.0454 7.55566 13.1114 8.62166 13.1114 9.93661C13.1114 10.4626 12.685 10.889 12.159 10.889"
-                      stroke="white"
-                      strokeWidth="1.33333"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      />
-                      <path
-                      d="M4.22233 2.55566C3.30186 2.55566 2.55566 3.30186 2.55566 4.22233C2.55566 4.90183 2.96229 5.48635 3.54549 5.74583"
-                      stroke="white"
-                      strokeWidth="1.33333"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      />
-                      <path
-                      d="M1.84154 10.889C1.31555 10.889 0.88916 10.4626 0.88916 9.93661C0.88916 8.62166 1.95515 7.55566 3.27011 7.55566"
-                      stroke="white"
-                      strokeWidth="1.33333"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      />
-                  </svg>
+              <div onClick={() => router.push('/nativecrm/customers?action=new-customer')} className="cursor-pointer flex flex-col items-start gap-2 px-4 py-4 rounded-[16px] border border-[#DFE1E6]  body-theme shadow-sm">
+                <div  className="flex w-[24px] h-[24px] p-[5.333px] justify-center items-center gap-[5.333px] rounded-[5.333px] border border-[#0B6BEA] bg-[#1285FE] shadow-[0px_-2.667px_4px_0px_rgba(255,_255,_255,_0.50)_inset,_0px_0.667px_1.333px_0px_rgba(13,_13,_18,_0.10)]">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="13.333px"
+                        height="13.333px"
+                        viewBox="0 0 14 14"
+                        fill="none"
+                        className="flex-shrink-0"
+                    >
+                        <path
+                        d="M8.66683 4.778C8.66683 5.69847 7.92066 6.44466 7.00016 6.44466C6.07966 6.44466 5.3335 5.69847 5.3335 4.778C5.3335 3.85752 6.07966 3.11133 7.00016 3.11133C7.92066 3.11133 8.66683 3.85752 8.66683 4.778Z"
+                        stroke="white"
+                        strokeWidth="1.33333"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        />
+                        <path
+                        d="M9.77783 2.55566C10.6983 2.55566 11.4445 3.30186 11.4445 4.22233C11.4445 4.90183 11.0378 5.48635 10.4547 5.74583"
+                        stroke="white"
+                        strokeWidth="1.33333"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        />
+                        <path
+                        d="M7.95273 8.11133H6.04795C4.73298 8.11133 3.66699 9.17733 3.66699 10.4923C3.66699 11.0183 4.09339 11.4447 4.61937 11.4447H9.38128C9.90728 11.4447 10.3337 11.0183 10.3337 10.4923C10.3337 9.17733 9.26767 8.11133 7.95273 8.11133Z"
+                        stroke="white"
+                        strokeWidth="1.33333"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        />
+                        <path
+                        d="M10.7305 7.55566C12.0454 7.55566 13.1114 8.62166 13.1114 9.93661C13.1114 10.4626 12.685 10.889 12.159 10.889"
+                        stroke="white"
+                        strokeWidth="1.33333"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        />
+                        <path
+                        d="M4.22233 2.55566C3.30186 2.55566 2.55566 3.30186 2.55566 4.22233C2.55566 4.90183 2.96229 5.48635 3.54549 5.74583"
+                        stroke="white"
+                        strokeWidth="1.33333"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        />
+                        <path
+                        d="M1.84154 10.889C1.31555 10.889 0.88916 10.4626 0.88916 9.93661C0.88916 8.62166 1.95515 7.55566 3.27011 7.55566"
+                        stroke="white"
+                        strokeWidth="1.33333"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        />
+                    </svg>
                   </div>
-                  <span className="font-medium text-[#333]">Create New Customer</span>
+                  <span className="font-medium">Create New Customer</span>
               </div>
 
-              <div className="flex flex-col items-start gap-2 px-4 py-4 rounded-[16px] border border-[#DFE1E6] bg-[#FFF] shadow-sm">
+              <div className="flex flex-col items-start gap-2 px-4 py-4 rounded-[16px] border border-[#DFE1E6]  body-theme shadow-sm">
                   <div className="flex w-[24px] h-[24px] p-[5.333px] justify-center items-center gap-[5.333px] rounded-[5.333px] border border-[#9A452D] bg-[#F36F4A] shadow-[0px_-2.667px_4px_0px_rgba(255,_255,_255,_0.50)_inset,_0px_0.667px_1.333px_0px_rgba(13,_13,_18,_0.10)]">
                       <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -154,12 +157,12 @@ export default function ChatData(){
                       </svg>
                   </div>
 
-                  <span className="font-medium text-[#333]">Search Customer</span>
+                  <span className="font-medium">Search Customer</span>
               </div>
           </div>
       </div>
 
-      <div className="w-[440px] bg-[#FFF] border border-[#DFE1E6] rounded-[16px] shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)]">
+      <div className="body-theme w-6/12 border border-[#DFE1E6] rounded-[16px] shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)]">
         <div className="flex flex-col items-start gap-[77px] p-[16px_20px] self-stretch border-b border-[#DFE1E6]">
           <span>Quick Actions</span>
         </div>

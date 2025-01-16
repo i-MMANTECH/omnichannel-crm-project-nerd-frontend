@@ -2,7 +2,6 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
 
-
 const Modal = ({ 
   isOpen, 
   onClose, 
@@ -16,10 +15,16 @@ const Modal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed  inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-      <div className="body-theme dark:border rounded-lg shadow-lg w-full" style={{ maxWidth: width }}>
-        {/* Header */}
-        <div className={`flex justify-between items-center w-full py-2 px-5 ${showBorder ? 'border-b border-[#DFE1E6] mb-5' : ''}`}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30 p-4">
+      <div 
+        className="body-theme dark:border rounded-lg shadow-lg w-full flex flex-col"
+        style={{ 
+          maxWidth: width,
+          maxHeight: 'calc(100vh - 2rem)' // Leave some padding at top and bottom
+        }}
+      >
+        {/* Header - fixed at top */}
+        <div className={`flex justify-between items-center w-full py-2 px-5 ${showBorder ? 'border-b border-[#DFE1E6]' : ''}`}>
           <p className="font-encode-sans text-lg font-medium leading-[24px] tracking-[0.2px] flex items-center">
             {title}
           </p>
@@ -35,14 +40,14 @@ const Modal = ({
           </button>
         </div>
 
-        {/* Body */}
-        <div className="px-6 pb-3 mb-3">
+        {/* Body - scrollable */}
+        <div className="px-6 pt-6 pb-6 overflow-y-auto flex-grow">
           {children}
         </div>
 
-        {/* Footer */}
+        {/* Footer - fixed at bottom */}
         {showFooter && (
-          <div className="px-6 py-5 flex justify-end gap-3 border-t border-[#DFE1E6]">
+          <div className="px-6 py-6 flex justify-end gap-3 border-t border-[#DFE1E6] mt-auto">
             {footer}
           </div>
         )}

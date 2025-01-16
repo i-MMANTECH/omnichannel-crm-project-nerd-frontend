@@ -65,21 +65,21 @@ const CreateUserModal = ({ isModalOpen, closeModal }) => {
   };
 
   const modalFooter = (
-    <>
+    <div className="flex gap-3 w-7/12">
       <button
-        type="button"
-        onClick={closeModal}
-        className="px-4 py-2 bg-theme rounded-md border border-gray-300"
+          type="button"
+          onClick={closeModal}
+          className="w-6/12 px-4 py-2 bg-theme rounded-md border border-gray-30"
       >
-        Cancel
+          Cancel
       </button>
       <button
-        type="submit"
-        className="px-4 py-2 bg-[#3EBF0F] text-white rounded-md"
+          type="submit"
+          className="w-6/12 px-4 py-2 bg-[#3EBF0F] text-white rounded-md "
       >
-        Save
+          Save
       </button>
-    </>
+  </div>
   );
 
   return (
