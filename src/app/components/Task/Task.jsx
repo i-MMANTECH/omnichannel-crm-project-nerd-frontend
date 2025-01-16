@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTh, faSort, faFilter } from "@fortawesome/free-solid-svg-icons";
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
@@ -108,68 +108,70 @@ export default function Task() {
   };
 
   return (
-    <ModalController>
-      {({ isModalOpen, openModal, closeModal }) => (
-        <div className="pt-10 relative body-theme">
-          <div className="flex justify-between items-center fixed body-theme w-10/12 pr-10 mt-[-20px]">
-            <div className="flex items-center space-x-4">
+    <Suspense fallback={<div>Loading...</div>}>    
+      <ModalController>
+        {({ isModalOpen, openModal, closeModal }) => (
+          <div className="pt-10 relative body-theme">
+            <div className="flex justify-between items-center fixed body-theme w-10/12 pr-10 mt-[-20px]">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={toggleView}
+                  className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100"
+                >
+                  <FontAwesomeIcon icon={faTh} className="text-blue-500 mr-2" />
+                  <span className="text-sm font-medium">
+                    {view === "kanban"
+                      ? "List View"
+                      : view === "list"
+                      ? "Table View"
+                      : "Kanban View"}
+                  </span>
+                </button>
+                <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
+                  <FontAwesomeIcon icon={faSort} className="text-gray-500 mr-2" />
+                  <span className="text-sm font-medium">Sort by</span>
+                </button>
+                <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
+                  <FontAwesomeIcon icon={faFilter} className="text-gray-500 mr-2" />
+                  <span className="text-sm font-medium">Filter</span>
+                </button>
+              </div>
               <button
-                onClick={toggleView}
-                className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100"
+                onClick={openModal}
+                className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm ml-auto"
               >
-                <FontAwesomeIcon icon={faTh} className="text-blue-500 mr-2" />
-                <span className="text-sm font-medium">
-                  {view === "kanban"
-                    ? "List View"
-                    : view === "list"
-                    ? "Table View"
-                    : "Kanban View"}
-                </span>
-              </button>
-              <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
-                <FontAwesomeIcon icon={faSort} className="text-gray-500 mr-2" />
-                <span className="text-sm font-medium">Sort by</span>
-              </button>
-              <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
-                <FontAwesomeIcon icon={faFilter} className="text-gray-500 mr-2" />
-                <span className="text-sm font-medium">Filter</span>
+                + New Task
               </button>
             </div>
-            <button
-              onClick={openModal}
-              className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm ml-auto"
-            >
-              + New Task
-            </button>
+
+            <div className="mt-16 h-4/5 overflow-auto body-theme">
+              {loading ? (
+                <div>Loading...</div>
+              ) : view === "kanban" ? (
+                <KanbanView tasks={tasks} updateTask={updateTask} setTasks={setTasks} />
+              ) : view === "list" ? (
+                <ListView tasks={tasks} updateTask={updateTask} />
+              ) : (
+                <TableView tasks={tasks} updateTask={updateTask} />
+              )}
+            </div>
+
+            <TaskModal
+              isOpen={isModalOpen}
+              onClose={closeModal}
+              setIsSuccessModalOpen={setIsSuccessModalOpen}
+            />
+
+            <SuccessModal
+              isOpen={isSuccessModalOpen}
+              title="Success!"
+              message="You have successfully created a Task"
+              buttonText="Okay, thank you"
+              onClose={closeSuccessModal}
+            />
           </div>
-
-          <div className="mt-16 h-4/5 overflow-auto body-theme">
-            {loading ? (
-              <div>Loading...</div>
-            ) : view === "kanban" ? (
-              <KanbanView tasks={tasks} updateTask={updateTask} setTasks={setTasks} />
-            ) : view === "list" ? (
-              <ListView tasks={tasks} updateTask={updateTask} />
-            ) : (
-              <TableView tasks={tasks} updateTask={updateTask} />
-            )}
-          </div>
-
-          <TaskModal
-            isOpen={isModalOpen}
-            onClose={closeModal}
-            setIsSuccessModalOpen={setIsSuccessModalOpen}
-          />
-
-          <SuccessModal
-            isOpen={isSuccessModalOpen}
-            title="Success!"
-            message="You have successfully created a Task"
-            buttonText="Okay, thank you"
-            onClose={closeSuccessModal}
-          />
-        </div>
-      )}
-    </ModalController>
+        )}
+      </ModalController>
+    </Suspense>
   );
 }
