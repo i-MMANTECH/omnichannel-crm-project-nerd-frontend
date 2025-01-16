@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import CustomerGrid from '@/app/components/Customers/CustomerGrid/CustomerGrid';
 import CustomerTable from '@/app/components/Customers/CustomerTable/CustomerTable';
@@ -81,69 +81,71 @@ const Page = () => {
     };
 
     return (
-        <ModalController>
-            {({ isModalOpen, openModal, closeModal }) => (
-                <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh]">
-                    <div className='relative body-theme flex-1 flex flex-col'>  
-                        <div className="flex justify-between items-center mb-6">
-                            <div className="flex items-center space-x-4">
-                                <button
-                                    onClick={toggleView}
-                                    className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-50 hover:dark:bg-neutral-900 hover:bg-gray-100"
-                                >
-                                    {view === 'grid' ? 
-                                        <Image src={table} className='mr-2' width={15} height={15} alt="Table view" /> : 
-                                        <Image src={grid} className='mr-2' width={15} height={15} alt="Grid view" />
-                                    }
-                                    <span className="text-sm font-medium">
-                                        {view === 'grid' ? 'List View' : 'Grid View'}
-                                    </span>
-                                </button>
-                                <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
-                                    <Image src={sort} className='mr-2' width={15} height={15} alt="Sort" />
-                                    <span className="text-sm font-medium">Sort by</span>
-                                </button>
-                                <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
-                                    <Image src={filter} className='mr-2' width={15} height={15} alt="Filter" />
-                                    <span className="text-sm font-medium">Filter</span>
+        <Suspense fallback={<div>Loading...</div>}>    
+            <ModalController>
+                {({ isModalOpen, openModal, closeModal }) => (
+                    <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh]">
+                        <div className='relative body-theme flex-1 flex flex-col'>  
+                            <div className="flex justify-between items-center mb-6">
+                                <div className="flex items-center space-x-4">
+                                    <button
+                                        onClick={toggleView}
+                                        className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-50 hover:dark:bg-neutral-900 hover:bg-gray-100"
+                                    >
+                                        {view === 'grid' ? 
+                                            <Image src={table} className='mr-2' width={15} height={15} alt="Table view" /> : 
+                                            <Image src={grid} className='mr-2' width={15} height={15} alt="Grid view" />
+                                        }
+                                        <span className="text-sm font-medium">
+                                            {view === 'grid' ? 'List View' : 'Grid View'}
+                                        </span>
+                                    </button>
+                                    <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
+                                        <Image src={sort} className='mr-2' width={15} height={15} alt="Sort" />
+                                        <span className="text-sm font-medium">Sort by</span>
+                                    </button>
+                                    <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
+                                        <Image src={filter} className='mr-2' width={15} height={15} alt="Filter" />
+                                        <span className="text-sm font-medium">Filter</span>
+                                    </button>
+                                </div>
+                                <button 
+                                    onClick={openModal}
+                                    className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm">
+                                    New Customer
                                 </button>
                             </div>
-                            <button 
-                                onClick={openModal}
-                                className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm">
-                                New Customer
-                            </button>
+
+                            {customers.length > 0 ? (
+                                view === 'list' ? (
+                                    <CustomerTable searchQuery={searchQuery} customers={customers} />
+                                ) : (
+                                    <CustomerGrid searchQuery={searchQuery} customers={customers} />
+                                )
+                            ) : (
+                                <div className="min-h-96 flex items-center justify-center">
+                                    <NoDataFound message='You do not have any customers' icon={empty} />
+                                </div>
+                            )}
                         </div>
 
-                        {customers.length > 0 ? (
-                            view === 'list' ? (
-                                <CustomerTable searchQuery={searchQuery} customers={customers} />
-                            ) : (
-                                <CustomerGrid searchQuery={searchQuery} customers={customers} />
-                            )
-                        ) : (
-                            <div className="min-h-96 flex items-center justify-center">
-                                <NoDataFound message='You do not have any customers' icon={empty} />
-                            </div>
-                        )}
+                        <CreateCustomerModal 
+                            isOpen={isModalOpen} 
+                            onClose={closeModal}
+                            setIsSuccessModalOpen={setIsSuccessModalOpen}
+                        />
+
+                        <SuccessModal
+                            isOpen={isSuccessModalOpen}
+                            title="Success!"
+                            message="You have successfully added a new Customer"
+                            buttonText="Okay, thank you"
+                            onClose={closeSuccessModal}
+                        />
                     </div>
-
-                    <CreateCustomerModal 
-                        isOpen={isModalOpen} 
-                        onClose={closeModal}
-                        setIsSuccessModalOpen={setIsSuccessModalOpen}
-                    />
-
-                    <SuccessModal
-                        isOpen={isSuccessModalOpen}
-                        title="Success!"
-                        message="You have successfully added a new Customer"
-                        buttonText="Okay, thank you"
-                        onClose={closeSuccessModal}
-                    />
-                </div>
-            )}
-        </ModalController>
+                )}
+            </ModalController>
+        </Suspense>
     );
 };
 
