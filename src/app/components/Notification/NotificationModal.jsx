@@ -5,6 +5,7 @@ import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
 import moment from 'moment';
 import UserAvatar from "../UserAvatar";
+import Image from "next/image";
 
 const NotificationModal = () => {
   const { axiosInstance, loading } = useApi();

@@ -2,6 +2,7 @@ import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
 import React, { useEffect, useState } from 'react';
 import UserAvatar from '../UserAvatar';
+import Image from 'next/image';
 
 
 const ActivityLog = () => {
@@ -20,7 +21,7 @@ const ActivityLog = () => {
     }
 
     getActivityLogs()
-  }, []);
+  }, [handleApiError, axiosInstance]);
 
   return (
     <div className="flex mt-5 flex-col p-6 items-start gap-4 self-stretch rounded-lg border border-[#DFE1E6] ">
@@ -50,7 +51,7 @@ const ActivityLog = () => {
                 <div className="flex flex-col gap-3">
                   {log?.metadata?.updated_fields?.map((info) => {
                     return (                      
-                      <div className="flex w-fit text-sm p-1 justify-center items-center gap-2 rounded-md bg-[#E7FEF8]">
+                      <div key={index} className="flex w-fit text-sm p-1 justify-center items-center gap-2 rounded-md bg-[#E7FEF8]">
                         <p className="text-[#40C4AA]">{info}</p>
                       </div>
                     )})}
@@ -74,7 +75,7 @@ const ActivityLog = () => {
           )
         } else {
           return (
-            <div className="h-[93px] p-[16.049px] rounded-[8px] border border-[#DFE1E6] w-full">
+            <div key={index} className="h-[93px] p-[16.049px] rounded-[8px] border border-[#DFE1E6] w-full">
               <div className="flex justify-between items-center w-full">
                 <div className="flex gap-4 justify-between items-center">
                   <div className="w-[24px] h-[24px] flex-shrink-0 rounded-full bg-cover bg-center" style={{backgroundImage: `url(${log?.user.imagePath})`}} />

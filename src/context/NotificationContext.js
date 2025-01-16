@@ -9,7 +9,11 @@ import { useAuth } from '@/context/AuthContext';
 
 const NotificationContext = createContext();
 
-const notificationSound = new Audio('https://core-staging.nativetalkcrm.com/static/notifications/sounds/notification.mp3');
+let notificationSound;
+
+if (typeof window !== 'undefined') {
+  notificationSound = new Audio('https://core-staging.nativetalkcrm.com/static/notifications/sounds/notification.mp3');
+}
 
 export function NotificationProvider({ children }) {
   const [isNotificationVisible, setIsNotificationVisible] = useState(false);

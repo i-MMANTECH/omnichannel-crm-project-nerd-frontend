@@ -15,7 +15,6 @@ import filter from '/public/assets/filter.svg';
 import NoDataFound from '@/app/components/NoDataFound';
 import empty from '/public/assets/empty.svg';
 
-// Separate component to handle URL-based modal state
 const ModalController = ({ children }) => {
     const searchParams = useSearchParams();
     const router = useRouter();
