@@ -4,7 +4,6 @@ import React, {useState} from 'react';
 import './style.css';
 import ProgessBar from './ProgessBar';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-// import ChatData from './ChatData';
 import StatsCard from './StatsCard';
 import './style.css';
 import ChatData from './ChatData';
@@ -25,7 +24,7 @@ const Dashboard = () => {
     
 
   return (
-    <div className="ms-10 me-10">
+    <div className="ms-10 me-">
         <div className="flex justify-between">
             <div className="flex h-[40px] w-[250px] p-[8px_12px] justify-center items-center gap-2 rounded-[10px] border border-[#DFE1E6] body-theme shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">
   

@@ -103,7 +103,7 @@ export default function AssignedMessages() {
                 <img
                   className="user-left-image"
                   src="/assets/user-details-image.png"
-                  alt=""
+                  alt="img"
                 />
                 <div className="flex flex-col">
                   <p className="text-[--Greyscale-900,#0D0D12] font-encode-sans text-[16px] font-semibold leading-[150%] tracking-[0.2px] self-stretch">

@@ -194,6 +194,6 @@ export default function ChatData(){
       </div>
     </div>
     
-  )}
+)}
 
   

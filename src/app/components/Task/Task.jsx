@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import React, { useState, useEffect, Suspense } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -11,7 +11,6 @@ import TaskModal from "./TaskModal";
 import SuccessModal from "../SuccessModal";
 import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
-
 const ModalController = ({ children }) => {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -40,13 +39,15 @@ export default function Task() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isSortModalOpen, setIsSortModalOpen] = useState(false);
+
   const [view, setView] = useState(() => {
     if (typeof window !== "undefined") {
       const savedView = localStorage.getItem("view");
       return savedView || "kanban";
     }
     return "kanban";
-  });
+  }, []);
 
   const toggleView = () => {
     setView((prevView) => {
@@ -78,6 +79,18 @@ export default function Task() {
       handleApiError(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const isConfirmed = window.confirm("Do you want to delete the task?");
+    if (isConfirmed) {
+      try {
+        await axiosInstance.delete(`/tasks/${id}/delete/`);
+        setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
+      } catch (error) {
+        handleApiError(error);
+      }
     }
   };
 
@@ -127,11 +140,31 @@ export default function Task() {
                       : "Kanban View"}
                   </span>
                 </button>
-                <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
+                <div className="relative">
+          <button 
+            onClick={() => setIsSortModalOpen((prev) => !prev)}
+            className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
                   <FontAwesomeIcon icon={faSort} className="text-gray-500 mr-2" />
                   <span className="text-sm font-medium">Sort by</span>
                 </button>
-                <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
+                    {isSortModalOpen && (
+              <div  className="absolute  top-full left-[-32px] mt-2 flex items-center justify-center z-50 ">
+                <div style={{width:220}} className="flex flex-col gap-2 p-4 rounded-lg border border-[#DFE1E6] bg-white">
+                  <div className="flex items-center gap-3 cursor-pointer">
+                    <p className="text-[#0D0D12] text-[14px] font-normal">Agent</p>
+                  </div>
+                  <div className="flex items-center gap-3 cursor-pointer">
+                    <p className="text-[#0D0D12] text-[14px] font-normal">Date Range</p>
+                  </div>
+                  <div className="flex items-center gap-3 cursor-pointer">
+                    <p className="text-[#0D0D12] text-[14px] font-normal">Task type</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
                   <FontAwesomeIcon icon={faFilter} className="text-gray-500 mr-2" />
                   <span className="text-sm font-medium">Filter</span>
                 </button>
