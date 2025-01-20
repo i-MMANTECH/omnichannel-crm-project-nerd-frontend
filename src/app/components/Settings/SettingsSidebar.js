@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { Disclosure } from "@headlessui/react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";

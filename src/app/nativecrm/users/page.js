@@ -83,19 +83,19 @@ const Users = () => {
                                         className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-50 hover:dark:bg-neutral-900 hover:bg-gray-100"
                                     >
                                         {view === 'grid' ? 
-                                            <Image src={table} className='mr-2' width={15} height={15} /> : 
-                                            <Image src={grid} className='mr-2' width={15} height={15} />
+                                            <Image src={table} alt="table" className='mr-2' width={15} height={15} /> : 
+                                            <Image src={grid} alt='grid' className='mr-2' width={15} height={15} />
                                         }
                                         <span className="text-sm font-medium">
                                             {view === 'grid' ? 'List View' : 'Grid View'}
                                         </span>
                                     </button>
                                     <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
-                                        <Image src={sort} className='mr-2' width={15} height={15} />
+                                        <Image src={sort} alt='sort' className='mr-2' width={15} height={15} />
                                         <span className="text-sm font-medium">Sort by</span>
                                     </button>
                                     <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
-                                        <Image src={filter} className='mr-2' width={15} height={15} />
+                                        <Image src={filter} alt='filter' className='mr-2' width={15} height={15} />
                                         <span className="text-sm font-medium">Filter</span>
                                     </button>
                                 </div>
