@@ -130,18 +130,21 @@ const NotificationModal = () => {
                 />}
                 {!notification?.receiver?.image && <UserAvatar name={notification?.receiver?.first_name ? `${notification?.receiver.first_name} ${notification?.receiver.last_name}`: '--'} width="w-8" height="h-8" />}
               </div>
-              <div>
+              <div className="flex flex-col">
                 <p className="text-sm">
                   <span className="font-semibold">
                     {notification.receiver.first_name} {notification.receiver.last_name}
                   </span>{" "}
-                  {getNotificationMessage(notification)}
                 </p>
                 {notification.title && (
-                  <p className="text-sm text-purple-600 font-medium mt-1">
+                  <p className="text-sm text-purple-600  mt-1">
                     {notification.title}
                   </p>
                 )}
+                <p className="text-sm">
+                  {getNotificationMessage(notification)}
+                </p>
+                
                 <p className="text-xs text-gray-500 mt-1">
                   {moment(notification.created_at).fromNow()}
                 </p>

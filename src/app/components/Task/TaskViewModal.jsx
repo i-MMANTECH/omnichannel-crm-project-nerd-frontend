@@ -3,7 +3,7 @@ import Modal from "../Modal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 
-const ViewTask = ({ isOpen, taskId, onClose }) => {
+const TaskViewModal = ({ isOpen, taskId, onClose }) => {
 const { axiosInstance } = useApi();
 const { handleApiError } = useError();
 
@@ -43,9 +43,13 @@ const footer = (
 );
 
 return (
-  <Modal isOpen={isOpen} onClose={onClose} title="Task Details" footer={footer} width="600px">
+  <Modal 
+    isOpen={isOpen} 
+    onClose={onClose} 
+    title="Task Details" 
+    footer={footer} width="600px">
     <div>
-      <div className="w-[500px] max-w-full p-6">
+      <div className="max-w-full p-6">
         {loading ? (
           <p>Loading...</p>
         ) : task ? (
@@ -177,4 +181,4 @@ return (
 );
 };
 
-export default ViewTask;
+export default TaskViewModal;

@@ -1,9 +1,7 @@
-import { useDroppable } from "@dnd-kit/core";
 import getStatusSvg from "./getStatusSvg";
 import TaskCard from "./TaskCard";
 
 export default function Column({ column, tasks, handleDelete }) {
-  const { setNodeRef } = useDroppable({ id: `${column.status}-${column.title}` });
   const statusTasks = tasks?.filter((task) => task?.status?.name === column.status);
 
   return (
@@ -19,7 +17,7 @@ export default function Column({ column, tasks, handleDelete }) {
         </div>
       </div>
 
-      <div ref={setNodeRef}>
+      <div>
         {statusTasks.length > 0 ? (
           statusTasks.map((task, index) => (
             <TaskCard key={task.id || index} task={task} handleDelete={handleDelete} />

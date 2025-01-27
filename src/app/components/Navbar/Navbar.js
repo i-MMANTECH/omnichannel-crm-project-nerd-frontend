@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { FaSearch, FaBell } from 'react-icons/fa';
+import { FaBell } from 'react-icons/fa';
 import { usePathname, useRouter } from 'next/navigation';
 import chevronLeft from '/public/assets/chevron-left.svg';
 import Image from 'next/image';
 import { useNotification } from '@/context/NotificationContext';
 
-const Navbar = ({ searchPlaceholder, onSearch }) => {
+const Navbar = () => {
     const path = usePathname();
     const router = useRouter();
     const [title, setTitle] = useState("");
@@ -50,15 +50,6 @@ const Navbar = ({ searchPlaceholder, onSearch }) => {
                 <h1 className="text-xl font-bold ml-2">{title}</h1>
             </div>
             <div className="flex items-center space-x-4">
-                <div className="relative">
-                    <input
-                        type="text"
-                        placeholder={searchPlaceholder}
-                        className="border rounded-lg pl-10 pr-4 py-2 focus:outline-none w-64"
-                        onChange={(e) => onSearch(e.target.value)}
-                    />
-                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                </div>
                 <FaBell
                     className="text-gray-600 cursor-pointer"
                     onClick={toggleNotification}

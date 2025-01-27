@@ -1,24 +1,111 @@
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
-import React, { useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import TaskUpdateModal from "./TaskUpdateModal";
-import ViewTask from "./ViewTask";
+import ViewTask from "./TaskViewModal";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import getStatusSvg from "./getStatusSvg";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 
-const TaskCardListView = ({
+const STATUS_ORDER = ["todo", "in_progress", "overdue", "done"];
+const columns = [
+  { title: "To Do", status: "todo" },
+  { title: "Overdue", status: "overdue" },
+  { title: "In Progress", status: "in_progress" },
+  { title: "Done", status: "done" },
+];
+
+
+const TaskCardListView = ({ tasks, handleDelete, openViewModal, openUpdateModal }) => {
+  // Group tasks by status
+  const groupedTasks = tasks?.reduce((sections, task) => {
+    if (!sections[task.status.name]) {
+      sections[task.status.name] = {
+        status: task.status,
+        tasks: [],
+      };
+    }
+    sections[task.status.name].tasks.push(task);
+    return sections;
+  }, {});
+
+  return (
+    <div>
+      {STATUS_ORDER.map((statusName, index) => {
+        const section = groupedTasks?.[statusName];
+        const columnTitle = columns.find(c => c.status === statusName)?.title;
+
+        return (
+          <div key={index} className="mb-7">
+            <div className="w-full mb-4 flex h-9 p-2 gap-2 items-center rounded-lg bg-gray-100 dark:bg-neutral-900">
+              <div className="flex items-center gap-2">
+                {getStatusSvg(statusName)}
+              </div>
+              {columnTitle}{" "}
+              <span className="text-sm text-gray-500">
+                ({section?.tasks.length || 0})
+              </span>
+            </div>
+            {section?.tasks.length > 0 ? (
+              section.tasks.map(task => (
+                <TaskCard
+                  key={task.id}
+                  title={task.title}
+                  date={task.updated_at}
+                  priority={task.priority.label}
+                  assignees={task.assignees}
+                  status={task.status.label}
+                  handleDelete={handleDelete}
+                  thisTaskId={task.id}
+                  openViewModal={openViewModal}
+                  openUpdateModal={openUpdateModal}
+                />
+              ))
+            ) : (
+              <div className="text-gray-500 text-sm italic">No tasks in this category</div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const TaskCard = ({
   title = "No Title",
   date = new Date().toISOString(),
   priority = "Low",
   assignees = [],
   status = "",
-  taskId,
-  handleDelete
+  thisTaskId = null,
+  handleDelete,
+  openViewModal,
+  openUpdateModal
 }) => {
-
   const [menuOpen, setMenuOpen] = useState(null);
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [showViewTask, setShowViewTask] = useState(false);
-  const [selectedTaskId, setSelectedTaskId] = useState(null);
   const menuRef = useRef(null);
+  const buttonRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target) &&
+          buttonRef.current && !buttonRef.current.contains(event.target)) {
+        setMenuOpen(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleTaskClick = (id, action) => {
+    if (action === "view") {
+      openViewModal(id);
+    } else if (action === "update") {
+      openUpdateModal(id);
+    }
+  };
 
   const priorityColors = {
     High: "text-red-500 bg-red-100",
@@ -39,44 +126,8 @@ const TaskCardListView = ({
     return "--";
   };
 
-  const handleTaskClick = (id, action) => {
-    setSelectedTaskId(id);
-    if (action === "view") {
-      setShowViewTask(true);
-      setShowUpdateModal(false);
-    } else if (action === "update") {
-      setShowUpdateModal(true);
-      setShowViewTask(false);
-    }
-  };
-
-  const handleCloseUpdateModal = () => {
-    setShowUpdateModal(false);
-  };
-
-  const handleCloseViewTask = () => {
-    setShowViewTask(false);
-  };
-
-  const toggleMenu = (id) => {
-    setMenuOpen(menuOpen === id ? null : id);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuOpen(null);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
   return (
-    <div className="flex p-4 justify-between items-center self-stretch rounded-lg border border-gray-300 body-theme shadow-md mb-3">
+    <div onClick={() => handleTaskClick(thisTaskId, "view")} className="pointer flex p-4 justify-between items-center self-stretch rounded-lg border border-gray-300 body-theme shadow-md mb-3">
       <div className="flex items-center space-x-3">
         {status !== "done" ? (
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -133,7 +184,13 @@ const TaskCardListView = ({
                 );
               } else {
                 return (
-                  <UserAvatar className="border-white border-2" key={index} name={assigneeName} width="w-6" height="h-6" />
+                  <UserAvatar 
+                    className="border-white border-2" 
+                    key={index} 
+                    name={assigneeName} 
+                    width="w-6" 
+                    height="h-6" 
+                  />
                 );
               }
             })}
@@ -141,108 +198,58 @@ const TaskCardListView = ({
 
           <div className="relative">
             <button
-              onClick={() => toggleMenu(taskId)}
-              style={{ marginTop: -10 }}
-              className="hover:dark:bg-neutral-900 hover:bg-gray-100"
-              aria-label="More options"
+              ref={buttonRef}
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenuOpen(menuOpen === thisTaskId ? null : thisTaskId);
+              }}
+              className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full dark:hover:bg-gray-700 transition-colors"
             >
-              <span>...</span>
+              <FontAwesomeIcon icon={faEllipsisH} className="text-gray-600" />
             </button>
-            {menuOpen === taskId && (
-              <div className="absolute top-full left-[-200px] mt-10 flex items-center justify-center z-50">
-                <div
-                  style={{ width: 220 }}
-                  className="flex flex-col gap-2 p-4 rounded-lg border border-[#DFE1E6] bg-white"
-                >
-                  <div
-                    onClick={() => handleTaskClick(taskId, "view")}
-                    className="flex items-center gap-3 cursor-pointer"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <path
-                        d="M21.544 11.045C21.848 11.4713 22 11.6845 22 12C22 12.3155 21.848 12.5287 21.544 12.955C20.1779 14.8706 16.6892 19 12 19C7.31078 19 3.8221 14.8706 2.45604 12.955C2.15201 12.5287 2 12.3155 2 12C2 11.6845 2.15201 11.4713 2.45604 11.045C3.8221 9.12944 7.31078 5 12 5C16.6892 5 20.1779 9.12944 21.544 11.045Z"
-                        stroke="#808897"
-                        strokeWidth="1.5"
-                      />
-                      <path
-                        d="M15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12Z"
-                        stroke="#808897"
-                        strokeWidth="1.5"
-                      />
-                    </svg>
-                    <p className="text-[#0D0D12] text-[14px] font-normal">View details</p>
-                  </div>
 
-                  <div
-                    onClick={() => handleTaskClick(taskId, "update")}
-                    className="flex items-center gap-3 cursor-pointer"
+            {menuOpen === thisTaskId && (
+              <div
+                ref={menuRef}
+                className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
+              >
+                <div className="py-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleTaskClick(thisTaskId, "view");
+                      setMenuOpen(null);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <path
-                        d="M17 7L7 17L4 17L4 14L15 3L17 7Z"
-                        stroke="#808897"
-                        strokeWidth="1.5"
-                      />
-                    </svg>
-                    <p className="text-[#0D0D12] text-[14px] font-normal">Update task</p>
-                  </div>
-                  <div 
-                    onClick={() => handleDelete(taskId)}
-                    className="flex items-center gap-3 cursor-pointer">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                    >
-                      <path
-                        d="M19.5 5.5L18.8803 15.5251C18.7219 18.0864 18.6428 19.3671 18.0008 20.2879C17.6833 20.7431 17.2747 21.1273 16.8007 21.416C15.8421 22 14.559 22 11.9927 22C9.42312 22 8.1383 22 7.17905 21.4149C6.7048 21.1257 6.296 20.7408 5.97868 20.2848C5.33688 19.3626 5.25945 18.0801 5.10461 15.5152L4.5 5.5"
-                        stroke="#DF1C41"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                      />
-                      <path
-                        d="M3 5.5H21M16.0557 5.5L15.3731 4.09173C14.9196 3.15626 14.6928 2.68852 14.3017 2.39681C14.215 2.3321 14.1231 2.27454 14.027 2.2247C13.5939 2 13.0741 2 12.0345 2C10.9688 2 10.436 2 9.99568 2.23412C9.8981 2.28601 9.80498 2.3459 9.71729 2.41317C9.32164 2.7167 9.10063 3.20155 8.65861 4.17126L8.05292 5.5"
-                        stroke="#DF1C41"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                      />
-                      <path
-                        d="M9.5 16.5V10.5"
-                        stroke="#DF1C41"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                      />
-                      <path
-                        d="M14.5 16.5V10.5"
-                        stroke="#DF1C41"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <p className="text-[#0D0D12] text-[14px] font-normal">Delete task</p>
-                  </div>
+                    View task
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleTaskClick(thisTaskId, "update");
+                      setMenuOpen(null);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Update task
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(thisTaskId);
+                      setMenuOpen(null);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Delete task
+                  </button>
                 </div>
               </div>
             )}
           </div>
         </div>
       </div>
-
-      {showUpdateModal && selectedTaskId === taskId && (
-        <TaskUpdateModal
-          isOpen={showUpdateModal}
-          onClose={handleCloseUpdateModal}
-          taskId={selectedTaskId}
-        />
-      )}
-      {showViewTask && selectedTaskId === taskId && (
-        <ViewTask 
-        isOpen={showViewTask} 
-        taskId={selectedTaskId}
-        onClose={handleCloseViewTask} />
-      )}
     </div>
   );
 };

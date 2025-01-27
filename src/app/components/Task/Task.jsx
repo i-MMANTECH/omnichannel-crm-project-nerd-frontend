@@ -4,19 +4,26 @@ import React, { useState, useEffect, Suspense } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTh, faSort, faFilter } from "@fortawesome/free-solid-svg-icons";
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import KanbanView from "./KanbanView";
-import ListView from "./ListView";
 import TableView from "./TableView";
-import TaskModal from "./TaskModal";
+import TaskModal from "./AddTaskModal";
 import SuccessModal from "../SuccessModal";
 import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
+import TaskCardListView from "./TaskCardListView";
+import getStatusSvg from "./getStatusSvg";
+import KanbanView from "./KanbanView";
+import TaskUpdateModal from "./TaskUpdateModal";
+import TaskViewModal from "./TaskViewModal";
+
 const ModalController = ({ children }) => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
     
     const isModalOpen = searchParams.get('action') === 'new-task';
+    const isViewModalOpen = searchParams.get('action') === 'view-task';
+    const isUpdateModalOpen = searchParams.get('action') === 'update-task';
+    const taskId = searchParams.get('taskId');
 
     const openModal = () => {
         const params = new URLSearchParams(searchParams);
@@ -30,8 +37,63 @@ const ModalController = ({ children }) => {
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
     };
 
-    return children({ isModalOpen, openModal, closeModal });
+    const openViewModal = (taskId) => {
+        const params = new URLSearchParams(searchParams);
+        params.set('action', 'view-task');
+        params.set('taskId', taskId);
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    };
+
+    const closeViewModal = (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        const params = new URLSearchParams(searchParams);
+        params.delete('action');
+        params.delete('taskId');
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    };
+
+    const openUpdateModal = (taskId) => {
+        const params = new URLSearchParams(searchParams);
+        params.set('action', 'update-task');
+        params.set('taskId', taskId);
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    };
+
+    const closeUpdateModal = (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        const params = new URLSearchParams(searchParams);
+        params.delete('action');
+        params.delete('taskId');
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    };
+
+    return children({ 
+        isModalOpen, 
+        openModal, 
+        closeModal, 
+        isViewModalOpen, 
+        isUpdateModalOpen,
+        taskId,
+        openViewModal,
+        closeViewModal,
+        openUpdateModal,
+        closeUpdateModal 
+    });
 };
+
+const STATUS_ORDER = ["todo", "in_progress", "overdue", "done"];
+const columns = [
+  { title: "To Do", status: "todo" },
+  { title: "Overdue", status: "overdue" },
+  { title: "In Progress", status: "in_progress" },
+  { title: "Done", status: "done" },
+];
 
 export default function Task() {
   const { axiosInstance } = useApi();
@@ -44,24 +106,16 @@ export default function Task() {
   const [view, setView] = useState(() => {
     if (typeof window !== "undefined") {
       const savedView = localStorage.getItem("view");
-      return savedView || "kanban";
+      return savedView || "list";
     }
-    return "kanban";
-  }, []);
+    return "list";
+  });
 
   const toggleView = () => {
-    setView((prevView) => {
-      const nextView =
-        prevView === "kanban"
-          ? "list"
-          : prevView === "list"
-          ? "table"
-          : "kanban";
-      if (typeof window !== "undefined") {
-        localStorage.setItem("view", nextView);
-      }
-      return nextView;
-    });
+    setView((prevView) => prevView === "list" ? "table" : "list");
+    if (typeof window !== "undefined") {
+      localStorage.setItem("view", view);
+    }
   };
 
   useEffect(() => {
@@ -120,10 +174,72 @@ export default function Task() {
     setIsSuccessModalOpen(false);
   };
 
+  const groupedTasks = tasks?.reduce((sections, task) => {
+    if (!sections[task.status.name]) {
+      sections[task.status.name] = {
+        status: task.status,
+        tasks: [],
+      };
+    }
+    sections[task.status.name].tasks.push(task);
+    return sections;
+  }, {});
+
+  const renderListView = () => (
+    <div>
+      {STATUS_ORDER.map((statusName, index) => {
+        const section = groupedTasks?.[statusName];
+        const columnTitle = columns.find(c => c.status === statusName)?.title;
+
+        return (
+          <div key={index} className="mb-7">
+            <div className="w-full mb-4 flex h-9 p-2 gap-2 items-center rounded-lg bg-gray-100 dark:bg-neutral-900">
+              <div className="flex items-center gap-2">
+                {getStatusSvg(statusName)}
+              </div>
+              {columnTitle}{" "}
+              <span className="text-sm text-gray-500">
+                ({section?.tasks.length || 0})
+              </span>
+            </div>
+            {section?.tasks.length > 0 ? (
+              section.tasks.map(task => (
+                <div key={task.id} className="mt-2">
+                  <TaskCardListView
+                    title={task.title}
+                    date={task.updated_at}
+                    priority={task.priority.label}
+                    assignees={task.assignees}
+                    status={task.status.label}
+                    taskId={task.id}
+                    handleDelete={handleDelete}
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="text-gray-500 text-sm italic">No tasks in this category</div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
     <Suspense fallback={<div>Loading...</div>}>    
       <ModalController>
-        {({ isModalOpen, openModal, closeModal }) => (
+        {({ 
+          isModalOpen, 
+          openModal, 
+          closeModal, 
+          isViewModalOpen, 
+          isUpdateModalOpen,
+          taskId,
+          openViewModal,
+          closeViewModal,
+          openUpdateModal,
+          closeUpdateModal 
+        }) => (
           <div className="pt-10 relative body-theme">
             <div className="flex justify-between items-center fixed body-theme w-10/12 pr-10 mt-[-20px]">
               <div className="flex items-center space-x-4">
@@ -133,11 +249,7 @@ export default function Task() {
                 >
                   <FontAwesomeIcon icon={faTh} className="text-blue-500 mr-2" />
                   <span className="text-sm font-medium">
-                    {view === "kanban"
-                      ? "List View"
-                      : view === "list"
-                      ? "Table View"
-                      : "Kanban View"}
+                    {view === "list" ? "Table View" : "List View"}
                   </span>
                 </button>
                 <div className="relative">
@@ -177,13 +289,18 @@ export default function Task() {
               </button>
             </div>
 
-            <div className="mt-16 h-4/5 overflow-auto body-theme">
+            <div className="mt-16 h-4/5 overflow-auto">
               {loading ? (
                 <div>Loading...</div>
               ) : view === "kanban" ? (
                 <KanbanView tasks={tasks} updateTask={updateTask} setTasks={setTasks} />
               ) : view === "list" ? (
-                <ListView tasks={tasks} updateTask={updateTask} />
+                <TaskCardListView 
+                  tasks={tasks} 
+                  handleDelete={handleDelete}
+                  openViewModal={openViewModal}
+                  openUpdateModal={openUpdateModal}
+                />
               ) : (
                 <TableView tasks={tasks} updateTask={updateTask} />
               )}
@@ -194,6 +311,22 @@ export default function Task() {
               onClose={closeModal}
               setIsSuccessModalOpen={setIsSuccessModalOpen}
             />
+
+            {isUpdateModalOpen && (
+              <TaskUpdateModal
+                isOpen={isUpdateModalOpen}
+                onClose={closeUpdateModal}
+                taskId={taskId}
+              />
+            )}
+
+            {isViewModalOpen && (
+              <TaskViewModal 
+                isOpen={isViewModalOpen} 
+                taskId={taskId}
+                onClose={closeViewModal} 
+              />
+            )}
 
             <SuccessModal
               isOpen={isSuccessModalOpen}
