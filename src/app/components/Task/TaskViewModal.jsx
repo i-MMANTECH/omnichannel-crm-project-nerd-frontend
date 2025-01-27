@@ -60,7 +60,7 @@ return (
               </h2>
             
             </div>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm mb-4">
               {task.description || "No description"}
             </p>
             <div className="space-y-3">
@@ -109,12 +109,12 @@ return (
                   </button>
                 </li>
                 <li className="mr-4">
-                  <button className="text-gray-500 hover:text-gray-700 pb-2">
+                  <button className=" pb-2">
                     Activities
                   </button>
                 </li>
                 <li>
-                  <button className="text-gray-500 hover:text-gray-700 pb-2">
+                  <button className="pb-2">
                     Members
                   </button>
                 </li>
@@ -137,9 +137,9 @@ return (
                     <div>
                       <p className="text-sm">
                         <strong>Aunt Viv</strong>
-                        <span className="text-gray-500 ml-2">5 mins ago</span>
+                        <span className=" ml-2">5 mins ago</span>
                       </p>
-                      <p className="text-sm text-gray-700">
+                      <p className="text-sm ">
                         Hey Mone, can you please help review the latest design task
                         when you can?
                       </p>
@@ -157,9 +157,9 @@ return (
                     <div>
                       <p className="text-sm">
                         <strong>Brenda James</strong>
-                        <span className="text-gray-500 ml-2">2 days ago</span>
+                        <span className="ml-2">2 days ago</span>
                       </p>
-                      <p className="text-sm text-gray-700">
+                      <p className="text-sm ">
                         Hey Mone, can you please help review the latest design task
                         when you can?
                       </p>

@@ -112,10 +112,19 @@ export default function Task() {
   });
 
   const toggleView = () => {
-    setView((prevView) => prevView === "list" ? "table" : "list");
-    if (typeof window !== "undefined") {
-      localStorage.setItem("view", view);
-    }
+    setView((prevView) => {
+      // Cycle through views: list -> table -> kanban
+      switch(prevView) {
+        case "list":
+          return "table";
+        case "table":
+          return "kanban";
+        case "kanban":
+          return "list";
+        default:
+          return "list";
+      }
+    });
   };
 
   useEffect(() => {
@@ -249,13 +258,13 @@ export default function Task() {
                 >
                   <FontAwesomeIcon icon={faTh} className="text-blue-500 mr-2" />
                   <span className="text-sm font-medium">
-                    {view === "list" ? "Table View" : "List View"}
+                    {view === "list" ? "Table View" : view === "table" ? "Kanban View" : "List View"}
                   </span>
                 </button>
                 <div className="relative">
-          <button 
+            <button 
             onClick={() => setIsSortModalOpen((prev) => !prev)}
-            className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
+            className="hidden flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
                   <FontAwesomeIcon icon={faSort} className="text-gray-500 mr-2" />
                   <span className="text-sm font-medium">Sort by</span>
                 </button>
@@ -276,7 +285,7 @@ export default function Task() {
             )}
           </div>
 
-          <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
+          <button className="hidden flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
                   <FontAwesomeIcon icon={faFilter} className="text-gray-500 mr-2" />
                   <span className="text-sm font-medium">Filter</span>
                 </button>
