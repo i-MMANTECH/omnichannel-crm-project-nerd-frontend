@@ -3,29 +3,36 @@ import axios from 'axios';
 import NProgress from './nprogressConfig';
 import { getUserDomain } from '@/utils/getUserDomain';
 
-
 export const useApi = () => {
     const [loading, setLoading] = useState(false);
 
     const axiosInstance = axios.create({
-        // baseURL: 'https://staging.core.nativetalkcrm.com/api',
         baseURL: process.env.NEXT_PUBLIC_API_URL,
         headers: {
-        'User-Domain': getUserDomain(),
+            'User-Domain': getUserDomain(),
         },
     });
 
     axiosInstance.interceptors.request.use(
         (config) => {
-            NProgress.setColor('green')
+            // Progress and loading state
+            NProgress.setColor('green');
             NProgress.start();
-            setLoading(true)
+            setLoading(true);
+
+            // Auth token
+            const user = JSON.parse(localStorage.getItem("user"));
+            if (user?.access) {
+                config.headers["Authorization"] = `Bearer ${user.access}`;
+            }
+
             return config;
         },
         (error) => {
-            NProgress.setColor('red')
+            console.log('Error in request:', error);
+            NProgress.setColor('red');
             NProgress.done();
-            setLoading(false)
+            setLoading(false);
             return Promise.reject(error);
         }
     );
@@ -33,29 +40,24 @@ export const useApi = () => {
     axiosInstance.interceptors.response.use(
         (response) => {
             NProgress.done();
-            setLoading(false)
+            setLoading(false);
             return response;
         },
         (error) => {
-            NProgress.setColor('red')
+            // Don't handle canceled requests as errors
+            if (error.name === 'CanceledError') {
+                NProgress.done();
+                setLoading(false);
+                return Promise.reject(error);
+            }
+
+            console.log('Error in request:', error);
+            NProgress.setColor('red');
             NProgress.done();
-            setLoading(false)
+            setLoading(false);
             return Promise.reject(error);
         }
     );
-
-    axiosInstance.interceptors.request.use(
-        (config) => {
-          const user = JSON.parse(localStorage.getItem("user"));
-          if (user?.access) {
-            config.headers["Authorization"] = `Bearer ${user.access}`;
-          }
-          return config;
-        },
-        (error) => {
-          return Promise.reject(error);
-        }
-      );
 
     return { axiosInstance, loading };
 };

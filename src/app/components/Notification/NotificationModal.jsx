@@ -6,6 +6,8 @@ import { useError } from '@/context/ErrorContext';
 import moment from 'moment';
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
+import { useRouter } from 'next/navigation';
+import { useNotification } from '@/context/NotificationContext';
 
 const NotificationModal = () => {
   const { axiosInstance, loading } = useApi();
@@ -14,6 +16,8 @@ const NotificationModal = () => {
   const [replyingTo, setReplyingTo] = useState(null);
   const [replies, setReplies] = useState({});
   const [unreadCount, setUnreadCount] = useState(0);
+  const router = useRouter();
+  const { toggleNotification } = useNotification();
 
   const fetchNotifications = async () => {
     try {
@@ -40,24 +44,11 @@ const NotificationModal = () => {
     setReplyingTo(null);
   };
 
-  const toggleReadStatus = async (id) => {
+  const markNotificationAsRead = async (id) => {
     try {
-      const response = await axiosInstance.patch(`/notifications/${id}/`, {
-        is_read: true
-      });
-      
-      if (response.data.success) {
-        setNotifications(prevNotifications =>
-          prevNotifications.map(notification =>
-            notification.id === id
-              ? { ...notification, is_read: true }
-              : notification
-          )
-        );
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      }
+      await axiosInstance.post(`/notifications/mark-read/${id}/`);
     } catch (error) {
-      handleApiError(error);
+      console.log('Error marking notification as read:', error);
     }
   };
 
@@ -72,6 +63,28 @@ const NotificationModal = () => {
         return description;
       default:
         return description;
+    }
+  };
+
+  const handleNotificationClick = async (notification) => {
+    try {
+      if (!notification.is_read) {
+        // Just call markNotificationAsRead once
+        await markNotificationAsRead(notification.id);
+      }
+
+      // Close notification using context
+      toggleNotification();
+
+      // Then redirect if it's a task
+      if (notification.notification_type === 'task' && notification.metadata?.task_id) {
+        const params = new URLSearchParams();
+        params.set('action', 'view-task');
+        params.set('taskId', notification.metadata.task_id);
+        router.push(`/nativecrm/tasks?${params.toString()}`);
+      }
+    } catch (error) {
+      handleApiError(error);
     }
   };
 
@@ -115,10 +128,10 @@ const NotificationModal = () => {
           notifications.map((notification) => (
             <div
               key={notification.id}
-              className={`flex gap-3 py-6 border-b border-gray-200 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 ${
+              className={`pointer flex gap-3 py-6 border-b border-gray-200 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer ${
                 notification.is_read ? "body-theme" : "body-theme"
               }`}
-              onClick={() => !notification.is_read && toggleReadStatus(notification.id)}
+              onClick={() => handleNotificationClick(notification)}
             >
               <div className="flex-shrink-0">
                 {notification?.receiver?.image && <Image 
