@@ -3,7 +3,7 @@ import Modal from "../Modal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 
-const TaskUpdateModal = ({ isOpen, onClose, taskId }) => {
+const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
   const [taskTitle, setTaskTitle] = useState("");
@@ -17,45 +17,46 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId }) => {
   const [priorities, setPriorities] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [users, setUsers] = useState([]);
+  const [sla, setSla] = useState("");
   
   const getAssigneesEndpoint = '/users/';
   const prioritiesEndpoint = 'tasks/priorities/';
   const statusesEndpoint = 'tasks/statuses/';
 
   useEffect(() => {
-      if (isOpen) {
-        const fetchPriorities = async () => {
-          try {
-            const response = await axiosInstance.get(prioritiesEndpoint);
-            setPriorities(response.data.priorities || []);
-          } catch (error) {
-            handleApiError(error);
-          }
-        };
+    if (isOpen) {
+      const fetchPriorities = async () => {
+        try {
+          const response = await axiosInstance.get(prioritiesEndpoint);
+          setPriorities(response.data.priorities || []);
+        } catch (error) {
+          handleApiError(error);
+        }
+      };
   
-        const fetchStatuses = async () => {
-          try {
-            const response = await axiosInstance.get(statusesEndpoint);
-            setStatuses(response.data.statuses || []);
-          } catch (error) {
-            handleApiError(error);
-          }
-        };
+      const fetchStatuses = async () => {
+        try {
+          const response = await axiosInstance.get(statusesEndpoint);
+          setStatuses(response.data.statuses || []);
+        } catch (error) {
+          handleApiError(error);
+        }
+      };
   
-        const fetchAssignees = async () => {
-          try {
-            const response = await axiosInstance.get(getAssigneesEndpoint);
-            setUsers(response.data.results || []);
-          } catch (error) {
-            handleApiError(error);
-          }
-        };
+      const fetchAssignees = async () => {
+        try {
+          const response = await axiosInstance.get(getAssigneesEndpoint);
+          setUsers(response.data.results || []);
+        } catch (error) {
+          handleApiError(error);
+        }
+      };
   
-        fetchPriorities();
-        fetchStatuses();
-        fetchAssignees();
-      }
-    }, [isOpen]);
+      fetchPriorities();
+      fetchStatuses();
+      fetchAssignees();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen || !taskId) return;
@@ -73,24 +74,34 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId }) => {
     };
 
     fetchTask();
-  }, [taskId]);
-
+  }, [taskId, isOpen]);
 
   useEffect(() => {
     if (task) {
       setTaskTitle(task.title || "");
       setDescription(task.description || "");
-      setPriority(task.priority.label || "High");
+      setPriority(task.priority.id || "High");
       setAgents(task.agents || []);
       setDueDate(task.due_date || "");
-      setStatus(task.status.label || "Overdue");
+      setStatus(task.status.id || "Overdue");
+      setSla(task.sla || "");
     }
   }, [task]);
 
   const handleUpdate = async () => {
-    const updatedTask = { taskTitle, description, priority, agents, dueDate, status };
+    const updatedTask = {
+      title: taskTitle,
+      description: description,
+      assignees: agents,
+      status: parseInt(status),
+      priority: parseInt(priority),
+      sla: sla,
+      due_date: dueDate
+    };
+
     try {
-      await axiosInstance.put(`tasks/${taskId}`, updatedTask);
+      await axiosInstance.post(`tasks/${taskId}/update/`, updatedTask);
+      onUpdate(taskId, updatedTask);
       onClose();
     } catch (err) {
       handleApiError(err);
@@ -100,23 +111,22 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId }) => {
   if (!isOpen) return null;
 
   const footer = (
-    <div className="col-span-2 flex justify-end mt-4">
+    <div className="flex gap-3 w-7/12">
       <button
-        type="button"
-        onClick={onClose}
-        className="px-4 py-2 body-theme text-black rounded-md mr-2 border border-gray-300"
+          type="button"
+          onClick={onClose}
+          className="w-6/12 px-4 py-2 bg-theme rounded-md border border-gray-30"
       >
-        Cancel
+          Cancel
       </button>
       <button
-        type="button"
-        onClick={handleUpdate}
-        className="px-4 py-2 bg-[#3EBF0F] text-white rounded-md"
-        disabled={loading}
+          type="submit"
+          onClick={handleUpdate}
+          className="w-6/12 px-4 py-2 bg-[#3EBF0F] text-white rounded-md "
       >
-        {loading ? "Saving..." : "Save"}
+          Save
       </button>
-    </div>
+  </div>
   );
 
   return (
@@ -128,52 +138,67 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId }) => {
       width="600px"
     >
       <form>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Task Title</label>
+        <div className="mb-7">
           <input
             type="text"
-            className="w-full border rounded-lg p-2 text-sm"
             value={taskTitle}
             onChange={(e) => setTaskTitle(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-2 py-3"
+            placeholder="Task Title"
+            required
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Description</label>
+        <div className="mb-7">
           <textarea
-            className="w-full border rounded-lg p-2 text-sm"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            className="w-full border border-gray-300 bg-gray-100 dark:bg-neutral-900 rounded-lg px-2 py-1 resize-none"
+            rows="2"
+            placeholder="Task Description"
           ></textarea>
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Priority</label>
+        <div className="mb-7">
+          <input
+            type="number"
+            value={sla}
+            onChange={(e) => setSla(e.target.value)}
+            placeholder="SLA"
+            className="w-full border border-gray-300 rounded-lg px-2 py-3"
+          />
+        </div>
+        
+        <div className="mb-7">
           <select
-            className="w-full border rounded-lg p-2 text-sm"
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
+            className="flex items-center h-14 px-2 gap-2 border border-gray-300 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow-sm w-full"
           >
-            {priorities.map((priority) => (
-              <option key={priority.id} value={priority.label}>
-                {priority.label}
+            <option value="" className="text-[16px] font-medium tracking-[0.2px]">Select Priority</option>
+            {priorities.map((p) => (
+              <option key={p.id} value={p.id} className="text-[16px] font-medium tracking-[0.2px]">
+                {p.label}
               </option>
             ))}
           </select>
         </div>
 
-        <select
-          className="w-full border rounded-lg p-2 text-sm"
-          value={agents[0] || ""}
-          onChange={(e) => setAgents([e.target.value])}
-        >
-          <option value="" disabled>Select an agent</option>
-          {users.map((user) => (
-            <option key={user.id} value={user.id}>
-              {user.name}
-            </option>
-          ))}
-        </select>
+        <p className="mb-3">Select Agents</p>
+        <div className="mb-7">
+          <select
+            multiple
+            value={agents}
+            onChange={(e) => setAgents(Array.from(e.target.selectedOptions, option => option.value))}
+            className="flex items-center h-10 px-2 gap-2 border border-gray-300 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow-sm w-full"
+          >
+            {users.map((user) => (
+              <option key={user.id} value={user.id} className="text-[16px] font-medium tracking-[0.2px]">
+                {user.email}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Due Date</label>
@@ -185,16 +210,16 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId }) => {
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Status</label>
+        <div className="mb-7">
           <select
-            className="w-full border rounded-lg p-2 text-sm"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
+            className="flex items-center h-14 px-2 gap-2 border border-gray-300 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow-sm w-full"
           >
-            {statuses.map((status) => (
-              <option key={status.id} value={status.label}>
-                {status.label}
+            <option value="" className="text-[16px] font-medium tracking-[0.2px]">Status</option>
+            {statuses.map((s) => (
+              <option key={s.id} value={s.id} className="text-[16px] font-medium tracking-[0.2px]">
+                {s.label}
               </option>
             ))}
           </select>

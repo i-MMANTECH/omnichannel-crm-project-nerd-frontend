@@ -100,11 +100,11 @@ const Page = () => {
                                             {view === 'grid' ? 'List View' : 'Grid View'}
                                         </span>
                                     </button>
-                                    <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
+                                    <button className="hidden flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
                                         <Image src={sort} alt='sort' className='mr-2' width={15} height={15} alt="Sort" />
                                         <span className="text-sm font-medium">Sort by</span>
                                     </button>
-                                    <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
+                                    <button className="hidden flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
                                         <Image src={filter} alt='filter' className='mr-2' width={15} height={15} alt="Filter" />
                                         <span className="text-sm font-medium">Filter</span>
                                     </button>

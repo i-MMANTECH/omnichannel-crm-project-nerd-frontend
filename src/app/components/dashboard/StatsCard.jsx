@@ -1,11 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-const StatsCard = () => {
-  const [messages, setMessages] = useState(10);
-  const [customers, setCustomers] = useState(400);
-  const [tasks, setTasks] = useState(18);
-  const [users, setUsers] = useState(25);
-
+const StatsCard = ({ summary }) => {
   return (
     <div className="flex gap-5 mt-5">
       <a href="/nativecrm/messages" className="flex cursor-pointer flex-col items-start gap-4 p-[16px_16px_14px] rounded-[16px] border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] flex-1">
@@ -19,7 +14,7 @@ const StatsCard = () => {
         </span>
 
         <span className="font-[600] text-[18px] font-[Encode Sans] leading-[140%] tracking-[0.2px]">
-          {messages}
+          {summary.messages}
         </span>
       </a>
 
@@ -39,7 +34,7 @@ const StatsCard = () => {
         </span>
 
         <span className="font-[600] text-[18px] font-[Encode Sans] leading-[140%] tracking-[0.2px]">
-          {customers}
+          {summary.customers}
         </span>
       </a>
 
@@ -54,7 +49,7 @@ const StatsCard = () => {
         </span>
 
         <span className="font-[600] text-[18px] font-[Encode Sans] leading-[140%] tracking-[0.2px]">
-          {tasks}
+          {summary.tasks}
         </span>
       </a>
 
@@ -70,7 +65,7 @@ const StatsCard = () => {
         </span>
 
         <span className="font-[600] text-[18px] font-[Encode Sans] leading-[140%] tracking-[0.2px]">
-          {users}
+          {summary.users}
         </span>
       </a>
     </div>

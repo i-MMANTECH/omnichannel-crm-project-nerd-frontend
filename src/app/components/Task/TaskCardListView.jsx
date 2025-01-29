@@ -8,7 +8,7 @@ import getStatusSvg from "./getStatusSvg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 
-const STATUS_ORDER = ["todo", "in_progress", "overdue", "done"];
+const STATUS_ORDER = ["todo", "overdue", "in_progress", "done"];
 const columns = [
   { title: "To Do", status: "todo" },
   { title: "Overdue", status: "overdue" },
@@ -123,7 +123,7 @@ const TaskCard = ({
     if (assignee?.first_name && assignee?.last_name) {
       return `${assignee.first_name} ${assignee.last_name}`;
     }
-    return "--";
+    return assignee?.email || "--";
   };
 
   return (

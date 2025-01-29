@@ -134,7 +134,7 @@ function TaskModal({ isOpen, onClose, setIsSuccessModalOpen }) {
         </div>
 
         <hr className="mb-8" />
-        <p className="mb-3">Select User</p>
+        <p className="mb-3">Select Agents</p>
         <div className="mb-7">
           <select
             multiple

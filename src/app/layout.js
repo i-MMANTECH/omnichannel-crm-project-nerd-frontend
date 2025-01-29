@@ -34,8 +34,8 @@ export default function RootLayout({ children }) {
             <NotificationProvider>
               {children}
               <ToastContainer
-                  position="top-right"
-                  autoClose={2000}
+                  position="bottom-left"
+                  autoClose={5000}
                   hideProgressBar={false}
                   newestOnTop={false}
                   closeOnClick

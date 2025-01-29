@@ -14,6 +14,7 @@ import getStatusSvg from "./getStatusSvg";
 import KanbanView from "./KanbanView";
 import TaskUpdateModal from "./TaskUpdateModal";
 import TaskViewModal from "./TaskViewModal";
+import useCustomAlert from "@/context/useCustomAlert";
 
 const ModalController = ({ children }) => {
     const searchParams = useSearchParams();
@@ -87,7 +88,7 @@ const ModalController = ({ children }) => {
     });
 };
 
-const STATUS_ORDER = ["todo", "in_progress", "overdue", "done"];
+const STATUS_ORDER = ["todo", "in_progress", "done", "overdue"];
 const columns = [
   { title: "To Do", status: "todo" },
   { title: "Overdue", status: "overdue" },
@@ -102,6 +103,8 @@ export default function Task() {
   const [loading, setLoading] = useState(true);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState(null);
 
   const [view, setView] = useState(() => {
     if (typeof window !== "undefined") {
@@ -145,19 +148,20 @@ export default function Task() {
     }
   };
 
-  const handleDelete = async (id) => {
-    const isConfirmed = window.confirm("Do you want to delete the task?");
-    if (isConfirmed) {
+  const { showAlert, AlertModal } = useCustomAlert();
+
+  const handleDelete = (id) => {
+    showAlert("Confirm Deletion", "Are you sure you want to delete this task?", async () => {
       try {
         await axiosInstance.delete(`/tasks/${id}/delete/`);
         setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
       } catch (error) {
         handleApiError(error);
       }
-    }
+    });
   };
 
-  const updateTask = async (taskId, updatedData) => {
+  const handleUpdate = async (taskId, updatedData) => {
     try {
       const { data } = await axiosInstance.post(`tasks/${taskId}/update/`, updatedData);
       setTasks((prevTasks) =>
@@ -169,6 +173,12 @@ export default function Task() {
     } catch (err) {
       handleApiError(err);
     }
+  };
+
+  // New function to handle task update and refetch
+  const handleTaskUpdate = async (taskId, updatedData) => {
+    await handleUpdate(taskId, updatedData);
+    fetchTasks(); // Refetch tasks after updating
   };
 
   useEffect(() => {
@@ -302,7 +312,7 @@ export default function Task() {
               {loading ? (
                 <div>Loading...</div>
               ) : view === "kanban" ? (
-                <KanbanView tasks={tasks} updateTask={updateTask} setTasks={setTasks} />
+                <KanbanView tasks={tasks} updateTask={handleTaskUpdate} setTasks={setTasks} />
               ) : view === "list" ? (
                 <TaskCardListView 
                   tasks={tasks} 
@@ -311,7 +321,7 @@ export default function Task() {
                   openUpdateModal={openUpdateModal}
                 />
               ) : (
-                <TableView tasks={tasks} updateTask={updateTask} />
+                <TableView tasks={tasks} updateTask={handleTaskUpdate} />
               )}
             </div>
 
@@ -326,6 +336,7 @@ export default function Task() {
                 isOpen={isUpdateModalOpen}
                 onClose={closeUpdateModal}
                 taskId={taskId}
+                onUpdate={handleTaskUpdate}
               />
             )}
 
@@ -344,6 +355,8 @@ export default function Task() {
               buttonText="Okay, thank you"
               onClose={closeSuccessModal}
             />
+
+            {AlertModal()}
           </div>
         )}
       </ModalController>

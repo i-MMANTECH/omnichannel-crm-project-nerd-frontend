@@ -34,7 +34,7 @@ export const ErrorProvider = ({ children }) => {
                 }
             }
         } else {
-            const errorMessage = error?.response?.data?.message || error?.response?.data?.error || error?.message || "Something went wrong. Please try again.";
+            const errorMessage = error?.response?.data?.message || error?.response?.data?.error ;
             toast.error(errorMessage);
             setError(errorMessage);
             return

@@ -37,7 +37,12 @@
   box-sizing: border-box;
   font-family: "Encode Sans", sans-serif;
 }
-
+.primary-bg {
+  background-color: #3EBF0F
+}
+.primary-text {
+  color: #3EBF0F
+}
 input {
   background-color: var(--input-background) !important;
 }
@@ -45,7 +50,7 @@ input {
   color: #F36F4A; 
   background-color: #FEF1ED;
 }
-.high, .in-progress {
+.high, .inprogress {
   @apply bg-red-100 text-red-600;
 }
 .medium, .pending {

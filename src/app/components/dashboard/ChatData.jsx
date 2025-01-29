@@ -175,17 +175,17 @@ export default function ChatData(){
                     <Doughnut data={{ datasets: agentsData }} options={options} />
                     </div>
                     <div>
-                    <p className="text-sm">
+                    <p className="text-sm mb-1">
                         <span className="w-[10px] h-[10px] inline-block rounded-full bg-green-500"></span>{" "}
-                        Active Agents: 71
+                        Active Agents: 0
                     </p>
-                    <p className="text-sm">
+                    <p className="text-sm mb-1">
                         <span className="w-[10px] h-[10px] inline-block rounded-full bg-blue-500"></span>{" "}
-                        Agents on Break: 27
+                        Agents on Break: 0
                     </p>
-                    <p className="text-sm">
+                    <p className="text-sm mb-1">
                         <span className="w-[10px] h-[10px] inline-block rounded-full bg-gray-500"></span>{" "}
-                        Idle Agents: 23
+                        Idle Agents: 0
                     </p>
                     </div>
                 </div>
