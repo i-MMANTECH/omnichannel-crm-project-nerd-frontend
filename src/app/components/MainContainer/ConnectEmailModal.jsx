@@ -4,6 +4,8 @@ import './IsLiveChat.css';
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import { useAuth } from "@/context/AuthContext";
+import Modal from "../Modal";
+import { toast } from "react-toastify";
 
 export const ConnectEmailModal = ({ onCancel }) => {
   const [emailForwarder, setEmailForwarder] = useState('');
@@ -30,13 +32,31 @@ export const ConnectEmailModal = ({ onCancel }) => {
 
   const handleCopy = () => {
     copy(emailForwarder);
-    setCopyStatus('Copied!');
+    toast.info('email copied!');
     setTimeout(() => setCopyStatus(''), 2000);
   };
 
+  const modalFooter = (
+    <div className="flex gap-3 w-7/12">
+        <button
+            type="button"
+            onClick={onCancel}
+            className="w-6/12 px-4 py-2 bg-theme rounded-md border border-gray-30"
+        >
+            Cancel
+        </button>
+        <button
+            onClick={handleCopy}
+            className="w-6/12 px-4 py-2 bg-[#3EBF0F] text-white rounded-md "
+        >
+            Copy
+        </button>
+    </div>
+  );
+
   return (
-    <div className="modal-overlay ">
-      <div className="modal-live rounded-xl body-theme">
+    <Modal isOpen={true} onClose={onCancel} title="Email Forwarding" footer={modalFooter}>
+      <div>
         <div className="w-full h-[105px] flex-shrink-0 flex justify-center items-center">
           <svg xmlns="http://www.w3.org/2000/svg" width="106" height="105" viewBox="0 0 106 105" fill="none">
             <circle cx="53" cy="52.5" r="50.1562" fill="#F8F9FB" stroke="white" strokeWidth="4.6875" />
@@ -53,30 +73,24 @@ export const ConnectEmailModal = ({ onCancel }) => {
           Email
         </p>
 
-        <div className="ms-6 justify-center flex p-[16px_19px] items-center gap-[10px] rounded-[0px_16px_16px_16px] bg-[#F8F9FB]">
+        <div className="ms-6 justify-center border flex p-[16px_19px] items-center gap-[10px] rounded-[0px_16px_16px_16px]">
           {loading ? (
             <p>Loading...</p>
           ) : (
             <>
-              <p className="font-normal text-[#0D0D12]">
+              <p className="font-normal ">
                 Copy your forwarding email address below:
                 <strong className="block font-bold ">
                   {emailForwarder}
                 </strong>
               </p>
-              <button onClick={handleCopy} disabled={!emailForwarder}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M9 15C9 12.1716 9 10.7574 9.87868 9.87868C10.7574 9 12.1716 9 15 9H16C18.8284 9 20.2426 9 21.1213 9.87868C22 10.7574 22 12.1716 22 15V16C22 18.8284 22 20.2426 21.1213 21.1213C20.2426 22 18.8284 22 16 22H15C12.1716 22 10.7574 22 9.87868 21.1213C9 20.2426 9 18.8284 9 16V15Z" stroke="#C1C7CF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M16.9999 9C16.9975 6.04291 16.9528 4.51121 16.092 3.46243C15.9258 3.25989 15.7401 3.07418 15.5376 2.90796C14.4312 2 12.7875 2 9.5 2C6.21252 2 4.56878 2 3.46243 2.90796C3.25989 3.07417 3.07418 3.25989 2.90796 3.46243C2 4.56878 2 6.21252 2 9.5C2 12.7875 2 14.4312 2.90796 15.5376C3.07417 15.7401 3.25989 15.9258 3.46243 16.092C4.51121 16.9528 6.04291 16.9975 9 16.9999" stroke="#C1C7CF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-              </button>
             </>
           )}
         </div>
         {copyStatus && <p className="copy-status text-center">{copyStatus}</p>}
 
-            <p className="mb-5 mt-2 text-center text-[16px] font-semibold leading-[150%] tracking-[0.2px] font-[Encode Sans]">
-                Follow the instructions below
+            <p className="mb-2 mt-5 text-center text-[16px] font-semibold leading-[150%] tracking-[0.2px] font-[Encode Sans]">
+                Follow the instructions below:
             </p>
             <p className="text-center text-[16px] font-normal leading-[150%] font-[Encode Sans]">
             Sign in to your mailbox of your company email.<br />
@@ -84,11 +98,7 @@ export const ConnectEmailModal = ({ onCancel }) => {
             Navigate to Forwarding & POP/IMAP<br />
             Add the copied forwarding email address
         </p>
-
-        <button onClick={onCancel} className="mt-5 text-white  flex h-[52px] px-4 py-2 justify-center items-center gap-2 w-full rounded-[12px] bg-[var(--primary-100-base,#3EBF0F)] shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">
-            Done
-        </button>
       </div>
-    </div>
+    </Modal>
   );
 };

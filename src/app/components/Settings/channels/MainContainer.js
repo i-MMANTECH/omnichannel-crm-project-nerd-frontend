@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import "../settingsStyles.css";
-import { Modal } from "../../MainContainer/Modal";
 import { ConnectLiveChatModal } from "../../MainContainer/ConnectLiveChatModal";
 import Image from "next/image";
 import { ConnectEmailModal } from "../../MainContainer/ConnectEmailModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
+import ComingSoonModal from "../../ComingSoonModal";
 
 export const MainContainer = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
-  const [modalIcon, setModalIcon] = useState(null);
+  const [modalContent, setModalContent] = useState("");
   const [isLiveChat, setIsLiveChat] = useState(false);
   const { axiosInstance, loading } = useApi();
   const [isEmail, setIsEmail] = useState(false);
@@ -20,15 +20,22 @@ export const MainContainer = () => {
 
 
   const handleConnectClick = (title, icon) => {
-    if (title === 'Nativetalk Livechat'){
-      setIsLiveChat(true)
-    } 
-    else if (title === 'Email'){
-      setIsEmail(true)
-    } 
-    else {
+    console.log("title is ", title)
+    const lowerCaseTitle = title.toLowerCase();
+    const comingSoonChannels = ["facebook", "whatsapp", "instagram", "sms", "telegram"];
+
+    if (comingSoonChannels.includes(lowerCaseTitle)) {
+      console.log('yeppp')
+      setModalTitle("Coming Soon");
+      setModalContent("This feature is coming soon!");
+      setShowModal(true);
+    } else if (title === 'Nativetalk Livechat') {
+      setIsLiveChat(true);
+    } else if (title === 'Email') {
+      setIsEmail(true);
+    } else {
       setModalTitle(title);
-      setModalIcon(icon);
+      setModalContent("Details and steps to connect to " + title + " go here.");
       setShowModal(true);
     }
   };
@@ -96,19 +103,12 @@ export const MainContainer = () => {
           ))}
         </div> 
 
-        <Modal 
-          show={showModal} 
-          onClose={closeModal} 
-          icon={
-            <Image src={modalIcon} alt={modalTitle}
-            width={60}
-            height={60}
-            />
-            
-          }
-        >
-          <p>Details and steps to connect to {modalTitle} go here.</p>
-        </Modal>
+        <ComingSoonModal 
+          isOpen={showModal} 
+          onCancel={closeModal} 
+          onConfirm={closeModal} 
+          title={modalTitle} 
+          message={modalContent} />
 
         {isLiveChat && <ConnectLiveChatModal onCancel={closeModal} />}
         {isEmail && <ConnectEmailModal onCancel={closeModal} />}
