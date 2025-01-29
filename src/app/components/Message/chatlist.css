@@ -80,7 +80,7 @@
     white-space: nowrap;
 }
 
-.frame-3 {
+.chat-menu {
     display: flex;
     justify-content: space-between;
     width: 54px;

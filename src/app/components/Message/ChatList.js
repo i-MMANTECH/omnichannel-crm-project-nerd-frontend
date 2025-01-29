@@ -88,8 +88,8 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
                     <div className="title-2">{formatTime(user.lastMessageTime)}</div>
                   </div>
                   <div className="flex justify-between w-full">
-                    <p className="label">{truncateMessage(user.lastMessage, 30)}</p>
-                    <div className="frame-3">
+                    <p className="label">{truncateMessage(user.lastMessage, 27)}</p>
+                    <div className="hidden">
                       {user.unreadCount > 0 && (
                         <div className="title-wrapper">
                           <div className="title-3">{user.unreadCount}</div>

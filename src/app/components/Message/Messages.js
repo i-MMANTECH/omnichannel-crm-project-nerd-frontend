@@ -208,6 +208,11 @@ export const Messages = () => {
     setMessage(e.target.value);
   };
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setActiveUser(null); // Reset active user when changing tabs
+  };
+
   return (
     <div className="body-theme flex flex-col px-5">
       <div className="flex p-4 items-center justify-between w-full ">
@@ -240,7 +245,7 @@ export const Messages = () => {
         </div>
       </div>
 
-      <div className="overflow-y-hidden messages flex items-start  border border-gray-500 rounded-lg relative h-[80vh] m-4">
+      <div className="overflow-y-hidden messages flex items-start  border border-gray-500 rounded-lg relative h-[80vh] m-4 mt-0">
         <div>
           <div className="body-theme justify-center gap-5 p-5 flex items-start flex-col w-full">
             <div className="w-full">
@@ -257,10 +262,10 @@ export const Messages = () => {
             </div>
             <div className="flex gap-3 w-full ">
               <div className="tab-atom">
-                <div className={`px-4 pb-1 ${activeTab === 'leads' ? 'active' : ""}`} onClick={() => setActiveTab('leads')}>Leads</div>
+                <div className={`px-4 pb-1 ${activeTab === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>Leads</div>
               </div>
               <div className="tab-atom">
-                <div className={`px-4 pb-1 ${activeTab === 'customers' ? 'active' : ""}`} onClick={() => setActiveTab('customers')}>Customers</div>
+                <div className={`px-4 pb-1 ${activeTab === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>Customers</div>
               </div>
             </div>
           </div>
@@ -287,7 +292,9 @@ export const Messages = () => {
               </div>
             </>
           ) : (
-            <div className="no-chat-selected">Select a user to start chatting</div>
+            <div className="no-chat-selected">
+              {activeTab === "leads" ? "Select a lead to chat with" : "Select a customer to chat with"}
+            </div>
           )}
         </div>
       </div>
