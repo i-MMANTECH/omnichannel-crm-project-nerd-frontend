@@ -5,6 +5,7 @@ import { useError } from "@/context/ErrorContext";
 import getStatusSvg from "./getStatusSvg";
 import Image from "next/image";
 import UserAvatar from "../UserAvatar";
+import { timeAgo } from "@/utils/timeUtils";
 
 const TaskViewModal = ({ isOpen, taskId, onClose }) => {
   const { axiosInstance } = useApi();
@@ -14,6 +15,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
   const [selectedTab, setSelectedTab] = useState("activities");
   const [activities, setActivities] = useState([]);
   const [comments, setComments] = useState([]);
+  const [activityLogs, setActivityLogs] = useState([]);
 
   const fetchActivities = async () => {
     try {
@@ -41,7 +43,6 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
     }
     return assignee?.email || "--";
   };
-
 
   useEffect(() => {
     if (selectedTab === "activities") fetchActivities();
@@ -76,6 +77,21 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
     };
   }, [taskId, isOpen]);
 
+  useEffect(() => {
+    const getActivityLogs = async () => {
+      try {
+        const response = await axiosInstance.get(`/activity-logs/?task_id=${taskId}`);
+        setActivityLogs(response.data.logs);
+      } catch (error) {
+        handleApiError(error);
+      }
+    };
+
+    if (taskId) {
+      getActivityLogs();
+    }
+  }, [taskId]);
+
   if (!isOpen) return null;
 
   const footer = (
@@ -94,46 +110,41 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
     switch (selectedTab) {
       case "activities":
         return (
-          <div className="mt-4 space-y-4">
-            {activities.map((activity, index) => (
-              <div key={index} className="flex flex-col gap-2 p-4 rounded-lg border border-[#DFE1E6] w-full">
-                <div className="flex items-center gap-3">
-                  {activity?.user?.image ? (
-                    <Image
-                      alt="profile pic"
-                      width={32}
-                      height={32}
-                      className="rounded-full"
-                      src={activity.user.image}
-                    />
-                  ) : (
-                    <UserAvatar 
-                      name={activity?.user?.first_name ? 
-                        `${activity.user.first_name} ${activity.user.last_name}` : 
-                        activity?.user?.email || '--'
-                      } 
-                      width="w-8" 
-                      height="h-8" 
-                    />
-                  )}
-                  <p className="font-medium">{activity.description}</p>
-                </div>
-                {activity?.metadata?.updated_fields && (
-                  <div className="flex flex-col gap-2">
-                    <p className="text-sm font-medium">Updated fields:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {activity.metadata.updated_fields.map((field, idx) => (
-                        <div key={idx} className="px-2 py-1 text-sm rounded-md bg-[#E7FEF8]">
-                          <p className="text-[#40C4AA]">{field}</p>
-                        </div>
-                      ))}
+          <div className="flex mt-5 flex-col items-start gap-4 self-stretch rounded-lg ">
+          {activityLogs.map((log, index) => (
+            <div key={index} className="flex flex-row gap-2 p-3 justify-between items-center border-y  w-full mb-1">
+              <div className='flex flex-col  gap-3'>
+                {log?.metadata?.updated_fields?.length > 0 && ( 
+                  <>
+                    <p className="text-sm font-medium mt-1">
+                      Updated fields:
+                    </p>  
+                    <div className="flex flex-col gap-3">
+                      {log?.metadata?.updated_fields?.map((info, index) => {
+                        return (                      
+                          <div key={index} className="flex w-fit text-sm py-1 px-2 justify-center items-center gap-2 rounded-md bg-[#E7FEF8]">
+                            <p className="text-[#40C4AA] text-xs">{info}</p>
+                          </div>
+                        )})}
                     </div>
-                  </div>
+                  </>
                 )}
-                <p className="text-[#808897] text-sm">{activity.timestamp}</p>
+                <div className="flex mt-1 items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 17 17" fill="none">
+                    <path d="M9.38208 9.87435H6.71541C4.87446 9.87435 3.38208 11.3667 3.38208 13.2077V13.8743C3.38208 14.2425 3.68056 14.541 4.04875 14.541H12.0487C12.4169 14.541 12.7154 14.2425 12.7154 13.8743V13.2077C12.7154 11.3667 11.223 9.87435 9.38208 9.87435Z" stroke="#808897" strokeWidth="1.5"/>
+                    <path d="M8.04875 7.87435C9.52151 7.87435 10.7154 6.68044 10.7154 5.20768C10.7154 3.73492 9.52151 2.54102 8.04875 2.54102C6.57599 2.54102 5.38208 3.73492 5.38208 5.20768C5.38208 6.68044 6.57599 7.87435 8.04875 7.87435Z" stroke="#808897" strokeWidth="1.5"/>
+                  </svg>
+  
+                  <p className="text-[#808897] font-encodeSans text-sm font-medium">
+                    Agent: {log?.user.email}
+                  </p>
+                </div>
               </div>
-            ))}
-          </div>
+              <p className="text-sm font-normal text-gray-500 mt-1">{timeAgo(log.created_at)}</p>
+            </div>
+          ))}
+          {activityLogs.length === 0 && <p>No activity logs available for this task.</p>}
+        </div>
         );
 
       case "comments":
@@ -364,12 +375,13 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                 </div>
                 {renderTabContent()}
               </div>
-          </>
+            </>
           ) : (
             <div>No task details found.</div>
           )}
         </div>
       </div>
+
     </Modal>
   );
 };
