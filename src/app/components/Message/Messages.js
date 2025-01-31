@@ -248,7 +248,7 @@ export const Messages = () => {
       <div className="overflow-y-hidden messages flex items-start  border border-gray-500 rounded-lg relative h-[80vh] m-4 mt-0">
         <div>
           <div className="body-theme justify-center gap-5 p-5 flex items-start flex-col w-full">
-            <div className="w-full">
+            <div className="w-full hidden">
               <div className="flex items-center justify-center h-[40px] gap-5 rounded border border-gray-500 p-5">
                 <input
                   type="text"

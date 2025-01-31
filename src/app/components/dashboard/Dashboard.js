@@ -34,7 +34,7 @@ const Dashboard = () => {
     const fetchSummary = async () => {
         try {
             const response = await axiosInstance.get('analytics/summary/');
-            if (response.data.success) {
+            if (response?.data.success) {
                 const data = response.data.data;
                 setSummary({
                     messages: data.messages.total || 0,

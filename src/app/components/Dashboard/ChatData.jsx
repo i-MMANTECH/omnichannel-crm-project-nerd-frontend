@@ -137,7 +137,7 @@ export default function ChatData(){
                   <span className="font-medium">Create New Customer</span>
               </div>
 
-              <div className="flex flex-col items-start gap-2 px-4 py-4 rounded-[16px] border border-[#DFE1E6]  body-theme shadow-sm">
+              <div className="hidden flex flex-col items-start gap-2 px-4 py-4 rounded-[16px] border border-[#DFE1E6]  body-theme shadow-sm">
                   <div className="flex w-[24px] h-[24px] p-[5.333px] justify-center items-center gap-[5.333px] rounded-[5.333px] border border-[#9A452D] bg-[#F36F4A] shadow-[0px_-2.667px_4px_0px_rgba(255,_255,_255,_0.50)_inset,_0px_0.667px_1.333px_0px_rgba(13,_13,_18,_0.10)]">
                       <svg
                           xmlns="http://www.w3.org/2000/svg"

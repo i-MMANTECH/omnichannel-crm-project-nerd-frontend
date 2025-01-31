@@ -38,6 +38,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     const refreshToken = async () => {
+        if (!user) return;
+
         try {
             const storedUser = JSON.parse(localStorage.getItem("user"));
             if (!storedUser?.refresh) {
@@ -108,7 +110,7 @@ export const AuthProvider = ({ children }) => {
             setRefreshInterval(interval);
             return () => clearInterval(interval);
         }
-    }, [user, refreshInterval, refreshToken]);
+    }, [user, refreshInterval]);
 
     useEffect(() => {
         if (refreshInterval) {

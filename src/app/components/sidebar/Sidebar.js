@@ -37,7 +37,7 @@ function Sidebar() {
     const fetchUserProfile = async () => {
         try {
             const resp = await axiosInstance.get(`/users/me`)
-            setUserProfile(resp.data.user)
+            setUserProfile(resp?.data.user)
         } catch(error) {
             handleApiError(error)
         }

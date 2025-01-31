@@ -312,7 +312,14 @@ export default function Task() {
               {loading ? (
                 <div>Loading...</div>
               ) : view === "kanban" ? (
-                <KanbanView tasks={tasks} updateTask={handleTaskUpdate} setTasks={setTasks} />
+                <KanbanView 
+                  tasks={tasks} 
+                  updateTask={handleTaskUpdate} 
+                  setTasks={setTasks} 
+                  handleDelete={handleDelete} 
+                  openViewModal={openViewModal} 
+                  openUpdateModal={openUpdateModal} 
+                />
               ) : view === "list" ? (
                 <TaskCardListView 
                   tasks={tasks} 
@@ -321,7 +328,13 @@ export default function Task() {
                   openUpdateModal={openUpdateModal}
                 />
               ) : (
-                <TableView tasks={tasks} updateTask={handleTaskUpdate} />
+                <TableView 
+                  tasks={tasks} 
+                  updateTask={handleTaskUpdate} 
+                  handleDelete={handleDelete} 
+                  openViewModal={openViewModal} 
+                  openUpdateModal={openUpdateModal} 
+                />
               )}
             </div>
 

@@ -1,9 +1,14 @@
-import React from "react";
+import React, { useState, useRef } from "react";
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 
+export default function TableView({ tasks, updateTask, handleDelete, openViewModal, openUpdateModal }) {
+  const [menuOpen, setMenuOpen] = useState(null);
+  const menuRef = useRef(null);
+  const buttonRef = useRef(null);
 
-export default function TableView({tasks, updateTask}) {
   const handleStatusChange = (taskId, newStatus) => {
     updateTask(taskId, { status: newStatus });
   };
@@ -20,12 +25,20 @@ export default function TableView({tasks, updateTask}) {
     }
   }
 
+  const handleTaskClick = (id, action) => {
+    if (action === "view") {
+      openViewModal(id);
+    } else if (action === "update") {
+      openUpdateModal(id);
+    }
+  };
+
   return (
     <div>
       <table className="min-w-full border-collapse shadow-sm">
       <thead className="bg-gray-100 dark:bg-neutral-900">
         <tr>
-          <th>
+          <th className="hidden">
             <input
               type="checkbox"
               className="w-[16px] h-[16px] shrink-0 rounded-[4.8px] border border-[#DFE1E6] bg-white"
@@ -134,13 +147,18 @@ export default function TableView({tasks, updateTask}) {
               <span>Due Date</span>
             </div>
           </th>
+          <th className="text-left font-medium leading-[21px] tracking-[0.2px]">
+            <div className="flex items-center gap-2">
+              <span>Actions</span>
+            </div>
+          </th>
         </tr>
       </thead>
 
       <tbody>
         {tasks.map((task) => (
           <tr key={task.id} className="hover:dark:bg-neutral-900 hover:bg-gray-100">
-            <td className="px-4 py-2">
+            <td className="px-4 py-2 hidden">
               <input type="checkbox" className="form-checkbox" />
             </td>
             <td className="px-4 py-2">{task.title}</td>
@@ -202,6 +220,60 @@ export default function TableView({tasks, updateTask}) {
                 <span>
                   {new Date(task.updated_at).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
                 </span>
+              </div>
+            </td>
+            <td className="px-4 py-2">
+              <div className="relative">
+                <button
+                  ref={buttonRef}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen(menuOpen === task.id ? null : task.id);
+                  }}
+                  className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                >
+                  <FontAwesomeIcon icon={faEllipsisH} className="text-gray-600" />
+                </button>
+
+                {menuOpen === task.id && (
+                  <div
+                    ref={menuRef}
+                    className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
+                  >
+                    <div className="py-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTaskClick(task.id, "view");
+                          setMenuOpen(null);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        View task
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTaskClick(task.id, "update");
+                          setMenuOpen(null);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        Update task
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(task.id);
+                          setMenuOpen(null);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        Delete task
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </td>
           </tr>

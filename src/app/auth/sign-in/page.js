@@ -8,6 +8,7 @@ import { useApi } from '@/services/axiosConfig';
 import { getUserDomain } from '@/utils/getUserDomain';
 import Footer from '@/app/components/Footer';
 import Image from 'next/image';
+import { toast } from 'react-toastify';
 
 
 const SignIn = () => {
@@ -51,10 +52,13 @@ const SignIn = () => {
                 password,
             });
 
-            login(response.data);
-            router.push('/');
+            if (response.status === 200) {
+                console.log('response is, ', response);
+                login(response.data);
+                router.push('/');
+            }
         } catch (error) {
-            handleApiError(error);            
+            toast.error('Login failed. Please check your credentials.');
         }
     };
 
