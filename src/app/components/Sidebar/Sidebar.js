@@ -282,7 +282,7 @@ function Sidebar() {
             </div>
 
             {isModalOpen && (
-              <div className="modal-container fixed inset-0 w-60 px-2">
+              <div className="fixed inset-0 w-60 px-2">
                 <div
                   className="flex flex-col justify-center items-center body-theme absolute bottom-[120px] rounded p-3 border mx-6"
                   ref={modalRef}
