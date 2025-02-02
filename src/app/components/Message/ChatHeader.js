@@ -156,6 +156,7 @@ const ChatHeader = ({ activeUser }) => {
               isOpen={isModalOpen}
               onClose={closeModal}
               leadId={activeUser.id}
+              setIsSuccessModalOpen={setIsSuccessModalOpen}
             />
           )}
         </div>
@@ -165,7 +166,7 @@ const ChatHeader = ({ activeUser }) => {
     <SuccessModal
         isOpen={isSuccessModalOpen}
         title="Success!"
-        message="An invitation link has been sent to the user. Please ask them to check their email and follow the link to activate their account."
+        message="Lead has been successfully converted to a customer."
         buttonText="Okay, thank you"
         onClose={closeSuccessModal}
         setIsSuccessModalOpen={setIsSuccessModalOpen}

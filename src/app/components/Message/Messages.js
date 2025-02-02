@@ -98,7 +98,12 @@ export const Messages = () => {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       const message = data.message;
-      if (message.content.lead_receiver === activeUser?.id) {
+
+      if (message.is_new_lead) {
+        fetchLeadsChatList(); 
+      }
+
+      if (activeUser && (message.content.lead_receiver === activeUser?.id || message.content.customer_receiver === activeUser?.id)) {
         setChatHistory((prev) => [...prev, message]);
       }
     };
@@ -214,7 +219,7 @@ export const Messages = () => {
   };
 
   return (
-    <div className="body-theme flex flex-col px-5">
+    <div className="body-theme flex flex-col px-5 ">
       <div className="flex p-4 items-center justify-between w-full ">
         <h1 className="font-bold ">
           All Messages
@@ -245,7 +250,7 @@ export const Messages = () => {
         </div>
       </div>
 
-      <div className="overflow-y-hidden messages flex items-start  border border-gray-500 rounded-lg relative h-[80vh] m-4 mt-0">
+      <div className="overflow-y-hidden  messages flex items-start  border border-gray-500 rounded-lg relative h-[80vh] m-4 mt-0">
         <div>
           <div className="body-theme justify-center gap-5 p-5 flex items-start flex-col w-full">
             <div className="w-full hidden">
@@ -277,7 +282,7 @@ export const Messages = () => {
           {activeUser ? (
             <>
               <ChatHeader activeUser={activeUser} />
-              <div className="flex items-center grow">
+              <div className="flex items-center ">
                 <MessageList 
                   chatHistory={chatHistory} 
                   currentUserId={currentUser?.user_id} 

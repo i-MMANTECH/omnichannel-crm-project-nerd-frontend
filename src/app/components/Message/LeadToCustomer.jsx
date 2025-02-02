@@ -6,12 +6,10 @@ import Modal from "../Modal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 
-
 function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen }) {
     const { axiosInstance } = useApi();
     const { handleApiError } = useError();
     const [tags, setTags] = useState([]);
-
     const [formData, setFormData] = useState({
         username: "",
         first_name: "",
@@ -24,7 +22,7 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen }) {
         whatsapp: "",
         tiktok: "",
         tag: [],
-        country: {id: 160, name: "Nigeria"},
+        country: { id: 160, name: "Nigeria" },
         state: {},
     });
 
@@ -43,12 +41,11 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen }) {
                     const response = await axiosInstance.get(`/customers/leads/${leadId}`);
                     if (response?.data) {
                         const leadData = response.data.lead;
-    
                         const [firstName, lastName] = leadData.name.split(' ');
-    
+
                         setFormData((prevData) => ({
                             ...prevData,
-                            username: leadData.username || "",
+                            username: leadData.name || "",
                             first_name: firstName || leadData.name || "",
                             last_name: lastName || "",
                             gender: leadData.gender || "",
@@ -67,12 +64,10 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen }) {
                     handleApiError(error);
                 }
             };
-    
+
             fetchLead();
         }
     }, [isOpen, leadId]);
-    
-    
 
     const handleGenderChange = (selectedOption) => {
         setFormData({ ...formData, gender: selectedOption ? selectedOption.value : '' });
@@ -94,10 +89,9 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen }) {
         setFormData(prev => ({ ...prev, tags: selectedTags }));
     };
 
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
+
         try {
             const submissionData = {
                 ...formData,
@@ -105,9 +99,9 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen }) {
                 country: formData.country?.id,
                 state: formData.state?.id,
             };
-    
+
             const formDataToSubmit = new FormData();
-    
+
             Object.keys(submissionData).forEach(key => {
                 const value = submissionData[key];
                 if (value !== null && value !== undefined) {
@@ -120,17 +114,16 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen }) {
                     }
                 }
             });
-    
+
             if (image) {
                 formDataToSubmit.append('image', image);
             }
-    
+
             const response = await axiosInstance.post(
                 `/customers/leads/${leadId}/convert/`,
                 formDataToSubmit,
-                
             );
-    
+
             if (response.status === 200) {
                 setFormData({
                     username: "",
@@ -149,8 +142,8 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen }) {
                 });
                 setImage(null);
                 setImagePreview(null);
-                onClose();
                 setIsSuccessModalOpen(true);
+                onClose();
             } else {
                 alert('Lead conversion failed!');
             }
@@ -158,8 +151,6 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen }) {
             handleApiError(error);
         }
     };
-    
-    
 
     const renderImageUpload = () => (
         <div className="col-span-2 flex items-center justify-start gap-4">
@@ -221,159 +212,161 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen }) {
     );
 
     return (
-        <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            title="Convert Lead to Customer"
-            width="700px"
-            footer={modalFooter}
-        >
-            <form id="customerForm" className="grid grid-cols-2 gap-4 " onSubmit={handleSubmit}>
-                {renderImageUpload()}
-                
-                <div>
-                    <label className="text-sm">Username</label>
-                    <input
-                        type="text"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                        placeholder="Johnny_22"
-                        required
-                    />
-                </div>
-
-                <div>
-                    <label className="text-sm">First Name</label>
-                    <input
-                        type="text"
-                        name="first_name"
-                        value={formData.first_name}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                        placeholder="John"
-                        required
-                    />
-                </div>
-
-                <div>
-                    <label className="text-sm ">Last Name</label>
-                    <input
-                        type="text"
-                        name="last_name"
-                        value={formData.last_name}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                        placeholder="Doe"
-                        required
-                    />
-                </div>
-                <div>
-                    <label className="text-sm">Gender</label>
-
-                    <Select
-                        name="gender"
-                        options={[
-                            { value: 'male', label: 'Male' },
-                            { value: 'female', label: 'Female' }
-                        ]}
-                        classNamePrefix="select"
-                        onChange={handleGenderChange}
-                        value={formData.gender ? { value: formData.gender, label: formData.gender.charAt(0).toUpperCase() + formData.gender.slice(1) } : null}
-                        placeholder="Select gender"
-                        styles={selectStyles}
-                    />
-                </div>
-                <div>
-                    <label className="text-sm ">Phone Number</label>
-                    <div className="flex">
+        <>
+            <Modal
+                isOpen={isOpen}
+                onClose={onClose}
+                title="Convert Lead to Customer"
+                width="700px"
+                footer={modalFooter}
+            >
+                <form id="customerForm" className="grid grid-cols-2 gap-4 " onSubmit={handleSubmit}>
+                    {renderImageUpload()}
+                    
+                    <div>
+                        <label className="text-sm">Username</label>
                         <input
-                            type="tel"
-                            name="phone_number"
-                            value={formData.phone_number}
+                            type="text"
+                            name="username"
+                            value={formData.username}
                             onChange={handleChange}
                             className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                            placeholder="8101790957"
+                            placeholder="Johnny_22"
                             required
                         />
                     </div>
-                </div>
-                <div>
-                    <label className="text-sm ">Email Address</label>
-                    <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                        placeholder="johndoe@mail.com"
-                        required
-                    />
-                </div>
-                <div>
-                    <label className="text-sm">Instagram</label>
-                    <input
-                        type="text"
-                        name="instagram"
-                        value={formData.instagram}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                        placeholder="Instagram username"
-                    />
-                </div>
-                <div>
-                    <label className="text-sm ">Facebook</label>
-                    <input
-                        type="text"
-                        name="facebook"
-                        value={formData.facebook}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                        placeholder="Facebook username"
-                    />
-                </div>
-                <div>
-                    <label className="text-sm">WhatsApp</label>
-                    <input
-                        type="text"
-                        name="whatsapp"
-                        value={formData.whatsapp}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                        placeholder="WhatsApp number"
-                    />
-                </div>
-                <div>
-                    <label className="text-sm ">TikTok</label>
-                    <input
-                        type="text"
-                        name="tiktok"
-                        value={formData.tiktok}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                        placeholder="TikTok handle"
-                    />
-                </div>
-                {/* Multiselect Tags */}
-                <div>
-                    <label className="text-sm">Tags</label>
-                    <Select
-                        isMulti
-                        name="tags"
-                        options={tags?.map(tag => ({ 
-                            value: tag.id, 
-                            label: tag.name 
-                        }))}
-                        classNamePrefix="select"
-                        onChange={handleTagChange}
-                        value={formData?.tags}
-                        placeholder="Select tags"
-                        styles={selectStyles}
-                    />
-                </div>
-            </form>
-        </Modal>
+
+                    <div>
+                        <label className="text-sm">First Name</label>
+                        <input
+                            type="text"
+                            name="first_name"
+                            value={formData.first_name}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded-md p-2 mt-2"
+                            placeholder="John"
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label className="text-sm ">Last Name</label>
+                        <input
+                            type="text"
+                            name="last_name"
+                            value={formData.last_name}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded-md p-2 mt-2"
+                            placeholder="Doe"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm">Gender</label>
+
+                        <Select
+                            name="gender"
+                            options={[
+                                { value: 'male', label: 'Male' },
+                                { value: 'female', label: 'Female' }
+                            ]}
+                            classNamePrefix="select"
+                            onChange={handleGenderChange}
+                            value={formData.gender ? { value: formData.gender, label: formData.gender.charAt(0).toUpperCase() + formData.gender.slice(1) } : null}
+                            placeholder="Select gender"
+                            styles={selectStyles}
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm ">Phone Number</label>
+                        <div className="flex">
+                            <input
+                                type="tel"
+                                name="phone_number"
+                                value={formData.phone_number}
+                                onChange={handleChange}
+                                className="w-full border border-gray-300 rounded-md p-2 mt-2"
+                                placeholder="8101790957"
+                                required
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="text-sm ">Email Address</label>
+                        <input
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded-md p-2 mt-2"
+                            placeholder="johndoe@mail.com"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm">Instagram</label>
+                        <input
+                            type="text"
+                            name="instagram"
+                            value={formData.instagram}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded-md p-2 mt-2"
+                            placeholder="Instagram username"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm ">Facebook</label>
+                        <input
+                            type="text"
+                            name="facebook"
+                            value={formData.facebook}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded-md p-2 mt-2"
+                            placeholder="Facebook username"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm">WhatsApp</label>
+                        <input
+                            type="text"
+                            name="whatsapp"
+                            value={formData.whatsapp}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded-md p-2 mt-2"
+                            placeholder="WhatsApp number"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm ">TikTok</label>
+                        <input
+                            type="text"
+                            name="tiktok"
+                            value={formData.tiktok}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded-md p-2 mt-2"
+                            placeholder="TikTok handle"
+                        />
+                    </div>
+                    {/* Multiselect Tags */}
+                    <div>
+                        <label className="text-sm">Tags</label>
+                        <Select
+                            isMulti
+                            name="tags"
+                            options={tags?.map(tag => ({ 
+                                value: tag.id, 
+                                label: tag.name 
+                            }))}
+                            classNamePrefix="select"
+                            onChange={handleTagChange}
+                            value={formData?.tags}
+                            placeholder="Select tags"
+                            styles={selectStyles}
+                        />
+                    </div>
+                </form>
+            </Modal>
+        </>
     );
 };
 

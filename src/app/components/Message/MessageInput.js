@@ -66,7 +66,7 @@ const MessageInput = ({ onInputChange, onSendMessage }) => {
   return (
     <div className="type absolute bottom-0">
       <div className="write-area">
-        <div className="attach-icon" onClick={handleAttachClick}>
+        <div className="attach-icon hidden" onClick={handleAttachClick}>
           <FontAwesomeIcon icon={faPaperclip} />
         </div>
         {showAttachOptions && (
@@ -105,7 +105,7 @@ const MessageInput = ({ onInputChange, onSendMessage }) => {
         </button>
       ) : (
         <button className="send-button">
-          <FontAwesomeIcon icon={faMicrophone} />
+          <FontAwesomeIcon icon={faPaperPlane} color="grey"/>
         </button>
       )}
 

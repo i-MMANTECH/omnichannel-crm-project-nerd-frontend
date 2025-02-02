@@ -1,9 +1,6 @@
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
 import React, { Suspense, useEffect, useRef, useState } from "react";
-import TaskUpdateModal from "./TaskUpdateModal";
-import ViewTask from "./TaskViewModal";
-import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import getStatusSvg from "./getStatusSvg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
