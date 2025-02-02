@@ -74,7 +74,7 @@ const CreateUserModal = ({ isModalOpen, closeModal }) => {
           Cancel
       </button>
       <button
-          type="submit"
+          onClick={handleSubmit}
           className="w-6/12 px-4 py-2 bg-[#3EBF0F] text-white rounded-md "
       >
           Save
