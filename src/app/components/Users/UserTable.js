@@ -56,10 +56,18 @@ const UserTable = ({ searchQuery, users }) => {
               {users.map((user, index) => (
                 <tr key={index} onClick={() => router.push(`users/${user.id}`)} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer">
                   <td className="py-3 px-4 border-b flex items-center space-x-3">
-                    <UserAvatar
-                      name={user.name || "--"}
+                    <UserAvatar 
+                      name={user.first_name ? 
+                        `${user.first_name} ${user.last_name}` : 
+                        user.email || '--'
+                      } 
+                      width="w-8" 
+                      height="h-8" 
                     />
-                    <span>{user.name || "--"}</span>
+                    <span>{user.first_name ? 
+                        `${user.first_name} ${user.last_name}` : 
+                        user.email || '--'
+                      } </span>
                   </td>
                   <td className="py-3 px-4 border-b">
                     {user.roles.map((role) => (

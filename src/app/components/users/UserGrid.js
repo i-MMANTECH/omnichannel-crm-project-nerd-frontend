@@ -34,10 +34,18 @@ const UserGrid = ({ searchQuery, users }) => {
             <div className="body-theme border rounded-lg">
               <div className="flex justify-between items-center p-2 border-b">
                 <div className="flex items-center space-x-2">
-                  <UserAvatar
-                      name={user.name || "--"}
+                  <UserAvatar 
+                      name={user.first_name ? 
+                        `${user.first_name} ${user.last_name}` : 
+                        user.email || '--'
+                      } 
+                      width="w-8" 
+                      height="h-8" 
                     />
-                  <h3 className="text-lg font-semibold">{user.name || '--'}</h3>
+                    <span>{user.first_name ? 
+                        `${user.first_name} ${user.last_name}` : 
+                        user.email || '--'
+                      } </span>
                 </div>
                 <FontAwesomeIcon
                   icon={faEllipsis}

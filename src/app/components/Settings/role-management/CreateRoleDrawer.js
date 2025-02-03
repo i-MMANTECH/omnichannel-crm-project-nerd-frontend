@@ -2,20 +2,25 @@ import React, { useState, useEffect } from 'react';
 import Drawer from '../../Drawer';
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
+import Pagination from '@/app/components/pagination/Pagination';
 
 const CreateRoleDrawer = ({ show, onClose }) => {
   const [roleName, setRoleName] = useState("");
   const [description, setDescription] = useState("");
   const [availablePermissions, setAvailablePermissions] = useState([]);
   const [selectedPermissions, setSelectedPermissions] = useState([]);
+  const [totalPages, setTotalPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
 
   useEffect(() => {
     const fetchPermissions = async () => {
       try {
-        const response = await axiosInstance.get('/users/permissions/');
+        const response = await axiosInstance.get(`/users/permissions/?limit=${pageSize}&page=${currentPage}`);
         setAvailablePermissions(response.data.results);
+        setTotalPages(Math.ceil(response.data.count / pageSize));
       } catch (error) {
         handleApiError(error);
       }
@@ -24,7 +29,7 @@ const CreateRoleDrawer = ({ show, onClose }) => {
     if (show) {
       fetchPermissions();
     }
-  }, [show]);
+  }, [show, currentPage, pageSize]);
 
   const handlePermissionChange = (permissionId) => {
     setSelectedPermissions(prev => {
@@ -46,7 +51,6 @@ const CreateRoleDrawer = ({ show, onClose }) => {
         permissions: selectedPermissions
       });
       
-      setRoles(response.data.results);
       onClose();
       setRoleName("");
       setDescription("");
@@ -138,6 +142,13 @@ const CreateRoleDrawer = ({ show, onClose }) => {
               </div>
             ))}
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+            pageSize={pageSize}
+          />
         </div>
       </form>
     </Drawer>

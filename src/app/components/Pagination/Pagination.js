@@ -26,11 +26,13 @@ const Pagination = ({ currentPage, totalPages, onPageChange, onPageSizeChange, p
   };
 
   return (
-    <div className="flex justify-between items-center p-4">
-      
+    <div className="flex justify-between items-center p-4 bg-gray-100 rounded-lg shadow-md">
       <div className="flex items-center space-x-2">
         <button
-          onClick={() => onPageChange(currentPage - 1)}
+          onClick={(e) => {
+            e.preventDefault()
+            onPageChange(currentPage - 1)
+          }}
           disabled={currentPage === 1}
           className={`px-3 py-1 rounded-md border ${currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-white text-[#0D0D12] hover:bg-gray-100'} border-[#C1C7CF]`}
         >
@@ -40,8 +42,11 @@ const Pagination = ({ currentPage, totalPages, onPageChange, onPageSizeChange, p
         {getPageNumbers().map((page, index) => (
           <button
             key={index}
-            onClick={() => typeof page === 'number' && onPageChange(page)}
-            className={`px-3 py-1 rounded-md border ${page === currentPage ? 'bg-[#3EBF0F] text-white' : 'bg-white text-[#0D0D12] hover:bg-gray-100'} border-[#C1C7CF}`}
+            onClick={(e) => {
+              e.preventDefault()
+              typeof page === 'number' && onPageChange(page)
+            }}
+            className={`px-3 py-1 rounded-md border ${page === currentPage ? 'bg-[#3EBF0F] text-white' : 'bg-white text-[#0D0D12] hover:bg-gray-100'} border-[#C1C7CF]`}
             disabled={page === '...'}
           >
             {page}
@@ -49,7 +54,10 @@ const Pagination = ({ currentPage, totalPages, onPageChange, onPageSizeChange, p
         ))}
 
         <button
-          onClick={() => onPageChange(currentPage + 1)}
+          onClick={(e) => {
+            e.preventDefault();
+            onPageChange(currentPage + 1)
+          }}
           disabled={currentPage === totalPages}
           className={`px-3 py-1 rounded-md border ${currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-white text-[#0D0D12] hover:bg-gray-100'} border-[#C1C7CF]`}
         >

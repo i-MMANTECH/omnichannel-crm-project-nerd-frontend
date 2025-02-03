@@ -96,6 +96,7 @@ export const Messages = () => {
     };
 
     ws.onmessage = (event) => {
+      console.log(event)
       const data = JSON.parse(event.data);
       const message = data.message;
 
