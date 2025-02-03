@@ -79,8 +79,8 @@ const MessageInput = ({ onInputChange, onSendMessage }) => {
           </div>
         )}
         <textarea
-          placeholder="Write message here..."
-          className="message-input text-black"
+          placeholder="Type your message..."
+          className="message-input body-theme"
           value={inputText}
           onChange={handleInputChangeInternal}
           onKeyDown={handleKeyDown}

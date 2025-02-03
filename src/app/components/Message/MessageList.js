@@ -36,9 +36,9 @@ const MessageList = ({ chatHistory, currentUserId }) => {
         const isUserMessage = msg.user_sender === parseInt(currentUserId);
 
         return (
-          <div className={`chat ${isUserMessage ? "chat-right" : "chat-left"}`} key={index}>
+          <div className={`chat  ${isUserMessage ? "chat-right" : "chat-left"}`} key={index}>
             <div className={`bubble-chat ${isUserMessage ? "bubble-chat-user" : "bubble-chat-other"}`}>
-              <div className="relative" >
+              <div className="relative " >
                 {msg.content_type === "text" && 
                   <p style={{ whiteSpace: "pre-wrap" }}>{msg.content}</p>
                 }

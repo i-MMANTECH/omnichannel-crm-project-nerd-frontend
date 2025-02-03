@@ -38,7 +38,6 @@ const CreateRoleDrawer = ({ show, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    return
 
     try {
       const response = await axiosInstance.post('/users/roles/', {
@@ -67,7 +66,7 @@ const CreateRoleDrawer = ({ show, onClose }) => {
         Cancel
       </button>
       <button
-        type="submit"
+        onClick={handleSubmit}
         form="roleForm"
         className="px-4 py-2 bg-[#3EBF0F] text-white rounded-lg hover:bg-green-600"
       >

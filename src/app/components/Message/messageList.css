@@ -29,8 +29,12 @@
 .bubble-chat {
   display: inline-flex;
   padding: 16px 19px;
-  max-width: 60%;
+  max-width: 600px;
   word-wrap: break-word;
+  overflow-wrap: break-word;
+  display: inline-block;
+  white-space: normal;
+  overflow: hidden;
 }
 
 .bubble-chat-user {

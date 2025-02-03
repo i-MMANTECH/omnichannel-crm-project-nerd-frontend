@@ -22,7 +22,7 @@ const dummyNotes = [
 
 const Notes = () => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 hidden">
       {dummyNotes.map(note => (
         <div key={note.id} className="flex p-3 items-start gap-3 self-stretch rounded-lg border border-[#DFE1E6] body-theme shadow-md">
           {note?.user?.image && <Image 

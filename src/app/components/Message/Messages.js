@@ -103,9 +103,9 @@ export const Messages = () => {
         fetchLeadsChatList(); 
       }
 
-      if (activeUser && (message.content.lead_receiver === activeUser?.id || message.content.customer_receiver === activeUser?.id)) {
+      // if (activeUser && (message.content.lead_receiver === activeUser?.id || message.content.customer_receiver === activeUser?.id)) {
         setChatHistory((prev) => [...prev, message]);
-      }
+      // }
     };
 
     ws.onerror = (error) => {
@@ -250,7 +250,7 @@ export const Messages = () => {
         </div>
       </div>
 
-      <div className="overflow-y-hidden  messages flex items-start  border border-gray-500 rounded-lg relative h-[80vh] m-4 mt-0">
+      <div className="overflow-y-hidden overflow-x-hidden  messages flex items-start  border border-gray-500 rounded-lg relative h-[80vh] m-4 mt-0">
         <div>
           <div className="body-theme justify-center gap-5 p-5 flex items-start flex-col w-full">
             <div className="w-full hidden">
@@ -278,9 +278,9 @@ export const Messages = () => {
           <ChatList users={users} activeUser={activeUser} setActiveUser={setActiveUser} />
         </div>
         
-        <div className="detail">
+        <div className="detail ">
           {activeUser ? (
-            <>
+            <div >
               <ChatHeader activeUser={activeUser} />
               <div className="flex items-center ">
                 <MessageList 
@@ -295,7 +295,7 @@ export const Messages = () => {
                   audioRecordingEnabled
                 />
               </div>
-            </>
+            </div>
           ) : (
             <div className="no-chat-selected">
               {activeTab === "leads" ? "Select a lead to chat with" : "Select a customer to chat with"}

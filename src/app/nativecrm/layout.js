@@ -18,7 +18,7 @@ export default function RootLayout({ children }) {
           <Sidebar />
           <div className="flex-1 flex relative flex-col ml-10 mt-20">
             <Navbar />
-            <div className="overflow-x-hidden mt-5 ml-40 pl-10 body-theme">
+            <div className="overflow-x-hidden mt-5 ml-40 pl-10 body-theme ">
               {children}
             </div>
           </div>

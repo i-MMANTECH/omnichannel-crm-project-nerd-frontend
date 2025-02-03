@@ -5,11 +5,10 @@ import { AuthContext } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
-import { getUserDomain } from '@/utils/getUserDomain';
 import Footer from '@/app/components/Footer';
 import Image from 'next/image';
 import { toast } from 'react-toastify';
-
+import { getUserDomain } from '@/utils/getUserDomain';
 
 const SignIn = () => {
     const router = useRouter();
@@ -39,7 +38,8 @@ const SignIn = () => {
         if (id === 'password') setPassword(value);
     };
 
-    const handleTogglePasswordVisibility = () => {
+    const handleTogglePasswordVisibility = (e) => {
+        e.preventDefault();
         setShowPassword((prev) => !prev);
     };
 
@@ -62,6 +62,20 @@ const SignIn = () => {
         }
     };
 
+    const handleCreateAccountRedirect = () => {
+        const currentUrl = window.location.href;
+        const isLocalhost = currentUrl.includes("localhost");
+        const hostname = window.location.hostname;
+
+        if (isLocalhost) {
+            router.push('/auth/sign-up');
+        } else if (hostname.includes("staging.nativetalkcrm.com")) {
+            window.location.href = "https://staging.nativetalkcrm.com/auth/sign-up";
+        } else if (hostname.includes("nativetalkcrm.com")) {
+            window.location.href = "https://nativetalkcrm.com/auth/sign-up";
+        }
+    };
+
     const isFormValid = email && password;
 
     return (
@@ -75,7 +89,6 @@ const SignIn = () => {
                         style={{height: 542}}
                     />
                 </div>
-
 
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
 
@@ -125,6 +138,7 @@ const SignIn = () => {
                                 required
                             />
                             <button
+                                type="button"
                                 className="absolute inset-y-0 right-0 px-3 text-gray-600"
                                 onClick={handleTogglePasswordVisibility}
                                 aria-label={showPassword ? "hide password" : "show password"}
@@ -134,7 +148,7 @@ const SignIn = () => {
                                     alt="Show Password"
                                     width={24}
                                     height={24}
-                                    />
+                                />
                             </button>
                         </div>
                         <div className="flex items-center justify-between mb-4 mt-3">
@@ -160,19 +174,20 @@ const SignIn = () => {
                         <button
                             type="button"
                             className="w-full bg-white border border-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-100 focus:outline-none flex items-center justify-center"
+                            onClick={handleCreateAccountRedirect}
                         >
                             <Image src="/assets/google.svg"
                                 alt="Google" 
                                 className='mr-2'
                                 width={25}
                                 height={25}
-                                />
+                            />
                             Sign in with Google
                         </button>
                     </form>
                     <div className="text-center mt-6">
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                            You're new here? <a href="/auth/sign-up" className="text-[#3EBF0F] hover:underline">Create Account</a>
+                            You're new here? <a href="#" onClick={handleCreateAccountRedirect} className="text-[#3EBF0F] hover:underline">Create Account</a>
                         </p>
                     </div>
                     
