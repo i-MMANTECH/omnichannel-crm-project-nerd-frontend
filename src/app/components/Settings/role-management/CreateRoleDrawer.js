@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Drawer from '../../Drawer';
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
-import Pagination from '@/app/components/pagination/Pagination';
+import Pagination from '../../Pagination/Pagination';
 
 const CreateRoleDrawer = ({ show, onClose, onRoleCreated }) => {
   const [roleName, setRoleName] = useState("");
