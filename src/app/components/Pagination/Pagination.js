@@ -1,38 +1,61 @@
 import React from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const Pagination = ({ currentPage, totalPages, onPageChange, onPageSizeChange, pageSize }) => {
-  
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Function to update URL with new parameters
+  const updateURL = (page, limit) => {
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set("page", page);
+    newParams.set("limit", limit);
+    router.push(`/nativecrm/settings#role-management?${newParams.toString()}`);
+  };
+
+  const handlePageChange = (page) => {
+    if (page < 1 || page > totalPages) return;
+    onPageChange(page);
+    updateURL(page, pageSize);
+  };
+
+  const handlePageSizeChange = (e) => {
+    const newSize = Number(e.target.value);
+    onPageSizeChange(newSize);
+    updateURL(currentPage, newSize);
+  };
+
   const getPageNumbers = () => {
     const pages = [];
+    pages.push(1); // Always show first page
 
     if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) {
+      for (let i = 2; i < totalPages; i++) {
         pages.push(i);
       }
     } else {
-      if (currentPage > 3) pages.push(1, 2, 3, '...');
-      
-      const startPage = Math.max(2, currentPage - 1);
-      const endPage = Math.min(totalPages - 1, currentPage + 1);
-      
-      for (let i = startPage; i <= endPage; i++) {
-        if (i > 3 && i < totalPages - 2) pages.push(i);
+      if (currentPage <= 3) {
+        pages.push(2, 3);
+        if (totalPages > 4) pages.push("...");
+      } else if (currentPage >= totalPages - 2) {
+        pages.push("...", totalPages - 3, totalPages - 2);
+      } else {
+        pages.push("...", currentPage - 1, currentPage, currentPage + 1, "...");
       }
-
-      if (currentPage < totalPages - 2) pages.push('...', totalPages);
     }
-    
+
+    if (!pages.includes(totalPages)) {
+      pages.push(totalPages);
+    }
+
     return pages;
   };
 
   return (
-    <div className="flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
+    <div className="flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md overflow-x-auto scrollbar-hide">
       <div className="flex items-center space-x-2">
         <button
-          onClick={(e) => {
-            e.preventDefault();
-            onPageChange(currentPage - 1);
-          }}
+          onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className={`px-3 py-1 rounded-md border ${currentPage === 1 ? 'bg-gray-300 dark:bg-gray-800 cursor-not-allowed' : 'bg-white dark:bg-gray-800 text-[#0D0D12] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600'} border-[#C1C7CF]`}
         >
@@ -42,10 +65,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange, onPageSizeChange, p
         {getPageNumbers().map((page, index) => (
           <button
             key={index}
-            onClick={(e) => {
-              e.preventDefault();
-              typeof page === 'number' && onPageChange(page);
-            }}
+            onClick={() => typeof page === 'number' && handlePageChange(page)}
             className={`px-3 py-1 rounded-md border ${page === currentPage ? 'bg-[#3EBF0F] text-white' : 'bg-white dark:bg-gray-800 text-[#0D0D12] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600'} border-[#C1C7CF]`}
             disabled={page === '...'}
           >
@@ -54,10 +74,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange, onPageSizeChange, p
         ))}
 
         <button
-          onClick={(e) => {
-            e.preventDefault();
-            onPageChange(currentPage + 1);
-          }}
+          onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
           className={`px-3 py-1 rounded-md border ${currentPage === totalPages ? 'bg-gray-300 dark:bg-gray-800 cursor-not-allowed' : 'bg-white dark:bg-gray-800 text-[#0D0D12] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600'} border-[#C1C7CF]`}
         >
@@ -69,7 +86,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange, onPageSizeChange, p
         <span className="text-gray-600 dark:text-gray-300">Show</span>
         <select
           value={pageSize}
-          onChange={(e) => onPageSizeChange(Number(e.target.value))}
+          onChange={handlePageSizeChange}
           className="px-2 py-1 border border-[#C1C7CF] rounded-md bg-white dark:bg-gray-800 text-[#0D0D12] dark:text-white"
         >
           {[8, 10, 20, 50].map(size => (

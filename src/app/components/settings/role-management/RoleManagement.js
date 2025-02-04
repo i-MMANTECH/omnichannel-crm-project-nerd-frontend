@@ -4,8 +4,9 @@ import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import CreateRoleDrawer from "./CreateRoleDrawer";
 import UpdateRoleDrawer from "./UpdateRoleDrawer";
 import { useApi } from "@/services/axiosConfig";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import useCustomAlert from "@/context/useCustomAlert";
+import Pagination from "../../Pagination/Pagination";
 
 const RoleManagement = () => {
   const [menuOpen, setMenuOpen] = useState(null);
@@ -17,16 +18,24 @@ const RoleManagement = () => {
   const [roleToEdit, setRoleToEdit] = useState(null);
   const { axiosInstance } = useApi();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { showAlert, AlertModal } = useCustomAlert();
+  
+  // Pagination states
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  
 
   const toggleMenu = (id) => {
     setMenuOpen(menuOpen === id ? null : id);
   };
 
-  const fetchRoles = async () => {
+  const fetchRoles = async (page = 1, limit = pageSize) => {
     try {
-      const response = await axiosInstance.get('/users/roles/');
+      const response = await axiosInstance.get(`/users/roles/?limit=${limit}&page=${page}`);
       setRoles(response.data.results);
+      setTotalPages(Math.ceil(response.data.count / limit));
     } catch (error) {
       console.error("Error fetching roles:", error);
     }
@@ -39,7 +48,7 @@ const RoleManagement = () => {
       async () => {
         try {
           await axiosInstance.delete(`/users/roles/${roleId}/`);
-          fetchRoles();
+          fetchRoles(currentPage); // Refresh current page after deletion
         } catch (error) {
           console.error("Error deleting role:", error);
         }
@@ -53,12 +62,12 @@ const RoleManagement = () => {
   };
 
   useEffect(() => {
-    fetchRoles();
-  }, []);
+    fetchRoles(currentPage);
+  }, [currentPage, pageSize]);
 
   return (
-    <div className="overflow-x-hidden flex flex-col pr-10">
-      <div className="main-container body-theme pl-10 w-full min-h-80">
+    <div className="overflow-x-hidden flex flex-col pr-10 h-full justify-between">
+      <div className="body-theme pl-10 w-full min-h-80">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-lg font-semibold mb-2">Admin</h2>
@@ -135,18 +144,27 @@ const RoleManagement = () => {
             setIsDrawerOpen(false);
             fetchRoles();
           }} 
-          onRoleCreated={fetchRoles}
+          onRoleCreated={() => fetchRoles(currentPage)}
         />
         <UpdateRoleDrawer 
           show={isUpdateDrawerOpen} 
           onClose={() => setIsUpdateDrawerOpen(false)} 
           roleId={roleToEdit} 
-          onRoleUpdated={fetchRoles}
+          onRoleUpdated={() => fetchRoles(currentPage)}
         />
       </div>
+
+      <div className="mt-10 pl-10">
+          <Pagination 
+            currentPage={currentPage} 
+            totalPages={totalPages} 
+            onPageChange={setCurrentPage} 
+            onPageSizeChange={setPageSize}
+            pageSize={pageSize}
+          />
+        </div>
     </div>
   );
 };
 
 export default RoleManagement;
-
