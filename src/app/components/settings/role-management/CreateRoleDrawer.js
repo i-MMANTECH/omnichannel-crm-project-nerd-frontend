@@ -4,7 +4,7 @@ import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
 import Pagination from '@/app/components/pagination/Pagination';
 
-const CreateRoleDrawer = ({ show, onClose }) => {
+const CreateRoleDrawer = ({ show, onClose, onRoleCreated }) => {
   const [roleName, setRoleName] = useState("");
   const [description, setDescription] = useState("");
   const [availablePermissions, setAvailablePermissions] = useState([]);
@@ -51,6 +51,7 @@ const CreateRoleDrawer = ({ show, onClose }) => {
         permissions: selectedPermissions
       });
       
+      onRoleCreated();
       onClose();
       setRoleName("");
       setDescription("");

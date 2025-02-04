@@ -26,15 +26,15 @@ const Pagination = ({ currentPage, totalPages, onPageChange, onPageSizeChange, p
   };
 
   return (
-    <div className="flex justify-between items-center p-4 bg-gray-100 rounded-lg shadow-md">
+    <div className="flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
       <div className="flex items-center space-x-2">
         <button
           onClick={(e) => {
-            e.preventDefault()
-            onPageChange(currentPage - 1)
+            e.preventDefault();
+            onPageChange(currentPage - 1);
           }}
           disabled={currentPage === 1}
-          className={`px-3 py-1 rounded-md border ${currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-white text-[#0D0D12] hover:bg-gray-100'} border-[#C1C7CF]`}
+          className={`px-3 py-1 rounded-md border ${currentPage === 1 ? 'bg-gray-300 dark:bg-gray-800 cursor-not-allowed' : 'bg-white dark:bg-gray-800 text-[#0D0D12] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600'} border-[#C1C7CF]`}
         >
           {'<'}
         </button>
@@ -43,10 +43,10 @@ const Pagination = ({ currentPage, totalPages, onPageChange, onPageSizeChange, p
           <button
             key={index}
             onClick={(e) => {
-              e.preventDefault()
-              typeof page === 'number' && onPageChange(page)
+              e.preventDefault();
+              typeof page === 'number' && onPageChange(page);
             }}
-            className={`px-3 py-1 rounded-md border ${page === currentPage ? 'bg-[#3EBF0F] text-white' : 'bg-white text-[#0D0D12] hover:bg-gray-100'} border-[#C1C7CF]`}
+            className={`px-3 py-1 rounded-md border ${page === currentPage ? 'bg-[#3EBF0F] text-white' : 'bg-white dark:bg-gray-800 text-[#0D0D12] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600'} border-[#C1C7CF]`}
             disabled={page === '...'}
           >
             {page}
@@ -56,27 +56,27 @@ const Pagination = ({ currentPage, totalPages, onPageChange, onPageSizeChange, p
         <button
           onClick={(e) => {
             e.preventDefault();
-            onPageChange(currentPage + 1)
+            onPageChange(currentPage + 1);
           }}
           disabled={currentPage === totalPages}
-          className={`px-3 py-1 rounded-md border ${currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-white text-[#0D0D12] hover:bg-gray-100'} border-[#C1C7CF]`}
+          className={`px-3 py-1 rounded-md border ${currentPage === totalPages ? 'bg-gray-300 dark:bg-gray-800 cursor-not-allowed' : 'bg-white dark:bg-gray-800 text-[#0D0D12] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600'} border-[#C1C7CF]`}
         >
           {'>'}
         </button>
       </div>
 
       <div className="flex items-center space-x-2">
-        <span className="text-gray-600">Show</span>
+        <span className="text-gray-600 dark:text-gray-300">Show</span>
         <select
           value={pageSize}
           onChange={(e) => onPageSizeChange(Number(e.target.value))}
-          className="px-2 py-1 border border-[#C1C7CF] rounded-md bg-white text-[#0D0D12]"
+          className="px-2 py-1 border border-[#C1C7CF] rounded-md bg-white dark:bg-gray-800 text-[#0D0D12] dark:text-white"
         >
           {[8, 10, 20, 50].map(size => (
             <option key={size} value={size}>{size}</option>
           ))}
         </select>
-        <span className="text-gray-600">entries</span>
+        <span className="text-gray-600 dark:text-gray-300">entries</span>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
+import { formatChatTime } from "@/utils/timeUtils";
 import "./chatlist.css";
 import Image from "next/image";
 import UserAvatar from "../UserAvatar";
@@ -11,11 +12,6 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
   const menuRef = useRef(null);
 
   const filteredUsers = contacts;
-
-  const formatTime = (time) => {
-    const date = new Date(time);
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
 
   const truncateMessage = (message, maxLength) => {
     if (message.length > maxLength) {
@@ -84,11 +80,11 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
                 </div>
                 <div className="content">
                   <div className="flex justify-between w-full">
-                    <div className="text-black dark:text-white">{user.name || "Unknown User"}</div>
-                    <div className="title-2">{formatTime(user.lastMessageTime)}</div>
+                    <div className="text-black dark:text-white user-name">{user.name || "Unknown User"}</div>
+                    <div className="title-2">{formatChatTime(user.lastMessageTime)}</div>
                   </div>
                   <div className="flex justify-between w-full">
-                    <p className="label">{truncateMessage(user.lastMessage, 27)}</p>
+                    <p className="label last-message">{truncateMessage(user.lastMessage, 27)}</p>
                     <div className="hidden">
                       {user.unreadCount > 0 && (
                         <div className="title-wrapper">

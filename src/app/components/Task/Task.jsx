@@ -296,10 +296,10 @@ export default function Task() {
           </div>
 
           <button className="hidden flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
-                  <FontAwesomeIcon icon={faFilter} className="text-gray-500 mr-2" />
-                  <span className="text-sm font-medium">Filter</span>
-                </button>
-              </div>
+              <FontAwesomeIcon icon={faFilter} className="text-gray-500 mr-2" />
+              <span className="text-sm font-medium">Filter</span>
+            </button>
+          </div>
               <button
                 onClick={openModal}
                 className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm ml-auto"

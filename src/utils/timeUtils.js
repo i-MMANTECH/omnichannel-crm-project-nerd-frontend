@@ -49,4 +49,33 @@ export function formatDateTime(isoString) {
     if (interval >= 1) return `${interval} minute${interval === 1 ? '' : 's'} ago`;
     
     return 'just now';
+  };
+
+  // New function to format time for chat messages
+  export const formatChatTime = (time) => {
+    const date = new Date(time);
+    const now = new Date();
+    
+    // Check if the date is today
+    const isToday = date.toDateString() === now.toDateString();
+    if (isToday) {
+        return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+
+    // Check if the date is yesterday
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) {
+        return "Yesterday";
+    }
+
+    // Check if the date is within the last week
+    const oneWeekAgo = new Date(now);
+    oneWeekAgo.setDate(now.getDate() - 7);
+    if (date >= oneWeekAgo) {
+        return date.toLocaleString('en-US', { weekday: 'long' }); // e.g., "Tuesday"
+    }
+
+    // For dates older than a week, return the date in dd/mm/yyyy format
+    return date.toLocaleDateString('en-GB'); // e.g., "26/01/2025"
   }; 

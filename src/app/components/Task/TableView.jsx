@@ -238,7 +238,7 @@ export default function TableView({ tasks, updateTask, handleDelete, openViewMod
                 {menuOpen === task.id && (
                   <div
                     ref={menuRef}
-                    className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
+                    className="absolute z-50 right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
                   >
                     <div className="py-1">
                       <button
