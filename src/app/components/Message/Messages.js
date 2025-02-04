@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
@@ -28,128 +28,129 @@ export const Messages = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("leads");
 
-  useEffect(() => {
-    if (activeTab == 'customers') {
-      fetchCustomerChatList()
-    } else {
-      fetchLeadsChatList()
-    }
-  }, [activeTab])
+  const wsRef = useRef(null);
 
   useEffect(() => {
-    if (activeUser) {
-      if (activeTab == 'customers') {
-        axiosInstance
-          .get(`/communication/customer-chat-history/${activeUser.id}`)
-          .then((response) => {
-            const messages = response.data.results.messages || [];
-            setChatHistory(messages.reverse());
-          })
-          .catch((error) => {
-            handleApiError(error)
-          });
-      } else {
-        axiosInstance
-          .get(`/communication/history/?lead_id=${activeUser.id}`)
-          .then((response) => {
-            console.log(response.data.messages)
-            setChatHistory(response.data.messages || []);
-          })
-          .catch((error) => {
-            handleApiError(error)
-          });
-      }
-    }
+    fetchChatHistory();
   }, [activeUser, activeTab]);
 
   useEffect(() => {
-    const fetchScript = async () => {
-        try {
-          const response = await axiosInstance.get('/companies/details/',
-            {},
-            {
-              headers: {
-                'Content-Type': 'application/json',
-              }
-            }
-          );
-
-          if (response.data.company) {
-            setCompanyId(response.data.company.id);
-          } 
-        } catch (error) {
-          handleApiError(error)
+    const fetchCompanyId = async () => {
+      try {
+        const response = await axiosInstance.get("/companies/details/");
+        if (response.data.company) {
+          setCompanyId(response.data.company.id);
         }
-    };
-
-    fetchScript();
-  }, []);
-  
- useEffect(() => {
-  if (companyId) {
-    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const wsUrl = `${protocol}://ws-staging.nativetalkcrm.com/ws/chat/?uuid=${companyId}&type=company`;
-    const ws = new WebSocket(wsUrl);
-    setSocket(ws);
-
-    ws.onopen = () => {
-      console.log("WebSocket connected");
-    };
-
-    ws.onmessage = (event) => {
-      console.log(event)
-      const data = JSON.parse(event.data);
-      const message = data.message;
-
-      if (message.is_new_lead) {
-        fetchLeadsChatList(); 
+      } catch (error) {
+        handleApiError(error);
       }
-
-      // if (activeUser && (message.content.lead_receiver === activeUser?.id || message.content.customer_receiver === activeUser?.id)) {
-        setChatHistory((prev) => [...prev, message]);
-      // }
     };
 
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
+    fetchCompanyId();
+  }, []);
 
-    ws.onclose = () => {
-      console.log("WebSocket disconnected");
-    };
+  useEffect(() => {
+    if (companyId && !wsRef.current) {
+      const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+      const wsUrl = `${protocol}://ws-staging.nativetalkcrm.com/ws/chat/?uuid=${companyId}&type=company`;
+      wsRef.current = new WebSocket(wsUrl);
 
-    return () => {
-      ws.close();
-    };
+      wsRef.current.onopen = () => {
+        console.log("WebSocket connected");
+      };
+
+      wsRef.current.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
+
+      wsRef.current.onclose = () => {
+        console.log("WebSocket disconnected");
+        wsRef.current = null;
+      };
+
+      return () => {
+        if (wsRef.current) {
+          wsRef.current.close();
+          wsRef.current = null;
+        }
+      };
     }
   }, [companyId]);
 
+  useEffect(() => {
+    if (!wsRef.current) return;
+  
+    wsRef.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      const message = data.message;
+  
+      console.log("Received WebSocket message:", message);
+
+      if (message.is_new_lead) {
+        console.log("New sender detected, fetching updated users list...");
+        fetchChatList();
+      }
+  
+      if (
+        activeUser &&
+        (message.lead_sender === activeUser.id ||
+          message.customer_sender === activeUser.id ||
+          message.lead_info?.id === activeUser.id)
+      ) {
+        setChatHistory((prev) => [...prev, message]);
+      } else {
+        fetchChatList();
+      }
+    };
+  }, [activeUser, users]);
+  
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
 
-  const fetchCustomerChatList = () => {
-    axiosInstance
-      .get("/communication/chatted-customers/")
+  const fetchChatList = () => {
+    const endpoint = activeTab === "customers"
+      ? "/communication/chatted-customers/"
+      : "/communication/contacts/";
+  
+    axiosInstance.get(endpoint)
       .then((response) => {
         setUsers(response.data);
       })
-      .catch((error) => {
-        handleApiError(error)
-      });
-  }
+      .catch(handleApiError);
+  };
+  
 
-  const fetchLeadsChatList = () => {
-    axiosInstance
-      .get("/communication/contacts/")
-      .then((response) => {
-        setUsers(response.data);
-      })
-      .catch((error) => {
-        handleApiError(error)
-      });
-  }
+  const fetchChatHistory = () => {
+    console.log('fetching history')
+    if (activeUser) {
+      const endpoint = activeTab === "customers"
+        ? `/communication/customer-chat-history/${activeUser.id}`
+        : `/communication/history/?lead_id=${activeUser.id}`;
+  
+      axiosInstance.get(endpoint)
+        .then((response) => {
+          setChatHistory(activeTab === "customers"
+            ? response.data.results.messages.reverse() || []
+            : response.data.messages || []);
+        })
+        .catch(handleApiError);
+    } else {
+      console.log('fetching in general')
 
+      const generalEndpoint = activeTab === "customers"
+        ? "/communication/chatted-customers/"
+        : "/communication/contacts/";
+  
+      axiosInstance.get(generalEndpoint)
+        .then((response) => {
+          setUsers(response.data);
+        })
+        .catch(handleApiError);
+    }
+  };
+
+  
   const handleSendMessage = (messageContent) => {
     const payload = {
       lead_id: activeUser.id,

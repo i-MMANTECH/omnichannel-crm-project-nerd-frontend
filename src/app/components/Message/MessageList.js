@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 
 const MessageList = ({ chatHistory, currentUserId }) => {
   const messageEndRef = useRef(null);
-  const router = useRouter()
+  const router = useRouter();
   const [hoveredUserId, setHoveredUserId] = useState(null); // Track the hovered user uniquely
 
   useEffect(() => {
@@ -75,14 +75,25 @@ const MessageList = ({ chatHistory, currentUserId }) => {
                       )}
                     </div>
 
-                    {msg.content_type === "text" && (
+                    {msg.content_type === "text" ? (
                       <p style={{ whiteSpace: "pre-wrap" }}>{msg.content}</p>
-                    )}
+                    ) : msg.content_type === "html" ? (
+                      <div
+                        className="message-html"
+                        dangerouslySetInnerHTML={{ __html: msg.content }} // Render HTML content
+                      />
+                    ) : null}
                   </div>
                 ) : (
                   <div>
                     {msg.content_type === "text" && (
                       <p style={{ whiteSpace: "pre-wrap" }}>{msg.content}</p>
+                    )}
+                    {msg.content_type === "html" && (
+                      <div
+                        className="message-html"
+                        dangerouslySetInnerHTML={{ __html: msg.content }} // Render HTML content
+                      />
                     )}
                   </div>
                 )}
