@@ -28,7 +28,7 @@
 
 .bubble-chat {
   display: inline-flex;
-  padding: 16px 19px;
+  padding: 10px 19px;
   max-width: 600px;
   word-wrap: break-word;
   overflow-wrap: break-word;

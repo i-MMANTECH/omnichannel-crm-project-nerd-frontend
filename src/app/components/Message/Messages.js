@@ -52,6 +52,7 @@ export const Messages = () => {
         axiosInstance
           .get(`/communication/history/?lead_id=${activeUser.id}`)
           .then((response) => {
+            console.log(response.data.messages)
             setChatHistory(response.data.messages || []);
           })
           .catch((error) => {
