@@ -4,9 +4,11 @@ import { faCheck, faCheckDouble, faCircleExclamation, faSpinner } from "@fortawe
 import "./messageList.css";
 import Image from "next/image";
 import UserAvatar from "../UserAvatar";
+import { useRouter } from "next/navigation";
 
 const MessageList = ({ chatHistory, currentUserId }) => {
   const messageEndRef = useRef(null);
+  const router = useRouter()
   const [hoveredUserId, setHoveredUserId] = useState(null); // Track the hovered user uniquely
 
   useEffect(() => {
@@ -41,15 +43,15 @@ const MessageList = ({ chatHistory, currentUserId }) => {
 
         return (
           <div className={`chat ${isUserMessage ? "chat-right" : "chat-left"}`} key={index}>
-            <div className={`bubble-chat ${isUserMessage ? "bubble-chat-user" : "bubble-chat-other"}`}>
-              <div className="relative">
+            <div className={`mt-1 bubble-chat ${isUserMessage ? "bubble-chat-user" : "bubble-chat-other"}`}>
+              <div className="relative ">
                 {isOutgoing ? (
                   <div className="flex items-center relative">
                     {/* User Profile Image with Hover Effect */}
                     <div
-                      className="relative"
-                      onMouseEnter={() => setHoveredUserId(index)} // Set unique index on hover
-                      onMouseLeave={() => setHoveredUserId(null)} // Remove on leave
+                      className="relative pointer"
+                      onMouseEnter={() => setHoveredUserId(index)} 
+                      onMouseLeave={() => setHoveredUserId(null)} 
                     >
                       {msg.user_sender_details?.image ? (
                         <Image
@@ -59,15 +61,15 @@ const MessageList = ({ chatHistory, currentUserId }) => {
                           className="w-8 h-8 rounded-full mr-3"
                           width={30}
                           height={30}
+                          onClick={() => (router.push(`/nativecrm/users/${msg.user_sender_details.id}`))}
                           title={msg.user_sender_details.name}
                         />
                       ) : (
                         <UserAvatar name={msg.user_sender_details?.name} width="w-8" height="h-8" />
                       )}
 
-                      {/* Tooltip for User Name (Only show for the hovered one) */}
                       {hoveredUserId === index && userDisplayInfo && (
-                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gray-800 dark:bg-gray-700 text-white text-xs px-2 py-1 rounded-md shadow-lg z-50">
+                        <div className=" absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gray-800 dark:bg-gray-700 text-white text-xs px-2 py-1 rounded-md shadow-lg z-50">
                           {userDisplayInfo}
                         </div>
                       )}
