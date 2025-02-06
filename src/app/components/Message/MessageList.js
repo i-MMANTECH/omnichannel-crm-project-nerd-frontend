@@ -35,7 +35,7 @@ const MessageList = ({ chatHistory, currentUserId }) => {
   if (!chatHistory || chatHistory.length === 0) return null;
 
   return (
-    <div className="message-list flex overflow-y-auto overflow-x-hidden h-[60vh] flex-col relative">
+    <div className="message-list flex overflow-y-auto overflow-x-hidden h-[60vh] flex-col relative scrollbar-hide">
       {chatHistory.map((msg, index) => {
         const isUserMessage = msg.user_sender === parseInt(currentUserId);
         const isOutgoing = msg.company_is_sender;

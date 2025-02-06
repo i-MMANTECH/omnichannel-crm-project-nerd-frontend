@@ -26,7 +26,7 @@ const roleStyles = {
 
 const UserGrid = ({ searchQuery, users }) => {
   return (
-    <div className="p-6  body-theme overflow-auto">
+    <div className="  body-theme overflow-auto">
     {users?.length > 0 ? (  
         <div className="grid gap-6 grid-cols-3">
           {users.map((user) => (

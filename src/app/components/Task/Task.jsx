@@ -116,7 +116,6 @@ export default function Task() {
 
   const toggleView = () => {
     setView((prevView) => {
-      // Cycle through views: list -> table -> kanban
       switch(prevView) {
         case "list":
           return "table";
@@ -268,7 +267,7 @@ export default function Task() {
                 >
                   <FontAwesomeIcon icon={faTh} className="text-blue-500 mr-2" />
                   <span className="text-sm font-medium">
-                    {view === "list" ? "Table View" : view === "table" ? "Kanban View" : "List View"}
+                    {view === "list" ? "List View" : view === "table" ? "Table View" : "Kanban View"}
                   </span>
                 </button>
                 <div className="relative">

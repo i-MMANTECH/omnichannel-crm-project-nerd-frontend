@@ -14,10 +14,12 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
   const filteredUsers = contacts;
 
   const truncateMessage = (message, maxLength) => {
-    if (message.length > maxLength) {
-      return `${message.slice(0, maxLength)}...`;
-    }
-    return message;
+    if (!message) return "";
+  
+    const doc = new DOMParser().parseFromString(message, "text/html");
+    const textContent = doc.body.textContent || "";
+  
+    return textContent.length > maxLength ? textContent.substring(0, maxLength) + "..." : textContent;
   };
 
   const toggleMenu = (id) => {
@@ -39,13 +41,13 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
 
   return (
     <div className="flex items-start flex-col relative body-theme px-2">
-      <div className="chat-list-container flex flex-col overflow-y-auto h-[60vh] items-start">
+      <div className="chat-list-container flex flex-col overflow-y-auto h-[60vh] items-start scrollbar-hide">
         {filteredUsers.map((user) => {
           return (
             <div
               key={user.id}
               className={`flex items-center rounded ${
-                user?.id === activeUser?.id ? "bg-gray-100 dark:bg-neutral-900" : ""
+                user?.id === activeUser?.id ? "bg-gray-200 dark:bg-gray-800" : ""
               }`}
               onClick={() => setActiveUser(user)}
             >
@@ -78,13 +80,23 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
                     </div>
                   )}
                 </div>
-                <div className="content">
-                  <div className="flex justify-between w-full">
+                <div className="content ">
+                  <div className="flex justify-between  w-full ">
                     <div className="text-black dark:text-white user-name">{user.name || "Unknown User"}</div>
-                    <div className="title-2">{formatChatTime(user.lastMessageTime)}</div>
+                    <div className="relative flex items-center">
+                      {/* Time Display */}
+                      <div className="title-2 ">{formatChatTime(user.lastMessageTime)}</div>
+
+                      {/* Unread Message Indicator */}
+                      {user.unreadCount > 0 && (
+                        <div className="absolute -bottom-7 right-0 flex items-center justify-center w-5 h-5 bg-green-600 text-white text-xs font-bold rounded-full shadow-md">
+                          {user.unreadCount}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex justify-between w-full">
-                    <p className="label last-message">{truncateMessage(user.lastMessage, 27)}</p>
+                  <div className="flex justify-between w-full ">
+                    <p className="label last-message ">{truncateMessage(user.lastMessage, 27)}</p>
                     <div className="hidden">
                       {user.unreadCount > 0 && (
                         <div className="title-wrapper">

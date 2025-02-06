@@ -122,7 +122,6 @@ export const Messages = () => {
   
 
   const fetchChatHistory = () => {
-    console.log('fetching history')
     if (activeUser) {
       const endpoint = activeTab === "customers"
         ? `/communication/customer-chat-history/${activeUser.id}`
@@ -130,13 +129,13 @@ export const Messages = () => {
   
       axiosInstance.get(endpoint)
         .then((response) => {
+
           setChatHistory(activeTab === "customers"
             ? response.data.results.messages.reverse() || []
             : response.data.messages || []);
         })
         .catch(handleApiError);
     } else {
-      console.log('fetching in general')
 
       const generalEndpoint = activeTab === "customers"
         ? "/communication/chatted-customers/"
@@ -144,6 +143,7 @@ export const Messages = () => {
   
       axiosInstance.get(generalEndpoint)
         .then((response) => {
+          console.log(response)
           setUsers(response.data);
         })
         .catch(handleApiError);

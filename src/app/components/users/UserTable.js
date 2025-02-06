@@ -3,6 +3,7 @@ import Pagination from "../Pagination/Pagination";
 import "./UserTable.css";
 import { useRouter } from "next/navigation";
 import UserAvatar from "../UserAvatar";
+import { getRoleStyle } from "@/utils/getRoleStyle";
 
 
 const UserTable = ({ searchQuery, users }) => {
@@ -17,22 +18,12 @@ const UserTable = ({ searchQuery, users }) => {
     setCurrentPage(1);
   };
 
-  const getRoleStyle = (role) => {
-    switch (role) {
-      case "User":
-        return { backgroundColor: "#F4F0FF", color: "#936DFF" };
-      case "Admin":
-        return { backgroundColor: "#FEF1ED", color: "#F36F4A" };
-      default:
-        return {};
-    }
-  };
 
   return (
-    <div>
-        <div>
-          <div className="overflow-auto">
-          <table className="min-w-full bg-theme">
+    <div >
+        <div >
+          <div className="overflow-auto ">
+          <table className="min-w-full body-theme ">
             <thead className="bg-gray-100 dark:bg-neutral-900">
               <tr>
                 <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-500">
@@ -66,14 +57,14 @@ const UserTable = ({ searchQuery, users }) => {
                     />
                     <span>{user.first_name ? 
                         `${user.first_name} ${user.last_name}` : 
-                        user.email || '--'
+                        '--'
                       } </span>
                   </td>
                   <td className="py-3 px-4 border-b">
                     {user.roles.map((role) => (
                       <span
                         key={role.id}
-                        className="px-2 py-1 rounded"
+                        className="px-2 py-1 rounded ml-1"
                         style={getRoleStyle(role.name)}
                       >
                         {role.name}

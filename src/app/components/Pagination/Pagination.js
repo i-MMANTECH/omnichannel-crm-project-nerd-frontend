@@ -1,16 +1,16 @@
 import React from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 const Pagination = ({ currentPage, totalPages, onPageChange, onPageSizeChange, pageSize }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
-  // Function to update URL with new parameters
   const updateURL = (page, limit) => {
     const newParams = new URLSearchParams(searchParams.toString());
     newParams.set("page", page);
     newParams.set("limit", limit);
-    router.push(`/nativecrm/settings#role-management?${newParams.toString()}`);
+    router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
   };
 
   const handlePageChange = (page) => {
@@ -27,7 +27,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange, onPageSizeChange, p
 
   const getPageNumbers = () => {
     const pages = [];
-    pages.push(1); // Always show first page
+    pages.push(1);
 
     if (totalPages <= 5) {
       for (let i = 2; i < totalPages; i++) {

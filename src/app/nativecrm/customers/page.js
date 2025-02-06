@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
@@ -15,7 +15,7 @@ import NoDataFound from '@/app/components/NoDataFound';
 import empty from '/public/assets/empty.svg';
 import CreateCustomerModal from '@/app/components/Customers/CreateCustomerModal';
 import SuccessModal from '@/app/components/SuccessModal';
-
+import Pagination from '@/app/components/Pagination/Pagination'; // Import pagination
 
 const ModalController = ({ children }) => {
     const searchParams = useSearchParams();
@@ -42,14 +42,22 @@ const ModalController = ({ children }) => {
 const Page = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [customers, setCustomers] = useState([]);
-    const [view, setView] = useState('list');
+    const [view, setView] = useState('table');
     const { handleApiError } = useError();
     const { axiosInstance, loading } = useApi();
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
+    // Pagination states
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+    const [totalPages, setTotalPages] = useState(1);
+    const currentPage = parseInt(searchParams.get("page")) || 1;
+    const pageSize = parseInt(searchParams.get("limit")) || 10;
+
     useEffect(() => {
         fetchCustomers();
-    }, [isSuccessModalOpen]);
+    }, [isSuccessModalOpen, currentPage, pageSize]); // Fetch customers when pagination changes
 
     useEffect(() => {    
         fetchCustomers();
@@ -66,16 +74,16 @@ const Page = () => {
 
     const fetchCustomers = async () => {
         try {
-            const { data } = await axiosInstance.get('/customers');
-            const customers = data.results || [];
-            setCustomers(customers);
+            const { data } = await axiosInstance.get(`/customers/?limit=${pageSize}&page=${currentPage}`);
+            setCustomers(data.results || []);
+            setTotalPages(Math.ceil(data.count / pageSize));
         } catch (error) {
             handleApiError(error);
         }
     };
     
     const toggleView = () => {
-        const newView = view === 'grid' ? 'list' : 'grid';
+        const newView = view === 'grid' ? 'table' : 'grid';
         setView(newView);
         localStorage.setItem('view', newView);
     };
@@ -92,12 +100,12 @@ const Page = () => {
                                         onClick={toggleView}
                                         className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-50 hover:dark:bg-neutral-900 hover:bg-gray-100"
                                     >
-                                        {view === 'grid' ? 
+                                        {view === 'table' ? 
                                             <Image src={table} alt='tbl' className='mr-2' width={15} height={15}  /> : 
                                             <Image src={grid} alt='grd'  className='mr-2' width={15} height={15} />
                                         }
                                         <span className="text-sm font-medium">
-                                            {view === 'grid' ? 'List View' : 'Grid View'}
+                                            {view === 'table' ? 'Table View' : 'Grid View'}
                                         </span>
                                     </button>
                                     <button className="hidden flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
@@ -116,17 +124,37 @@ const Page = () => {
                                 </button>
                             </div>
 
-                            {customers.length > 0 ? (
-                                view === 'list' ? (
-                                    <CustomerTable searchQuery={searchQuery} customers={customers} />
+                            <div className="h-full">
+                                {customers.length > 0 ? (
+                                    view === 'table' ? (
+                                        <CustomerTable searchQuery={searchQuery} customers={customers} />
+                                    ) : (
+                                        <CustomerGrid searchQuery={searchQuery} customers={customers} />
+                                    )
                                 ) : (
-                                    <CustomerGrid searchQuery={searchQuery} customers={customers} />
-                                )
-                            ) : (
-                                <div className="min-h-96 flex items-center justify-center">
-                                    <NoDataFound message='You do not have any customers' icon={empty} />
-                                </div>
-                            )}
+                                    <div className="min-h-96 flex items-center justify-center">
+                                        <NoDataFound message='You do not have any customers' icon={empty} />
+                                    </div>
+                                )}
+                            </div>
+                            {/* ✅ Pagination Component */}
+                            <div className="mt-10">
+                                <Pagination 
+                                    currentPage={currentPage} 
+                                    totalPages={totalPages} 
+                                    onPageChange={(page) => {
+                                        const params = new URLSearchParams(searchParams.toString());
+                                        params.set("page", page);
+                                        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+                                    }} 
+                                    onPageSizeChange={(limit) => {
+                                        const params = new URLSearchParams(searchParams.toString());
+                                        params.set("limit", limit);
+                                        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+                                    }}
+                                    pageSize={pageSize}
+                                />
+                            </div>
                         </div>
 
                         <CreateCustomerModal 
