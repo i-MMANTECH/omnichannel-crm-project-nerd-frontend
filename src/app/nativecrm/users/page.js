@@ -24,13 +24,13 @@ const ModalController = ({ children }) => {
     const isModalOpen = searchParams.get("action") === "invite-user";
 
     const openModal = () => {
-        const params = new URLSearchParams(searchParams);
+        const params = new URLSearchParams(searchParams.toString());
         params.set("action", "invite-user");
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
     };
 
     const closeModal = () => {
-        const params = new URLSearchParams(searchParams);
+        const params = new URLSearchParams(searchParams.toString());
         params.delete("action");
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
     };
@@ -46,14 +46,18 @@ const Users = () => {
     const { handleApiError } = useError();
     const { axiosInstance } = useApi();
 
-    // ✅ Extract pagination params from the URL
-    const currentPage = parseInt(searchParams.get("page")) || 1;
-    const pageSize = parseInt(searchParams.get("limit")) || 10;
-
-    // ✅ Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
     const [users, setUsers] = useState([]);
     const [view, setView] = useState("table");
+
+    useEffect(() => {
+        const page = parseInt(searchParams.get("page")) || 1;
+        const limit = parseInt(searchParams.get("limit")) || 10;
+        setCurrentPage(page);
+        setPageSize(limit);
+    }, [searchParams]);
 
     useEffect(() => {
         fetchUsers(currentPage, pageSize);
