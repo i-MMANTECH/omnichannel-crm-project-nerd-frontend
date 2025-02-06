@@ -32,7 +32,7 @@ const MessageList = ({ chatHistory, currentUserId }) => {
     }
   };
 
-  if (!chatHistory || chatHistory.length === 0) return null;
+  if (!chatHistory || chatHistory?.length === 0) return null;
 
   return (
     <div className="message-list flex overflow-y-auto overflow-x-hidden h-[60vh] flex-col relative scrollbar-hide">

@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 const getRandomColor = (seed) => {
     // Use the name as a seed to generate consistent colors for the same name
     let hash = 0;
-    for (let i = 0; i < seed.length; i++) {
+    for (let i = 0; i < seed?.length; i++) {
         hash = seed.charCodeAt(i) + ((hash << 5) - hash);
     }
     
