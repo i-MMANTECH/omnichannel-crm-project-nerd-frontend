@@ -52,17 +52,23 @@ const Page = () => {
     const router = useRouter();
     const pathname = usePathname();
     const [totalPages, setTotalPages] = useState(1);
-    const currentPage = parseInt(searchParams.get("page")) || 1;
-    const pageSize = parseInt(searchParams.get("limit")) || 10;
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+
+    useEffect(() => {
+        const page = parseInt(searchParams.get("page")) || 1;
+        const limit = parseInt(searchParams.get("limit")) || 10;
+        setCurrentPage(page);
+        setPageSize(limit);
+    }, [searchParams]);
 
     useEffect(() => {
         fetchCustomers();
     }, [isSuccessModalOpen, currentPage, pageSize]); // Fetch customers when pagination changes
 
-    useEffect(() => {    
-        fetchCustomers();
-
-        const storedView = localStorage.getItem('view');
+    useEffect(() => {
+        const storedView = localStorage.getItem("view");
         if (storedView) {
             setView(storedView);
         }
