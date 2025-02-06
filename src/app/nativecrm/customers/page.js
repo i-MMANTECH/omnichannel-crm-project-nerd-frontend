@@ -47,25 +47,17 @@ const Page = () => {
     const { axiosInstance, loading } = useApi();
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
-    // Pagination states
-    const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
-    const [totalPages, setTotalPages] = useState(1);
 
+    const [totalPages, setTotalPages] = useState(1);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
-    useEffect(() => {
-        const page = parseInt(searchParams.get("page")) || 1;
-        const limit = parseInt(searchParams.get("limit")) || 10;
-        setCurrentPage(page);
-        setPageSize(limit);
-    }, [searchParams]);
 
     useEffect(() => {
         fetchCustomers();
-    }, [isSuccessModalOpen, currentPage, pageSize]); // Fetch customers when pagination changes
+    }, [isSuccessModalOpen, currentPage, pageSize]); 
 
     useEffect(() => {
         const storedView = localStorage.getItem("view");
@@ -143,21 +135,12 @@ const Page = () => {
                                     </div>
                                 )}
                             </div>
-                            {/* ✅ Pagination Component */}
                             <div className="mt-10">
                                 <Pagination 
                                     currentPage={currentPage} 
                                     totalPages={totalPages} 
-                                    onPageChange={(page) => {
-                                        const params = new URLSearchParams(searchParams.toString());
-                                        params.set("page", page);
-                                        router.push(`${pathname}?${params.toString()}`, { scroll: false });
-                                    }} 
-                                    onPageSizeChange={(limit) => {
-                                        const params = new URLSearchParams(searchParams.toString());
-                                        params.set("limit", limit);
-                                        router.push(`${pathname}?${params.toString()}`, { scroll: false });
-                                    }}
+                                    onPageChange={setCurrentPage} 
+                                    onPageSizeChange={setPageSize}
                                     pageSize={pageSize}
                                 />
                             </div>

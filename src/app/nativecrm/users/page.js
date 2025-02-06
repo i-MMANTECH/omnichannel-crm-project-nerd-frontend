@@ -40,7 +40,6 @@ const ModalController = ({ children }) => {
 
 // Main Users component
 const Users = () => {
-    const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
     const { handleApiError } = useError();
@@ -51,13 +50,6 @@ const Users = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [users, setUsers] = useState([]);
     const [view, setView] = useState("table");
-
-    useEffect(() => {
-        const page = parseInt(searchParams.get("page")) || 1;
-        const limit = parseInt(searchParams.get("limit")) || 10;
-        setCurrentPage(page);
-        setPageSize(limit);
-    }, [searchParams]);
 
     useEffect(() => {
         fetchUsers(currentPage, pageSize);
@@ -149,8 +141,8 @@ const Users = () => {
                                 <Pagination 
                                     currentPage={currentPage} 
                                     totalPages={totalPages} 
-                                    onPageChange={handlePageChange} 
-                                    onPageSizeChange={handlePageSizeChange}
+                                    onPageChange={setCurrentPage} 
+                                    onPageSizeChange={setPageSize}
                                     pageSize={pageSize}
                                 />
                             </div>
