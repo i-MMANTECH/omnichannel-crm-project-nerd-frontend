@@ -16,6 +16,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
   const [activities, setActivities] = useState([]);
   const [comments, setComments] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
+  const [newComment, setNewComment] = useState("");
 
   const fetchActivities = async () => {
     try {
@@ -28,13 +29,30 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
 
   const fetchComments = async () => {
     try {
-      const response = await axiosInstance.get(`/tasks/${taskId}/comments`);
+      const response = await axiosInstance.get(`/comments/?model=task&object_id=${taskId}`);
       setComments(response.data.comments);
     } catch (error) {
       handleApiError(error);
     }
   };
 
+  const addComment = async () => {
+    if (!newComment.trim()) return;
+    
+    try {
+      const response = await axiosInstance.post(`/comments/`, {
+        model: "task", 
+        object_id: taskId, 
+        content: newComment,
+      });
+  
+      setComments([response.data.comment, ...comments]);
+      setNewComment("");
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+  
   const getAssigneeName = (assignee) => {
     if (assignee?.username) return assignee?.username;
     if (assignee?.name) return assignee?.name;
@@ -155,8 +173,18 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                 placeholder="Add a comment..."
                 className="w-full border rounded-lg p-2 text-sm body-theme"
                 rows={3}
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    addComment();
+                  }
+                }}
               />
-              <button className="primary-bg mt-2 px-4 py-2  text-white rounded-md">
+              <button 
+              onClick={addComment}
+              className="primary-bg mt-2 px-4 py-2  text-white rounded-md">
                 Comment
               </button>
             </div>
@@ -179,8 +207,12 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                 )}
                 <div className="flex-1">
                   <p className="text-sm">
-                    <strong>{comment.user?.name}</strong>
-                    <span className="ml-2 text-gray-500">{comment.created_at}</span>
+                  <strong>
+                    {comment.created_by.first_name?.trim() || comment.created_by.last_name?.trim() 
+                      ? `${comment.created_by.first_name} ${comment.created_by.last_name}`.trim()
+                      : 'Unnamed User'}
+                  </strong>
+                    <span className="ml-2 text-gray-500">{timeAgo(comment.created_at)}</span>
                   </p>
                   <p className="text-sm mt-1">{comment.content}</p>
                 </div>

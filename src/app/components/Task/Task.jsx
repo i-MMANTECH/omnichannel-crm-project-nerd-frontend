@@ -203,45 +203,45 @@ export default function Task() {
     return sections;
   }, {});
 
-  const renderListView = () => (
-    <div>
-      {STATUS_ORDER.map((statusName, index) => {
-        const section = groupedTasks?.[statusName];
-        const columnTitle = columns.find(c => c.status === statusName)?.title;
+  // const renderListView = () => (
+  //   <div>
+  //     {STATUS_ORDER.map((statusName, index) => {
+  //       const section = groupedTasks?.[statusName];
+  //       const columnTitle = columns.find(c => c.status === statusName)?.title;
 
-        return (
-          <div key={index} className="mb-7">
-            <div className="w-full mb-4 flex h-9 p-2 gap-2 items-center rounded-lg bg-gray-100 dark:bg-neutral-900">
-              <div className="flex items-center gap-2">
-                {getStatusSvg(statusName)}
-              </div>
-              {columnTitle}{" "}
-              <span className="text-sm text-gray-500">
-                ({section?.tasks.length || 0})
-              </span>
-            </div>
-            {section?.tasks.length > 0 ? (
-              section.tasks.map(task => (
-                <div key={task.id} className="mt-2">
-                  <TaskCardListView
-                    title={task.title}
-                    date={task.updated_at}
-                    priority={task.priority.label}
-                    assignees={task.assignees}
-                    status={task.status.label}
-                    taskId={task.id}
-                    handleDelete={handleDelete}
-                  />
-                </div>
-              ))
-            ) : (
-              <div className="text-gray-500 text-sm italic">No tasks in this category</div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
+  //       return (
+  //         <div key={index} className="mb-7">
+  //           <div className="w-full mb-4 flex h-9 p-2 gap-2 items-center rounded-lg bg-gray-100 dark:bg-neutral-900">
+  //             <div className="flex items-center gap-2">
+  //               {getStatusSvg(statusName)}
+  //             </div>
+  //             {columnTitle}{" "}
+  //             <span className="text-sm text-gray-500">
+  //               ({section?.tasks.length || 0})
+  //             </span>
+  //           </div>
+  //           {section?.tasks.length > 0 ? (
+  //             section.tasks.map(task => (
+  //               <div key={task.id} className="mt-2">
+  //                 <TaskCardListView
+  //                   title={task.title}
+  //                   date={task.updated_at}
+  //                   priority={task.priority.label}
+  //                   assignees={task.assignees}
+  //                   status={task.status.label}
+  //                   taskId={task.id}
+  //                   handleDelete={handleDelete}
+  //                 />
+  //               </div>
+  //             ))
+  //           ) : (
+  //             <div className="text-gray-500 text-sm italic">No tasks in this category</div>
+  //           )}
+  //         </div>
+  //       );
+  //     })}
+  //   </div>
+  // );
 
   return (
     <Suspense fallback={<div>Loading...</div>}>    
