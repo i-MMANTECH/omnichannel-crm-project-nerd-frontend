@@ -21,11 +21,19 @@ const getRandomColor = (seed) => {
 const getInitials = (name) => {
     if (!name) return '--';
     const nameParts = name.split(' ');
-    const initials = nameParts
-        .slice(0, 2)
-        .map((part) => part.charAt(0).toUpperCase())
-        .join('');
-    return initials;
+    
+    const firstLetter = nameParts[0].charAt(0).toUpperCase();
+    
+    let secondLetter = '';
+    if (nameParts[1] && nameParts[1].length >= 2) {
+        // If there's a second name, use its second letter (uppercase)
+        secondLetter = nameParts[1].charAt(0).toUpperCase();
+    } else {
+        // If no second name or second name is too short, use second letter of first name (lowercase)
+        secondLetter = nameParts[0].charAt(1)?.toLowerCase() || '-';
+    }
+    
+    return firstLetter + secondLetter;
 };
 
 const UserAvatar = ({ 
@@ -37,7 +45,6 @@ const UserAvatar = ({
 }) => {
     const initials = getInitials(name);
     
-    // Use useMemo to maintain consistent color for the same name
     const backgroundColor = useMemo(() => {
         return color || getRandomColor(name);
     }, [name, color]);

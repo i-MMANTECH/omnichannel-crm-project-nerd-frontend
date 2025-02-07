@@ -15,16 +15,12 @@ import Link from 'next/link';
 import NoDataFound from '../NoDataFound';
 import empty from '/public/assets/empty.svg'
 import UserAvatar from '../UserAvatar';
+import { getRoleStyle } from '@/utils/getRoleStyle';
+import Image from 'next/image';
+import { timeAgo } from '@/utils/timeUtils';
 
-
-const roleStyles = {
-    Admin: 'bg-[#E7FEF8] text-[#40C4AA]',
-    Agent: 'bg-[#EDF9FF] text-[#1285FE]',
-    'Team Member': 'bg-[#F4F0FF] text-[#936DFF]',
-  };
-
-
-const UserGrid = ({ searchQuery, users }) => {
+const UserGrid = ({ users }) => {
+  console.log(users)
   return (
     <div className="  body-theme overflow-auto">
     {users?.length > 0 ? (  
@@ -47,45 +43,57 @@ const UserGrid = ({ searchQuery, users }) => {
                         user.email || '--'
                       } </span>
                 </div>
-                <FontAwesomeIcon
-                  icon={faEllipsis}
-                  className="ml-auto cursor-pointer"
-                />
               </div>
 
               <div className="p-2">
-                <p className="mb-2">
-                  <FontAwesomeIcon className="mr-1" icon={faEnvelope} />{' '}
+                <div className="flex items-center mb-2 gap-2 items-center">
+                  <Image
+                      src="/assets/mail.svg"
+                      alt="Roles"
+                      width={22}
+                      height={22}
+                      />
                   {user.email}
-                </p>
-                <p className="flex items-center space-x-2 mb-2">
-                  <FontAwesomeIcon icon={faPhone} />
+                </div>
+                <div className="flex items-center mb-2 gap-2 items-center">
+                    <Image
+                      src="/assets/phone.svg"
+                      alt="Roles"
+                      width={22}
+                      height={22}
+                      />
                   <span>{user.phone_number}</span>
-                </p>
-                <div className="flex items-center">
+                </div>
+                <div className="flex items-center mb-2 gap-2 items-center">
+                  <Image
+                      src="/assets/flash.svg"
+                      alt="Roles"
+                      width={22}
+                      height={22}
+                      />
                   <span
-                    className={`inline-block px-2 py-1 rounded-full text-sm font-medium ${roleStyles[user.role]} mb-2`}
+                    className={`inline-block py-1 rounded-full text-sm font-medium ${getRoleStyle[user.role]} `}
                   >
-                    <span
-                      className={`inline-block w-2 h-2 mr-1 rounded-full ${
-                        user.isActive ? 'bg-purple-500' : 'bg-gray-300'
-                      }`}
-                    ></span>
-                    {users.roles?.map((role) => (
-                      role?.name
-                    ))}                    
+                    {user?.roles.map((role) => (
+                          <span
+                            key={role.id}
+                            className="px-2 py-1 ml-1 rounded"
+                            style={getRoleStyle(role.name)}
+                          >
+                            {role.name}
+                          </span>
+                        ))}
                   </span>
                 </div>
-                <div className="flex justify-between items-center mt-2 border-t pt-2">
-                  {/* <div className="flex items-center space-x-2">
-                    <span>{user.mark}</span>
-                    <span>
-                      <FontAwesomeIcon icon={faCommentDots} /> {user.comments}
-                    </span>
-                  </div> */}
-                  <span className="ml-auto">
-                    <FontAwesomeIcon className="mr-1" icon={faClock} />
-                    {user.lastActive || '--'}
+                <div className="flex justify-between items-center mt-4 border-t pt-2">
+                  <span className="ml-auto flex flex-row gap-2 text-sm">
+                    <Image
+                      src="/assets/clock.svg"
+                      alt="Roles"
+                      width={20}
+                      height={20}
+                      />
+                    {user?.last_active ? timeAgo(user.last_active) : '--'}
                   </span>
                 </div>
               </div>
