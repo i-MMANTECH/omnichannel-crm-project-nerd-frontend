@@ -1,7 +1,7 @@
 import React from "react";
 import KanbanViewColumn from "./KanbanViewColumn";
 
-export default function KanbanView({ tasks, setTasks, updateTask, handleDelete, openViewModal, openUpdateModal }) {
+export default function KanbanView({ tasks, handleDelete, openViewModal, openUpdateModal }) {
   const columns = [
     {
       title: "To Do",
@@ -20,53 +20,6 @@ export default function KanbanView({ tasks, setTasks, updateTask, handleDelete, 
       status: "done",
     },
   ];
-
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-
-    if (!over) return;
-
-    const taskId = active.id;
-    const newColumn = columns.find((column) => `${column.status}-${column.title}` === over.id);
-
-    if (!newColumn) return;
-
-    const updatedTask = tasks.find((task) => task.id === taskId);
-    if (updatedTask) {
-      let newStatus = newColumn.status;
-
-      if (updatedTask.status.name === newStatus) {
-        return;
-      }
-
-      setTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task.id === taskId
-            ? { ...task, status: { name: newStatus, label: newColumn.title } }
-            : task
-        )
-      );
-
-      switch (newStatus) {
-        case "todo":
-          newStatus = 1;
-          break;
-        case "overdue":
-          newStatus = 4;
-          break;
-        case "in_progress":
-          newStatus = 2;
-          break;
-        case "done":
-          newStatus = 3;
-          break;
-        default:
-          newStatus = 0;
-      }
-
-      updateTask(taskId, { status: newStatus });
-    }
-  };
 
   return (
     <>

@@ -38,7 +38,7 @@ export default function CustomerDetails({ customer }) {
             />}
             {!customer?.image && <UserAvatar name={ customerName } width="w-20" height="h-20" />}
 
-            <p className="customer-left-name text-xl font-bold mt-1">{ customerName }</p>
+            <p className="customer-left-name text-xl font-bold mt-1">{ customerName.slice(0, 10) }</p>
             <p className="customer-left-email text-sm mt-1">{ customer?.email }</p>
             <div className="flex gap-6 mt-5">
               <div className="flex flex-col items-center gap-2">
@@ -105,7 +105,7 @@ export default function CustomerDetails({ customer }) {
               <p className="text-left">
                 Name
               </p>
-              <p className="customer-left-name font-bold">{ customerName }</p>
+              <p className="customer-left-name font-bold">{ customerName.slice(0, 30) }</p>
             </div>
 
             <div className="flex items-center justify-between mt-2">

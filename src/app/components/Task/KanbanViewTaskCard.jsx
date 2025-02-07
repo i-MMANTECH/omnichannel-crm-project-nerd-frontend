@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
@@ -44,7 +43,7 @@ const KanbanViewTaskCard = ({ task, handleDelete, openViewModal, openUpdateModal
   };
 
   return (
-    <div className="bg-gray-100 dark:bg-neutral-900 border rounded-lg p-4 shadow-sm hover:shadow-md task_card mt-3 pl-4">
+    <div className="dark:bg-neutral-900 border rounded-lg p-4 shadow-sm hover:shadow-md task_card mt-3 pl-4">
       <div className="flex justify-between items-center mb-5">
         {task.title?.length > 20 ? `${task.title.substring(0, 20)}...` : task.title}
         <div className="relative">

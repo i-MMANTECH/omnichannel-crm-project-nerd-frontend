@@ -9,6 +9,7 @@ export const useApi = () => {
     const router = useRouter();
 
     const axiosInstance = axios.create({
+        // baseURL: 'https://staging.core.nativetalkcrm.com/api',
         baseURL: process.env.NEXT_PUBLIC_API_URL,
         headers: {
             'User-Domain': getUserDomain(),
