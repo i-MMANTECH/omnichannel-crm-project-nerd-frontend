@@ -7,8 +7,6 @@ import IntegrateChannels from "@/app/components/Settings/channels/IntegrateChann
 import PlansAndBillings from '@/app/components/Settings/plans-and-billings/PlansAndBillings';
 import RoleManagement from '@/app/components/Settings/role-management/RoleManagement';
 import { useRouter } from 'next/navigation';
-import PricingPlans from '@/app/components/Settings/PricingPlans/PricingPlans';
-import RolesComponent from '@/app/components/Settings/RolesComponent';
 
 
 export default function Settings() {
@@ -42,8 +40,8 @@ export default function Settings() {
         return <div>Task Management Component</div>;
       case 'security-settings':
         return <div>Security Settings Component</div>;
-      case 'plans-billing':
-        return <PricingPlans/>;
+      case 'plans-and-billings':
+        return <PlansAndBillings/>;
       default:
         return <div>Select a setting from the sidebar</div>;
     }

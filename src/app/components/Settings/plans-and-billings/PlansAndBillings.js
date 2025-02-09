@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import "../settingsStyles.css";
+import PaymentMethodsDrawer from "./PaymentMethodsDrawer";
 
 
 const PlansAndBillings = () => {
   const [selectedPlan, setSelectedPlan] = useState("Pro");
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const plans = [
     {
@@ -51,8 +53,19 @@ const PlansAndBillings = () => {
   return (
     <div className="overflow-x-hidden flex flex-col pr-10">
       <div className="main-container max-w-full body-theme pl-10 w-full">
-        <p  className="text-md mb-2">Manage your plan and billing history</p>
-        <h2 className="text-lg font-semibold mb-4">Choose a plan that is right for you</h2>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <p  className="text-md mb-3">Manage your plan and billing history</p>
+            <h2 className="text-lg font-semibold mb-4">Choose a plan that is right for you</h2>
+          </div>
+          <div className="flex gap-3">
+            <button 
+              onClick={() => setIsDrawerOpen(true)}
+              className="bg-[#3EBF0F] py-2 px-4 rounded-lg hover:bg-green-600">
+                Payment Methods
+            </button>
+          </div>
+        </div>
         <div className="flex justify-start gap-4 mb-10 w-full">
             {plans.map((plan) => (
                 <div
@@ -117,6 +130,15 @@ const PlansAndBillings = () => {
             </table>
         </div>
       </div>
+
+      <PaymentMethodsDrawer 
+          show={isDrawerOpen} 
+          onClose={() => {
+            setIsDrawerOpen(false);
+            fetchRoles();
+          }} 
+          onRoleCreated={() => fetchRoles(currentPage)}
+        />
     </div>
   );
 };

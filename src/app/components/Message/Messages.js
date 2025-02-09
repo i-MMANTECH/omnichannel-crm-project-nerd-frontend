@@ -117,7 +117,6 @@ export const Messages = () => {
 
 		await axiosInstance.get(endpoint)
 			.then((response) => {
-				console.log("Chat list response:", response.data);
 				setUsers(response.data);
 			})
 			.catch(handleApiError);
