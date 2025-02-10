@@ -11,7 +11,7 @@ import Image from "next/image";
 import { useNotification } from "@/context/NotificationContext";
 import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
-import UserAvatar from "../UserAvatar";
+import checkPermission from "@/utils/checkPermission";
 
 
 function Sidebar() {
@@ -21,6 +21,10 @@ function Sidebar() {
   const modalRef = useRef(null);
   const {handleApiError} = useError()
   const {axiosInstance} = useApi()
+  const viewUser = checkPermission('view_user');
+  const viewCustomer = checkPermission('view_customer');
+  const viewTask = checkPermission('view_task');
+  const viewMessage = checkPermission('view_message');
 
   const pathname = usePathname();
   const activeStyle = "active";
@@ -37,7 +41,7 @@ function Sidebar() {
     const fetchUserProfile = async () => {
         try {
             const resp = await axiosInstance.get(`/users/me`)
-            setUserProfile(resp.data.user)
+            setUserProfile(resp?.data?.user)
         } catch(error) {
             handleApiError(error)
         }
@@ -101,23 +105,26 @@ function Sidebar() {
                 </h3>
               </Link>
 
-              <Link
-                href="/nativecrm/users"
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
-              >
-                <Image
-                    src="/assets/users-plus.svg"
-                    className={`${isActive("/users") ? activeStyle : ""}`}
-                    alt="Users"
-                    width={20}
-                    height={20}
-                  />
-                <h3 className={`text-sm font-medium ${isActive("/users") ? activeStyle : ""}`}>
-                  Users
-                </h3>
-              </Link>
+              {viewUser && (
+                 <Link
+                 href="/nativecrm/users"
+                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
+               >
+                 <Image
+                     src="/assets/users-plus.svg"
+                     className={`${isActive("/users") ? activeStyle : ""}`}
+                     alt="Users"
+                     width={20}
+                     height={20}
+                   />
+                 <h3 className={`text-sm font-medium ${isActive("/users") ? activeStyle : ""}`}>
+                   Users
+                 </h3>
+               </Link>
+              )}
 
-              <Link
+              {viewMessage && (
+                <Link
                 href="/nativecrm/messages"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
               >
@@ -132,38 +139,43 @@ function Sidebar() {
                   Messages
                 </h3>
               </Link>
+              )}
+              
+                {viewTask && (
+                  <Link
+                  href="/nativecrm/tasks"
+                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
+                >
+                  <Image
+                      src="/assets/tasks.svg"
+                      className={`${isActive("/tasks") ? activeStyle : ""}`}
+                      alt="Tasks"
+                      width={20}
+                      height={20}
+                    />
+                  <h3 className={`text-sm font-medium ${isActive("/tasks") ? activeStyle : ""}`}>
+                    Tasks
+                  </h3>
+                </Link>
+                )}              
 
-              <Link
-                href="/nativecrm/tasks"
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
-              >
-                <Image
-                    src="/assets/tasks.svg"
-                    className={`${isActive("/tasks") ? activeStyle : ""}`}
-                    alt="Tasks"
-                    width={20}
-                    height={20}
-                  />
-                <h3 className={`text-sm font-medium ${isActive("/tasks") ? activeStyle : ""}`}>
-                  Tasks
-                </h3>
-              </Link>
-
-              <Link
-                href="/nativecrm/customers"
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
-              >
-                <Image
-                    src="/assets/customers.svg"
-                    className={`${isActive("/customers") ? activeStyle : ""}`}
-                    alt="Customers"
-                    width={20}
-                    height={20}
-                  />
-                <h3 className={`text-sm font-medium ${isActive("/customers") ? activeStyle : ""}`}>
-                  Customers
-                </h3>
-              </Link>
+                {viewCustomer && (
+                  <Link
+                  href="/nativecrm/customers"
+                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
+                >
+                  <Image
+                      src="/assets/customers.svg"
+                      className={`${isActive("/customers") ? activeStyle : ""}`}
+                      alt="Customers"
+                      width={20}
+                      height={20}
+                    />
+                  <h3 className={`text-sm font-medium ${isActive("/customers") ? activeStyle : ""}`}>
+                    Customers
+                  </h3>
+                </Link>
+                )}
 
               <Link
                 href="/nativecrm/reports"
@@ -240,20 +252,13 @@ function Sidebar() {
 
               <div className="w-full border-t border-gray-200 dark:border-gray-600 pt-4 pointer" onClick={openModal}>
                   <div className="flex items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700">
-                      {userProfile?.image ? (
-                        <Image
-                            src={userProfile?.image}
-                            alt="User Profile"                        
-                            width={100}
-                            height={100}
-                            className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
-                        />
-                    ) : (
-                      <UserAvatar 
-                      name={userProfile?.first_name ? `${userProfile?.first_name} ${userProfile?.last_name}`: '--'} 
+                    <Image
+                      src="/assets/user-profile-image.png"
+                      alt="Agent"
                       className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
-                      width="w-8" height="h-8" />
-                    )}   
+                      width={30}
+                      height={30}
+                    />
                     <div className="text-sm min-w-0 flex-1">
                       <h3 className="font-medium text-gray-800 dark:text-gray-200 truncate">
                         {userProfile?.first_name || userProfile?.last_name
@@ -298,20 +303,13 @@ function Sidebar() {
                       href="/nativecrm/profile"
                       className="flex items-center gap-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
-                     {userProfile?.image ? (
-                        <Image
-                            src={userProfile?.image}
-                            alt="User Profile"                        
-                            width={100}
-                            height={100}
-                            className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
-                        />
-                    ) : (
-                      <UserAvatar 
-                      name={userProfile?.first_name ? `${userProfile?.first_name} ${userProfile?.last_name}`: '--'} 
-                      className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
-                      width="w-8" height="h-8" />
-                    )}   
+                      <Image
+                        src="/assets/user-profile-image.png"
+                        alt="Agent"
+                        className="w-8 h-8 rounded-full"
+                        width={30}
+                        height={30}
+                      />
                       <h3 className="text-gray-800 dark:text-gray-200 font-medium">View Profile</h3>
                     </Link>
 

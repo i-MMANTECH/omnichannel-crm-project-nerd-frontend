@@ -15,7 +15,7 @@ import NoDataFound from '@/app/components/NoDataFound';
 import empty from '/public/assets/empty.svg';
 import CreateCustomerModal from '@/app/components/Customers/CreateCustomerModal';
 import SuccessModal from '@/app/components/SuccessModal';
-import Pagination from '@/app/components/Pagination/Pagination'; // Import pagination
+import Pagination from '@/app/components/pagination/Pagination';
 
 const ModalController = ({ children }) => {
     const searchParams = useSearchParams();

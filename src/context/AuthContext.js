@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }) => {
         NProgress.start();
         setUser(null);
         localStorage.removeItem('user');
+        localStorage.removeItem('permissions');
         
         if (refreshInterval) {
             clearInterval(refreshInterval);

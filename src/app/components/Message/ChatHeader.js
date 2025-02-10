@@ -5,8 +5,10 @@ import "./chatHeader.css";
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
 import LeadToCustomer from "./LeadToCustomer";
+import NotesModal from "./NotesModal";
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import SuccessModal from "../SuccessModal";
+import checkPermission from "@/utils/checkPermission";
 
 const ModalController = ({ children }) => {
   const searchParams = useSearchParams();
@@ -33,10 +35,12 @@ const ModalController = ({ children }) => {
 const ChatHeader = ({ activeUser }) => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const addCustomer = checkPermission('add_customer');
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -63,107 +67,115 @@ const ChatHeader = ({ activeUser }) => {
   });
 
   const menuItems = [
-    {
+    ...(addCustomer ? [{
       label: "Add as customer",
       onClick: () => {
         const params = new URLSearchParams(searchParams);
         params.set('action', 'lead-to-customer');
         router.push(`?${params.toString()}`, { scroll: false });
       },
+    }] : []),
+    {
+      label: "Notes", 
+      onClick: () => setIsNotesModalOpen(true),
     },
     // { label: "Create a ticket", onClick: () => console.log("Create a ticket") },
     // { label: "Assign to agent", onClick: () => console.log("Assign to agent") },
-    // { label: "Notes", onClick: () => console.log("Notes") },
     // { label: "End session", onClick: () => console.log("End session") },
   ];
 
   const closeSuccessModal = () => {
     setIsSuccessModalOpen(false);
-};
+  };
 
   return (
     <>
-    <ModalController>
-      {({ isModalOpen, closeModal }) => (
-        <div className="header">
-          <div className="relative">
-            <div>
-              {activeUser.profileImage ? (
-                <Image
-                  loader={() => activeUser.profileImage}
-                  src={activeUser.profileImage}
-                  alt="User Profile"
-                  width={70}
-                  height={70}
-                  className="w-9 h-9 rounded-full"
-                />
-              ) : (
-                <UserAvatar name={activeUser.name} width="w-9" height="h-9" />
+      <ModalController>
+        {({ isModalOpen, closeModal }) => (
+          <div className="header">
+            <div className="relative">
+              <div>
+                {activeUser.profileImage ? (
+                  <Image
+                    loader={() => activeUser.profileImage}
+                    src={activeUser.profileImage}
+                    alt="User Profile"
+                    width={70}
+                    height={70}
+                    className="w-9 h-9 rounded-full"
+                  />
+                ) : (
+                  <UserAvatar name={activeUser.name} width="w-9" height="h-9" />
+                )}
+              </div>
+              {activeUser.channel?.image && (
+                <div>
+                  <Image
+                    loader={() => activeUser.channel?.image}
+                    src={`${activeUser.channel?.image}`}
+                    alt={`${activeUser.channel?.name} Icon`}
+                    className="absolute -bottom-1 -right-1 rounded-full bg-white p-[3.5px]"
+                    width={18}
+                    height={18}
+                  />
+                </div>
               )}
             </div>
-            {activeUser.channel?.image && (
-              <div>
-                <Image
-                  loader={() => activeUser.channel?.image}
-                  src={`${activeUser.channel?.image}`}
-                  alt={`${activeUser.channel?.name} Icon`}
-                  className="absolute -bottom-1 -right-1 rounded-full bg-white p-[3.5px]"
-                  width={18}
-                  height={18}
-                />
+            <div className="info flex flex-col relative grow justify-center gap-2 bottom-1">
+              <div className="text-black dark:text-white">
+                {activeUser.name || "Unknown User"}
               </div>
-            )}
-          </div>
-          <div className="info flex flex-col relative grow justify-center gap-2 bottom-1">
-            <div className="text-black dark:text-white">
-              {activeUser.name || "Unknown User"}
+              <div className="title-4">Last Seen {formattedTime}</div>
             </div>
-            <div className="title-4">Last Seen {formattedTime}</div>
-          </div>
-          <div className="relative">
-            <button
-              ref={buttonRef}
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 hover:bg-gray-100 rounded-full dark:hover:bg-gray-700 transition-colors"
-            >
-              <FontAwesomeIcon icon={faEllipsisH} className="icon-instance-node" />
-            </button>
-
-            {isMenuOpen && (
-              <div
-                ref={menuRef}
-                className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
+            <div className="relative">
+              <button
+                ref={buttonRef}
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="p-2 hover:bg-gray-100 rounded-full dark:hover:bg-gray-700 transition-colors"
               >
-                <div className="py-1">
-                  {menuItems.map((item, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        item.onClick();
-                        setIsMenuOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      {item.label}
-                    </button>
-                  ))}
+                <FontAwesomeIcon icon={faEllipsisH} className="icon-instance-node" />
+              </button>
+              {isMenuOpen && (
+                <div
+                  ref={menuRef}
+                  className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
+                >
+                  <div className="py-1">
+                    {menuItems.map((item, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          item.onClick();
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+            </div>
+            {isModalOpen && (
+              <LeadToCustomer
+                isOpen={isModalOpen}
+                onClose={closeModal}
+                leadId={activeUser.id}
+                setIsSuccessModalOpen={setIsSuccessModalOpen}
+              />
+            )}
+            {isNotesModalOpen && (
+              <NotesModal
+                isOpen={isNotesModalOpen}
+                onClose={() => setIsNotesModalOpen(false)}
+                userId={activeUser.id}
+              />
             )}
           </div>
-          {isModalOpen && (
-            <LeadToCustomer
-              isOpen={isModalOpen}
-              onClose={closeModal}
-              leadId={activeUser.id}
-              setIsSuccessModalOpen={setIsSuccessModalOpen}
-            />
-          )}
-        </div>
-      )}
-      
-    </ModalController>
-    <SuccessModal
+        )}
+      </ModalController>
+      <SuccessModal
         isOpen={isSuccessModalOpen}
         title="Success!"
         message="Lead has been successfully converted to a customer."
