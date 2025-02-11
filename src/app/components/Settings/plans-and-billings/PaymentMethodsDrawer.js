@@ -93,7 +93,7 @@ const PaymentMethodsDrawer = ({ show, onClose, onRoleCreated }) => {
         {paymentMethods.length > 0 ? (
           <div className='flex flex-col w-full h-full mt-10 pointer'>
             {paymentMethods.map((method) => (
-              <div className='border flex py-4 rounded-lg px-5 justify-between items-center w-full body-theme'>
+              <div className='border flex py-4 rounded-lg px-5 justify-between items-center w-full body-theme mb-4'>
                 <div>{method.card_number}</div>
                 <div>{method.card_expiry_date}</div>
 
