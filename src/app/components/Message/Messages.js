@@ -130,6 +130,7 @@ export const Messages = () => {
   
 			await axiosInstance.get(endpoint)
 				.then((response) => {
+					// console.log('response from history is ', response)
 					setChatHistory(activeTab === "customers"
 						? response.data.results.messages.reverse() || []
 						: response.data.messages || []);
@@ -207,7 +208,7 @@ export const Messages = () => {
 
 	const handleTabChange = (tab) => {
 		setActiveTab(tab);
-		setActiveUser(null); // Reset active user when changing tabs
+		setActiveUser(null);
 	};
 
 	return (
