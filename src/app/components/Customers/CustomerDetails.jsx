@@ -7,10 +7,17 @@ import './CustomerDetailsStyle.css';
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
 import Notes from "./Notes";
+import { getRoleStyle } from "@/utils/getRoleStyle";
+import { useRouter } from "next/navigation";
 
 
 export default function CustomerDetails({ customer }) {
   const [selected, setSelected] = useState("work-schedule");
+  const router = useRouter();
+
+  const handleChatSelect = () => {
+    router.push(`/nativecrm/messages?chat=customer&id=${customer?.id}`);
+  };
 
   const customerName = useMemo(() => {
     if (customer?.username) {
@@ -65,7 +72,7 @@ export default function CustomerDetails({ customer }) {
                 </span>
               </div>
 
-              <div className="flex flex-col items-center gap-2">
+              <div onClick={() => handleChatSelect()} className="flex flex-col items-center gap-2 pointer" >
                 <div className="flex w-8 h-8 p-2 justify-center items-center gap-2 rounded-md border border-gray-100 bg-white shadow-sm text-gray-600">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 17 16" fill="none">
                     <path d="M6.08333 5.33333H8.08333M6.08333 8H10.0833M4.08333 2H13.4167C14.153 2 14.75 2.59431 14.75 3.32743V9.96753C14.75 10.7007 14.153 11.295 13.4167 11.295H5.73708C5.53456 11.295 5.34302 11.3866 5.2165 11.5441L3.34362 13.8748C3.14679 14.1198 2.75 13.9812 2.75 13.6675V3.32743C2.75 2.59431 3.34695 2 4.08333 2Z" stroke="#0D0D12" strokeWidth="1.5" strokeLinecap="round"/>
@@ -116,19 +123,23 @@ export default function CustomerDetails({ customer }) {
             </div>
 
             <div className="flex flex-row items-center justify-between mt-2 ">
-              <p>Tags</p>  
-              <p >
-                {customer.tags?.length > 0 &&
-                    <div className='flex flex-col'>
-                        <p className="ms-1 text-right text-[#936DFF] bg-[#F4F0FF] font-encode-sans text-xs font-medium leading-[18px] tracking-[0.4px] flex px-[6.913px] py-[1.728px] justify-center items-center gap-[3.456px] rounded-[3.456px] ">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="3.456" height="3.456" viewBox="0 0 5 5" fill="none">
-                                <circle cx="2.64075" cy="2.65589" r="1.72816" fill="var(--Violet-100, #936DFF)" />
-                            </svg>
-                            {customer.tags?.map((tag) => (tag))}
-                        </p>
-                    </div>
-                }
-              </p>
+              <p className="flex-1">Tags</p>
+              {customer?.tags?.length <= 0 &&
+                <p className="customer-left-name font-bold mr-1">--</p>
+              }
+              <span
+                  className={`inline-block py-1 rounded-full -ml-1 text-sm font-medium `}
+                >
+                {customer?.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 ml-1 rounded"
+                        style={getRoleStyle(tag)}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+              </span>     
             </div>
 
             <div className="flex items-center justify-between mt-2">
@@ -184,8 +195,7 @@ export default function CustomerDetails({ customer }) {
 
           <div className="mt-10 w-full ">
             {selected === "work-schedule" && (
-              <Notes/>
-            
+              <Notes customerId={customer.id}/>
             )}
             {selected === "assigned-messages" && (
               <AssignedMessages/>

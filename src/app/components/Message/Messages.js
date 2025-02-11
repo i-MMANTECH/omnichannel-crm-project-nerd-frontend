@@ -133,7 +133,7 @@ export const Messages = () => {
 					// console.log('response from history is ', response)
 					setChatHistory(activeTab === "customers"
 						? response.data.results.messages.reverse() || []
-						: response.data.messages || []);
+						: response.data.messages.reverse() || []);
 				})
 				.catch(handleApiError);
 		} else {
@@ -278,7 +278,7 @@ export const Messages = () => {
 				<div className="detail ">
 					{activeUser ? (
 						<div>
-							<ChatHeader activeUser={activeUser} />
+							<ChatHeader activeUser={activeUser} isLead={true}/>
 							<div className="flex items-center ">
 								<MessageList 
 									chatHistory={chatHistory} 

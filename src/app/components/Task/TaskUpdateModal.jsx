@@ -2,26 +2,29 @@ import React, { useState, useEffect } from "react";
 import Modal from "../Modal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
+import Select from "react-select";
+import { selectStyles } from "../selectStyles";
+
 
 const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
   const [taskTitle, setTaskTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState("High");
+  const [priority, setPriority] = useState(null);
   const [agents, setAgents] = useState([]);
   const [dueDate, setDueDate] = useState("");
-  const [status, setStatus] = useState("Overdue");
+  const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const [task, setTask] = useState(null);
   const [priorities, setPriorities] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [users, setUsers] = useState([]);
   const [sla, setSla] = useState("");
-  
-  const getAssigneesEndpoint = '/users/';
-  const prioritiesEndpoint = 'tasks/priorities/';
-  const statusesEndpoint = 'tasks/statuses/';
+
+  const getAssigneesEndpoint = "/users/";
+  const prioritiesEndpoint = "tasks/priorities/";
+  const statusesEndpoint = "tasks/statuses/";
 
   useEffect(() => {
     if (isOpen) {
@@ -33,7 +36,7 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
           handleApiError(error);
         }
       };
-  
+
       const fetchStatuses = async () => {
         try {
           const response = await axiosInstance.get(statusesEndpoint);
@@ -42,7 +45,7 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
           handleApiError(error);
         }
       };
-  
+
       const fetchAssignees = async () => {
         try {
           const response = await axiosInstance.get(getAssigneesEndpoint);
@@ -51,7 +54,7 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
           handleApiError(error);
         }
       };
-  
+
       fetchPriorities();
       fetchStatuses();
       fetchAssignees();
@@ -65,6 +68,7 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
       setLoading(true);
       try {
         const { data } = await axiosInstance.get(`tasks/${taskId}`);
+        console.log("data is ", data);
         setTask(data.task);
       } catch (err) {
         handleApiError(err);
@@ -80,53 +84,108 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
     if (task) {
       setTaskTitle(task.title || "");
       setDescription(task.description || "");
-      setPriority(task.priority.id || "High");
-      setAgents(task.agents || []);
-      setDueDate(task.due_date || "");
-      setStatus(task.status.id || "Overdue");
+      setDueDate(task.due_date ? new Date(task.due_date).toISOString().split("T")[0] : "");
       setSla(task.sla || "");
+      setAgents(task.assignees.map((assignee) => assignee.id));
+  
+      setPriority(
+        priorities.find((p) => p.id === task.priority.id) || null
+      );
+      setStatus(
+        statuses.find((s) => s.id === task.status.id) || null
+      );
     }
-  }, [task]);
+  }, [task, priorities, statuses]);
+  
+
+  const priorityOptions = priorities.map((p) => ({
+    value: p.id,
+    label: p.label,
+  }));
+
+  const statusOptions = statuses.map((s) => ({
+    value: s.id,
+    label: s.label,
+  }));
+
+  const agentOptions = users.map((user) => ({
+    value: user.id,
+    label: user.email,
+  }));
+
+  const handlePriorityChange = (selectedOption) => {
+    setPriority(selectedOption);
+  };
+
+  const handleStatusChange = (selectedOption) => {
+    setStatus(selectedOption);
+  };
+
+  const handleAgentChange = (selectedOptions) => {
+    setAgents(selectedOptions.map((option) => option.value));
+  };
 
   const handleUpdate = async () => {
-    const updatedTask = {
-      title: taskTitle,
-      description: description,
-      assignees: agents,
-      status: parseInt(status),
-      priority: parseInt(priority),
-      sla: sla,
-      due_date: dueDate
-    };
+    if (!task) return;
+  
+    const updatedFields = {};
+  
+    if (taskTitle !== task.title) updatedFields.title = taskTitle;
+    if (description !== task.description) updatedFields.description = description;
+    if (priority?.value !== task.priority.id) updatedFields.priority = priority?.value;
+    if (status?.value !== task.status.id) updatedFields.status = status?.value;
+  
+    const formattedDueDate = new Date(dueDate).toISOString().split("T")[0];
+    const originalDueDate = new Date(task.due_date).toISOString().split("T")[0];
+  
+    if (formattedDueDate !== originalDueDate) updatedFields.due_date = dueDate;
+    if (sla !== task.sla) updatedFields.sla = sla;
+  
+    // Fix: Ensure Assignees are included if changed
+    const originalAgentIds = task.assignees.map((a) => a.id).sort((a, b) => a - b);
+    const selectedAgentIds = agents.map((id) => parseInt(id)).sort((a, b) => a - b);
 
+    console.log(selectedAgentIds)
+  
+    if (JSON.stringify(originalAgentIds) !== JSON.stringify(selectedAgentIds)) {
+      updatedFields.assignees = selectedAgentIds.length > 0 ? selectedAgentIds : [];
+    }
+  
+    // Prevent sending an empty request if no fields were updated
+    if (Object.keys(updatedFields).length === 0) {
+      onClose();
+      return;
+    }
+  
     try {
-      await axiosInstance.post(`tasks/${taskId}/update/`, updatedTask);
-      onUpdate(taskId, updatedTask);
+      await axiosInstance.post(`tasks/${taskId}/update/`, updatedFields);
+      onUpdate(taskId, updatedFields);
       onClose();
     } catch (err) {
       handleApiError(err);
     }
-  };
+  };  
+  
 
   if (!isOpen) return null;
 
   const footer = (
     <div className="flex gap-3 w-7/12">
       <button
-          type="button"
-          onClick={onClose}
-          className="w-6/12 px-4 py-2 bg-theme rounded-md border border-gray-30"
+        type="button"
+        onClick={onClose}
+        className="w-6/12 px-4 py-2 bg-theme rounded-md border border-gray-30"
       >
-          Cancel
+        Cancel
       </button>
       <button
-          type="submit"
-          onClick={handleUpdate}
-          className="w-6/12 px-4 py-2 bg-[#3EBF0F] text-white rounded-md "
+        type="submit"
+        onClick={handleUpdate}
+        className="w-6/12 px-4 py-2 bg-[#3EBF0F] text-white rounded-md "
       >
-          Save
+        Save
       </button>
-  </div>
+    </div>
   );
 
   return (
@@ -168,36 +227,26 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
             className="w-full border border-gray-300 rounded-lg px-2 py-3"
           />
         </div>
-        
+
         <div className="mb-7">
-          <select
+          <label className="block text-sm font-medium mb-1">Priority</label>
+          <Select
+            options={priorityOptions}
             value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-            className="flex items-center h-14 px-2 gap-2 border border-gray-300 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow-sm w-full"
-          >
-            <option value="" className="text-[16px] font-medium tracking-[0.2px]">Select Priority</option>
-            {priorities.map((p) => (
-              <option key={p.id} value={p.id} className="text-[16px] font-medium tracking-[0.2px]">
-                {p.label}
-              </option>
-            ))}
-          </select>
+            onChange={handlePriorityChange}
+            styles={selectStyles}
+          />
         </div>
 
         <p className="mb-3">Select Agents</p>
         <div className="mb-7">
-          <select
-            multiple
-            value={agents}
-            onChange={(e) => setAgents(Array.from(e.target.selectedOptions, option => option.value))}
-            className="flex items-center h-10 px-2 gap-2 border border-gray-300 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow-sm w-full"
-          >
-            {users.map((user) => (
-              <option key={user.id} value={user.id} className="text-[16px] font-medium tracking-[0.2px]">
-                {user.email}
-              </option>
-            ))}
-          </select>
+          <Select
+            isMulti
+            options={agentOptions}
+            value={agentOptions.filter((option) => agents.includes(option.value))}
+            onChange={handleAgentChange}
+            styles={selectStyles}
+          />
         </div>
 
         <div className="mb-4">
@@ -211,18 +260,13 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
         </div>
 
         <div className="mb-7">
-          <select
+          <label className="block text-sm font-medium mb-1">Status</label>
+          <Select
+            options={statusOptions}
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="flex items-center h-14 px-2 gap-2 border border-gray-300 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow-sm w-full"
-          >
-            <option value="" className="text-[16px] font-medium tracking-[0.2px]">Status</option>
-            {statuses.map((s) => (
-              <option key={s.id} value={s.id} className="text-[16px] font-medium tracking-[0.2px]">
-                {s.label}
-              </option>
-            ))}
-          </select>
+            onChange={handleStatusChange}
+            styles={selectStyles}
+          />
         </div>
       </form>
     </Modal>

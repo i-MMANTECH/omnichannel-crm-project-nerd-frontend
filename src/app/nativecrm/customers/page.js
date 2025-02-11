@@ -47,12 +47,22 @@ const Page = () => {
     const { axiosInstance, loading } = useApi();
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
+    const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
 
     const [totalPages, setTotalPages] = useState(1);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+
+
+    useEffect(() => {
+        const page = Number(searchParams.get('page')) || 1;
+        const size = Number(searchParams.get('limit')) || 10;
+        
+        setCurrentPage(page);
+        setPageSize(size);
+    }, [searchParams]);
 
 
     useEffect(() => {
@@ -78,6 +88,19 @@ const Page = () => {
         } catch (error) {
             handleApiError(error);
         }
+    };
+
+    const handlePageChange = (newPage) => {
+        const params = new URLSearchParams(searchParams);
+        params.set('page', newPage.toString());
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    };
+
+    const handlePageSizeChange = (newSize) => {
+        const params = new URLSearchParams(searchParams);
+        params.set('size', newSize.toString());
+        params.set('page', '1'); // Reset to first page when changing page size
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
     };
     
     const toggleView = () => {
@@ -139,8 +162,8 @@ const Page = () => {
                                 <Pagination 
                                     currentPage={currentPage} 
                                     totalPages={totalPages} 
-                                    onPageChange={setCurrentPage} 
-                                    onPageSizeChange={setPageSize}
+                                    onPageChange={handlePageChange}
+                                    onPageSizeChange={handlePageSizeChange}
                                     pageSize={pageSize}
                                 />
                             </div>

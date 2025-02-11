@@ -7,18 +7,41 @@ import Pagination from '../../Pagination/Pagination';
 const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
   const [roleName, setRoleName] = useState("");
   const [description, setDescription] = useState("");
-  const [totalCount, setTotalCount] = useState(0);
-  const [limit] = useState(10);
+  const [availablePermissions, setAvailablePermissions] = useState([]);
+  const [selectedPermissions, setSelectedPermissions] = useState([]);
+  const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
 
+  // Fetch all available permissions
+  useEffect(() => {
+    const fetchPermissions = async () => {
+      try {
+        const response = await axiosInstance.get(`/users/permissions/?limit=${pageSize}&page=${currentPage}`);
+        setAvailablePermissions(response.data.results || []);
+        setTotalPages(Math.ceil(response.data.count / pageSize));
+      } catch (error) {
+        handleApiError(error);
+      }
+    };
+
+    if (show) {
+      fetchPermissions();
+    }
+  }, [show, currentPage, pageSize]);
+
+  // Fetch role details including permissions
   useEffect(() => {
     const fetchRoleDetails = async () => {
       try {
-        const response = await axiosInstance.get(`/roles/${roleId}`);
-        setRoleName(response.data.name);
-        setDescription(response.data.description);
+        const response = await axiosInstance.get(`/users/roles/${roleId}/`);
+        const roleData = response.data.role;
+
+        setRoleName(roleData.name);
+        setDescription(roleData.description);
+        setSelectedPermissions(roleData.permissions.map((perm) => perm.id)); // Preselect assigned permissions
       } catch (error) {
         handleApiError(error);
       }
@@ -29,6 +52,16 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
     }
   }, [show, roleId]);
 
+  // Handle permission selection
+  const handlePermissionChange = (permissionId) => {
+    setSelectedPermissions((prev) =>
+      prev.includes(permissionId)
+        ? prev.filter((id) => id !== permissionId)
+        : [...prev, permissionId]
+    );
+  };
+
+  // Handle role update submission
   const handleUpdateRole = async (e) => {
     e.preventDefault();
 
@@ -36,13 +69,34 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
       await axiosInstance.patch(`/users/roles/${roleId}/`, {
         name: roleName,
         description: description,
+        permissions: selectedPermissions,
       });
-      onRoleUpdated(); // Call the function to refresh roles
+
+      onRoleUpdated(); // Refresh role list
       onClose(); // Close the drawer
     } catch (error) {
-      console.error("Error updating role:", error);
+      handleApiError(error);
     }
   };
+
+  const footerContent = (
+    <div className="flex justify-start gap-3">
+      <button
+        type="button"
+        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+        onClick={onClose}
+      >
+        Cancel
+      </button>
+      <button
+        onClick={handleUpdateRole}
+        form="roleUpdateForm"
+        className="px-4 py-2 bg-[#3EBF0F] text-white rounded-lg hover:bg-green-600"
+      >
+        Update
+      </button>
+    </div>
+  );
 
   return (
     <Drawer
@@ -50,25 +104,9 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
       onClose={onClose}
       title="Update Role"
       width="35%"
-      footer={
-        <div className="flex justify-start gap-3">
-          <button
-            type="button"
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleUpdateRole}
-            className="px-4 py-2 bg-[#3EBF0F] text-white rounded-lg hover:bg-green-600"
-          >
-            Update
-          </button>
-        </div>
-      }
+      footer={footerContent}
     >
-      <form onSubmit={handleUpdateRole} className="py-2">
+      <form id="roleUpdateForm" onSubmit={handleUpdateRole} className="py-2">
         <div className="mb-5">
           <label className="block text-sm font-medium mb-2">Role Name *</label>
           <input
@@ -91,14 +129,49 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
             maxLength={100}
           />
           <div className="text-right text-sm text-gray-400">
-            {description.length}/100
+            {description?.length}/100
           </div>
         </div>
 
-        <Pagination data={{ count: totalCount }} limit={limit} onPageChange={setCurrentPage} />
+        <div className="mb-6">
+          <h3 className="font-semibold text-lg mb-6">Permissions</h3>
+          <div className="mt-3 px-3">
+            {availablePermissions.map((perm) => (
+              <div key={perm.id} className="flex items-center justify-between mb-8">
+                <span>{perm.name}</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedPermissions.includes(perm.id)}
+                    onChange={() => handlePermissionChange(perm.id)}
+                    className="sr-only peer"
+                  />
+                  <div
+                    className={`w-11 h-6 rounded-full transition-colors ${
+                      selectedPermissions.includes(perm.id) ? "bg-[#3EBF0F]" : "bg-gray-300"
+                    }`}
+                  >
+                    <div
+                      className={`w-6 h-6 body-theme rounded-full transition-transform ${
+                        selectedPermissions.includes(perm.id) ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </div>
+                </label>
+              </div>
+            ))}
+          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+            pageSize={pageSize}
+          />
+        </div>
       </form>
     </Drawer>
   );
 };
 
-export default UpdateRoleDrawer; 
+export default UpdateRoleDrawer;

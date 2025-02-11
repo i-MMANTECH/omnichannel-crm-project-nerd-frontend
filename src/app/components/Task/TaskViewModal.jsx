@@ -168,7 +168,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
       case "comments":
         return (
           <div className="mt-4 space-y-4">
-            <div>
+            <div className="mb-7">
               <textarea
                 placeholder="Add a comment..."
                 className="w-full border rounded-lg p-2 text-sm body-theme"
@@ -188,36 +188,41 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                 Comment
               </button>
             </div>
-            {comments.map((comment, index) => (
-              <div key={index} className="flex items-start gap-3">
-                {comment.user?.image ? (
-                  <Image
-                    alt="profile pic"
-                    width={32}
-                    height={32}
-                    className="rounded-full"
-                    src={comment.user.image}
-                  />
-                ) : (
-                  <UserAvatar 
-                    name={comment.user?.name || comment.user?.email || '--'} 
-                    width="w-8" 
-                    height="h-8" 
-                  />
-                )}
-                <div className="flex-1">
-                  <p className="text-sm">
-                  <strong>
-                    {comment.created_by.first_name?.trim() || comment.created_by.last_name?.trim() 
-                      ? `${comment.created_by.first_name} ${comment.created_by.last_name}`.trim()
-                      : 'Unnamed User'}
-                  </strong>
-                    <span className="ml-2 text-gray-500">{timeAgo(comment.created_at)}</span>
-                  </p>
-                  <p className="text-sm mt-1">{comment.content}</p>
+            {comments.map((comment, index) => {
+              const user = comment?.created_by
+              const userName = getAssigneeName(user);
+              return (
+                <div key={index} className="flex items-start gap-3">
+                  {user?.image ? (
+                    <Image
+                      alt="profile pic"
+                      width={32}
+                      height={32}
+                      className="rounded-full"
+                      src={user.image}
+                    />
+                  ) : (
+                    <UserAvatar 
+                      name={userName} 
+                      width="w-8" 
+                      height="h-8" 
+                    />
+                  )}
+                  
+                  <div className="flex-1">
+                    <p className="text-sm">
+                    <strong>
+                      {comment.created_by.first_name?.trim() || comment.created_by.last_name?.trim() 
+                        ? `${comment.created_by.first_name} ${comment.created_by.last_name}`.trim()
+                        : 'Unnamed User'}
+                    </strong>
+                      <span className="ml-2 text-gray-500">{timeAgo(comment.created_at)}</span>
+                    </p>
+                    <p className="text-sm mt-1">{comment.content}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+                )
+              })}
           </div>
         );
 
@@ -315,7 +320,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                 <div className="flex justify-between items-center">
                   <div className="flex justify-between items-center gap-2">
                     <svg width="16" height="15" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7.99992 11.5002V14.1668M5.17149 10.3286L3.28587 12.2142M3.99992 7.50016H1.33325M11.9999 7.50016H14.6666M10.8283 10.3286L12.714 12.2142M7.99992 3.50016V0.833496M10.8283 4.67174L12.714 2.78612M5.17149 4.67174L3.28587 2.78612" stroke="#808897" strokeWidth="1.5" stroke-linecap="round"/>
+                      <path d="M7.99992 11.5002V14.1668M5.17149 10.3286L3.28587 12.2142M3.99992 7.50016H1.33325M11.9999 7.50016H14.6666M10.8283 10.3286L12.714 12.2142M7.99992 3.50016V0.833496M10.8283 4.67174L12.714 2.78612M5.17149 4.67174L3.28587 2.78612" stroke="#808897" strokeWidth="1.5" strokeLineCap="round"/>
                     </svg>
                     <span className="font-medium">Status</span>
                   </div>
@@ -326,7 +331,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                 <div className="flex justify-between items-center">
                   <div className="flex justify-between items-center gap-2">
                     <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M5.33333 2.50016H4C2.89543 2.50016 2 3.39559 2 4.50016V6.50016M5.33333 2.50016V1.8335M5.33333 2.50016H10.6667M5.33333 2.50016V3.16683M10.6667 2.50016H12C13.1046 2.50016 14 3.39559 14 4.50016V6.50016M10.6667 2.50016V1.8335M10.6667 2.50016V3.16683M2 6.50016V13.1668C2 14.2714 2.89543 15.1668 4 15.1668H12C13.1046 15.1668 14 14.2714 14 13.1668V6.50016M2 6.50016H14M9 8.8335H11L9.33333 12.1668M7 9.8335V11.1668C7 11.7191 6.55228 12.1668 6 12.1668C5.44772 12.1668 5 11.7191 5 11.1668V9.8335C5 9.28121 5.44772 8.8335 6 8.8335C6.55228 8.8335 7 9.28121 7 9.8335Z" stroke="#808897" strokeWidth="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M5.33333 2.50016H4C2.89543 2.50016 2 3.39559 2 4.50016V6.50016M5.33333 2.50016V1.8335M5.33333 2.50016H10.6667M5.33333 2.50016V3.16683M10.6667 2.50016H12C13.1046 2.50016 14 3.39559 14 4.50016V6.50016M10.6667 2.50016V1.8335M10.6667 2.50016V3.16683M2 6.50016V13.1668C2 14.2714 2.89543 15.1668 4 15.1668H12C13.1046 15.1668 14 14.2714 14 13.1668V6.50016M2 6.50016H14M9 8.8335H11L9.33333 12.1668M7 9.8335V11.1668C7 11.7191 6.55228 12.1668 6 12.1668C5.44772 12.1668 5 11.7191 5 11.1668V9.8335C5 9.28121 5.44772 8.8335 6 8.8335C6.55228 8.8335 7 9.28121 7 9.8335Z" stroke="#808897" strokeWidth="1.5" strokeLineCap="round" strokeLinejoin="round"/>
                     </svg>
 
                     <span className="font-medium">Due Date</span>
@@ -374,12 +379,12 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                 <div className="flex justify-between items-center">
                   <div className="flex justify-between items-center gap-2">
                   <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 15.1665C11.3137 15.1665 14 12.4802 14 9.1665C14 5.8528 11.3137 3.1665 8 3.1665C4.68629 3.1665 2 5.8528 2 9.1665C2 12.4802 4.68629 15.1665 8 15.1665Z" stroke="#808897" strokeWidth="1.5" stroke-linecap="round"/>
-                        <path d="M3.33333 13.1665L2 14.4998M12.6667 13.1665L14 14.4998" stroke="#808897" strokeWidth="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M12.6666 2.8798L13.0636 2.6813C13.6271 2.39955 13.8388 2.43179 14.2868 2.8798C14.7348 3.3278 14.7671 3.53949 14.4853 4.103L14.2868 4.5M3.33325 2.8798L2.93625 2.6813C2.37275 2.39955 2.16105 2.43179 1.71305 2.8798C1.26505 3.3278 1.2328 3.53949 1.51455 4.103L1.71305 4.5" stroke="#808897" strokeWidth="1.5" stroke-linecap="round"/>
-                        <path d="M8 6.8335V9.50016L9.33333 10.8335" stroke="#808897" strokeWidth="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M8 2.8335V1.8335" stroke="#808897" strokeWidth="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M6.66675 1.8335H9.33341" stroke="#808897" strokeWidth="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 15.1665C11.3137 15.1665 14 12.4802 14 9.1665C14 5.8528 11.3137 3.1665 8 3.1665C4.68629 3.1665 2 5.8528 2 9.1665C2 12.4802 4.68629 15.1665 8 15.1665Z" stroke="#808897" strokeWidth="1.5" strokeLineCap="round"/>
+                        <path d="M3.33333 13.1665L2 14.4998M12.6667 13.1665L14 14.4998" stroke="#808897" strokeWidth="1.5" strokeLineCap="round" strokeLinejoin="round"/>
+                        <path d="M12.6666 2.8798L13.0636 2.6813C13.6271 2.39955 13.8388 2.43179 14.2868 2.8798C14.7348 3.3278 14.7671 3.53949 14.4853 4.103L14.2868 4.5M3.33325 2.8798L2.93625 2.6813C2.37275 2.39955 2.16105 2.43179 1.71305 2.8798C1.26505 3.3278 1.2328 3.53949 1.51455 4.103L1.71305 4.5" stroke="#808897" strokeWidth="1.5" strokeLineCap="round"/>
+                        <path d="M8 6.8335V9.50016L9.33333 10.8335" stroke="#808897" strokeWidth="1.5" strokeLineCap="round" strokeLinejoin="round"/>
+                        <path d="M8 2.8335V1.8335" stroke="#808897" strokeWidth="1.5" strokeLineCap="round" strokeLinejoin="round"/>
+                        <path d="M6.66675 1.8335H9.33341" stroke="#808897" strokeWidth="1.5" strokeLineCap="round" strokeLinejoin="round"/>
                     </svg>
 
 

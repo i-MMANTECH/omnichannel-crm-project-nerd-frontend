@@ -34,7 +34,6 @@ const RoleManagement = () => {
   const fetchRoles = async (page = 1, limit = pageSize) => {
     try {
       const response = await axiosInstance.get(`/users/roles/?limit=${limit}&page=${page}`);
-      console.log(response.data.results)
       setRoles(response.data.results);
       setTotalPages(Math.ceil(response.data.count / limit));
     } catch (error) {

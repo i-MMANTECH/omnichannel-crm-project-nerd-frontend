@@ -49,7 +49,7 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
               className={`flex items-center rounded ${
                 user?.id === activeUser?.id ? "bg-gray-200 dark:bg-gray-800" : ""
               }`}
-              onClick={() => setActiveUser(user)}
+              onClick={() => {setActiveUser(user);     console.log('users are ', users);              }}
             >
               <div className="flex items-center gap-3 p-3 cursor-pointer rounded">
                 <div className="relative">

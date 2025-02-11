@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, act } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import "./chatHeader.css";
@@ -30,7 +30,7 @@ const ModalController = ({ children }) => {
   return children({ isModalOpen, openModal, closeModal });
 };
 
-const ChatHeader = ({ activeUser }) => {
+const ChatHeader = ({ activeUser, isLead }) => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -39,6 +39,7 @@ const ChatHeader = ({ activeUser }) => {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    console.log('active user is ', activeUser)
     const handleClickOutside = (event) => {
       if (
         menuRef.current &&

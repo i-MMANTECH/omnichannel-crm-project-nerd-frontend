@@ -20,12 +20,10 @@ export const MainContainer = () => {
 
 
   const handleConnectClick = (title, icon) => {
-    console.log("title is ", title)
     const lowerCaseTitle = title.toLowerCase();
     const comingSoonChannels = ["facebook", "whatsapp", "instagram", "sms", "telegram"];
 
     if (comingSoonChannels.includes(lowerCaseTitle)) {
-      console.log('yeppp')
       setModalTitle("Coming Soon");
       setModalContent("This feature is coming soon!");
       setShowModal(true);
@@ -51,7 +49,6 @@ export const MainContainer = () => {
     const getChannels = async() => {
       try {
         const response = await axiosInstance.get('/channels/all/')
-        console.log(response)
           
         setChannels(response.data.channels);
       } catch(error) {

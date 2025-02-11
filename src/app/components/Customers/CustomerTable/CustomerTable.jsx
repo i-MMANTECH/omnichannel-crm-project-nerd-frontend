@@ -3,8 +3,9 @@ import './style.css';
 import { useRouter } from 'next/navigation';
 import UserAvatar from '../../UserAvatar';
 import Image from 'next/image';
+import { getRoleStyle } from '@/utils/getRoleStyle';
 
-const CustomerTable = ({ searchQuery, customers }) => {
+const CustomerTable = ({ customers }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10); 
     const router = useRouter()
@@ -119,16 +120,22 @@ const CustomerTable = ({ searchQuery, customers }) => {
                                         </div>
                                     </td>
                                     <td className="py-3 px-4 border-b">
-                                        {customer.tags?.length > 0 &&
-                                            <div className='flex flex-col'>
-                                                <p className="ms-1 text-right text-[#936DFF] bg-[#F4F0FF] font-encode-sans text-xs font-medium leading-[18px] tracking-[0.4px] flex px-[6.913px] py-[1.728px] justify-center items-center gap-[3.456px] rounded-[3.456px] ">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="3.456" height="3.456" viewBox="0 0 5 5" fill="none">
-                                                        <circle cx="2.64075" cy="2.65589" r="1.72816" fill="var(--Violet-100, #936DFF)" />
-                                                    </svg>
-                                                    {customer.tags?.map((tag) => (tag))}
-                                                </p>
-                                            </div>
+                                        {customer?.tags?.length <= 0 &&
+                                            <span className="customer-left-name font-bold mr-1">--</span>
                                         }
+                                        <span
+                                            className={`inline-block py-1 rounded-full -ml-1 text-sm font-medium `}
+                                            >
+                                            {customer?.tags.map((tag, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="px-2 py-1 ml-1 rounded"
+                                                    style={getRoleStyle(tag)}
+                                                >
+                                                    {tag}
+                                                </span>
+                                                ))}
+                                        </span>     
                                     </td>
                                 </tr>
                             ))}
