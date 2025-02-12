@@ -6,6 +6,7 @@ import Image from "next/image";
 import Select from 'react-select';
 import { selectStyles } from "../selectStyles";
 import Modal from "../Modal";
+import CreatableSelect from "react-select/creatable";
 
 
 function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
@@ -24,13 +25,47 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
         facebook: "",
         whatsapp: "",
         tiktok: "",
-        tag: [],
+        tags: [],
         country: {id: 160, name: "Nigeria"},
         state: {},
     });
 
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchTags();
+        }
+    }, [isOpen]);
+
+    const fetchTags = async () => {
+        try {
+            const response = await axiosInstance.get("/tags/");
+            setTags(response.data.tags || []);
+        } catch (error) {
+            handleApiError(error);
+        }
+    };
+
+    const handleTagChange = (selectedTags) => {
+        setFormData(prev => ({
+            ...prev,
+            tags: selectedTags.map(tag => tag.value)
+        }));
+    };
+
+    const handleCreateTag = (inputValue) => {
+        if (!inputValue.trim()) return;
+
+        const newTag = { value: inputValue, label: inputValue };
+
+        setTags(prevTags => [...prevTags, newTag]);
+        setFormData(prev => ({
+            ...prev,
+            tags: [...prev.tags, inputValue]
+        }));
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -51,10 +86,6 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
             };
             reader.readAsDataURL(file);
         }
-    };
-
-    const handleTagChange = (selectedTags) => {
-        setFormData(prev => ({ ...prev, tags: selectedTags }));
     };
 
     // const fetchInitialData = async () => {
@@ -109,18 +140,17 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
         try {
             const submissionData = {
                 ...formData,
-                tags: formData?.tags?.map(tag => tag.id),
+                tags: formData.tags, // Send raw tag names, not IDs
                 country: formData.country?.id,
-                state: formData.state?.id
+                state: formData.state?.id,
             };
 
             const formDataToSubmit = new FormData();
-
-            Object.keys(submissionData).forEach(key => {
+            Object.keys(submissionData).forEach((key) => {
                 const value = submissionData[key];
                 if (value !== null && value !== undefined) {
                     if (Array.isArray(value)) {
-                        value.forEach(item => {
+                        value.forEach((item) => {
                             formDataToSubmit.append(key, item);
                         });
                     } else {
@@ -130,17 +160,16 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
             });
 
             if (image) {
-                formDataToSubmit.append('image', image);
+                formDataToSubmit.append("image", image);
             }
 
             const response = await axiosInstance.post("/customers/", formDataToSubmit, {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
+                    "Content-Type": "multipart/form-data",
+                },
             });
 
             if (response.status === 201) {
-                // Reset form
                 setFormData({
                     username: "",
                     first_name: "",
@@ -152,8 +181,8 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
                     facebook: "",
                     whatsapp: "",
                     tiktok: "",
-                    tag: [],
-                    country: {id: 160, name: "Nigeria"},
+                    tags: [],
+                    country: { id: 160, name: "Nigeria" },
                     state: {},
                 });
                 setImage(null);
@@ -360,20 +389,20 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
                         placeholder="TikTok handle"
                     />
                 </div>
-                {/* Multiselect Tags */}
                 <div>
                     <label className="text-sm">Tags</label>
-                    <Select
+                    <CreatableSelect
                         isMulti
                         name="tags"
-                        options={tags?.map(tag => ({ 
-                            value: tag.id, 
-                            label: tag.name 
+                        options={tags.map((tag) => ({
+                            value: tag.value,
+                            label: tag.label,
                         }))}
                         classNamePrefix="select"
                         onChange={handleTagChange}
-                        value={formData?.tags}
-                        placeholder="Select tags"
+                        onCreateOption={handleCreateTag}
+                        value={formData.tags.map(tag => ({ value: tag, label: tag }))}
+                        placeholder="Select or create tags"
                         styles={selectStyles}
                     />
                 </div>

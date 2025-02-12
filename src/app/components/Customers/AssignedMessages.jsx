@@ -74,7 +74,7 @@ export default function CustomerAssignedMessages() {
         <div className="w-full">
         {chatHistory.map((chat) => {
           return (
-          <div key={chat.id}
+          <div key={chat?.id}
           style={{cursor:"pointer"}}
           onClick={() => handleChatSelect(chat)}
           >  
@@ -84,16 +84,16 @@ export default function CustomerAssignedMessages() {
                   <Image 
                     width={100}
                     height={100}
-                    src={chat.channel.image} 
-                    alt={`${chat.channel.id} `} 
+                    src={chat.channel?.image} 
+                    alt={`${chat.channel?.id} `} 
                     />
                 </div>
                 <div className="flex flex-col ms-4 gap-1">
                   <p className="text-sm font-medium ">
-                    {chat.channel.name}
+                    {chat.channel?.name}
                   </p>
                   <p className="text-sm">
-                    {chat.content}
+                    {chat?.content}
                   </p>
                 </div>
               </div>

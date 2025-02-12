@@ -16,9 +16,15 @@ const CustomerGrid = ({ customers }) => {
             <div className='flex justify-between items-center p-2 border-b'>
               <div className='flex items-center space-x-2'>
                 <div className="flex items-center space-x-2">
-                  <UserAvatar
-                      name={`${customer.first_name} ${customer.last_name}` || "--"}
-                    />
+                    {customer?.image && <Image 
+                        alt="profile pic"
+                        width={10}
+                        height={10}
+                        className="mt-2 w-10 h-10 rounded-full" 
+                        src={customer.image} 
+                        />}
+                    {!customer?.image && <UserAvatar name={`${customer.first_name} ${customer.last_name}`} width="w-10" height="h-10" />}
+                    <span>{`${customer.first_name} ${customer.last_name}` || "--"}</span>
                   <h3 className="text-lg font-semibold">{`${customer.first_name} ${customer.last_name}` || "--"}</h3>
                 </div>             
               </div>

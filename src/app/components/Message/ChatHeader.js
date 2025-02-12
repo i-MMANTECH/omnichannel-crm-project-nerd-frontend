@@ -39,8 +39,6 @@ const ChatHeader = ({ activeUser, isLead }) => {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    console.log('active user is ', activeUser)
-    console.log('active user is lead', isLead)
     const handleClickOutside = (event) => {
       if (
         menuRef.current &&
@@ -66,7 +64,7 @@ const ChatHeader = ({ activeUser, isLead }) => {
 
   const leadMenuItems = [
     {
-      label: "Edit customer",
+      label: "Add as customer",
       onClick: () => {
         const params = new URLSearchParams(searchParams);
         params.set('action', 'lead-to-customer');
@@ -76,11 +74,9 @@ const ChatHeader = ({ activeUser, isLead }) => {
   ]
   const customerMenuItems = [
     {
-      label: "Add as customer",
+      label: "Edit customer",
       onClick: () => {
-        const params = new URLSearchParams(searchParams);
-        params.set('action', 'lead-to-customer');
-        router.push(`?${params.toString()}`, { scroll: false });
+        router.push(`/nativecrm/customers/${activeUser?.id}?action=edit-customer`);
       },
     },
     // { label: "Create a ticket", onClick: () => console.log("Create a ticket") },

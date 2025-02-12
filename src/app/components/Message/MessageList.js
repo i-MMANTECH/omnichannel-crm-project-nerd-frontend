@@ -91,7 +91,6 @@ const MessageList = ({ chatHistory, activeUserId }) => {
                       <p style={{ whiteSpace: "pre-wrap" }}>{msg.content}</p>
                     ) : msg.content_type === "html" ? (
                       <div
-                        className="message-html"
                         dangerouslySetInnerHTML={{ __html: msg.content }} 
                       />
                     ) : null}
@@ -103,7 +102,6 @@ const MessageList = ({ chatHistory, activeUserId }) => {
                     )}
                     {msg.content_type === "html" && (
                       <div
-                        className="message-html"
                         dangerouslySetInnerHTML={{ __html: msg.content }}
                       />
                     )}
