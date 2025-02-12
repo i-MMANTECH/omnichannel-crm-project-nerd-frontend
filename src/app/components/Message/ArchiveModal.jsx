@@ -1,18 +1,20 @@
 import React from "react";
+import Modal from "../Modal";
 
 const ArchiveModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="w-[400px] p-6 bg-white rounded-2xl shadow-lg flex flex-col gap-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-bold">Archived messages</h2>
-          <button onClick={onClose} className="text-gray-500 text-xl">×</button>
-        </div>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Archived messages"
+      showFooter={true}
+      width="500px"
+    >
 
+      <div>
         <p className="text-sm text-gray-600">Select a message you want</p>
-
         <div className="flex gap-4">
           <div className="flex items-center gap-2 px-3 py-2 border rounded-md">
             <svg
@@ -62,25 +64,23 @@ const ArchiveModal = ({ isOpen, onClose }) => {
             <input type="text" placeholder="Search" className="outline-none text-sm w-full" />
           </div>
         </div>
+      </div>
 
-        <div className="flex flex-col gap-3 max-h-80 overflow-y-auto custom-scrollbar">
-          {[...Array(5)].map((_, index) => (
-            <div key={index} className="flex items-center gap-4 p-3 bg-gray-100 rounded-lg shadow-sm">
-              <img
-                src="https://via.placeholder.com/40"
-                alt="User Avatar"
-                className="w-10 h-10 rounded-full"
-              />
-              
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold">Chioma Okere</h3>
-                <p className="text-xs text-gray-500">I’m Nia! My first investment...</p>
-              </div>
-
-              <span className="text-xs text-gray-400">10/10/2024</span>
+      <div className="flex flex-col max-h-80 overflow-y-auto custom-scrollbar">
+        {[...Array(5)].map((_, index) => (
+          <div key={index} className="mt-3 flex items-center gap-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
+            <img
+              src="https://via.placeholder.com/40"
+              alt="User Avatar"
+              className="w-10 h-10 rounded-full"
+            />
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold">Chioma Okere</h3>
+              <p className="text-xs text-gray-500">I’m Nia! My first investment...</p>
             </div>
-          ))}
-        </div>
+            <span className="text-xs text-gray-400">10/10/2024</span>
+          </div>
+        ))}
       </div>
 
       <style jsx>{`
@@ -98,7 +98,7 @@ const ArchiveModal = ({ isOpen, onClose }) => {
           border-radius: 4px;
         }
       `}</style>
-    </div>
+    </Modal>
   );
 };
 
