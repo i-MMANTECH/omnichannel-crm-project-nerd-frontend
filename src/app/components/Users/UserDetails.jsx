@@ -28,12 +28,14 @@ export default function UserDetails({ user }) {
       <div className="flex mb-5 flex-col max-w-[788px] p-8 items-center gap-6 flex-1 rounded-lg border border-gray-300 body-theme">
         <div className="user-top-content flex justify-between border w-full rounded-lg p-6 gap-3">
           <div className="px-6 py-4 flex flex-col items-center gap-1 h-fit rounded-lg border border-gray-200 body-theme">
-            {user?.profile && <Image 
-              className="user-left-image mt-2" 
+            {user?.image && <Image 
+              className="user-left-image mt-2 w-10 h-10 rounded-full" 
               alt="bio"
-              source={user?.profile ? { uri: user.profile } : undefined} 
+              src={user?.image} 
+              width={50}
+              height={50}
             />}
-            {!user?.profile && <UserAvatar name={user?.name ? user?.name : '--'} />}
+            {!user?.image && <UserAvatar name={user?.name ? user?.name : '--'} />}
 
             <p className="user-left-name">{ name }</p>
             <p className="user-left-email">{ user?.email }</p>
@@ -153,10 +155,12 @@ export default function UserDetails({ user }) {
           <div className="mt-6 w-full">
             {selected === "work-schedule" && (
               <WorkSchedule/>
-             
             )}
             {selected === "assigned-messages" && (
-              <AssignedMessages/>
+              // <AssignedMessages/>
+              <div>
+                Agent has no assigned messages
+              </div>
             )}
           </div>
         </div>

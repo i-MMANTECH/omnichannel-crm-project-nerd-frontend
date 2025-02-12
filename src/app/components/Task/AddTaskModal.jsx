@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useError } from "@/context/ErrorContext";
-import { useApi } from "@/services/axiosConfig";
 import Modal from "../Modal";
+import { useApi } from "@/services/axiosConfig";
+import { useError } from "@/context/ErrorContext";
+import Select from "react-select";
+import { selectStyles } from "../selectStyles";
 
-function TaskModal({ isOpen, onClose, setIsSuccessModalOpen }) {
+const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
 
@@ -12,16 +14,16 @@ function TaskModal({ isOpen, onClose, setIsSuccessModalOpen }) {
   const [assignees, setAssignees] = useState([]);
   const [dueDate, setDueDate] = useState("");
   const [sla, setSla] = useState("");
-  const [priority, setPriority] = useState("");
-  const [status, setStatus] = useState("");
+  const [priority, setPriority] = useState(null);
+  const [status, setStatus] = useState(null);
   const [priorities, setPriorities] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [users, setUsers] = useState([]);
 
-  const prioritiesEndpoint = 'tasks/priorities/';
-  const statusesEndpoint = 'tasks/statuses/';
-  const createTaskEndpoint = 'tasks/create/';
-  const getAssigneesEndpoint = '/users/';
+  const prioritiesEndpoint = "tasks/priorities/";
+  const statusesEndpoint = "tasks/statuses/";
+  const createTaskEndpoint = "tasks/create/";
+  const getAssigneesEndpoint = "/users/";
 
   useEffect(() => {
     if (isOpen) {
@@ -46,7 +48,11 @@ function TaskModal({ isOpen, onClose, setIsSuccessModalOpen }) {
       const fetchAssignees = async () => {
         try {
           const response = await axiosInstance.get(getAssigneesEndpoint);
-          setUsers(response.data.results || []);
+          const formattedUsers = response.data.results.map((user) => ({
+            value: user.id,
+            label: user.email,
+          }));
+          setUsers(formattedUsers);
         } catch (error) {
           handleApiError(error);
         }
@@ -58,30 +64,41 @@ function TaskModal({ isOpen, onClose, setIsSuccessModalOpen }) {
     }
   }, [isOpen]);
 
+  const handlePriorityChange = (selectedOption) => {
+    setPriority(selectedOption);
+  };
+
+  const handleStatusChange = (selectedOption) => {
+    setStatus(selectedOption);
+  };
+
+  const handleAgentChange = (selectedOptions) => {
+    setAssignees(selectedOptions || []); // Now stores full objects { value, label }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const taskData = {
       title: taskTitle,
       description: taskDescription,
-      assignees: assignees.map(id => parseInt(id, 10)),
-      due_date: new Date(dueDate).toISOString(),
+      assignees: assignees.map((agent) => agent.value), // Send only IDs to API
+      due_date: dueDate,
       sla,
-      priority: parseInt(priority, 10),
-      status: parseInt(status, 10),
+      priority: priority?.value,
+      status: status?.value,
     };
 
     try {
       const response = await axiosInstance.post(createTaskEndpoint, taskData);
-      
       if (response.status === 201) {
         setTaskTitle("");
         setTaskDescription("");
         setAssignees([]);
         setDueDate("");
         setSla("");
-        setPriority("");
-        setStatus("");
+        setPriority(null);
+        setStatus(null);
         onClose();
         setIsSuccessModalOpen(true);
       }
@@ -133,29 +150,50 @@ function TaskModal({ isOpen, onClose, setIsSuccessModalOpen }) {
           ></textarea>
         </div>
 
-        <hr className="mb-8" />
-        <p className="mb-3">Select Agents</p>
         <div className="mb-7">
-          <select
-            multiple
-            value={assignees}
-            onChange={(e) => setAssignees(Array.from(e.target.selectedOptions, option => option.value))}
-            className="flex items-center h-10 px-2 gap-2 border border-gray-300 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow-sm w-full"
-          >
-            {users.map((user) => (
-              <option key={user.id} value={user.id} className="text-[16px] font-medium tracking-[0.2px]">
-                {user.email}
-              </option>
-            ))}
-          </select>
+          <label className="block text-sm font-medium mb-1">Priority</label>
+          <Select
+            options={priorities.map((p) => ({
+              value: p.id,
+              label: p.label,
+            }))}
+            value={priority}
+            onChange={handlePriorityChange}
+            styles={selectStyles}
+          />
         </div>
 
         <div className="mb-7">
+          <label className="block text-sm font-medium mb-1">Status</label>
+          <Select
+            options={statuses.map((s) => ({
+              value: s.id,
+              label: s.label,
+            }))}
+            value={status}
+            onChange={handleStatusChange}
+            styles={selectStyles}
+          />
+        </div>
+
+        <div className="mb-7">
+          <label className="block text-sm font-medium mb-1">Select Agents</label>
+          <Select
+            isMulti
+            options={users}
+            value={assignees} // Now correctly stores full objects { value, label }
+            onChange={handleAgentChange}
+            styles={selectStyles}
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1">Due Date</label>
           <input
             type="date"
+            className="w-full border rounded-lg p-2 text-sm"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-2 py-3"
           />
         </div>
 
@@ -168,39 +206,9 @@ function TaskModal({ isOpen, onClose, setIsSuccessModalOpen }) {
             className="w-full border border-gray-300 rounded-lg px-2 py-3"
           />
         </div>
-
-        <div className="mb-7">
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-            className="flex items-center h-14 px-2 gap-2 border border-gray-300 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow-sm w-full"
-          >
-            <option value="" className="text-[16px] font-medium tracking-[0.2px]">Select Priority</option>
-            {priorities.map((p) => (
-              <option key={p.id} value={p.id} className="text-[16px] font-medium tracking-[0.2px]">
-                {p.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="mb-7">
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="flex items-center h-14 px-2 gap-2 border border-gray-300 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow-sm w-full"
-          >
-            <option value="" className="text-[16px] font-medium tracking-[0.2px]">Status</option>
-            {statuses.map((s) => (
-              <option key={s.id} value={s.id} className="text-[16px] font-medium tracking-[0.2px]">
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </div>
       </form>
     </Modal>
   );
-}
+};
 
 export default TaskModal;

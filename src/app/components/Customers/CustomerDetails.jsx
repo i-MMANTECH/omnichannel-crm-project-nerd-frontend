@@ -11,6 +11,9 @@ import { getRoleStyle } from "@/utils/getRoleStyle";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import EditCustomerModal from "./EditCustomerModal";
 import SuccessModal from '@/app/components/SuccessModal';
+import SendMessageModal from "./SendMessageModal";
+import { useApi } from "@/services/axiosConfig";
+import { useError } from "@/context/ErrorContext";
 
 
 const ModalController = ({ children }) => {
@@ -31,20 +34,41 @@ const ModalController = ({ children }) => {
       params.delete('action');
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
+  
 
   return children({ isModalOpen, openModal, closeModal });
 };
 
 export default function CustomerDetails({ customer }) {
+  const { axiosInstance } = useApi();
+  const { handleApiError } = useError();
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
   const [selected, setSelected] = useState("work-schedule");
   const router = useRouter();
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [availableChannels, setAvailableChannels] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleChatSelect = () => {
-    router.push(`/nativecrm/messages?chat=customers&id=${customer?.id}`);
+
+  const handleChatSelect = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axiosInstance.get(`/communication/customer-chat-history/${customer.id}/`);
+      const messages = response.data?.results?.messages || [];
+
+      if (messages.length > 0) {
+        router.push(`/nativecrm/messages?chat=customers&id=${customer.id}`);
+      } else {
+        setIsMessageModalOpen(true);
+      }
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const closeSuccessModal = () => {
@@ -269,6 +293,14 @@ export default function CustomerDetails({ customer }) {
                 onClose={closeModal}
                 customerId={customer?.id}
                 setIsSuccessModalOpen={setIsSuccessModalOpen}
+            />
+
+            <SendMessageModal
+              isOpen={isMessageModalOpen}
+              onClose={() => setIsMessageModalOpen(false)}
+              customerId={customer.id}
+              customerName={customerName}
+              onMessageSent={() => router.push(`/nativecrm/messages?chat=customers&id=${customer.id}`)}
             />
 
             <SuccessModal
