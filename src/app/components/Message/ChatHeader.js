@@ -9,6 +9,9 @@ import NotesModal from "./NotesModal";
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import SuccessModal from "../SuccessModal";
 import checkPermission from "@/utils/checkPermission";
+import AssignAgentModal from "./AssignAgentModal";
+import EndSessionModal from "./EndSessionModal";
+import ArchiveModal from "./ArchiveModal";
 
 const ModalController = ({ children }) => {
   const searchParams = useSearchParams();
@@ -36,6 +39,9 @@ const ChatHeader = ({ activeUser }) => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+  const [isAssignAgentModalOpen, setIsAssignAgentModalOpen] = useState(false);
+  const [isEndSessionModalOpen, setIsEndSessionModalOpen] = useState(false);
+  const [isArchivedModalOpen, setIsArchivedModalOpen] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
   const router = useRouter();
@@ -76,12 +82,22 @@ const ChatHeader = ({ activeUser }) => {
       },
     }] : []),
     {
+      label: "Archived messages", 
+      onClick: () => setIsArchivedModalOpen(true),
+    },
+    {
       label: "Notes", 
       onClick: () => setIsNotesModalOpen(true),
     },
+    {
+      label: "Assign to Agent",
+      onClick: () => setIsAssignAgentModalOpen(true),
+    },
+    {
+      label: "End Session",
+      onClick: () => setIsEndSessionModalOpen(true),
+    },
     // { label: "Create a ticket", onClick: () => console.log("Create a ticket") },
-    // { label: "Assign to agent", onClick: () => console.log("Assign to agent") },
-    // { label: "End session", onClick: () => console.log("End session") },
   ];
 
   const closeSuccessModal = () => {
@@ -165,6 +181,11 @@ const ChatHeader = ({ activeUser }) => {
                 setIsSuccessModalOpen={setIsSuccessModalOpen}
               />
             )}
+            {isArchivedModalOpen && (
+               <ArchiveModal 
+               isOpen={isArchivedModalOpen} 
+               onClose={() => setIsArchivedModalOpen(false)} />
+            )}
             {isNotesModalOpen && (
               <NotesModal
                 isOpen={isNotesModalOpen}
@@ -172,6 +193,20 @@ const ChatHeader = ({ activeUser }) => {
                 userId={activeUser.id}
               />
             )}
+             {isAssignAgentModalOpen && (
+            <AssignAgentModal
+              isOpen={isAssignAgentModalOpen}
+              onClose={() => setIsAssignAgentModalOpen(false)}
+              userId={activeUser.id}
+            />
+          )}
+          {isEndSessionModalOpen && (
+            <EndSessionModal
+              isOpen={isEndSessionModalOpen}
+              onClose={() => setIsEndSessionModalOpen(false)}
+              userId={activeUser.id}
+            />
+          )}
           </div>
         )}
       </ModalController>

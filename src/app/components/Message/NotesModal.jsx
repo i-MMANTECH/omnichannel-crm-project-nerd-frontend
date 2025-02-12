@@ -21,11 +21,14 @@ const NotesModal = ({ isOpen, onClose }) => {
 
   const footerContent = (
     <>
-      <button onClick={onClose} className="px-4 py-2 body-theme text-black rounded-md mr-2 border border-gray-300">
-        Cancel
+      <button
+          onClick={onClose}
+          className="w-6/12 px-4 py-2 bg-theme rounded-md border border-gray-30">
+          Cancel
       </button>
-      <button onClick={handleSaveNote} className="px-6 py-2 bg-[#3EBF0F] text-white rounded-md hover:bg-green-600">
-        Save
+      <button
+          className="w-6/12 px-4 py-2 bg-[#3EBF0F] text-white rounded-md">
+          Save
       </button>
     </>
   );
