@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, act } from "react";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
@@ -7,36 +7,48 @@ import { useAuth } from "@/context/AuthContext";
 import "./style.css";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from '@/context/ErrorContext';
-import { useRouter } from "next/navigation";
-
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "use-debounce";
 
 export const Messages = () => {
-	const { axiosInstance, loading } = useApi();
-	const { user: currentUser } = useAuth();
+	const { axiosInstance } = useApi();
+	const { handleApiError } = useError();
+	const router = useRouter();
+	const searchParams = useSearchParams();
 
 	const [message, setMessage] = useState("");
 	const [activeUser, setActiveUser] = useState(null);
-	const [socket, setSocket] = useState(null);
 	const [users, setUsers] = useState([]);
 	const [chatHistory, setChatHistory] = useState([]);
 	const [companyId, setCompanyId] = useState('');
-	const { handleApiError } = useError();
-	const router = useRouter();
-	const [searchTerm, setSearchTerm] = useState("");
-	const [activeTab, setActiveTab] = useState("leads");
 	const [searchQuery, setSearchQuery] = useState("");
+	const [isLead, setIsLead] = useState(false);
 	const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
+
+	const [chatType, setChatType] = useState(searchParams.get("chat") || "leads");
+	const chatId = searchParams.get("id");
 
 	const wsRef = useRef(null);
 
 	useEffect(() => {
-		fetchChatHistory();
-	}, [activeUser, activeTab]);
+		setChatType(searchParams.get("chat") || "leads");
+	}, [searchParams]);
 
-  useEffect(() => {
-    fetchChatList()
-  }, [debouncedSearchQuery])
+	useEffect(() => {
+		fetchChatHistory();
+	}, [activeUser]);
+
+	useEffect(() => {
+		if (chatId) {
+			fetchChatHistory();
+		}
+		setIsLead(chatType == 'leads')
+	}, [chatType, chatId]);
+
+
+	useEffect(() => {
+		fetchChatList()
+	}, [debouncedSearchQuery, chatType])
 
 	useEffect(() => {
 		const fetchCompanyId = async () => {
@@ -88,10 +100,7 @@ export const Messages = () => {
 			const data = JSON.parse(event.data);
 			const message = data.message;
   
-			console.log("Received WebSocket message:", message);
-
 			if (message.is_new_lead) {
-				console.log("New sender detected, fetching updated users list...");
 				fetchChatList();
 			}
   
@@ -109,38 +118,50 @@ export const Messages = () => {
 	}, [activeUser, users]);
 
 	const fetchChatList = async () => {
-		const endpoint = activeTab === "customers"
-			? `/communication/chatted-customers/?search=${debouncedSearchQuery}`
-			: `/communication/contacts/?search=${debouncedSearchQuery}`;
-  
-		console.log("Fetching chat list with endpoint:", endpoint);
+		const endpoint =
+			chatType === "customers"
+				? `/communication/chatted-customers/?search=${debouncedSearchQuery}`
+				: `/communication/contacts/?search=${debouncedSearchQuery}`;
 
-		await axiosInstance.get(endpoint)
+		await axiosInstance
+			.get(endpoint)
 			.then((response) => {
 				setUsers(response.data);
+
+				const foundUser = response.data.contacts.find((user) => user.id.toString() === chatId);
+				if (foundUser) {
+					setActiveUser(foundUser);
+				}
 			})
 			.catch(handleApiError);
 	};
-  
+
 	const fetchChatHistory = async () => {
-		if (activeUser) {
-			const endpoint = activeTab === "customers"
+		const endpoint =
+			chatType === "customers"
 				? `/communication/customer-chat-history/${activeUser.id}`
 				: `/communication/history/?lead_id=${activeUser.id}`;
-  
-			await axiosInstance.get(endpoint)
-				.then((response) => {
-					// console.log('response from history is ', response)
-					setChatHistory(activeTab === "customers"
-						? response.data.results.messages.reverse() || []
-						: response.data.messages.reverse() || []);
-				})
-				.catch(handleApiError);
-		} else {
-			fetchChatList();
-		}
+
+		await axiosInstance
+			.get(endpoint)
+			.then((response) => {
+				setChatHistory(chatType === "customers"
+					? response.data.results.messages.reverse() || []
+					: response.data.messages.reverse() || []);
+			})
+			.catch(handleApiError);
 	};
 
+	const handleChatSelect = (user) => {
+		setActiveUser(user);
+		router.push(`/nativecrm/messages?chat=${chatType}&id=${user.id}`, { scroll: false });
+	};
+
+	const handleTabChange = (tab) => {
+		setActiveUser(null)
+	    router.push(`/nativecrm/messages?chat=${tab}`, { scroll: false });
+	};
+	
 	const handleSendMessage = (messageContent) => {
 		const payload = {
 			lead_id: activeUser.id,
@@ -150,7 +171,7 @@ export const Messages = () => {
 
 		let url = '/communication/';
 		let dataToSend = payload;
-		if (activeTab === "customers") {
+		if (chatType === "customers") {
 			url += "send-to-customer/";
   
 			const formData = new FormData();
@@ -165,7 +186,7 @@ export const Messages = () => {
   
 		axiosInstance
 			.post(url, dataToSend, {
-				headers: activeTab === "customers" ? { "Content-Type": "multipart/form-data" } : {},
+				headers: chatType === "customers" ? { "Content-Type": "multipart/form-data" } : {},
 			})
 			.then((response) => {  
 				setActiveUser((prevUser) => {
@@ -176,7 +197,7 @@ export const Messages = () => {
 							content_type: "text",
 							created_at: new Date().toISOString(),
 							status: "SENT",
-							user_sender: currentUser?.user_id,
+							user_sender: activeUser?.user_id,
 							lead_receiver: activeUser.id,
 						}]
 						: [{
@@ -185,7 +206,7 @@ export const Messages = () => {
 							content_type: "text",
 							created_at: new Date().toISOString(),
 							status: "SENT",
-							user_sender: currentUser?.user_id,
+							user_sender: activeUser?.user_id,
 							lead_receiver: activeUser.id,
 						}];
 					
@@ -202,14 +223,6 @@ export const Messages = () => {
 			});
 	};
 
-	const handleInputChange = (e) => {
-		setMessage(e.target.value);
-	};
-
-	const handleTabChange = (tab) => {
-		setActiveTab(tab);
-		setActiveUser(null);
-	};
 
 	return (
 		<div className="body-theme flex flex-col px-5 ">
@@ -264,30 +277,30 @@ export const Messages = () => {
 						</div>
 						<div className="flex gap-3 w-full ">
 							<div className="tab-atom">
-								<div className={`px-4 pb-1 ${activeTab === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>Leads</div>
+								<div className={`px-4 pb-1 ${chatType === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>Leads</div>
 							</div>
 							<div className="tab-atom">
-								<div className={`px-4 pb-1 ${activeTab === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>Customers</div>
+								<div className={`px-4 pb-1 ${chatType === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>Customers</div>
 							</div>
 						</div>
 					</div>
 
-					<ChatList users={users} activeUser={activeUser} setActiveUser={setActiveUser} />
+					<ChatList users={users} activeUser={activeUser} handleChatSelect={handleChatSelect} />
 				</div>
 				
 				<div className="detail ">
 					{activeUser ? (
 						<div>
-							<ChatHeader activeUser={activeUser} isLead={true}/>
+							<ChatHeader activeUser={activeUser} isLead={chatType === "leads"}/>
 							<div className="flex items-center ">
 								<MessageList 
 									chatHistory={chatHistory} 
-									currentUserId={currentUser?.user_id} 
+									activeUserId={activeUser?.id} 
 								/>
 
 								<MessageInput
 									message={message}
-									onInputChange={handleInputChange}
+									onInputChange={(e) => setMessage(e.target.value)}
 									onSendMessage={handleSendMessage}
 									audioRecordingEnabled
 								/>
@@ -295,7 +308,7 @@ export const Messages = () => {
 						</div>
 					) : (
 						<div className="no-chat-selected">
-							{activeTab === "leads" ? "Select a lead to chat with" : "Select a customer to chat with"}
+							{chatType === "leads" ? "Select a lead to chat with" : "Select a customer to chat with"}
 						</div>
 					)}
 				</div>

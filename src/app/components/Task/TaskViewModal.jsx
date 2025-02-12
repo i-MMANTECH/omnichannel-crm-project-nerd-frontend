@@ -127,6 +127,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
   const renderTabContent = () => {
     switch (selectedTab) {
       case "activities":
+        console.log('activity logs is ', activityLogs)
         return (
           <div className="flex mt-5 flex-col items-start gap-4 self-stretch rounded-lg ">
           {activityLogs.map((log, index) => (
@@ -145,6 +146,13 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                           </div>
                         )})}
                     </div>
+                  </>
+                )}
+                {(log?.metadata?.updated_fields?.length == 0 || !log?.metadata?.updated_fields) && ( 
+                  <>
+                    <p className="text-sm font-medium mt-1">
+                      {log?.description}
+                    </p>  
                   </>
                 )}
                 <div className="flex mt-1 items-center gap-1">

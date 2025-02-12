@@ -103,6 +103,9 @@ const CustomerTable = ({ customers }) => {
                                     <td className="py-3 px-4 border-b">{customer.email}</td>
                                     <td className="py-3 px-4 border-b ">{customer.phone_number}</td>
                                     <td className="py-3 px-4 border-b">
+                                        {(customer?.channels?.length <= 0 || !customers?.channels) &&
+                                            <span className="customer-left-name font-bold mr-1">--</span>
+                                        }
                                         <div className="flex items-center space-x-2">
                                             {customer.channels?.map((channel, idx) => (
                                                 <div
@@ -120,22 +123,25 @@ const CustomerTable = ({ customers }) => {
                                         </div>
                                     </td>
                                     <td className="py-3 px-4 border-b">
-                                        {customer?.tags?.length <= 0 &&
+                                        {(!customer?.tags || customer?.tags.length === 0) ? (
                                             <span className="customer-left-name font-bold mr-1">--</span>
-                                        }
-                                        <span
-                                            className={`inline-block py-1 rounded-full -ml-1 text-sm font-medium `}
-                                            >
-                                            {customer?.tags.map((tag, index) => (
-                                                <span
-                                                    key={index}
-                                                    className="px-2 py-1 ml-1 rounded"
-                                                    style={getRoleStyle(tag)}
-                                                >
-                                                    {tag}
-                                                </span>
+                                        ) : (
+                                            <span className="inline-block py-1 rounded-full -ml-1 text-sm font-medium">
+                                                {customer?.tags.slice(0, 6).map((tag, index) => (
+                                                    <span
+                                                        key={index}
+                                                        className="px-2 py-1 ml-1 rounded"
+                                                        style={getRoleStyle(tag)}
+                                                    >
+                                                        {tag}
+                                                    </span>
                                                 ))}
-                                        </span>     
+                                                {customer?.tags.length > 6 && (
+                                                    <span className="ml-1 font-bold text-base">...</span>
+                                                )}
+
+                                            </span>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

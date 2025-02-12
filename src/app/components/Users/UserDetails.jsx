@@ -38,11 +38,11 @@ export default function UserDetails({ user }) {
             <p className="user-left-name">{ name }</p>
             <p className="user-left-email">{ user?.email }</p>
             <div className="flex w-full mt-4 items-center justify-between">
-              <p className="py-1 pl-2 pr-2 text-right text-[#40C4AA] font-medium text-[12px] font-normal rounded-sm">
+              <p className="py-1 pl-2 pr-2 text-right text-[#40C4AA] -ml-1 font-medium text-[12px] font-normal rounded-sm">
                 {user?.roles.map((role) => (
                       <span
                         key={role.id}
-                        className="px-2 py-1 rounded"
+                        className="px-2 py-1 rounded ml-1"
                         style={getRoleStyle(role.name)}
                       >
                         {role.name}
@@ -72,11 +72,11 @@ export default function UserDetails({ user }) {
               <p className="font-medium text-[14px] font-normal text-left">
                 Role
               </p>
-              <p className="user-left-name">
+              <p className="user-left-name -ml-1">
                 {user?.roles.map((role) => (
                       <span
                         key={role.id}
-                        className="px-2 py-1 rounded"
+                        className="px-2 py-1 ml-1 rounded"
                         style={getRoleStyle(role.name)}
                       >
                         {role.name}

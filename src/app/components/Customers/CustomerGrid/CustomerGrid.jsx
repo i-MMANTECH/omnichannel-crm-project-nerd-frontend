@@ -9,7 +9,6 @@ import { getRoleStyle } from '@/utils/getRoleStyle';
 
 const CustomerGrid = ({ customers }) => {
   return (
-
         <div className="grid gap-6 grid-cols-3">
           {customers.map((customer) => (
           <Link key={customer.id} style={{color:"inherit", textDecoration:"none"}} href={`/nativecrm/customers/${customer.id}`}>
@@ -47,16 +46,18 @@ const CustomerGrid = ({ customers }) => {
                 {customer.phone_number}
               </p>
 
-              <div className="mb-2 flex gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 20 21" fill="none">
-                  <path d="M8.33325 11.892C8.45125 12.0853 8.59134 12.2682 8.75342 12.4368C9.75967 13.4841 11.2934 13.6478 12.4646 12.928C12.6816 12.7946 12.8861 12.6309 13.0726 12.4368L15.7721 9.62734C16.9648 8.38604 16.9648 6.37347 15.7721 5.13216C14.5793 3.89084 12.6456 3.89085 11.4528 5.13216L10.8583 5.75099" stroke="#808897" strokeWidth="1.88" strokeLinecap="round"/>
-                  <path d="M9.14184 15.9848L8.547 16.6038C7.3543 17.8452 5.42051 17.8452 4.2278 16.6038C3.03507 15.3625 3.03507 13.35 4.2278 12.1087L6.92731 9.29916C8.12003 8.05784 10.0538 8.05783 11.2465 9.29916C11.4086 9.46774 11.5486 9.65066 11.6666 9.84383" stroke="#808897" strokeWidth="1.88" strokeLinecap="round"/>
-                </svg>
+              {customer?.channels?.length > 0 &&
+                <div className="mb-2 flex gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 20 21" fill="none">
+                    <path d="M8.33325 11.892C8.45125 12.0853 8.59134 12.2682 8.75342 12.4368C9.75967 13.4841 11.2934 13.6478 12.4646 12.928C12.6816 12.7946 12.8861 12.6309 13.0726 12.4368L15.7721 9.62734C16.9648 8.38604 16.9648 6.37347 15.7721 5.13216C14.5793 3.89084 12.6456 3.89085 11.4528 5.13216L10.8583 5.75099" stroke="#808897" strokeWidth="1.88" strokeLinecap="round"/>
+                    <path d="M9.14184 15.9848L8.547 16.6038C7.3543 17.8452 5.42051 17.8452 4.2278 16.6038C3.03507 15.3625 3.03507 13.35 4.2278 12.1087L6.92731 9.29916C8.12003 8.05784 10.0538 8.05783 11.2465 9.29916C11.4086 9.46774 11.5486 9.65066 11.6666 9.84383" stroke="#808897" strokeWidth="1.88" strokeLinecap="round"/>
+                  </svg>
 
-                <p className="flex hidden justify-center items-center w-[28px] h-[28px] p-[5.086px] rounded-[11.868px] border-[1.06px] border-[#FFF] bg-[#F7F7F7] flex-shrink-0">
-                  <i className="fab fa-whatsapp text-[20px]"></i>
-                </p>
-              </div>
+                  <p className="flex hidden justify-center items-center w-[28px] h-[28px] p-[5.086px] rounded-[11.868px] border-[1.06px] border-[#FFF] bg-[#F7F7F7] flex-shrink-0">
+                    <i className="fab fa-whatsapp text-[20px]"></i>
+                  </p>
+                </div>
+              }
 
               {customer?.tags.length > 0 &&
                 <div className="mb-2 flex gap-2">
@@ -70,15 +71,21 @@ const CustomerGrid = ({ customers }) => {
                   <span
                       className={`inline-block py-1 rounded-full -ml-1 text-sm font-medium `}
                     >
-                    {customer?.tags.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 ml-1 rounded"
-                            style={getRoleStyle(tag)}
-                          >
-                            {tag}
-                          </span>
+                    <span className="inline-block py-1 rounded-full -ml-1 text-sm font-medium">
+                        {customer?.tags.slice(0, 6).map((tag, index) => (
+                            <span
+                                key={index}
+                                className="px-2 py-1 ml-1 rounded"
+                                style={getRoleStyle(tag)}
+                            >
+                                {tag}
+                            </span>
                         ))}
+                        {customer?.tags.length > 6 && (
+                            <span className="ml-1 font-bold text-base">...</span>
+                        )}
+
+                    </span>
                   </span>    
                 </div>
               }

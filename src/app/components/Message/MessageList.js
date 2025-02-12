@@ -6,7 +6,7 @@ import Image from "next/image";
 import UserAvatar from "../UserAvatar";
 import { useRouter } from "next/navigation";
 
-const MessageList = ({ chatHistory, currentUserId }) => {
+const MessageList = ({ chatHistory, activeUserId }) => {
   const messageEndRef = useRef(null);
   const router = useRouter();
   const [hoveredUserId, setHoveredUserId] = useState(null);
@@ -36,14 +36,14 @@ const MessageList = ({ chatHistory, currentUserId }) => {
 
   return (
     <div className="message-list flex overflow-y-auto overflow-x-hidden h-[60vh] flex-col relative scrollbar-hide">
-      {chatHistory.map((msg, index) => {
-        const isUserMessage = msg.user_sender === parseInt(currentUserId);
+      {chatHistory.map((msg, index) => 
+      {
         const isOutgoing = msg.company_is_sender;
         const userDisplayInfo = msg.user_sender_details?.last_name || msg.user_sender_details?.first_name || msg.user_sender_details?.email;
 
         return (
-          <div className={`chat ${isUserMessage ? "chat-right" : "chat-left"}`} key={index}>
-            <div className={`mt-1 bubble-chat ${isUserMessage ? "bubble-chat-user" : "bubble-chat-other"}`}>
+          <div className={`chat ${isOutgoing ? "chat-right" : "chat-left"}`} key={index}>
+            <div className={`mt-1 bubble-chat ${isOutgoing ? "bubble-chat-user" : "bubble-chat-other"}`}>
               {msg.channel?.image && (
                 <div className={`absolute -top-2 ${isOutgoing ? "-right-3" : "-left-3"}  mb-7 w-5 h-5 bg-white rounded-full border border-gray-300 shadow-md p-[2px]`}>
                     <Image
@@ -58,7 +58,7 @@ const MessageList = ({ chatHistory, currentUserId }) => {
               )}
               <div className="relative ">
                 {isOutgoing ? (
-                  <div className="flex items-center relative">
+                  <div className="flex items-center relative ">
                     {/* User Profile Image with Hover Effect */}
                     <div
                       className="relative pointer"

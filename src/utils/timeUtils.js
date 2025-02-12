@@ -10,23 +10,22 @@ export const formatTime = (seconds) => {
 };
 
 export function formatDateTime(isoString) {
-    const date = new Date(isoString);
-    
-    const dateStr = date.toLocaleDateString('en-US', {
+  const date = new Date(isoString);
+  
+  const dateStr = date.toLocaleDateString('en-US', {
       month: '2-digit',
       day: '2-digit',
       year: 'numeric'
-    });
-  
-    const timeStr = date.toLocaleTimeString('en-US', {
+  });
+
+  const timeStr = date.toLocaleTimeString('en-US', {
       hour: 'numeric',
+      minute: '2-digit',
       hour12: true
-    })
-      .replace(':00', '')
-      .toUpperCase();
-  
-    return `${dateStr}, ${timeStr}`;
-  }
+  });
+
+  return `${dateStr}, ${timeStr}`;
+}
 
   export const timeAgo = (timestamp) => {
     const now = new Date();

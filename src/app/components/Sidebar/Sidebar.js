@@ -118,7 +118,7 @@ function Sidebar() {
               </Link>
 
               <Link
-                href="/nativecrm/messages"
+                href="/nativecrm/messages?chat=leads"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
               >
                 <Image

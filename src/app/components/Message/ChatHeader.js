@@ -40,6 +40,7 @@ const ChatHeader = ({ activeUser, isLead }) => {
 
   useEffect(() => {
     console.log('active user is ', activeUser)
+    console.log('active user is lead', isLead)
     const handleClickOutside = (event) => {
       if (
         menuRef.current &&
@@ -63,7 +64,17 @@ const ChatHeader = ({ activeUser, isLead }) => {
     hour12: true,
   });
 
-  const menuItems = [
+  const leadMenuItems = [
+    {
+      label: "Edit customer",
+      onClick: () => {
+        const params = new URLSearchParams(searchParams);
+        params.set('action', 'lead-to-customer');
+        router.push(`?${params.toString()}`, { scroll: false });
+      },
+    },
+  ]
+  const customerMenuItems = [
     {
       label: "Add as customer",
       onClick: () => {
@@ -136,7 +147,7 @@ const ChatHeader = ({ activeUser, isLead }) => {
                 className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
               >
                 <div className="py-1">
-                  {menuItems.map((item, index) => (
+                  {(isLead ? leadMenuItems : customerMenuItems).map((item, index) => (
                     <button
                       key={index}
                       onClick={() => {

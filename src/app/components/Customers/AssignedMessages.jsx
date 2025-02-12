@@ -32,7 +32,7 @@ export default function CustomerAssignedMessages() {
     }, [id]);
 
     const handleChatSelect = (chat) => {
-      router.push(`/nativecrm/messages?chat=customer&id=${chat?.customer_receiver || chat?.customer_sender}`);
+      router.push(`/nativecrm/messages?chat=customers&id=${chat?.customer_receiver || chat?.customer_sender}`);
     };
   
     return (

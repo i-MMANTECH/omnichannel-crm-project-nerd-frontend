@@ -116,7 +116,9 @@ const KanbanViewTaskCard = ({ task, handleDelete, openViewModal, openUpdateModal
                 key={index}
                 alt="profile pic"
                 className="w-6 h-6 rounded-full border-2 border-white"
-                source={{uri: assignee.profile}} 
+                src={assignee?.image}
+                width={30}
+                height={30}
               />
             );
           } else {

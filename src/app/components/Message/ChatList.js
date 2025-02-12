@@ -6,7 +6,7 @@ import "./chatlist.css";
 import Image from "next/image";
 import UserAvatar from "../UserAvatar";
 
-const ChatList = ({ users, activeUser, setActiveUser }) => {
+const ChatList = ({ users, activeUser, handleChatSelect }) => {
   const contacts = users?.contacts || [];
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
@@ -49,7 +49,7 @@ const ChatList = ({ users, activeUser, setActiveUser }) => {
               className={`flex items-center rounded ${
                 user?.id === activeUser?.id ? "bg-gray-200 dark:bg-gray-800" : ""
               }`}
-              onClick={() => {setActiveUser(user);     console.log('users are ', users);              }}
+              onClick={() => {handleChatSelect(user);}}
             >
               <div className="flex items-center gap-3 p-3 cursor-pointer rounded">
                 <div className="relative">
