@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect } from 'react';
 import { PaystackButton } from 'react-paystack';
 import Drawer from '../../Drawer';

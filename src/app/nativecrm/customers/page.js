@@ -39,7 +39,7 @@ const ModalController = ({ children }) => {
     return children({ isModalOpen, openModal, closeModal });
 };
 
-const Page = () => {
+const CustomersContent = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [customers, setCustomers] = useState([]);
     const [view, setView] = useState('table');
@@ -185,6 +185,14 @@ const Page = () => {
                     </div>
                 )}
             </ModalController>
+        </Suspense>
+    );
+};
+
+const Page = () => {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <CustomersContent />
         </Suspense>
     );
 };
