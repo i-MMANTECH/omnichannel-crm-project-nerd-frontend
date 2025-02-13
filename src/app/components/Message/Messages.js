@@ -27,6 +27,9 @@ export const Messages = () => {
 	const [activeTab, setActiveTab] = useState("leads");
 	const [searchQuery, setSearchQuery] = useState("");
 	const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
+	const [page, setPage] = useState(1);
+	const [next, setNext] = useState(null);	
+	const [isLoadingMore, setIsLoadingMore] = useState(false);
 
 	const wsRef = useRef(null);
 
@@ -109,18 +112,23 @@ export const Messages = () => {
 	}, [activeUser, users]);
 
 	const fetchChatList = async () => {
-		const endpoint = activeTab === "customers"
+		const endpoint =
+		  activeTab === "customers"
 			? `/communication/chatted-customers/?search=${debouncedSearchQuery}`
 			: `/communication/contacts/?search=${debouncedSearchQuery}`;
-  
-		console.log("Fetching chat list with endpoint:", endpoint);
-
-		await axiosInstance.get(endpoint)
-			.then((response) => {
-				setUsers(response.data);
-			})
-			.catch(handleApiError);
-	};
+	  
+	  
+		try {
+		  const response = await axiosInstance.get(endpoint);
+		  if (response.status === 200) {
+			setUsers(response.data);
+			setNext(response.data.next);
+		  }
+		} catch (error) {
+		  handleApiError(error);
+		}
+	  };
+	  
   
 	const fetchChatHistory = async () => {
 		if (activeUser) {
@@ -210,6 +218,41 @@ export const Messages = () => {
 		setActiveUser(null); // Reset active user when changing tabs
 	};
 
+	  
+
+	const loadMoreUsers = async () => {
+		if (isLoadingMore || !next) return;
+	  
+		setIsLoadingMore(true);
+	  
+		try {
+		  const response = await axiosInstance.get(`/communication/chatted-customers/?page=${page}`);
+		  console.log(response.data);
+	  
+		  if (response.status === 200) {
+			const newContacts = response.data.contacts;
+	  
+			  setUsers((prevUsers) => ({
+				...prevUsers,
+				contacts: [...prevUsers.contacts, ...newContacts],
+				next: response.data.next,
+			  }));
+			  
+			  setPage((prevPage) => prevPage + 1);
+	  
+			  if (response.data.next === null) {
+				setNext(null);
+			  }
+		  }
+		} catch (error) {
+		  console.error("Error loading more users:", error);
+		  handleApiError(error);
+		} finally {
+		  setIsLoadingMore(false);
+		}
+	  };
+	  
+
 	return (
 		<div className="body-theme flex flex-col px-5 ">
 			<div className="flex p-4 items-center justify-between w-full ">
@@ -250,7 +293,7 @@ export const Messages = () => {
 								className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
 								placeholder="Search Users..."
 								value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                				onChange={(e) => setSearchQuery(e.target.value)}
 							/>
 							<button
 								className="absolute top-1 right-1 flex items-center rounded body-theme py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 active:dark:bg-black hover:bg-gray-100 hover:dark:bg-gray-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
@@ -271,7 +314,12 @@ export const Messages = () => {
 						</div>
 					</div>
 
-					<ChatList users={users} activeUser={activeUser} setActiveUser={setActiveUser} />
+					<ChatList 
+						users={users} 
+						activeUser={activeUser} 
+						setActiveUser={setActiveUser}
+						loadMoreUsers={loadMoreUsers}
+						/>
 				</div>
 				
 				<div className="detail ">
