@@ -3,11 +3,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
+import checkPermission from "@/utils/checkPermission";
 
 const KanbanViewTaskCard = ({ task, handleDelete, openViewModal, openUpdateModal }) => {
   const [menuOpen, setMenuOpen] = useState(null);
   const buttonRef = useRef(null);
   const menuRef = useRef(null);
+  const changeTask = checkPermission('change_task');
+  const deleteTask = checkPermission('delete_task');
 
   const handleTaskClick = (id, action) => {
     if (action === "view") {
@@ -71,7 +74,8 @@ const KanbanViewTaskCard = ({ task, handleDelete, openViewModal, openUpdateModal
                   >
                     View task
                   </button>
-                  <button
+                  {changeTask && (
+                    <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleTaskClick(task?.id, "update");
@@ -80,6 +84,8 @@ const KanbanViewTaskCard = ({ task, handleDelete, openViewModal, openUpdateModal
                   >
                     Update task
                   </button>
+                  )}
+                  {deleteTask && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -89,6 +95,8 @@ const KanbanViewTaskCard = ({ task, handleDelete, openViewModal, openUpdateModal
                   >
                     Delete task
                   </button>
+                  )}
+
               </div>
           )}
         </div>

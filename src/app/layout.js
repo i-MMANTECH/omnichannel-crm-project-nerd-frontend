@@ -5,7 +5,7 @@ import { ErrorProvider } from "@/context/ErrorContext";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import { NotificationProvider } from "@/context/NotificationContext";
-
+import { PermissionsProvider } from "@/context/PermissionsContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -31,20 +31,22 @@ export default function RootLayout({ children }) {
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
           <ErrorProvider>
-            <NotificationProvider>
-              {children}
-              <ToastContainer
-                  position="bottom-left"
-                  autoClose={5000}
-                  hideProgressBar={false}
-                  newestOnTop={false}
-                  closeOnClick
-                  rtl={false}
-                  // pauseOnFocusLoss
-                  draggable
-                  pauseOnHover
-              />
-            </NotificationProvider>
+            <PermissionsProvider>
+                <NotificationProvider>
+                  {children}
+                  <ToastContainer
+                      position="bottom-left"
+                      autoClose={5000}
+                      hideProgressBar={false}
+                      newestOnTop={false}
+                      closeOnClick
+                      rtl={false}
+                      // pauseOnFocusLoss
+                      draggable
+                      pauseOnHover
+                  />
+                </NotificationProvider>
+            </PermissionsProvider>
           </ErrorProvider>
         </AuthProvider>
       </body>
