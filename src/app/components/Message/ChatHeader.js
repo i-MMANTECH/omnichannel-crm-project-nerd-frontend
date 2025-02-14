@@ -8,7 +8,7 @@ import LeadToCustomer from "./LeadToCustomer";
 import NotesModal from "./NotesModal";
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import SuccessModal from "../SuccessModal";
-import checkPermission from "@/utils/checkPermission";
+import { usePermissions } from "@/context/PermissionsContext";
 import AssignAgentModal from "./AssignAgentModal";
 import EndSessionModal from "./EndSessionModal";
 import ArchiveModal from "./ArchiveModal";
@@ -46,6 +46,8 @@ const ChatHeader = ({ activeUser, isLead }) => {
   const buttonRef = useRef(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const { checkPermission } = usePermissions();
   const addCustomer = checkPermission('add_customer');
 
   useEffect(() => {

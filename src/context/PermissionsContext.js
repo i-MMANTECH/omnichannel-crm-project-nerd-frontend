@@ -42,7 +42,19 @@ export const PermissionsProvider = ({ children }) => {
     fetchPermissions();
   }, [user]);
 
-  const contextValue = useMemo(() => permissions, [permissions]);
+  const checkPermission = (permission) => {
+    let currentPermissions = permissions.length
+      ? permissions
+      : JSON.parse(localStorage.getItem('permissions')) || [];
+
+    return currentPermissions.some((perm) => perm.codename === permission);
+  };
+
+
+  const contextValue = useMemo(() => ({
+    permissions,
+    checkPermission,
+  }), [permissions]);
 
   return (
     <PermissionsContext.Provider value={contextValue}>

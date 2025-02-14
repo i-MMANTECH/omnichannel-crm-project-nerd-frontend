@@ -1,7 +1,9 @@
 import React from 'react';
-import checkPermission from '@/utils/checkPermission';
+import { usePermissions } from '@/context/PermissionsContext';
 
 const StatsCard = ({ summary }) => {
+  const { checkPermission } = usePermissions();
+
   const viewUser = checkPermission('view_user');
   const viewCustomer = checkPermission('view_customer');
   const viewTask = checkPermission('view_task');
