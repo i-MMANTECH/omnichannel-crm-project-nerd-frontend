@@ -10,11 +10,11 @@ import SuccessModal from "../SuccessModal";
 import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import TaskCardListView from "./TaskCardListView";
-import getStatusSvg from "./getStatusSvg";
 import KanbanView from "./KanbanView";
 import TaskUpdateModal from "./TaskUpdateModal";
 import TaskViewModal from "./TaskViewModal";
 import useCustomAlert from "@/context/useCustomAlert";
+import checkPermission from "@/utils/checkPermission";
 
 const ModalController = ({ children }) => {
     const searchParams = useSearchParams();
@@ -88,14 +88,6 @@ const ModalController = ({ children }) => {
     });
 };
 
-const STATUS_ORDER = ["todo", "in_progress", "done", "overdue"];
-const columns = [
-  { title: "To Do", status: "todo" },
-  { title: "Overdue", status: "overdue" },
-  { title: "In Progress", status: "in_progress" },
-  { title: "Done", status: "done" },
-];
-
 export default function Task() {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
@@ -103,8 +95,7 @@ export default function Task() {
   const [loading, setLoading] = useState(true);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [taskToDelete, setTaskToDelete] = useState(null);
+  const addTask = checkPermission('add_task');
 
   const [view, setView] = useState(() => {
     if (typeof window !== "undefined") {
@@ -192,56 +183,6 @@ export default function Task() {
     setIsSuccessModalOpen(false);
   };
 
-  const groupedTasks = tasks?.reduce((sections, task) => {
-    if (!sections[task.status.name]) {
-      sections[task.status.name] = {
-        status: task.status,
-        tasks: [],
-      };
-    }
-    sections[task.status.name].tasks.push(task);
-    return sections;
-  }, {});
-
-  // const renderListView = () => (
-  //   <div>
-  //     {STATUS_ORDER.map((statusName, index) => {
-  //       const section = groupedTasks?.[statusName];
-  //       const columnTitle = columns.find(c => c.status === statusName)?.title;
-
-  //       return (
-  //         <div key={index} className="mb-7">
-  //           <div className="w-full mb-4 flex h-9 p-2 gap-2 items-center rounded-lg bg-gray-100 dark:bg-neutral-900">
-  //             <div className="flex items-center gap-2">
-  //               {getStatusSvg(statusName)}
-  //             </div>
-  //             {columnTitle}{" "}
-  //             <span className="text-sm text-gray-500">
-  //               ({section?.tasks.length || 0})
-  //             </span>
-  //           </div>
-  //           {section?.tasks.length > 0 ? (
-  //             section.tasks.map(task => (
-  //               <div key={task.id} className="mt-2">
-  //                 <TaskCardListView
-  //                   title={task.title}
-  //                   date={task.updated_at}
-  //                   priority={task.priority.label}
-  //                   assignees={task.assignees}
-  //                   status={task.status.label}
-  //                   taskId={task.id}
-  //                   handleDelete={handleDelete}
-  //                 />
-  //               </div>
-  //             ))
-  //           ) : (
-  //             <div className="text-gray-500 text-sm italic">No tasks in this category</div>
-  //           )}
-  //         </div>
-  //       );
-  //     })}
-  //   </div>
-  // );
 
   return (
     <Suspense fallback={<div>Loading...</div>}>    
@@ -267,7 +208,7 @@ export default function Task() {
                 >
                   <FontAwesomeIcon icon={faTh} className="text-blue-500 mr-2" />
                   <span className="text-sm font-medium">
-                    {view === "list" ? "List View" : view === "table" ? "Table View" : "Kanban View"}
+                    {view === "list" ? "Table View" : view === "table" ? "Kanban View" : "List View"}
                   </span>
                 </button>
                 <div className="relative">
@@ -295,16 +236,18 @@ export default function Task() {
           </div>
 
           <button className="hidden flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
-              <FontAwesomeIcon icon={faFilter} className="text-gray-500 mr-2" />
-              <span className="text-sm font-medium">Filter</span>
-            </button>
-          </div>
-              <button
+                  <FontAwesomeIcon icon={faFilter} className="text-gray-500 mr-2" />
+                  <span className="text-sm font-medium">Filter</span>
+                </button>
+              </div>
+              {addTask && (
+                <button
                 onClick={openModal}
                 className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm ml-auto"
               >
                 + New Task
               </button>
+              )}
             </div>
 
             <div className="mt-16 h-4/5 overflow-auto">

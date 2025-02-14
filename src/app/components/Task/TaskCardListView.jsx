@@ -1,9 +1,10 @@
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
-import React, { Suspense, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import getStatusSvg from "./getStatusSvg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
+import checkPermission from "@/utils/checkPermission";
 
 const STATUS_ORDER = ["todo", "overdue", "in_progress", "done"];
 const columns = [
@@ -15,7 +16,6 @@ const columns = [
 
 
 const TaskCardListView = ({ tasks, handleDelete, openViewModal, openUpdateModal }) => {
-  // Group tasks by status
   const groupedTasks = tasks?.reduce((sections, task) => {
     if (!sections[task.status.name]) {
       sections[task.status.name] = {
@@ -83,6 +83,8 @@ const TaskCard = ({
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
+  const changeTask = checkPermission('change_task');
+  const deleteTask = checkPermission('delete_task');
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -221,26 +223,30 @@ const TaskCard = ({
                   >
                     View task
                   </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleTaskClick(thisTaskId, "update");
-                      setMenuOpen(null);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    Update task
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(thisTaskId);
-                      setMenuOpen(null);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    Delete task
-                  </button>
+                    {changeTask && (
+                      <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTaskClick(thisTaskId, "update");
+                        setMenuOpen(null);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      Update task
+                    </button>
+                    )}
+                    {deleteTask && (
+                      <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(thisTaskId);
+                        setMenuOpen(null);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      Delete task
+                    </button>
+                    )}
                 </div>
               </div>
             )}
