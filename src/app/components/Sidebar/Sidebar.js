@@ -11,7 +11,7 @@ import Image from "next/image";
 import { useNotification } from "@/context/NotificationContext";
 import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
-import checkPermission from "@/utils/checkPermission";
+import { usePermissions } from "@/context/PermissionsContext";
 import UserAvatar from "../UserAvatar";
 
 
@@ -22,6 +22,9 @@ function Sidebar() {
   const modalRef = useRef(null);
   const {handleApiError} = useError()
   const {axiosInstance} = useApi()
+
+  const { checkPermission } = usePermissions();
+
   const viewUser = checkPermission('view_user');
   const viewCustomer = checkPermission('view_customer');
   const viewTask = checkPermission('view_task');

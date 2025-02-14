@@ -14,7 +14,7 @@ import KanbanView from "./KanbanView";
 import TaskUpdateModal from "./TaskUpdateModal";
 import TaskViewModal from "./TaskViewModal";
 import useCustomAlert from "@/context/useCustomAlert";
-import checkPermission from "@/utils/checkPermission";
+import { usePermissions } from "@/context/PermissionsContext";
 
 const ModalController = ({ children }) => {
     const searchParams = useSearchParams();
@@ -95,6 +95,8 @@ export default function Task() {
   const [loading, setLoading] = useState(true);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);
+
+  const { checkPermission } = usePermissions();
   const addTask = checkPermission('add_task');
 
   const [view, setView] = useState(() => {

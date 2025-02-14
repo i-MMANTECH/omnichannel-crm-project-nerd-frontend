@@ -3,10 +3,12 @@ import { Doughnut } from "react-chartjs-2";
 import NoDataFound from '../NoDataFound';
 import './style.css';
 import { useRouter } from 'next/navigation';
-import checkPermission from '@/utils/checkPermission';
+import { usePermissions } from '@/context/PermissionsContext';
 
 export default function ChatData(){
     const router = useRouter();
+    const { checkPermission } = usePermissions();
+
     const viewUser = checkPermission('view_user');
     const addUser = checkPermission('add_user');
     const viewCustomer = checkPermission('view_customer');
