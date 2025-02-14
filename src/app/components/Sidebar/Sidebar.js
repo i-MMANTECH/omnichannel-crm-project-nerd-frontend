@@ -12,6 +12,7 @@ import { useNotification } from "@/context/NotificationContext";
 import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import checkPermission from "@/utils/checkPermission";
+import UserAvatar from "../UserAvatar";
 
 
 function Sidebar() {
@@ -252,13 +253,20 @@ function Sidebar() {
 
               <div className="w-full border-t border-gray-200 dark:border-gray-600 pt-4 pointer" onClick={openModal}>
                   <div className="flex items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700">
-                    <Image
-                      src="/assets/user-profile-image.png"
-                      alt="Agent"
+                      {userProfile?.image ? (
+                        <Image
+                            src={userProfile?.image}
+                            alt="User Profile"                        
+                            width={100}
+                            height={100}
+                            className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
+                        />
+                    ) : (
+                      <UserAvatar
+                      name={userProfile?.first_name ? `${userProfile?.first_name} ${userProfile?.last_name}`: '--'} 
                       className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
-                      width={30}
-                      height={30}
-                    />
+                      width="w-8" height="h-8" />
+                    )}   
                     <div className="text-sm min-w-0 flex-1">
                       <h3 className="font-medium text-gray-800 dark:text-gray-200 truncate">
                         {userProfile?.first_name || userProfile?.last_name

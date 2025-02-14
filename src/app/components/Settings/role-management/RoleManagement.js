@@ -13,7 +13,6 @@ const RoleManagement = () => {
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isUpdateDrawerOpen, setIsUpdateDrawerOpen] = useState(false);
   const [roles, setRoles] = useState([]);
   const [roleToEdit, setRoleToEdit] = useState(null);
   const { axiosInstance } = useApi();
@@ -26,6 +25,21 @@ const RoleManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   
+  const isUpdateDrawerOpen = searchParams.get("action") === "update-role";
+
+  const openUpdateDrawer = (roleId) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("action", "update-role");
+    params.set("roleId", roleId);
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  const closeUpdateDrawer = () => {
+    const params = new URLSearchParams(searchParams);
+    params.delete("action");
+    params.delete("roleId");
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
 
   const toggleMenu = (id) => {
     setMenuOpen(menuOpen === id ? null : id);
@@ -58,7 +72,7 @@ const RoleManagement = () => {
 
   const handleEditRole = (roleId) => {
     setRoleToEdit(roleId);
-    setIsUpdateDrawerOpen(true);
+    openUpdateDrawer(roleId);
   };
 
   useEffect(() => {
@@ -148,7 +162,7 @@ const RoleManagement = () => {
         />
         <UpdateRoleDrawer 
           show={isUpdateDrawerOpen} 
-          onClose={() => setIsUpdateDrawerOpen(false)} 
+          onClose={closeUpdateDrawer} 
           roleId={roleToEdit} 
           onRoleUpdated={() => fetchRoles(currentPage)}
         />

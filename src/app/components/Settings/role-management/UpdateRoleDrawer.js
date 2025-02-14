@@ -3,6 +3,8 @@ import Drawer from '../../Drawer';
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
 import Pagination from '../../Pagination/Pagination';
+import { useSearchParams, useRouter } from 'next/navigation';
+
 
 const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
   const [roleName, setRoleName] = useState("");
@@ -10,23 +12,24 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
   const [availablePermissions, setAvailablePermissions] = useState([]);
   const [selectedPermissions, setSelectedPermissions] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const queryPage = Number(searchParams.get("dPage")) || 1;
+  const queryLimit = Number(searchParams.get("dLimit")) || 10;
+
+  const [currentPage, setCurrentPage] = useState(queryPage);
+  const [pageSize, setPageSize] = useState(queryLimit);
+
+  
+  const queryRoleId = searchParams.get('roleId')
+
+  const finalRoleId = roleId || queryRoleId;
 
   // Fetch all available permissions
   useEffect(() => {
-    const fetchPermissions = async () => {
-      try {
-        const response = await axiosInstance.get(`/users/permissions/?limit=${pageSize}&page=${currentPage}`);
-        setAvailablePermissions(response.data.results || []);
-        setTotalPages(Math.ceil(response.data.count / pageSize));
-      } catch (error) {
-        handleApiError(error);
-      }
-    };
-
     if (show) {
       fetchPermissions();
     }
@@ -36,7 +39,7 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
   useEffect(() => {
     const fetchRoleDetails = async () => {
       try {
-        const response = await axiosInstance.get(`/users/roles/${roleId}/`);
+        const response = await axiosInstance.get(`/users/roles/${finalRoleId}/`);
         const roleData = response.data.role;
 
         setRoleName(roleData.name);
@@ -50,8 +53,18 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
     if (show) {
       fetchRoleDetails();
     }
-  }, [show, roleId]);
+  }, [show, finalRoleId]);
 
+  const fetchPermissions = async () => {
+    try {
+      const response = await axiosInstance.get(`/users/permissions/?limit=${pageSize}&page=${currentPage}`);
+      setAvailablePermissions(response.data.results || []);
+      setTotalPages(Math.ceil(response.data.count / pageSize));
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+  
   // Handle permission selection
   const handlePermissionChange = (permissionId) => {
     setSelectedPermissions((prev) =>
@@ -66,17 +79,27 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
     e.preventDefault();
 
     try {
-      await axiosInstance.patch(`/users/roles/${roleId}/`, {
+      await axiosInstance.patch(`/users/roles/${finalRoleId}/`, {
         name: roleName,
         description: description,
         permissions: selectedPermissions,
       });
 
-      onRoleUpdated(); // Refresh role list
-      onClose(); // Close the drawer
+      onRoleUpdated();
+      onClose();
     } catch (error) {
       handleApiError(error);
     }
+  };
+
+  const updatePagination = (page, size) => {
+    setCurrentPage(page);
+    setPageSize(size);
+
+    const params = new URLSearchParams(searchParams);
+    params.set("dPage", page);
+    params.set("dLimit", size);
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const footerContent = (
@@ -161,15 +184,17 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
               </div>
             ))}
           </div>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={setPageSize}
-            pageSize={pageSize}
-          />
         </div>
       </form>
+      <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => updatePagination(page, pageSize)}
+            onPageSizeChange={(size) => updatePagination(1, size)}
+            pageSize={pageSize}
+            pageParam='dPage'
+            limitParam='dLimit'
+          />
     </Drawer>
   );
 };
