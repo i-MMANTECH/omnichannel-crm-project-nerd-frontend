@@ -35,8 +35,9 @@ const ModalController = ({ children }) => {
   return children({ isModalOpen, openModal, closeModal });
 };
 
-const ChatHeader = ({ activeUser, isLead }) => {
+const ChatHeader = ({ activeUser, isLead, conversationId }) => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [successModalMessage, setSuccessModalMessage] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [isAssignAgentModalOpen, setIsAssignAgentModalOpen] = useState(false);
@@ -194,6 +195,7 @@ const ChatHeader = ({ activeUser, isLead }) => {
                 onClose={closeModal}
                 leadId={activeUser.id}
                 setIsSuccessModalOpen={setIsSuccessModalOpen}
+                setSuccessModalMessage={setSuccessModalMessage}
               />
             )}
             {isArchivedModalOpen && (
@@ -206,6 +208,7 @@ const ChatHeader = ({ activeUser, isLead }) => {
                 isOpen={isNotesModalOpen}
                 onClose={() => setIsNotesModalOpen(false)}
                 userId={activeUser.id}
+                conversationId={conversationId}
               />
             )}
              {isAssignAgentModalOpen && (
@@ -213,6 +216,9 @@ const ChatHeader = ({ activeUser, isLead }) => {
               isOpen={isAssignAgentModalOpen}
               onClose={() => setIsAssignAgentModalOpen(false)}
               userId={activeUser.id}
+              conversationId={conversationId}
+              setIsSuccessModalOpen={setIsSuccessModalOpen}
+              setSuccessModalMessage={setSuccessModalMessage}
             />
           )}
           {isEndSessionModalOpen && (
@@ -220,15 +226,17 @@ const ChatHeader = ({ activeUser, isLead }) => {
               isOpen={isEndSessionModalOpen}
               onClose={() => setIsEndSessionModalOpen(false)}
               userId={activeUser.id}
+              conversationId={conversationId}
             />
           )}
           </div>
         )}
       </ModalController>
+
       <SuccessModal
         isOpen={isSuccessModalOpen}
         title="Success!"
-        message="Lead has been successfully converted to a customer."
+        message={successModalMessage}
         buttonText="Okay, thank you"
         onClose={closeSuccessModal}
         setIsSuccessModalOpen={setIsSuccessModalOpen}
