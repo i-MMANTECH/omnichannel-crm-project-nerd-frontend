@@ -3,7 +3,7 @@ import Modal from "../Modal";
 import { useApi } from "@/services/axiosConfig";
 import UserAvatar from "../UserAvatar";
 import { formatDateTime } from "@/utils/timeUtils";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 
 
@@ -14,6 +14,7 @@ const ArchiveModal = ({ isOpen, onClose }) => {
 
   const chatType = searchParams.get("chat");
   const entityId = searchParams.get("id");
+  const router = useRouter()
 
   useEffect(() => {
     if (isOpen && chatType && entityId) {
@@ -28,13 +29,13 @@ const ArchiveModal = ({ isOpen, onClose }) => {
           ? { customer_id: entityId }
           : { lead_id: entityId };
 
-      const response = await axiosInstance.get("/communication/conversations/", {
+      const response = await axiosInstance.get("/communication/conversations/?status=ended", {
         params,
       });
 
-      console.log(response.data.results.conversations)
+      console.log(response.data.results)
       if (response.data.success) {
-        setConversations(response.data.results.conversations || []);
+        setConversations(response.data.results || []);
       }
     } catch (error) {
       console.error("Error fetching conversations:", error);
@@ -110,7 +111,11 @@ const ArchiveModal = ({ isOpen, onClose }) => {
             conversations.map((conversation, index) => (
               <div
                 key={index}
-                className="mt-3 flex items-center gap-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm"
+                className="mt-3 pointer flex items-center gap-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm"
+                onClick={() => {
+                  router.push(`/nativecrm/messages?chat=archived&id=${conversation.id}`)
+                  onClose()
+                }}
               >
                 {conversation.image ? (
                       <Image
