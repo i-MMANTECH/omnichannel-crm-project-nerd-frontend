@@ -1,15 +1,23 @@
 import React from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-const Pagination = ({ currentPage, totalPages, onPageChange, onPageSizeChange, pageSize }) => {
+const Pagination = ({ 
+  currentPage, 
+  totalPages, 
+  onPageChange, 
+  onPageSizeChange, 
+  pageSize,
+  pageParam = "page",
+  limitParam = "limit"
+}) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
   const updateURL = (page, limit) => {
     const newParams = new URLSearchParams(searchParams.toString());
-    newParams.set("page", page);
-    newParams.set("limit", limit);
+    newParams.set(pageParam, page);
+    newParams.set(limitParam, limit);
     router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
   };
 

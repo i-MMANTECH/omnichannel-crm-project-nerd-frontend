@@ -3,12 +3,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
-import checkPermission from "@/utils/checkPermission";
+import { usePermissions } from "@/context/PermissionsContext";
 
 const KanbanViewTaskCard = ({ task, handleDelete, openViewModal, openUpdateModal }) => {
   const [menuOpen, setMenuOpen] = useState(null);
   const buttonRef = useRef(null);
   const menuRef = useRef(null);
+
+  const { checkPermission } = usePermissions();
   const changeTask = checkPermission('change_task');
   const deleteTask = checkPermission('delete_task');
 
@@ -124,7 +126,9 @@ const KanbanViewTaskCard = ({ task, handleDelete, openViewModal, openUpdateModal
                 key={index}
                 alt="profile pic"
                 className="w-6 h-6 rounded-full border-2 border-white"
-                source={{uri: assignee.profile}} 
+                src={assignee?.image}
+                width={30}
+                height={30}
               />
             );
           } else {

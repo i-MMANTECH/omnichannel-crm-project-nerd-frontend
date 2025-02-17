@@ -4,24 +4,30 @@ import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import SettingsSidebar from "@/app/components/Settings/SettingsSidebar";
 import IntegrateChannels from "@/app/components/Settings/channels/IntegrateChannels";
-import PlansAndBillings from '@/app/components/Settings/plans-and-billings/PlansAndBillings';
 import RoleManagement from '@/app/components/Settings/role-management/RoleManagement';
-import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 
+
+const PlansAndBillings = dynamic(() => import('@/app/components/Settings/plans-and-billings/PlansAndBillings'), { 
+  ssr: false 
+});
 
 export default function Settings() {
   const pathname = usePathname();
-  const [currentSection, setCurrentSection] = useState('');
-  const router = useRouter();
+  const [currentSection, setCurrentSection] = useState(null);
 
   useEffect(() => {
-    const hash = window.location.hash.substring(1);
-    setCurrentSection(hash);
+    if (typeof window !== 'undefined') {
+      const hash = window?.location.hash.substring(1);
+      setCurrentSection(hash || 'default');
+    }
   }, [pathname]);
 
   const handleSidebarClick = (section) => {
     setCurrentSection(section);
-    window.location.href = `${pathname}#${section}`;
+    if (typeof window !== 'undefined') {
+      window.location.hash = section;
+    }
   };
 
   const renderContent = () => {
@@ -38,7 +44,7 @@ export default function Settings() {
         return <div>Notification Settings Component</div>;
       case 'task-management':
         return <div>Task Management Component</div>;
-      case 'security-settings':
+      case 'security-settings':c
         return <div>Security Settings Component</div>;
       case 'plans-and-billings':
         return <PlansAndBillings/>;

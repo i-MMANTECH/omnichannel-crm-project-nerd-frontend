@@ -16,7 +16,7 @@ export default function UserChatList({dummyData, handleChatSelect}){
                     </p>
                 </div>
     
-                <div className="flex h-10 px-3 py-2 justify-center items-center gap-2 rounded-lg border border-[#DFE1E6] body-theme cursor-pointer shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">
+                <div className="hidden flex h-10 px-3 py-2 justify-center items-center gap-2 rounded-lg border border-[#DFE1E6] body-theme cursor-pointer shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path 
                         d="M13.3333 2H2.66667C2.29848 2 2 2.29848 2 2.66667V3.7468C2 4.33065 2.25513 4.88535 2.69842 5.26531L5.96825 8.06802C6.41154 8.44799 6.66667 9.00269 6.66667 9.58654V14L9.33333 12.6667V9.58654C9.33333 9.00269 9.58846 8.44799 10.0318 8.06802L13.3016 5.26531C13.7449 4.88535 14 4.33065 14 3.7468V2.66667C14 2.29848 13.7015 2 13.3333 2Z" 
@@ -27,15 +27,10 @@ export default function UserChatList({dummyData, handleChatSelect}){
                     />
                     </svg>
         
-                    <p className=" text-[14px] font-medium leading-[150%] tracking-[0.2px]">
+                    <p className="text-[14px] font-medium leading-[150%] tracking-[0.2px]">
                     Filter
                     </p>
-                </div>
-                {/* <button className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm 
-                    hover:dark:bg-neutral-900 hover:bg-gray-100">
-                    <Image src={filter} className='mr-2' width={15} height={15} />
-                    <span className="text-sm font-medium"> </span>
-                </button> */}
+                </div>             
             </div>
         
         <div>

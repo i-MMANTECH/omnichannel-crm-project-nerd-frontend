@@ -7,6 +7,7 @@ import { useError } from '@/context/ErrorContext';
 import { useApi } from "@/services/axiosConfig";
 import Image from "next/image";
 import { formatDateTime, formatTime } from '@/utils/timeUtils';
+import { useRouter } from 'next/navigation';
 
 
 export default function CustomerAssignedMessages() {
@@ -15,33 +16,7 @@ export default function CustomerAssignedMessages() {
     const { id } = useParams();
     const { handleApiError } = useError();
     const { axiosInstance } = useApi();
-
-    const dummyData = [
-      {
-        id: 1,
-        name: "Chioma Okere",
-        message: "I’m Nia! My first investment...",
-        time: "10:00AM",
-        unreadCount: 2,
-        imageUrl: "/assets/user-details-image.png",
-      },
-      {
-        id: 2,
-        name: "James Ade",
-        message: "Please review the document...",
-        time: "11:15AM",
-        unreadCount: 1,
-        imageUrl: "/assets/user-details-image.png",
-      },
-      {
-        id: 3,
-        name: "Lara Smith",
-        message: "Can we schedule a meeting?",
-        time: "1:30PM",
-        unreadCount: 0,
-        imageUrl: "/assets/user-details-image.png",
-      },
-    ];
+    const router = useRouter();
 
     useEffect(() => {
         async function fetchCustomerMessages() {
@@ -57,7 +32,7 @@ export default function CustomerAssignedMessages() {
     }, [id]);
 
     const handleChatSelect = (chat) => {
-      
+      router.push(`/nativecrm/messages?chat=customers&id=${chat?.customer_receiver || chat?.customer_sender}`);
     };
   
     return (
@@ -97,10 +72,11 @@ export default function CustomerAssignedMessages() {
             </div>
         
         <div className="w-full">
-        {chatHistory.map((chat) => (
-          <div key={chat.id}
+        {chatHistory.map((chat) => {
+          return (
+          <div key={chat?.id}
           style={{cursor:"pointer"}}
-          onClick={() => handleChatSelect(user)}
+          onClick={() => handleChatSelect(chat)}
           >  
             <div className="flex justify-between items-center border rounded-lg p-3 mb-5 shadow">
               <div className="flex justify-center  ">
@@ -108,16 +84,16 @@ export default function CustomerAssignedMessages() {
                   <Image 
                     width={100}
                     height={100}
-                    src={chat.channel.image} 
-                    alt={`${chat.channel.id} `} 
+                    src={chat.channel?.image} 
+                    alt={`${chat.channel?.id} `} 
                     />
                 </div>
                 <div className="flex flex-col ms-4 gap-1">
                   <p className="text-sm font-medium ">
-                    {chat.channel.name}
+                    {chat.channel?.name}
                   </p>
                   <p className="text-sm">
-                    {chat.content}
+                    {chat?.content}
                   </p>
                 </div>
               </div>
@@ -131,7 +107,7 @@ export default function CustomerAssignedMessages() {
               </div>
             </div>
           </div>
-          ))}
+        )})}
         </div>
       </div>
     );

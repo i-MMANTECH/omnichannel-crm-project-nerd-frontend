@@ -1,9 +1,11 @@
-import checkPermission from "@/utils/checkPermission";
+import { usePermissions } from "@/context/PermissionsContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 const ProtectedRoute = ({ requiredPermission, children }) => {
   const router = useRouter();
+  const { checkPermission } = usePermissions();
+
   const hasPermission = checkPermission(requiredPermission);
 
   useEffect(() => {

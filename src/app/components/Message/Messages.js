@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, act } from "react";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
@@ -7,39 +7,51 @@ import { useAuth } from "@/context/AuthContext";
 import "./style.css";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from '@/context/ErrorContext';
-import { useRouter } from "next/navigation";
-
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "use-debounce";
 
 export const Messages = () => {
-	const { axiosInstance, loading } = useApi();
-	const { user: currentUser } = useAuth();
+	const { axiosInstance } = useApi();
+	const { handleApiError } = useError();
+	const router = useRouter();
+	const searchParams = useSearchParams();
 
 	const [message, setMessage] = useState("");
 	const [activeUser, setActiveUser] = useState(null);
-	const [socket, setSocket] = useState(null);
 	const [users, setUsers] = useState([]);
 	const [chatHistory, setChatHistory] = useState([]);
 	const [companyId, setCompanyId] = useState('');
-	const { handleApiError } = useError();
-	const router = useRouter();
-	const [searchTerm, setSearchTerm] = useState("");
-	const [activeTab, setActiveTab] = useState("leads");
 	const [searchQuery, setSearchQuery] = useState("");
+	const [isLead, setIsLead] = useState(false);
 	const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
 	const [page, setPage] = useState(1);
 	const [next, setNext] = useState(null);	
 	const [isLoadingMore, setIsLoadingMore] = useState(false);
 
+	const [chatType, setChatType] = useState(searchParams.get("chat") || "leads");
+	const chatId = searchParams.get("id");
+
 	const wsRef = useRef(null);
 
 	useEffect(() => {
-		fetchChatHistory();
-	}, [activeUser, activeTab]);
+		setChatType(searchParams.get("chat") || "leads");
+	}, [searchParams]);
 
-  useEffect(() => {
-    fetchChatList()
-  }, [debouncedSearchQuery])
+	useEffect(() => {
+		fetchChatHistory();
+	}, [activeUser]);
+
+	useEffect(() => {
+		if (chatId) {
+			fetchChatHistory();
+		}
+		setIsLead(chatType == 'leads')
+	}, [chatType, chatId]);
+
+
+	useEffect(() => {
+		fetchChatList()
+	}, [debouncedSearchQuery, chatType])
 
 	useEffect(() => {
 		const fetchCompanyId = async () => {
@@ -91,10 +103,7 @@ export const Messages = () => {
 			const data = JSON.parse(event.data);
 			const message = data.message;
   
-			console.log("Received WebSocket message:", message);
-
 			if (message.is_new_lead) {
-				console.log("New sender detected, fetching updated users list...");
 				fetchChatList();
 			}
   
@@ -112,42 +121,63 @@ export const Messages = () => {
 	}, [activeUser, users]);
 
 	const fetchChatList = async () => {
-		const endpoint =
-		  activeTab === "customers"
-			? `/communication/chatted-customers/?search=${debouncedSearchQuery}`
-			: `/communication/contacts/?search=${debouncedSearchQuery}`;
-	  
-	  
-		try {
-		  const response = await axiosInstance.get(endpoint);
-		  if (response.status === 200) {
-			setUsers(response.data);
-			setNext(response.data.next);
-		  }
-		} catch (error) {
-		  handleApiError(error);
+		let endpoint;
+
+		if (chatType === "customers") {
+			endpoint = `/communication/chatted-customers/?search=${debouncedSearchQuery}`;
+		} else if (chatType === "leads") {
+			endpoint = `/communication/contacts/?search=${debouncedSearchQuery}`;
+		} else if (chatType === "archived") {
+			endpoint = `/communication/conversations/?search=${debouncedSearchQuery}`;
 		}
-	  };
-	  
-  
-	const fetchChatHistory = async () => {
-		if (activeUser) {
-			const endpoint = activeTab === "customers"
-				? `/communication/customer-chat-history/${activeUser.id}`
-				: `/communication/history/?lead_id=${activeUser.id}`;
-  
-			await axiosInstance.get(endpoint)
-				.then((response) => {
-					setChatHistory(activeTab === "customers"
-						? response.data.results.messages.reverse() || []
-						: response.data.messages || []);
-				})
-				.catch(handleApiError);
-		} else {
-			fetchChatList();
-		}
+
+		if (!endpoint) return;
+		
+		await axiosInstance
+			.get(endpoint)
+			.then((response) => {
+				setUsers(response.data);
+				setNext(response.data.next);	
+
+				const foundUser = response.data.results?.find((user) => user.id.toString() === chatId);
+				if (foundUser) {
+					setActiveUser(foundUser);
+				}
+			})
+        .catch(handleApiError);
 	};
 
+	const fetchChatHistory = async () => {
+		let endpoint;
+
+		if (chatType === "customers") {
+			endpoint = `/communication/customer-chat-history/${activeUser.id}`;
+		} else if (chatType === "leads") {
+			endpoint = `/communication/history/?lead_id=${activeUser.id}`;
+		} else if (chatType === "archived") {
+			endpoint = `/communication/conversations/${activeUser.id}/messages`;
+		}
+
+		await axiosInstance
+			.get(endpoint)
+			.then((response) => {
+				setChatHistory(chatType === "customers"
+					? response.data.results.messages.reverse() || []
+					: response.data.messages.reverse() || []);
+			})
+			.catch(handleApiError);
+	};
+
+	const handleChatSelect = (user) => {
+		setActiveUser(user);
+		router.push(`/nativecrm/messages?chat=${chatType}&id=${user.id}`, { scroll: false });
+	};
+
+	const handleTabChange = (tab) => {
+		setActiveUser(null)
+	    router.push(`/nativecrm/messages?chat=${tab}`, { scroll: false });
+	};
+	
 	const handleSendMessage = (messageContent) => {
 		const payload = {
 			lead_id: activeUser.id,
@@ -157,7 +187,7 @@ export const Messages = () => {
 
 		let url = '/communication/';
 		let dataToSend = payload;
-		if (activeTab === "customers") {
+		if (chatType === "customers") {
 			url += "send-to-customer/";
   
 			const formData = new FormData();
@@ -172,7 +202,7 @@ export const Messages = () => {
   
 		axiosInstance
 			.post(url, dataToSend, {
-				headers: activeTab === "customers" ? { "Content-Type": "multipart/form-data" } : {},
+				headers: chatType === "customers" ? { "Content-Type": "multipart/form-data" } : {},
 			})
 			.then((response) => {  
 				setActiveUser((prevUser) => {
@@ -183,7 +213,7 @@ export const Messages = () => {
 							content_type: "text",
 							created_at: new Date().toISOString(),
 							status: "SENT",
-							user_sender: currentUser?.user_id,
+							user_sender: activeUser?.user_id,
 							lead_receiver: activeUser.id,
 						}]
 						: [{
@@ -192,7 +222,7 @@ export const Messages = () => {
 							content_type: "text",
 							created_at: new Date().toISOString(),
 							status: "SENT",
-							user_sender: currentUser?.user_id,
+							user_sender: activeUser?.user_id,
 							lead_receiver: activeUser.id,
 						}];
 					
@@ -208,17 +238,6 @@ export const Messages = () => {
 				handleApiError(error);
 			});
 	};
-
-	const handleInputChange = (e) => {
-		setMessage(e.target.value);
-	};
-
-	const handleTabChange = (tab) => {
-		setActiveTab(tab);
-		setActiveUser(null); // Reset active user when changing tabs
-	};
-
-	  
 
 	const loadMoreUsers = async () => {
 		if (isLoadingMore || !next) return;
@@ -251,7 +270,6 @@ export const Messages = () => {
 		  setIsLoadingMore(false);
 		}
 	  };
-	  
 
 	return (
 		<div className="body-theme flex flex-col px-5 ">
@@ -293,7 +311,7 @@ export const Messages = () => {
 								className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
 								placeholder="Search Users..."
 								value={searchQuery}
-                				onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
 							/>
 							<button
 								className="absolute top-1 right-1 flex items-center rounded body-theme py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 active:dark:bg-black hover:bg-gray-100 hover:dark:bg-gray-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
@@ -306,35 +324,38 @@ export const Messages = () => {
 						</div>
 						<div className="flex gap-3 w-full ">
 							<div className="tab-atom">
-								<div className={`px-4 pb-1 ${activeTab === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>Leads</div>
+								<div className={`px-3 pb-1 ${chatType === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>Leads</div>
 							</div>
 							<div className="tab-atom">
-								<div className={`px-4 pb-1 ${activeTab === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>Customers</div>
+								<div className={`px-3 pb-1 ${chatType === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>Customers</div>
+							</div>
+							<div className="tab-atom">
+								<div className={`px-3 pb-1 ${chatType === 'archived' ? 'active' : ""}`} onClick={() => handleTabChange('archived')}>Archived</div>
 							</div>
 						</div>
 					</div>
 
 					<ChatList 
-						users={users} 
-						activeUser={activeUser} 
-						setActiveUser={setActiveUser}
-						loadMoreUsers={loadMoreUsers}
-						/>
+					users={users} 
+					activeUser={activeUser} 
+					handleChatSelect={handleChatSelect}
+					loadMoreUsers={loadMoreUsers}
+					/>
 				</div>
 				
 				<div className="detail ">
 					{activeUser ? (
 						<div>
-							<ChatHeader activeUser={activeUser} />
+							<ChatHeader activeUser={activeUser} isLead={chatType === "leads"}/>
 							<div className="flex items-center ">
 								<MessageList 
 									chatHistory={chatHistory} 
-									currentUserId={currentUser?.user_id} 
+									activeUserId={activeUser?.id} 
 								/>
 
 								<MessageInput
 									message={message}
-									onInputChange={handleInputChange}
+									onInputChange={(e) => setMessage(e.target.value)}
 									onSendMessage={handleSendMessage}
 									audioRecordingEnabled
 								/>
@@ -342,7 +363,7 @@ export const Messages = () => {
 						</div>
 					) : (
 						<div className="no-chat-selected">
-							{activeTab === "leads" ? "Select a lead to chat with" : "Select a customer to chat with"}
+							{chatType === "leads" ? "Select a lead to chat with" : "Select a customer to chat with"}
 						</div>
 					)}
 				</div>

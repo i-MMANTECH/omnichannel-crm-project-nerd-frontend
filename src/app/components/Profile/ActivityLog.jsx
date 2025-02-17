@@ -36,7 +36,9 @@ const ActivityLog = () => {
 
   return (
     <div className="flex mt-5 flex-col p-6 items-start gap-4 self-stretch rounded-lg border border-[#DFE1E6] ">
-      {activityLogs.map((log, index) => (
+      {activityLogs.map((log, index) => 
+      {
+      return (
         <div key={index} className='w-full rounded-[8px] border border-[#DFE1E6] p-[16.049px]'>
           <div className='flex justify-between items-center'>
             <div className="flex flex-col gap-2 w-full mb-1">
@@ -81,7 +83,7 @@ const ActivityLog = () => {
             <p className="w-fit text-sm font-normal leading-[21px] tracking-[0.2px] whitespace-nowrap">{timeAgo(log.created_at)}</p>
           </div>
         </div>
-      ))}
+      )})}
 
       <div className="mt-6 w-full">
         <Pagination

@@ -8,7 +8,7 @@ import { selectStyles } from "../selectStyles";
 import { toast } from 'react-toastify';
 
 
-const GeneralProfile = () => {
+const GeneralProfile = ({ onProfileChanged }) => {
   const { axiosInstance, loading } = useApi();
   const { handleApiError } = useError();
 
@@ -24,45 +24,6 @@ const GeneralProfile = () => {
   const disabledInputClasses = "w-full border rounded-md p-2 bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200";
   
   useEffect(() => {
-    const fetchInitialData = async () => {
-      try {        
-        const [userResponse, rolesResponse, countriesResponse] = await Promise.all([
-          axiosInstance.get(`/users/me`),
-          axiosInstance.get("/users/roles/"),
-          axiosInstance.get("/users/countries/")
-        ]);
-
-        const userData = userResponse.data.user;
-        const roles = rolesResponse.data.results;
-        const countriesData = countriesResponse.data.countries;
-
-        const formattedCountries = countriesData.map(country => ({
-          value: country.id,
-          label: `+${country.phonecode}`,
-          name: country.name,            
-          phonecode: country.phonecode
-        }));
-
-        setFormData(userData);
-        setOriginalData(userData);
-        setAvailableRoles(roles.map(role => ({
-          value: role.name,
-          label: role.name
-        })));
-        setCountries(formattedCountries);
-        
-        // if (userData.country_id) {
-        //   await fetchStates(userData.country_id);
-        // }
-
-        if (userData.roles?.[0]) {
-          await fetchRolePermissions(userData.roles[0]);
-        }
-      } catch (error) {
-        handleApiError(error);
-      } 
-    };
-
     fetchInitialData();
   }, []);
 
@@ -72,6 +33,45 @@ const GeneralProfile = () => {
       <span className="text-gray-500 ml-2">({data.phonecode})</span>
     </div>
   );
+
+  const fetchInitialData = async () => {
+    try {        
+      const [userResponse, rolesResponse, countriesResponse] = await Promise.all([
+        axiosInstance.get(`/users/me`),
+        axiosInstance.get("/users/roles/"),
+        axiosInstance.get("/users/countries/")
+      ]);
+
+      const userData = userResponse.data.user;
+      const roles = rolesResponse.data.results;
+      const countriesData = countriesResponse.data.countries;
+
+      const formattedCountries = countriesData.map(country => ({
+        value: country.id,
+        label: `+${country.phonecode}`,
+        name: country.name,            
+        phonecode: country.phonecode
+      }));
+
+      setFormData(userData);
+      setOriginalData(userData);
+      setAvailableRoles(roles.map(role => ({
+        value: role.name,
+        label: role.name
+      })));
+      setCountries(formattedCountries);
+      
+      // if (userData.country_id) {
+      //   await fetchStates(userData.country_id);
+      // }
+
+      if (userData.roles?.[0]) {
+        await fetchRolePermissions(userData.roles[0]);
+      }
+    } catch (error) {
+      handleApiError(error);
+    } 
+  };
 
   const formatCountryLabel = ({ label, phonecode }) => (
     <div className="flex items-center">
@@ -167,12 +167,19 @@ const GeneralProfile = () => {
     if (!hasChanges) return;
 
     try {
-      const resp = await axiosInstance.put("/users/me/update/", formData, {
+      const resp = await axiosInstance.put("/users/me/update/", {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        date_of_birth: formData.date_of_birth,
+        gender: formData.gender,
+        phone_number: formData.phone_number,
+      }, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      setOriginalData(resp?.data?.user);
+      fetchInitialData()
+      onProfileChanged()
       toast.success(resp?.data?.message)
     } catch (error) {
       console.log('error is ', error)
@@ -229,17 +236,6 @@ const GeneralProfile = () => {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1 text-gray-500">Company URL</label>
-          <input
-            type="text"
-            name="url"
-            value={formData.url || ''}
-            disabled
-            className={disabledInputClasses}
-          />
-        </div>
-
         <div className="flex gap-2">
           <div className="w-1/3 hidden">
             <label className="block text-sm font-medium mb-1">Country Code</label>
@@ -273,18 +269,6 @@ const GeneralProfile = () => {
             value={getCurrentSelectValue('gender', genderOptions)}
             onChange={(option) => handleSelectChange(option, { name: 'gender' })}
             options={genderOptions}
-            classNamePrefix="select"
-            styles={selectStyles}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Role</label>
-          <Select
-            name="role"
-            value={getCurrentSelectValue('role', availableRoles)}
-            onChange={(option) => handleSelectChange(option, { name: 'role' })}
-            options={availableRoles}
             classNamePrefix="select"
             styles={selectStyles}
           />

@@ -72,7 +72,7 @@ const UserGrid = ({ users }) => {
                       height={22}
                       />
                   <span
-                    className={`inline-block py-1 rounded-full text-sm font-medium ${getRoleStyle[user.role]} `}
+                    className={`inline-block py-1 rounded-full text-sm font-medium -ml-1`}
                   >
                     {user?.roles.map((role) => (
                           <span

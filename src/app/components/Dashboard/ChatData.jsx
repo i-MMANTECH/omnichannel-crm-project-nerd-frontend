@@ -3,9 +3,20 @@ import { Doughnut } from "react-chartjs-2";
 import NoDataFound from '../NoDataFound';
 import './style.css';
 import { useRouter } from 'next/navigation';
+import { usePermissions } from '@/context/PermissionsContext';
 
 export default function ChatData(){
     const router = useRouter();
+    const { checkPermission } = usePermissions();
+
+    const viewUser = checkPermission('view_user');
+    const addUser = checkPermission('add_user');
+    const viewCustomer = checkPermission('view_customer');
+    const addCustomer = checkPermission('add_customer');
+    const viewTask = checkPermission('view_task');
+    const addTask = checkPermission('add_task');
+
+    const hasQuickActionsPermissions = (viewUser && addUser) || (viewCustomer && addCustomer) || (viewTask && addTask)
 
     const [agentsData, setAgentsData] = useState([
         {
@@ -25,15 +36,16 @@ export default function ChatData(){
         },
       };
 
-
   return (
     <div className="mt-5 flex justify-between mb-5 gap-5 w-full">
-      <div className="flex w-6/12 flex-col border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] rounded-[16px] ">
+        {hasQuickActionsPermissions &&
+        <div className="flex w-6/12 flex-col border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] rounded-[16px] ">
           <div className="flex flex-col items-start gap-[77px] p-[16px_20px] self-stretch border-b border-[#DFE1E6]">
               <span>Quick Actions</span>
           </div>
 
           <div className="grid grid-cols-2 gap-4 p-4 ">
+            {viewUser && addUser  &&
               <div onClick={() => router.push('/nativecrm/users?action=invite-user')} className="flex flex-col items-start gap-2 px-4 py-4 rounded-[16px] border border-[#DFE1E6] body-theme shadow-sm cursor-pointer">
                   <div className="flex w-[24px] h-[24px] p-[5.333px] justify-center items-center gap-[5.333px] rounded-[5.333px] border border-[#30A808] bg-[#3EBF0F] shadow-[0px_-2.667px_4px_0px_rgba(255,_255,_255,_0.50)_inset,_0px_0.667px_1.333px_0px_rgba(13,_13,_18,_0.10)]">
                       <svg
@@ -56,7 +68,8 @@ export default function ChatData(){
 
                   <span className="font-medium">Create New User</span>
               </div>
-
+            }
+            {viewTask && addTask  &&
               <div onClick={() => router.push('/nativecrm/tasks?action=new-task')} className="flex flex-col items-start gap-2 px-4 py-4 rounded-[16px] border border-[#DFE1E6]  body-theme shadow-sm cursor-pointer">
                   <div className="flex w-[24px] h-[24px] p-[5.333px] justify-center items-center gap-[5.333px] rounded-[5.333px] border border-[#5F41B4] bg-[#936DFF] shadow-[0px_-2.667px_4px_0px_rgba(255,_255,_255,_0.50)_inset,_0px_0.667px_1.333px_0px_rgba(13,_13,_18,_0.10)]">
                       <svg
@@ -79,7 +92,8 @@ export default function ChatData(){
 
                   <span className="font-medium">Create New Task</span>
               </div>
-
+            }
+            {viewCustomer && addCustomer  &&
               <div onClick={() => router.push('/nativecrm/customers?action=new-customer')} className="cursor-pointer flex flex-col items-start gap-2 px-4 py-4 rounded-[16px] border border-[#DFE1E6]  body-theme shadow-sm">
                 <div  className="flex w-[24px] h-[24px] p-[5.333px] justify-center items-center gap-[5.333px] rounded-[5.333px] border border-[#0B6BEA] bg-[#1285FE] shadow-[0px_-2.667px_4px_0px_rgba(255,_255,_255,_0.50)_inset,_0px_0.667px_1.333px_0px_rgba(13,_13,_18,_0.10)]">
                     <svg
@@ -136,7 +150,7 @@ export default function ChatData(){
                   </div>
                   <span className="font-medium">Create New Customer</span>
               </div>
-
+            }
               <div className="hidden flex flex-col items-start gap-2 px-4 py-4 rounded-[16px] border border-[#DFE1E6]  body-theme shadow-sm">
                   <div className="flex w-[24px] h-[24px] p-[5.333px] justify-center items-center gap-[5.333px] rounded-[5.333px] border border-[#9A452D] bg-[#F36F4A] shadow-[0px_-2.667px_4px_0px_rgba(255,_255,_255,_0.50)_inset,_0px_0.667px_1.333px_0px_rgba(13,_13,_18,_0.10)]">
                       <svg
@@ -161,10 +175,11 @@ export default function ChatData(){
               </div>
           </div>
       </div>
+      }
 
       <div className="body-theme w-6/12 border border-[#DFE1E6] rounded-[16px] shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)]">
         <div className="flex flex-col items-start gap-[77px] p-[16px_20px] self-stretch border-b border-[#DFE1E6]">
-          <span>Quick Actions</span>
+          <span>Total Agents</span>
         </div>
         <div className="flex flex-col gap-3 w-full justify-center items-center pt-4 px-3">
             {agentsData.length === 0 ? (

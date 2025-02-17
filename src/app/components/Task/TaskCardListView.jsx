@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import getStatusSvg from "./getStatusSvg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
-import checkPermission from "@/utils/checkPermission";
+import { usePermissions } from "@/context/PermissionsContext";
 
 const STATUS_ORDER = ["todo", "overdue", "in_progress", "done"];
 const columns = [
@@ -83,6 +83,8 @@ const TaskCard = ({
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
+
+  const { checkPermission } = usePermissions();
   const changeTask = checkPermission('change_task');
   const deleteTask = checkPermission('delete_task');
 

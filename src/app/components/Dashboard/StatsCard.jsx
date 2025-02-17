@@ -1,7 +1,9 @@
 import React from 'react';
-import checkPermission from '@/utils/checkPermission';
+import { usePermissions } from '@/context/PermissionsContext';
 
 const StatsCard = ({ summary }) => {
+  const { checkPermission } = usePermissions();
+
   const viewUser = checkPermission('view_user');
   const viewCustomer = checkPermission('view_customer');
   const viewTask = checkPermission('view_task');
@@ -10,7 +12,7 @@ const StatsCard = ({ summary }) => {
   return (
     <div className="flex gap-5 mt-5">
       {viewMessage && (
-          <a href="/nativecrm/messages" className="flex cursor-pointer flex-col items-start gap-4 p-[16px_16px_14px] rounded-[16px] border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] flex-1">
+          <a href="/nativecrm/messages?chat=leads" className="flex cursor-pointer flex-col items-start gap-4 p-[16px_16px_14px] rounded-[16px] border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] flex-1">
           <div className="flex justify-center items-center gap-2 w-[36px] h-[36px] p-[8px] rounded-[8px] border border-[#30A808] bg-[#3EBF0F] shadow-[0px_-4px_6px_0px_rgba(255,255,255,0.50)_inset,_0px_1px_2px_0px_rgba(13,13,18,0.10)]">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" className="flex-shrink-0">
               <path d="M6.66667 6.66667H9.16667M6.66667 10H11.6667M4.16667 2.5H15.8333C16.7538 2.5 17.5 3.24289 17.5 4.15929V12.4594C17.5 13.3758 16.7538 14.1187 15.8333 14.1187H6.23385C5.9807 14.1187 5.74127 14.2333 5.58313 14.4301L3.24203 17.3435C2.99598 17.6497 2.5 17.4765 2.5 17.0844V4.15929C2.5 3.24289 3.24619 2.5 4.16667 2.5Z" stroke="white" strokeWidth="2" strokeLinecap="round"/>

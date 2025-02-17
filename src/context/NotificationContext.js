@@ -49,7 +49,6 @@ export function NotificationProvider({ children }) {
         };
 
         ws.onmessage = (event) => {
-          console.log('got noti message', event)
           const data = JSON.parse(event.data);
           handleNewNotification(data);
         };

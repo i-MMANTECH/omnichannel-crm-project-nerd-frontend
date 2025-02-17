@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, act } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import "./chatHeader.css";
@@ -8,7 +8,7 @@ import LeadToCustomer from "./LeadToCustomer";
 import NotesModal from "./NotesModal";
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import SuccessModal from "../SuccessModal";
-import checkPermission from "@/utils/checkPermission";
+import { usePermissions } from "@/context/PermissionsContext";
 import AssignAgentModal from "./AssignAgentModal";
 import EndSessionModal from "./EndSessionModal";
 import ArchiveModal from "./ArchiveModal";
@@ -35,7 +35,7 @@ const ModalController = ({ children }) => {
   return children({ isModalOpen, openModal, closeModal });
 };
 
-const ChatHeader = ({ activeUser }) => {
+const ChatHeader = ({ activeUser, isLead }) => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
@@ -46,6 +46,8 @@ const ChatHeader = ({ activeUser }) => {
   const buttonRef = useRef(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const { checkPermission } = usePermissions();
   const addCustomer = checkPermission('add_customer');
 
   useEffect(() => {
@@ -72,7 +74,7 @@ const ChatHeader = ({ activeUser }) => {
     hour12: true,
   });
 
-  const menuItems = [
+  const leadMenuItems = [
     ...(addCustomer ? [{
       label: "Add as customer",
       onClick: () => {
@@ -96,6 +98,15 @@ const ChatHeader = ({ activeUser }) => {
     {
       label: "End Session",
       onClick: () => setIsEndSessionModalOpen(true),
+    },
+  ]
+
+  const customerMenuItems = [
+    {
+      label: "Edit customer",
+      onClick: () => {
+        router.push(`/nativecrm/customers/${activeUser?.id}?action=edit-customer`);
+      },
     },
     // { label: "Create a ticket", onClick: () => console.log("Create a ticket") },
   ];
@@ -157,7 +168,7 @@ const ChatHeader = ({ activeUser }) => {
                   className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
                 >
                   <div className="py-1">
-                    {menuItems.map((item, index) => (
+                    {(isLead ? leadMenuItems : customerMenuItems).map((item, index) => (
                       <button
                         key={index}
                         onClick={() => {

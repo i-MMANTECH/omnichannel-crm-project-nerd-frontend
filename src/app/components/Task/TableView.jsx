@@ -206,11 +206,20 @@ export default function TableView({ tasks, updateTask, handleDelete, openViewMod
                         key={index}
                         alt="profile pic"
                         className="w-6 h-6 rounded-full border-2 border-white"
-                        source={{uri: assignee.profile}} 
+                        src={assignee.image} 
+                        width={30}
+                        height={30}
                     />
                       )
                     } else {
-                      return <UserAvatar className="border-white border-2" key={index} name={ assigneeName } width="w-6" height="h-6" />
+                      return (
+                        <UserAvatar 
+                          className="border-white border-2" 
+                          key={index} 
+                          name={ assigneeName } 
+                          width="w-6" 
+                          height="h-6" />
+                      )
                     }
                   })}
               </div>

@@ -20,17 +20,17 @@ export default function Profile() {
     const [selected, setSelected] = useState("general");
 
     useEffect(() => {
-        const fetchUserProfile = async () => {
-            try {
-                const resp = await axiosInstance.get(`/users/me`)
-                setUserProfile(resp.data.user)
-            } catch(error) {
-                handleApiError(error)
-            }
-        }
-
         fetchUserProfile()
     }, []);
+
+    const fetchUserProfile = async () => {
+        try {
+            const resp = await axiosInstance.get(`/users/me`)
+            setUserProfile(resp.data.user)
+        } catch(error) {
+            handleApiError(error)
+        }
+    }
 
     const userName = useMemo(() => {
         if (userProfile?.first_name && userProfile?.last_name) {
@@ -186,7 +186,7 @@ export default function Profile() {
                     </p>
                 </div>
 
-                {selected === "general" && <General />}
+                {selected === "general" && <General onProfileChanged={fetchUserProfile} />}
                 {selected === "notification" && <Notification />}
                 {selected === "activity-log" && <ActivityLog />}
                 {selected === "security-settings" && <SecuritySettings />}
