@@ -1,31 +1,34 @@
-import React from "react";
+import React, { useState } from "react";
 import Modal from "../Modal";
 import { useApi } from "@/services/axiosConfig";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 
-const EndSessionModal = ({ isOpen, onClose, onConfirm }) => {
+const EndSessionModal = ({ isOpen, onClose, sessionId, onSessionEnded }) => {
+  const [reason, setReason] = useState("");
   const { axiosInstance } = useApi();
-  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  const chatId = searchParams.get("id");
 
-  const chatId = router.query.id;
+  const handleReasonChange = (e) => {
+    setReason(e.target.value);
+  };
 
-  const handleConfirm = async () => {
-    if (!chatId) {
-      return;
-    }
+  const handleEndSession = async () => {
+    if (!chatId) return;
 
     try {
-      const response = await axiosInstance.post(
-        `/communication/conversations/${chatId}/end/`
-      );
-      
-      if (onConfirm) {
-        onConfirm(response.data);
-      }
+      const payload = {
+        reason,
+      };
+
+      const response = await axiosInstance.patch(`/sessions/${chatId}/end/`, payload);
+      console.log("Session ended:", response.data);
+
+      onSessionEnded();
+      onClose();
     } catch (error) {
       console.error("Error ending session:", error);
-    } finally {
-      onClose();
     }
   };
 
@@ -38,7 +41,8 @@ const EndSessionModal = ({ isOpen, onClose, onConfirm }) => {
         Cancel
       </button>
       <button
-        onClick={handleConfirm}
+        onClick={handleEndSession}
+        disabled={!reason.trim()}
         className="w-6/12 px-4 py-2 bg-[#3EBF0F] text-white rounded-md"
       >
         End Session
@@ -53,10 +57,23 @@ const EndSessionModal = ({ isOpen, onClose, onConfirm }) => {
       title="End Session"
       showFooter={true}
       footer={footerContent}
-      width="400px"
+      width="500px"
     >
       <div className="modal-body">
-        <p>Are you sure you want to end this session?</p>
+
+        <div className="mt-4 body-theme">
+          <label htmlFor="session-reason" className="block text-sm font-medium">
+            Reason for Ending the Session (Optional)
+          </label>
+          <textarea
+            id="session-reason"
+            value={reason}
+            onChange={handleReasonChange}
+            placeholder="Type reason..."
+            rows={4}
+            className="w-full p-3 border border-gray-300 rounded-lg mt-2 body-theme"
+          />
+        </div>
       </div>
     </Modal>
   );

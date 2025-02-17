@@ -1,15 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Modal from "../Modal";
 import { useApi } from "@/services/axiosConfig";
-import { useRouter } from "next/router";
+import { useSearchParams } from 'next/navigation'; // Importing for search parameters
 
 const NotesModal = ({ isOpen, onClose }) => {
   const [note, setNote] = useState("");
   const [selectedTag, setSelectedTag] = useState("");
   const { axiosInstance, loading } = useApi();
-  const router = useRouter();
+  const searchParams = useSearchParams(); // Use searchParams to access URL query params
 
-  const chatId = router.query.id;
+  const chatId = searchParams.get('id'); // Get 'id' from URL query parameters
 
   const handleNoteChange = (e) => {
     setNote(e.target.value);
@@ -25,7 +25,7 @@ const NotesModal = ({ isOpen, onClose }) => {
     try {
       const payload = {
         model: "conversation",
-        object_id: chatId,
+        object_id: chatId, // Using the chatId retrieved from the URL params
         content: note,
         // tag: selectedTag,
       };
@@ -49,11 +49,7 @@ const NotesModal = ({ isOpen, onClose }) => {
       <button
         onClick={handleSaveNote}
         disabled={!note.trim()}
-        className={`w-6/12 px-4 py-2 rounded-md ${
-          !note.trim()
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-[#3EBF0F] text-white"
-        }`}
+        className={`w-6/12 px-4 py-2 rounded-md ${!note.trim() ? "bg-gray-400 cursor-not-allowed" : "bg-[#3EBF0F] text-white"}`}
       >
         Save
       </button>

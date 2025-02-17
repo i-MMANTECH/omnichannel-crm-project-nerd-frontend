@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { PaystackButton } from 'react-paystack';
 import Drawer from '../../Drawer';
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
@@ -14,7 +13,6 @@ const PaymentMethodsDrawer = ({ show, onClose, onRoleCreated }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [isLoading, setIsLoading] = useState(false);
-  const [paystackConfig, setPaystackConfig] = useState(null);
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
 
@@ -29,29 +27,35 @@ const PaymentMethodsDrawer = ({ show, onClose, onRoleCreated }) => {
       setIsLoading(true);
       const response = await axiosInstance.post(`/billings/payment-methods/`);
       const { authorization_url, access_code, reference, email, amount } = response.data;
-      
-      setPaystackConfig({
-        reference,
-        email,
-        amount: amount * 100, 
-        publicKey: 'YOUR_PAYSTACK_PUBLIC_KEY', 
-      });
+
+      let handler = PaystackPop.setup({
+          key: 'pk_live_4c73f3f9f417baa3bfd6518592e5583a7c0b78fb',    
+          reference: reference,            
+          email: email,
+          amount: amount * 100,
+          onClose: function(){
+              alert('Payment cancelled')
+          },
+          onerror: function(error) {
+              handleApiError(error)
+          },
+          callback: function(response) {
+              axios.post(`/billings/payment-methods/verify/`, {
+                  reference,
+                })
+                .then(() => {
+                  fetchPaymentMethods()
+                })
+                .catch((error) => {
+                  handleApiError(error)
+              })
+          }
+      })
+      handler.openIframe();
     } catch (error) {
+      console.log('error is ', error)
       handleApiError(error);
-    } finally {
-      setIsLoading(false);
     }
-  };
-
-  const handlePaymentSuccess = (reference) => {
-    console.log('Payment successful:', reference);
-    fetchPaymentMethods();
-    setPaystackConfig(null); // Reset the config
-  };
-
-  const handlePaymentClose = () => {
-    console.log('Payment closed');
-    setPaystackConfig(null); // Reset the config
   };
 
   const fetchPaymentMethods = async () => {
@@ -94,8 +98,8 @@ const PaymentMethodsDrawer = ({ show, onClose, onRoleCreated }) => {
       <div className="h-full">
         {paymentMethods.length > 0 ? (
           <div className='flex flex-col w-full h-full mt-10 pointer'>
-            {paymentMethods.map((method) => (
-              <div className='border flex py-4 rounded-lg px-5 justify-between items-center w-full body-theme mb-4'>
+            {paymentMethods.map((method, index) => (
+              <div key={index} className='border flex py-4 rounded-lg px-5 justify-between items-center w-full body-theme mb-4'>
                 <div>{method.card_number}</div>
                 <div>{method.card_expiry_date}</div>
 
@@ -108,23 +112,13 @@ const PaymentMethodsDrawer = ({ show, onClose, onRoleCreated }) => {
           <div className="relative top-40 flex flex-col items-center justify-center">
             <NoDataFound message="No payment methods found." icon={empty} />
             <div className="flex gap-3">
-              {paystackConfig ? (
-                <PaystackButton
-                  {...paystackConfig}
-                  className="bg-[#3EBF0F] py-2 px-4 rounded-lg hover:bg-green-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                  onSuccess={handlePaymentSuccess}
-                  onClose={handlePaymentClose}
-                  text="Complete Payment"
-                />
-              ) : (
-                <button
-                  onClick={initializePayment}
-                  disabled={isLoading}
-                  className="bg-[#3EBF0F] py-2 px-4 rounded-lg hover:bg-green-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? 'Processing...' : 'Add payment method'}
-                </button>
-              )}
+              <button
+                onClick={initializePayment}
+                disabled={isLoading}
+                className="bg-[#3EBF0F] py-2 px-4 rounded-lg hover:bg-green-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Processing...' : 'Add payment method'}
+              </button>
             </div>
           </div>
         )}

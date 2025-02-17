@@ -68,7 +68,7 @@ const ChatHeader = ({ activeUser, isLead }) => {
 
   if (!activeUser) return null;
 
-  const formattedTime = new Date(activeUser.lastMessageTime).toLocaleString([], {
+  const formattedTime = new Date(activeUser.lastMessageTim || activeUser.last_message_at).toLocaleString([], {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
@@ -108,6 +108,10 @@ const ChatHeader = ({ activeUser, isLead }) => {
         router.push(`/nativecrm/customers/${activeUser?.id}?action=edit-customer`);
       },
     },
+    {
+      label: "Archived messages", 
+      onClick: () => setIsArchivedModalOpen(true),
+    },
     // { label: "Create a ticket", onClick: () => console.log("Create a ticket") },
   ];
 
@@ -132,7 +136,7 @@ const ChatHeader = ({ activeUser, isLead }) => {
                     className="w-9 h-9 rounded-full"
                   />
                 ) : (
-                  <UserAvatar name={activeUser.name} width="w-9" height="h-9" />
+                  <UserAvatar name={activeUser.name || activeUser.lead_name} width="w-9" height="h-9" />
                 )}
               </div>
               {activeUser.channel?.image && (
@@ -150,7 +154,7 @@ const ChatHeader = ({ activeUser, isLead }) => {
             </div>
             <div className="info flex flex-col relative grow justify-center gap-2 bottom-1">
               <div className="text-black dark:text-white">
-                {activeUser.name || "Unknown User"}
+                {activeUser.name || activeUser.lead_name || "Unknown User"}
               </div>
               <div className="title-4">Last Seen {formattedTime}</div>
             </div>
