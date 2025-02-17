@@ -66,7 +66,7 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers }) => {
 
   return (
     <div className="flex items-start flex-col relative body-theme px-2">
-      <div ref={chatListRef} className="chat-list-container flex flex-col overflow-y-auto h-[60vh] items-start scrollbar-hide">
+      <div ref={chatListRef} className="chat-list-container flex flex-col overflow-y-auto h-[60vh] items-start">
         {filteredUsers.length === 0 ? (
           <div className="text-gray-500 text-center px-20 mt-4 flex flex-col items-center justify-center">
             No chats in this category

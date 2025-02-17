@@ -3,12 +3,11 @@ import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import ChatList from "./ChatList";
-import { useAuth } from "@/context/AuthContext";
-import "./style.css";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from '@/context/ErrorContext';
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "use-debounce";
+import "./style.css";
 
 export const Messages = () => {
 	const { axiosInstance } = useApi();

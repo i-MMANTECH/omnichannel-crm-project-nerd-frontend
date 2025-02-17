@@ -1,31 +1,34 @@
 import React, { useState } from "react";
 import Modal from "../Modal";
 import { useApi } from "@/services/axiosConfig";
-import { useSearchParams } from "next/navigation";
 
-const EndSessionModal = ({ isOpen, onClose, sessionId, onSessionEnded }) => {
+const EndSessionModal = ({ 
+  isOpen, 
+  onClose, 
+  conversationId, 
+  setIsSuccessModalOpen, 
+  setSuccessModalMessage 
+}) => {
   const [reason, setReason] = useState("");
   const { axiosInstance } = useApi();
-  const searchParams = useSearchParams();
-  
-  const chatId = searchParams.get("id");
 
   const handleReasonChange = (e) => {
     setReason(e.target.value);
   };
 
   const handleEndSession = async () => {
-    if (!chatId) return;
+    if (!conversationId) return;
 
     try {
       const payload = {
         reason,
       };
 
-      const response = await axiosInstance.patch(`/sessions/${chatId}/end/`, payload);
+      const response = await axiosInstance.post(`/communication/conversations/${conversationId}/end/`, payload);
       console.log("Session ended:", response.data);
-
-      onSessionEnded();
+      
+      setSuccessModalMessage(`This conversation has been ended successfully.`);
+      setIsSuccessModalOpen(true);
       onClose();
     } catch (error) {
       console.error("Error ending session:", error);
@@ -42,8 +45,7 @@ const EndSessionModal = ({ isOpen, onClose, sessionId, onSessionEnded }) => {
       </button>
       <button
         onClick={handleEndSession}
-        disabled={!reason.trim()}
-        className="w-6/12 px-4 py-2 bg-[#3EBF0F] text-white rounded-md"
+        className="cursor-pointer w-6/12 px-4 py-2 bg-[#3EBF0F] text-white rounded-md"
       >
         End Session
       </button>
@@ -60,7 +62,6 @@ const EndSessionModal = ({ isOpen, onClose, sessionId, onSessionEnded }) => {
       width="500px"
     >
       <div className="modal-body">
-
         <div className="mt-4 body-theme">
           <label htmlFor="session-reason" className="block text-sm font-medium">
             Reason for Ending the Session (Optional)

@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
 import Modal from "../Modal";
 import { useApi } from "@/services/axiosConfig";
-import { useSearchParams } from 'next/navigation'; // Importing for search parameters
 
-const NotesModal = ({ isOpen, onClose }) => {
+const NotesModal = ({ 
+  isOpen, 
+  onClose, 
+  conversationId, 
+  setIsSuccessModalOpen, 
+  setSuccessModalMessage 
+}) => {
   const [note, setNote] = useState("");
   const [selectedTag, setSelectedTag] = useState("");
   const { axiosInstance, loading } = useApi();
-  const searchParams = useSearchParams(); // Use searchParams to access URL query params
-
-  const chatId = searchParams.get('id'); // Get 'id' from URL query parameters
 
   const handleNoteChange = (e) => {
     setNote(e.target.value);
@@ -25,13 +27,14 @@ const NotesModal = ({ isOpen, onClose }) => {
     try {
       const payload = {
         model: "conversation",
-        object_id: chatId, // Using the chatId retrieved from the URL params
+        object_id: conversationId,
         content: note,
         // tag: selectedTag,
       };
 
       const response = await axiosInstance.post("/comments", payload);
-      console.log("Note saved:", response.data);
+      setSuccessModalMessage("Note has been added successfully");
+      setIsSuccessModalOpen(true);
       onClose();
     } catch (error) {
       console.error("Error saving note:", error);

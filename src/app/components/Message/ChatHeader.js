@@ -209,6 +209,8 @@ const ChatHeader = ({ activeUser, isLead, conversationId }) => {
                 onClose={() => setIsNotesModalOpen(false)}
                 userId={activeUser.id}
                 conversationId={conversationId}
+                setIsSuccessModalOpen={setIsSuccessModalOpen}
+                setSuccessModalMessage={setSuccessModalMessage}
               />
             )}
              {isAssignAgentModalOpen && (
@@ -225,8 +227,9 @@ const ChatHeader = ({ activeUser, isLead, conversationId }) => {
             <EndSessionModal
               isOpen={isEndSessionModalOpen}
               onClose={() => setIsEndSessionModalOpen(false)}
-              userId={activeUser.id}
               conversationId={conversationId}
+              setIsSuccessModalOpen={setIsSuccessModalOpen}
+              setSuccessModalMessage={setSuccessModalMessage}
             />
           )}
           </div>
