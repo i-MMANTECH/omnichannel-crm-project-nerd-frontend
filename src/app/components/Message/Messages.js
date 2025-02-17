@@ -125,7 +125,7 @@ export const Messages = () => {
 		} else if (chatType === "leads") {
 			endpoint = `/communication/contacts/?search=${debouncedSearchQuery}`;
 		} else if (chatType === "archived") {
-			endpoint = `/communication/conversations/?search=${debouncedSearchQuery}`;
+			endpoint = `/communication/conversations/?status=ended&search=${debouncedSearchQuery}`;
 		}
 
 		if (!endpoint) return;
@@ -133,7 +133,6 @@ export const Messages = () => {
 		await axiosInstance
 			.get(endpoint)
 			.then((response) => {
-				console.log(response.data)
 				setUsers(response.data);
 
 				const foundUser = response.data.results?.find((user) => user.id.toString() === chatId);
@@ -152,15 +151,13 @@ export const Messages = () => {
 		} else if (chatType === "leads") {
 			endpoint = `/communication/history/?lead_id=${activeUser.id}`;
 		} else if (chatType === "archived") {
-			endpoint = `/communication/conversations/${activeUser.id}/messages`;
+			endpoint = `/communication/conversations/${activeUser.id}/messages?status=ended`;
 		}
 
 		await axiosInstance
 			.get(endpoint)
 			.then((response) => {
-				setChatHistory(chatType === "customers"
-					? response.data.results.messages.reverse() || []
-					: response.data.messages.reverse() || []);
+				setChatHistory(response.data.results.reverse() || []);
 			})
 			.catch(handleApiError);
 	};
@@ -324,7 +321,15 @@ export const Messages = () => {
 						</div>
 					) : (
 						<div className="no-chat-selected">
-							{chatType === "leads" ? "Select a lead to chat with" : "Select a customer to chat with"}
+							{chatType === "leads" && 
+								"Select a lead to chat with" 
+							}
+							{chatType === "customers" && 
+								"Select a customer to chat with" 
+							}
+							{chatType === "archived" && 
+								"Select a chat to view it's history" 
+							}
 						</div>
 					)}
 				</div>
