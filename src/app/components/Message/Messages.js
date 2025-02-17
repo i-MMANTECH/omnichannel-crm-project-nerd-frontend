@@ -22,11 +22,13 @@ export const Messages = () => {
 	const [chatHistory, setChatHistory] = useState([]);
 	const [companyId, setCompanyId] = useState('');
 	const [searchQuery, setSearchQuery] = useState("");
-	const [isLead, setIsLead] = useState(false);
 	const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
+
 	const [page, setPage] = useState(1);
 	const [next, setNext] = useState(null);	
 	const [isLoadingMore, setIsLoadingMore] = useState(false);
+	const [chatResponse, setChatResponse] = useState();
+
 
 	const [chatType, setChatType] = useState(searchParams.get("chat") || "leads");
 	const chatId = searchParams.get("id");
@@ -45,7 +47,6 @@ export const Messages = () => {
 		if (chatId) {
 			fetchChatHistory();
 		}
-		setIsLead(chatType == 'leads')
 	}, [chatType, chatId]);
 
 
@@ -162,6 +163,8 @@ export const Messages = () => {
 			.get(endpoint)
 			.then((response) => {
 				setChatHistory(response.data.results.reverse() || []);
+				setChatResponse(response.data)
+				console.log('resp is ', response.data)
 			})
 			.catch(handleApiError);
 	};
@@ -344,7 +347,7 @@ export const Messages = () => {
 				<div className="detail ">
 					{activeUser ? (
 						<div>
-							<ChatHeader activeUser={activeUser} isLead={chatType === "leads"}/>
+							<ChatHeader activeUser={activeUser} conversationId={chatResponse?.conversation_id} isLead={chatType === "leads"}/>
 							<div className="flex items-center ">
 								<MessageList 
 									chatHistory={chatHistory} 

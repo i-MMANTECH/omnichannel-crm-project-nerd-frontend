@@ -6,7 +6,7 @@ import Modal from "../Modal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 
-function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen }) {
+function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuccessModalMessage }) {
     const { axiosInstance } = useApi();
     const { handleApiError } = useError();
     const [tags, setTags] = useState([]);
@@ -142,6 +142,7 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen }) {
                 });
                 setImage(null);
                 setImagePreview(null);
+                setSuccessModalMessage('Lead has been successfully converted to a customer.')
                 setIsSuccessModalOpen(true);
                 onClose();
             } else {

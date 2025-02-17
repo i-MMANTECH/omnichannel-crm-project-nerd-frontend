@@ -73,7 +73,7 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
   };
 
   const handleAgentChange = (selectedOptions) => {
-    setAssignees(selectedOptions || []); // Now stores full objects { value, label }
+    setAssignees(selectedOptions || []);
   };
 
   const handleSubmit = async (e) => {
