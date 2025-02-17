@@ -14,7 +14,7 @@ import sort from "/public/assets/sort.svg";
 import filter from "/public/assets/filter.svg";
 import NoDataFound from "@/app/components/NoDataFound";
 import empty from "/public/assets/empty.svg";
-import Pagination from "@/app/components/pagination/Pagination";
+import Pagination from "@/app/components/Pagination/Pagination";
 import { useDebounce } from 'use-debounce';
 
 const ModalController = ({ children }) => {
