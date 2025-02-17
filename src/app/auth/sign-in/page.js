@@ -29,7 +29,7 @@ const SignIn = () => {
         if (user) {
             router.push('/');
         }
-    }, [user, router]);
+    }, [user]);
     
 
     const handleInputChange = (event) => {

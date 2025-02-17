@@ -1,7 +1,47 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "../Modal";
+import { useApi } from "@/services/axiosConfig";
+import UserAvatar from "../UserAvatar";
+import { formatDateTime } from "@/utils/timeUtils";
+import { useRouter, useSearchParams } from "next/navigation";
+
+
 
 const ArchiveModal = ({ isOpen, onClose }) => {
+  const { axiosInstance } = useApi()
+  const [conversations, setConversations] = useState([])
+  const searchParams = useSearchParams()
+
+  const chatType = searchParams.get("chat");
+  const entityId = searchParams.get("id");
+  const router = useRouter()
+
+  useEffect(() => {
+    if (isOpen && chatType && entityId) {
+      fetchConversations();
+    }
+  }, [isOpen, chatType, entityId]);
+
+  const fetchConversations = async () => {
+    try {
+      const params =
+        chatType === "customers"
+          ? { customer_id: entityId }
+          : { lead_id: entityId };
+
+      const response = await axiosInstance.get("/communication/conversations/?status=ended", {
+        params,
+      });
+
+      console.log(response.data.results)
+      if (response.data.success) {
+        setConversations(response.data.results || []);
+      }
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -14,8 +54,8 @@ const ArchiveModal = ({ isOpen, onClose }) => {
     >
 
       <div>
-        <p className="text-sm text-gray-600">Select a message you want</p>
-        <div className="flex gap-4">
+        <p className="text-sm mb-4">Select a message you want</p>
+        <div className="flex gap-4 hidden">
           <div className="flex items-center gap-2 px-3 py-2 border rounded-md">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -67,21 +107,39 @@ const ArchiveModal = ({ isOpen, onClose }) => {
       </div>
 
       <div className="flex flex-col max-h-80 overflow-y-auto custom-scrollbar">
-        {[...Array(5)].map((_, index) => (
-          <div key={index} className="mt-3 flex items-center gap-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
-            <img
-              src="https://via.placeholder.com/40"
-              alt="User Avatar"
-              className="w-10 h-10 rounded-full"
-            />
-            <div className="flex-1">
-              <h3 className="text-sm font-semibold">Chioma Okere</h3>
-              <p className="text-xs text-gray-500">I’m Nia! My first investment...</p>
-            </div>
-            <span className="text-xs text-gray-400">10/10/2024</span>
-          </div>
-        ))}
-      </div>
+          {conversations.length > 0 ? (
+            conversations.map((conversation, index) => (
+              <div
+                key={index}
+                className="mt-3 pointer flex items-center gap-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm"
+                onClick={() => {
+                  router.push(`/nativecrm/messages?chat=archived&id=${conversation.id}`)
+                  onClose()
+                }}
+              >
+                {conversation.image ? (
+                      <Image
+                        loader={() => user.profileImage}
+                        src={user.profileImage}
+                        alt="User Profile"
+                        width={100}
+                        height={100}
+                        className="w-11 h-11 rounded-full"
+                      />
+                    ) : (
+                      <UserAvatar name={conversation.lead_name} width="w-11" height="h-11" />
+                    )}
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold">{conversation.lead_name || "Unknown User"}</h3>
+                  <p className="text-xs ">{conversation.lastMessage?.content || "No message"}</p>
+                </div>
+                <span className="text-xs text-gray-400">{formatDateTime(conversation.last_message_at) || "N/A"}</span>
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-gray-500 mt-4">No archived messages found for this customer.</p>
+          )}
+        </div>
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {

@@ -22,8 +22,8 @@ export const MessagesContent = () => {
 	const [chatHistory, setChatHistory] = useState([]);
 	const [companyId, setCompanyId] = useState('');
 	const [searchQuery, setSearchQuery] = useState("");
-	const [isLead, setIsLead] = useState(false);
 	const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
+	const [chatResponse, setChatResponse] = useState();
 
 	const [chatType, setChatType] = useState(searchParams.get("chat") || "leads");
 	const chatId = searchParams.get("id");
@@ -42,7 +42,6 @@ export const MessagesContent = () => {
 		if (chatId) {
 			fetchChatHistory();
 		}
-		setIsLead(chatType == 'leads')
 	}, [chatType, chatId]);
 
 
@@ -118,36 +117,48 @@ export const MessagesContent = () => {
 	}, [activeUser, users]);
 
 	const fetchChatList = async () => {
-		const endpoint =
-			chatType === "customers"
-				? `/communication/chatted-customers/?search=${debouncedSearchQuery}`
-				: `/communication/contacts/?search=${debouncedSearchQuery}`;
+		let endpoint;
 
+		if (chatType === "customers") {
+			endpoint = `/communication/chatted-customers/?search=${debouncedSearchQuery}`;
+		} else if (chatType === "leads") {
+			endpoint = `/communication/contacts/?search=${debouncedSearchQuery}`;
+		} else if (chatType === "archived") {
+			endpoint = `/communication/conversations/?status=ended&search=${debouncedSearchQuery}`;
+		}
+
+		if (!endpoint) return;
+		
 		await axiosInstance
 			.get(endpoint)
 			.then((response) => {
 				setUsers(response.data);
 
-				const foundUser = response.data.contacts.find((user) => user.id.toString() === chatId);
+				const foundUser = response.data.results?.find((user) => user.id.toString() === chatId);
 				if (foundUser) {
 					setActiveUser(foundUser);
 				}
 			})
-			.catch(handleApiError);
+        .catch(handleApiError);
 	};
 
 	const fetchChatHistory = async () => {
-		const endpoint =
-			chatType === "customers"
-				? `/communication/customer-chat-history/${activeUser.id}`
-				: `/communication/history/?lead_id=${activeUser.id}`;
+		let endpoint;
+
+		if (chatType === "customers") {
+			endpoint = `/communication/customer-chat-history/${activeUser.id}`;
+		} else if (chatType === "leads") {
+			endpoint = `/communication/history/?lead_id=${activeUser.id}`;
+		} else if (chatType === "archived") {
+			endpoint = `/communication/conversations/${activeUser.id}/messages?status=ended`;
+		}
 
 		await axiosInstance
 			.get(endpoint)
 			.then((response) => {
-				setChatHistory(chatType === "customers"
-					? response.data.results.messages.reverse() || []
-					: response.data.messages.reverse() || []);
+				setChatHistory(response.data.results.reverse() || []);
+				setChatResponse(response.data)
+				console.log('resp is ', response.data)
 			})
 			.catch(handleApiError);
 	};
@@ -277,10 +288,13 @@ export const MessagesContent = () => {
 						</div>
 						<div className="flex gap-3 w-full ">
 							<div className="tab-atom">
-								<div className={`px-4 pb-1 ${chatType === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>Leads</div>
+								<div className={`px-3 pb-1 ${chatType === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>Leads</div>
 							</div>
 							<div className="tab-atom">
-								<div className={`px-4 pb-1 ${chatType === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>Customers</div>
+								<div className={`px-3 pb-1 ${chatType === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>Customers</div>
+							</div>
+							<div className="tab-atom">
+								<div className={`px-3 pb-1 ${chatType === 'archived' ? 'active' : ""}`} onClick={() => handleTabChange('archived')}>Archived</div>
 							</div>
 						</div>
 					</div>
@@ -291,7 +305,7 @@ export const MessagesContent = () => {
 				<div className="detail ">
 					{activeUser ? (
 						<div>
-							<ChatHeader activeUser={activeUser} isLead={chatType === "leads"}/>
+							<ChatHeader activeUser={activeUser} conversationId={chatResponse?.conversation_id} isLead={chatType === "leads"}/>
 							<div className="flex items-center ">
 								<MessageList 
 									chatHistory={chatHistory} 
@@ -308,7 +322,15 @@ export const MessagesContent = () => {
 						</div>
 					) : (
 						<div className="no-chat-selected">
-							{chatType === "leads" ? "Select a lead to chat with" : "Select a customer to chat with"}
+							{chatType === "leads" && 
+								"Select a lead to chat with" 
+							}
+							{chatType === "customers" && 
+								"Select a customer to chat with" 
+							}
+							{chatType === "archived" && 
+								"Select a chat to view it's history" 
+							}
 						</div>
 					)}
 				</div>
