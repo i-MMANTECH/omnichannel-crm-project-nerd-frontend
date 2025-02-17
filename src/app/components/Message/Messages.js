@@ -118,29 +118,42 @@ export const Messages = () => {
 	}, [activeUser, users]);
 
 	const fetchChatList = async () => {
-		const endpoint =
-			chatType === "customers"
-				? `/communication/chatted-customers/?search=${debouncedSearchQuery}`
-				: `/communication/contacts/?search=${debouncedSearchQuery}`;
+		let endpoint;
 
+		if (chatType === "customers") {
+			endpoint = `/communication/chatted-customers/?search=${debouncedSearchQuery}`;
+		} else if (chatType === "leads") {
+			endpoint = `/communication/contacts/?search=${debouncedSearchQuery}`;
+		} else if (chatType === "archived") {
+			endpoint = `/communication/conversations/?search=${debouncedSearchQuery}`;
+		}
+
+		if (!endpoint) return;
+		
 		await axiosInstance
 			.get(endpoint)
 			.then((response) => {
+				console.log(response.data)
 				setUsers(response.data);
 
-				const foundUser = response.data.contacts.find((user) => user.id.toString() === chatId);
+				const foundUser = response.data.results?.find((user) => user.id.toString() === chatId);
 				if (foundUser) {
 					setActiveUser(foundUser);
 				}
 			})
-			.catch(handleApiError);
+        .catch(handleApiError);
 	};
 
 	const fetchChatHistory = async () => {
-		const endpoint =
-			chatType === "customers"
-				? `/communication/customer-chat-history/${activeUser.id}`
-				: `/communication/history/?lead_id=${activeUser.id}`;
+		let endpoint;
+
+		if (chatType === "customers") {
+			endpoint = `/communication/customer-chat-history/${activeUser.id}`;
+		} else if (chatType === "leads") {
+			endpoint = `/communication/history/?lead_id=${activeUser.id}`;
+		} else if (chatType === "archived") {
+			endpoint = `/communication/conversations/${activeUser.id}/messages`;
+		}
 
 		await axiosInstance
 			.get(endpoint)
@@ -277,10 +290,13 @@ export const Messages = () => {
 						</div>
 						<div className="flex gap-3 w-full ">
 							<div className="tab-atom">
-								<div className={`px-4 pb-1 ${chatType === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>Leads</div>
+								<div className={`px-3 pb-1 ${chatType === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>Leads</div>
 							</div>
 							<div className="tab-atom">
-								<div className={`px-4 pb-1 ${chatType === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>Customers</div>
+								<div className={`px-3 pb-1 ${chatType === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>Customers</div>
+							</div>
+							<div className="tab-atom">
+								<div className={`px-3 pb-1 ${chatType === 'archived' ? 'active' : ""}`} onClick={() => handleTabChange('archived')}>Archived</div>
 							</div>
 						</div>
 					</div>

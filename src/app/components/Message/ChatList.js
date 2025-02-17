@@ -7,11 +7,11 @@ import Image from "next/image";
 import UserAvatar from "../UserAvatar";
 
 const ChatList = ({ users, activeUser, handleChatSelect }) => {
-  const contacts = users?.contacts || [];
+  const results = users?.results || [];
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
 
-  const filteredUsers = contacts;
+  const filteredUsers = results;
 
   const truncateMessage = (message, maxLength) => {
     if (!message) return "";
@@ -43,6 +43,7 @@ const ChatList = ({ users, activeUser, handleChatSelect }) => {
     <div className="flex items-start flex-col relative body-theme px-2">
       <div className="chat-list-container flex flex-col overflow-y-auto h-[60vh] items-start scrollbar-hide">
         {filteredUsers.map((user) => {
+          console.log(user)
           return (
             <div
               key={user.id}
@@ -64,7 +65,7 @@ const ChatList = ({ users, activeUser, handleChatSelect }) => {
                         className="w-11 h-11 rounded-full"
                       />
                     ) : (
-                      <UserAvatar name={user.name} width="w-11" height="h-11" />
+                      <UserAvatar name={user.name || user.lead_name} width="w-11" height="h-11" />
                     )}
                   </div>
                   {user.channel?.image && (
@@ -82,10 +83,10 @@ const ChatList = ({ users, activeUser, handleChatSelect }) => {
                 </div>
                 <div className="content ">
                   <div className="flex justify-between  w-full ">
-                    <div className="text-black dark:text-white user-name">{user.name || "Unknown User"}</div>
+                    <div className="text-black dark:text-white user-name">{user.name || user.lead_name || "Unknown User"}</div>
                     <div className="relative flex items-center">
                       {/* Time Display */}
-                      <div className="title-2 ">{formatChatTime(user.lastMessageTime)}</div>
+                      <div className="title-2 ">{formatChatTime(user.lastMessageTime || user.last_message_at)}</div>
 
                       {/* Unread Message Indicator */}
                       {user.unreadCount > 0 && (
