@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import { formatChatTime } from "@/utils/timeUtils";
@@ -6,10 +6,11 @@ import "./chatlist.css";
 import Image from "next/image";
 import UserAvatar from "../UserAvatar";
 
-const ChatList = ({ users, activeUser, handleChatSelect }) => {
+const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers }) => {
   const results = users?.results || [];
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
+  const chatListRef = useRef(null);
 
   const filteredUsers = results;
 
@@ -21,6 +22,30 @@ const ChatList = ({ users, activeUser, handleChatSelect }) => {
   
     return textContent.length > maxLength ? textContent.substring(0, maxLength) + "..." : textContent;
   };
+
+  const handleScroll = useCallback(() => {
+    if (!chatListRef.current) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = chatListRef.current;
+
+    if (scrollHeight - scrollTop <= clientHeight + 5) {
+      // console.log("Reached Bottom, Loading More Users...");
+      loadMoreUsers();
+    }
+  }, [loadMoreUsers]);
+
+  useEffect(() => {
+    const currentChatList = chatListRef.current;
+    if (currentChatList) {
+      currentChatList.addEventListener("scroll", handleScroll);
+    }
+
+    return () => {
+      if (currentChatList) {
+        currentChatList.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, [handleScroll]);
 
   const toggleMenu = (id) => {
     setMenuOpen(menuOpen === id ? null : id);
@@ -41,7 +66,7 @@ const ChatList = ({ users, activeUser, handleChatSelect }) => {
 
   return (
     <div className="flex items-start flex-col relative body-theme px-2">
-      <div className="chat-list-container flex flex-col overflow-y-auto h-[60vh] items-start scrollbar-hide">
+      <div ref={chatListRef} className="chat-list-container flex flex-col overflow-y-auto h-[60vh] items-start">
         {filteredUsers.length === 0 ? (
           <div className="text-gray-500 text-center px-20 mt-4 flex flex-col items-center justify-center">
             No chats in this category

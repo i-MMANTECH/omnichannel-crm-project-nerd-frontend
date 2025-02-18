@@ -3,12 +3,11 @@ import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import ChatList from "./ChatList";
-import { useAuth } from "@/context/AuthContext";
-import "./style.css";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from '@/context/ErrorContext';
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "use-debounce";
+import "./style.css";
 
 export const MessagesContent = () => {
 	const { axiosInstance } = useApi();
@@ -23,7 +22,12 @@ export const MessagesContent = () => {
 	const [companyId, setCompanyId] = useState('');
 	const [searchQuery, setSearchQuery] = useState("");
 	const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
+
+	const [page, setPage] = useState(1);
+	const [next, setNext] = useState(null);	
+	const [isLoadingMore, setIsLoadingMore] = useState(false);
 	const [chatResponse, setChatResponse] = useState();
+
 
 	const [chatType, setChatType] = useState(searchParams.get("chat") || "leads");
 	const chatId = searchParams.get("id");
@@ -133,6 +137,7 @@ export const MessagesContent = () => {
 			.get(endpoint)
 			.then((response) => {
 				setUsers(response.data);
+				setNext(response.data.next);	
 
 				const foundUser = response.data.results?.find((user) => user.id.toString() === chatId);
 				if (foundUser) {
@@ -143,6 +148,9 @@ export const MessagesContent = () => {
 	};
 
 	const fetchChatHistory = async () => {
+		if (!activeUser)
+			return;
+
 		let endpoint;
 
 		if (chatType === "customers") {
@@ -170,6 +178,7 @@ export const MessagesContent = () => {
 
 	const handleTabChange = (tab) => {
 		setActiveUser(null)
+		setChatHistory(null)
 	    router.push(`/nativecrm/messages?chat=${tab}`, { scroll: false });
 	};
 	
@@ -234,6 +243,37 @@ export const MessagesContent = () => {
 			});
 	};
 
+	const loadMoreUsers = async () => {
+		if (isLoadingMore || !next) return;
+	  
+		setIsLoadingMore(true);
+	  
+		try {
+		  const response = await axiosInstance.get(`/communication/chatted-customers/?page=${page}`);
+		  console.log(response.data);
+	  
+		  if (response.status === 200) {
+			const newContacts = response.data.results;
+	  
+			  setUsers((prevUsers) => ({
+				...prevUsers,
+				contacts: [...prevUsers.results, ...newContacts],
+				next: response.data.next,
+			  }));
+			  
+			  setPage((prevPage) => prevPage + 1);
+	  
+			  if (response.data.next === null) {
+				setNext(null);
+			  }
+		  }
+		} catch (error) {
+		  console.error("Error loading more users:", error);
+		  handleApiError(error);
+		} finally {
+		  setIsLoadingMore(false);
+		}
+	  };
 
 	return (
 		<div className="body-theme flex flex-col px-5 ">
@@ -299,7 +339,12 @@ export const MessagesContent = () => {
 						</div>
 					</div>
 
-					<ChatList users={users} activeUser={activeUser} handleChatSelect={handleChatSelect} />
+					<ChatList 
+					users={users} 
+					activeUser={activeUser} 
+					handleChatSelect={handleChatSelect}
+					loadMoreUsers={loadMoreUsers}
+					/>
 				</div>
 				
 				<div className="detail ">
@@ -312,12 +357,18 @@ export const MessagesContent = () => {
 									activeUserId={activeUser?.id} 
 								/>
 
-								<MessageInput
-									message={message}
-									onInputChange={(e) => setMessage(e.target.value)}
-									onSendMessage={handleSendMessage}
-									audioRecordingEnabled
-								/>
+
+								{chatType != "archived" ? ( 
+									<MessageInput
+										message={message}
+										onInputChange={(e) => setMessage(e.target.value)}
+										onSendMessage={handleSendMessage}
+										audioRecordingEnabled
+									/>
+								): (
+									<h2 className="w-full absolute bottom-5 flex items-center justify-center fw-bold text-red-300 p-2">Chat ended</h2>
+									)
+								}	
 							</div>
 						</div>
 					) : (

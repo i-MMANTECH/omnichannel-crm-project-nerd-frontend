@@ -69,7 +69,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId }) => {
 
   if (!activeUser) return null;
 
-  const formattedTime = new Date(activeUser.lastMessageTim || activeUser.last_message_at).toLocaleString([], {
+  const formattedTime = new Date(activeUser.lastMessageTime || activeUser.last_message_at).toLocaleString([], {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
@@ -209,6 +209,8 @@ const ChatHeader = ({ activeUser, isLead, conversationId }) => {
                 onClose={() => setIsNotesModalOpen(false)}
                 userId={activeUser.id}
                 conversationId={conversationId}
+                setIsSuccessModalOpen={setIsSuccessModalOpen}
+                setSuccessModalMessage={setSuccessModalMessage}
               />
             )}
              {isAssignAgentModalOpen && (
@@ -225,8 +227,9 @@ const ChatHeader = ({ activeUser, isLead, conversationId }) => {
             <EndSessionModal
               isOpen={isEndSessionModalOpen}
               onClose={() => setIsEndSessionModalOpen(false)}
-              userId={activeUser.id}
               conversationId={conversationId}
+              setIsSuccessModalOpen={setIsSuccessModalOpen}
+              setSuccessModalMessage={setSuccessModalMessage}
             />
           )}
           </div>

@@ -83,7 +83,6 @@ export function NotificationProvider({ children }) {
 
   const handleNewNotification = (data) => {
     // Play notification sound
-    console.log('new noti ', data)
     notificationSound.play().catch(error => console.log('Error playing sound:', error));
 
     // Update notifications list
