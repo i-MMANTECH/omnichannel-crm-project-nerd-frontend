@@ -4,7 +4,7 @@ import { useApi } from "@/services/axiosConfig";
 import UserAvatar from "../UserAvatar";
 import { formatDateTime } from "@/utils/timeUtils";
 import { useRouter, useSearchParams } from "next/navigation";
-
+import Image from "next/image";
 
 
 const ArchiveModal = ({ isOpen, onClose }) => {

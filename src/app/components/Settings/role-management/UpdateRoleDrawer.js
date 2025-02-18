@@ -4,6 +4,7 @@ import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
 import Pagination from '../../Pagination/Pagination';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useDebounce } from "use-debounce";
 
 
 const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
@@ -28,14 +29,19 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
 
   const finalRoleId = roleId || queryRoleId;
 
-  // Fetch all available permissions
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
+
+  useEffect(() => {
+		fetchPermissions()
+	}, [debouncedSearchQuery])
+
   useEffect(() => {
     if (show) {
       fetchPermissions();
     }
   }, [show, currentPage, pageSize]);
 
-  // Fetch role details including permissions
   useEffect(() => {
     const fetchRoleDetails = async () => {
       try {
@@ -57,7 +63,7 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
 
   const fetchPermissions = async () => {
     try {
-      const response = await axiosInstance.get(`/users/permissions/?limit=${pageSize}&page=${currentPage}`);
+      const response = await axiosInstance.get(`/users/permissions/?search=${debouncedSearchQuery}&limit=${pageSize}&page=${currentPage}`);
       setAvailablePermissions(response.data.results || []);
       setTotalPages(Math.ceil(response.data.count / pageSize));
     } catch (error) {
@@ -157,7 +163,23 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
         </div>
 
         <div className="mb-6">
-          <h3 className="font-semibold text-lg mb-6">Permissions</h3>
+          <h3 className="font-semibold text-lg mb-4">Permissions</h3>
+          <div className="relative mb-5">
+            <input
+              className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
+              placeholder="Search Permissions..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button
+              className="absolute top-1 right-1 flex items-center rounded body-theme py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 active:dark:bg-black hover:bg-gray-100 hover:dark:bg-gray-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+              type="button"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 mr-2">
+                <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
+              </svg>                                        
+            </button> 
+          </div>
           <div className="mt-3 px-3">
             {availablePermissions.map((perm) => (
               <div key={perm.id} className="flex items-center justify-between mb-8">
