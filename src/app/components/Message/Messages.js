@@ -143,6 +143,9 @@ export const Messages = () => {
 	};
 
 	const fetchChatHistory = async () => {
+		if (!activeUser)
+			return;
+
 		let endpoint;
 
 		if (chatType === "customers") {
@@ -170,6 +173,7 @@ export const Messages = () => {
 
 	const handleTabChange = (tab) => {
 		setActiveUser(null)
+		setChatHistory(null)
 	    router.push(`/nativecrm/messages?chat=${tab}`, { scroll: false });
 	};
 	

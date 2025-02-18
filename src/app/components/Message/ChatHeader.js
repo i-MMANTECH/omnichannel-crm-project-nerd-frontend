@@ -69,7 +69,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId }) => {
 
   if (!activeUser) return null;
 
-  const formattedTime = new Date(activeUser.lastMessageTim || activeUser.last_message_at).toLocaleString([], {
+  const formattedTime = new Date(activeUser.lastMessageTime || activeUser.last_message_at).toLocaleString([], {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
