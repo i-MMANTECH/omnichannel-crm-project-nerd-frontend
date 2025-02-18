@@ -1,9 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Modal from "../Modal";
+import { useApi } from "@/services/axiosConfig";
 
-const NotesModal = ({ isOpen, onClose }) => {
+const NotesModal = ({ 
+  isOpen, 
+  onClose, 
+  conversationId, 
+  setIsSuccessModalOpen, 
+  setSuccessModalMessage 
+}) => {
   const [note, setNote] = useState("");
   const [selectedTag, setSelectedTag] = useState("");
+  const { axiosInstance, loading } = useApi();
 
   const handleNoteChange = (e) => {
     setNote(e.target.value);
@@ -13,22 +21,40 @@ const NotesModal = ({ isOpen, onClose }) => {
     setSelectedTag(e.target.value);
   };
 
-  const handleSaveNote = () => {
-    console.log("Note saved:", note);
-    console.log("Selected Tag:", selectedTag);
-    onClose();
+  const handleSaveNote = async () => {
+    if (!note.trim()) return;
+
+    try {
+      const payload = {
+        model: "conversation",
+        object_id: conversationId,
+        content: note,
+        // tag: selectedTag,
+      };
+
+      const response = await axiosInstance.post("/comments", payload);
+      setSuccessModalMessage("Note has been added successfully");
+      setIsSuccessModalOpen(true);
+      onClose();
+    } catch (error) {
+      console.error("Error saving note:", error);
+    }
   };
 
   const footerContent = (
     <>
       <button
-          onClick={onClose}
-          className="w-6/12 px-4 py-2 bg-theme rounded-md border border-gray-30">
-          Cancel
+        onClick={onClose}
+        className="w-6/12 px-4 py-2 bg-theme rounded-md border border-gray-30"
+      >
+        Cancel
       </button>
       <button
-          className="w-6/12 px-4 py-2 bg-[#3EBF0F] text-white rounded-md">
-          Save
+        onClick={handleSaveNote}
+        disabled={!note.trim()}
+        className={`w-6/12 px-4 py-2 rounded-md ${!note.trim() ? "bg-gray-400 cursor-not-allowed" : "bg-[#3EBF0F] text-white"}`}
+      >
+        Save
       </button>
     </>
   );
@@ -52,7 +78,7 @@ const NotesModal = ({ isOpen, onClose }) => {
         />
 
         <div className="mt-4 body-theme">
-          <label htmlFor="tag-select" className="block text-sm font-medium ">
+          <label htmlFor="tag-select" className="block text-sm font-medium">
             Add Tag
           </label>
           <select
