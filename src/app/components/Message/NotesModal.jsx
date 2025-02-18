@@ -32,7 +32,7 @@ const NotesModal = ({
         // tag: selectedTag,
       };
 
-      const response = await axiosInstance.post("/comments", payload);
+      await axiosInstance.post("/comments/", payload);
       setSuccessModalMessage("Note has been added successfully");
       setIsSuccessModalOpen(true);
       onClose();
@@ -77,7 +77,7 @@ const NotesModal = ({
           className="w-full p-3 border border-gray-300 rounded-lg mt-4 body-theme"
         />
 
-        <div className="mt-4 body-theme">
+        <div className="mt-4 body-theme hidden">
           <label htmlFor="tag-select" className="block text-sm font-medium">
             Add Tag
           </label>

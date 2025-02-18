@@ -357,12 +357,18 @@ export const Messages = () => {
 									activeUserId={activeUser?.id} 
 								/>
 
-								<MessageInput
-									message={message}
-									onInputChange={(e) => setMessage(e.target.value)}
-									onSendMessage={handleSendMessage}
-									audioRecordingEnabled
-								/>
+
+								{chatType != "archived" ? ( 
+									<MessageInput
+										message={message}
+										onInputChange={(e) => setMessage(e.target.value)}
+										onSendMessage={handleSendMessage}
+										audioRecordingEnabled
+									/>
+								): (
+									<h2 className="w-full absolute bottom-5 flex items-center justify-center fw-bold text-red-300 p-2">Chat ended</h2>
+									)
+								}	
 							</div>
 						</div>
 					) : (
