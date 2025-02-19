@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import './style.css';
-import ProgessBar from './ProgessBar';
+import TaskCompletionChart from './TaskCompletionChart';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import StatsCard from './StatsCard';
 import './style.css';
@@ -107,7 +107,8 @@ const Dashboard = () => {
             </div>
 
             <StatsCard summary={summary} />
-            <ProgessBar />
+            <br/>
+            <TaskCompletionChart />
             <ChatData />
         </div>
     );
