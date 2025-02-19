@@ -121,55 +121,51 @@ export const Messages = () => {
 	}, [activeUser, users]);
 
 	const fetchChatList = async () => {
-		let endpoint;
-
-		if (chatType === "customers") {
-			endpoint = `/communication/chatted-customers/?search=${debouncedSearchQuery}`;
-		} else if (chatType === "leads") {
-			endpoint = `/communication/contacts/?search=${debouncedSearchQuery}`;
-		} else if (chatType === "archived") {
-			endpoint = `/communication/conversations/?status=ended&search=${debouncedSearchQuery}`;
-		}
-
-		if (!endpoint) return;
-		
-		await axiosInstance
-			.get(endpoint)
-			.then((response) => {
-				setUsers(response.data);
-				setNext(response.data.next);	
-
-				const foundUser = response.data.results?.find((user) => user.id.toString() === chatId);
-				if (foundUser) {
-					setActiveUser(foundUser);
-				}
-			})
-        .catch(handleApiError);
-	};
+    const endpointMap = {
+      customers: `/communication/chatted-customers/?search=${debouncedSearchQuery}`,
+      leads: `/communication/contacts/?search=${debouncedSearchQuery}`,
+      archived: `/communication/conversations/?status=ended&search=${debouncedSearchQuery}`,
+    };
+  
+    const endpoint = endpointMap[chatType];
+  
+    if (!endpoint) return;
+  
+    try {
+      const { data } = await axiosInstance.get(endpoint);
+      setUsers(data);
+      setNext(data.next);
+  
+      const foundUser = data.results?.find((user) => user.id.toString() === chatId);
+      if (foundUser) {
+        setActiveUser(foundUser);
+      }
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
 
 	const fetchChatHistory = async () => {
-		if (!activeUser)
-			return;
+    if (!activeUser?.id) return;
 
-		let endpoint;
+    let endpointMap = {
+        customers: `/communication/customer-chat-history/${activeUser.id}`,
+        leads: `/communication/history/?lead_id=${activeUser.id}`,
+        archived: `/communication/conversations/${activeUser.id}/messages?status=ended`
+    };
 
-		if (chatType === "customers") {
-			endpoint = `/communication/customer-chat-history/${activeUser.id}`;
-		} else if (chatType === "leads") {
-			endpoint = `/communication/history/?lead_id=${activeUser.id}`;
-		} else if (chatType === "archived") {
-			endpoint = `/communication/conversations/${activeUser.id}/messages?status=ended`;
-		}
+    const endpoint = endpointMap[chatType];
 
-		await axiosInstance
-			.get(endpoint)
-			.then((response) => {
-				setChatHistory(response.data.results.reverse() || []);
-				setChatResponse(response.data)
-				console.log('resp is ', response.data)
-			})
-			.catch(handleApiError);
-	};
+    if (!endpoint) return;
+
+    try {
+        const { data } = await axiosInstance.get(endpoint);
+        setChatHistory(data.results?.reverse() || []);
+        setChatResponse(data);
+    } catch (error) {
+        handleApiError(error);
+    }
+  };
 
 	const handleChatSelect = (user) => {
 		setActiveUser(user);
@@ -243,37 +239,48 @@ export const Messages = () => {
 			});
 	};
 
-	const loadMoreUsers = async () => {
-		if (isLoadingMore || !next) return;
-	  
-		setIsLoadingMore(true);
-	  
-		try {
-		  const response = await axiosInstance.get(`/communication/chatted-customers/?page=${page}`);
-		  console.log(response.data);
-	  
-		  if (response.status === 200) {
-			const newContacts = response.data.results;
-	  
-			  setUsers((prevUsers) => ({
-				...prevUsers,
-				contacts: [...prevUsers.results, ...newContacts],
-				next: response.data.next,
-			  }));
-			  
-			  setPage((prevPage) => prevPage + 1);
-	  
-			  if (response.data.next === null) {
-				setNext(null);
-			  }
-		  }
-		} catch (error) {
-		  console.error("Error loading more users:", error);
-		  handleApiError(error);
-		} finally {
-		  setIsLoadingMore(false);
-		}
-	  };
+
+  const loadMoreUsers = async () => {
+    if (isLoadingMore || !next) return;
+  
+    const endpointMap = {
+      leads: `/communication/contacts/?page=${page}&page_size=${15}`,
+      customers: `/communication/chatted-customers/?page=${page}&page_size=${15}`,
+      archived: `/communication/conversations/?page=${page}&page_size=${15}`,
+    };
+  
+    const endpoint = next || endpointMap[chatType];
+    if (!endpoint) return;
+  
+    setIsLoadingMore(true);
+  
+    try {
+      const { data } = await axiosInstance.get(endpoint);
+      const newContacts = data.results;
+      setNext(data.next);
+  
+      // Merge newContacts into the existing users.results array ensuring uniqueness by user.id
+      setUsers((prevUsers) => {
+        // Ensure we have an array from prevUsers.results
+        const currentResults = Array.isArray(prevUsers.results) ? prevUsers.results : [];
+        const usersMap = new Map(currentResults.map((user) => [user.id, user]));
+  
+        newContacts.forEach((user) => usersMap.set(user.id, user));
+  
+        return {
+          ...prevUsers,
+          results: Array.from(usersMap.values()),
+        };
+      });
+  
+      setPage((prevPage) => prevPage + 1);
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+  
 
 	return (
 		<div className="body-theme flex flex-col px-5 ">
