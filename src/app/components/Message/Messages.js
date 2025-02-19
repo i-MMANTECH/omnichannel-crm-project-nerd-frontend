@@ -8,6 +8,7 @@ import { useError } from '@/context/ErrorContext';
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "use-debounce";
 import "./style.css";
+import { useAuth } from "@/context/AuthContext";
 
 export const MessagesContent = () => {
 	const { axiosInstance } = useApi();
@@ -19,7 +20,10 @@ export const MessagesContent = () => {
 	const [activeUser, setActiveUser] = useState(null);
 	const [users, setUsers] = useState([]);
 	const [chatHistory, setChatHistory] = useState([]);
-	const [companyId, setCompanyId] = useState('');
+
+	const { company } = useAuth();
+    const [companyId, setCompanyId] = useState(company?.id || '');
+
 	const [searchQuery, setSearchQuery] = useState("");
 	const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
 
@@ -54,19 +58,10 @@ export const MessagesContent = () => {
 	}, [debouncedSearchQuery, chatType])
 
 	useEffect(() => {
-		const fetchCompanyId = async () => {
-			try {
-				const response = await axiosInstance.get("/companies/details/");
-				if (response.data.company) {
-					setCompanyId(response.data.company.id);
-				}
-			} catch (error) {
-				handleApiError(error);
-			}
-		};
-
-		fetchCompanyId();
-	}, []);
+        if (company?.id) {
+            setCompanyId(company.id);
+        }
+    }, [company]);
 
 	useEffect(() => {
 		if (companyId && !wsRef.current) {
@@ -166,7 +161,6 @@ export const MessagesContent = () => {
 			.then((response) => {
 				setChatHistory(response.data.results.reverse() || []);
 				setChatResponse(response.data)
-				console.log('resp is ', response.data)
 			})
 			.catch(handleApiError);
 	};
@@ -340,10 +334,10 @@ export const MessagesContent = () => {
 					</div>
 
 					<ChatList 
-					users={users} 
-					activeUser={activeUser} 
-					handleChatSelect={handleChatSelect}
-					loadMoreUsers={loadMoreUsers}
+						users={users} 
+						activeUser={activeUser} 
+						handleChatSelect={handleChatSelect}
+						loadMoreUsers={loadMoreUsers}
 					/>
 				</div>
 				
@@ -354,7 +348,6 @@ export const MessagesContent = () => {
 							<div className="flex items-center ">
 								<MessageList 
 									chatHistory={chatHistory} 
-									activeUserId={activeUser?.id} 
 								/>
 
 

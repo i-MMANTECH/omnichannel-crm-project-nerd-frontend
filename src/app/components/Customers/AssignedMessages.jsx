@@ -72,7 +72,7 @@ export default function CustomerAssignedMessages() {
             </div>
         
         <div className="w-full">
-        {chatHistory.map((chat) => {
+        {chatHistory?.map((chat) => {
           return (
           <div key={chat?.id}
           style={{cursor:"pointer"}}

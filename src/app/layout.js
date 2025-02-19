@@ -45,7 +45,6 @@ export default function RootLayout({ children }) {
                       newestOnTop={false}
                       closeOnClick
                       rtl={false}
-                      // pauseOnFocusLoss
                       draggable
                       pauseOnHover
                   />
