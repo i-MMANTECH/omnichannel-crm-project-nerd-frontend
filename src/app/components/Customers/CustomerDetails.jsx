@@ -8,7 +8,7 @@ import UserAvatar from "../UserAvatar";
 import Image from "next/image";
 import Notes from "./Notes";
 import { getRoleStyle } from "@/utils/getRoleStyle";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import EditCustomerModal from "./EditCustomerModal";
 import SuccessModal from '@/app/components/SuccessModal';
 import SendMessageModal from "./SendMessageModal";
@@ -39,7 +39,7 @@ const ModalController = ({ children }) => {
   return children({ isModalOpen, openModal, closeModal });
 };
 
-export default function CustomerDetails({ customer }) {
+export default function CustomerDetails() {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
   const [menuOpen, setMenuOpen] = useState(null);
@@ -51,7 +51,22 @@ export default function CustomerDetails({ customer }) {
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [availableChannels, setAvailableChannels] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [customer, setCustomer] = useState({})
 
+  const { id } = useParams();
+
+  useEffect(() => {
+    getCustomer()
+  }, [])
+
+  const getCustomer = async () => {
+    try {
+        const { data } = await axiosInstance.get(`/customers/${id}`);
+        setCustomer(data.customer);
+    } catch (error) {
+        handleApiError(error);
+    }
+};
 
   const handleChatSelect = async () => {
     setIsLoading(true);
@@ -73,6 +88,7 @@ export default function CustomerDetails({ customer }) {
 
   const closeSuccessModal = () => {
     setIsSuccessModalOpen(false);
+    getCustomer()
 };
 
   const customerName = useMemo(() => {
@@ -214,7 +230,7 @@ export default function CustomerDetails({ customer }) {
                       <p className="customer-left-name font-bold mr-1">--</p>
                     )}
                       <div className="flex flex-wrap gap-1 max-w-[250px]  text-sm ">
-                        {customer?.tags.map((tag, index) => (
+                        {customer?.tags?.map((tag, index) => (
                           <span
                             key={index}
                             className="px-2 py-1 ml-1 rounded whitespace-nowrap"
