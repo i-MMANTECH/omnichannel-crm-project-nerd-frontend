@@ -6,7 +6,7 @@ import Image from "next/image";
 import UserAvatar from "../UserAvatar";
 import { useRouter } from "next/navigation";
 
-const MessageList = ({ chatHistory, activeUserId }) => {
+const MessageList = ({ chatHistory }) => {
   const messageEndRef = useRef(null);
   const router = useRouter();
   const [hoveredUserId, setHoveredUserId] = useState(null);
