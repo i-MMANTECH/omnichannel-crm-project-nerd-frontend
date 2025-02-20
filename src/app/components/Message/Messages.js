@@ -9,6 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "use-debounce";
 import "./style.css";
 import { useAuth } from "@/context/AuthContext";
+import { Loader2 } from "lucide-react";
 
 export const MessagesContent = () => {
 	const { axiosInstance } = useApi();
@@ -18,10 +19,10 @@ export const MessagesContent = () => {
 
 	const [message, setMessage] = useState("");
 	const [activeUser, setActiveUser] = useState(null);
-	const [users, setUsers] = useState([]);
-	const [chatHistory, setChatHistory] = useState([]);
 
+	const [users, setUsers] = useState([]);
 	const { company } = useAuth();
+	const [chatHistory, setChatHistory] = useState([]);
     const [companyId, setCompanyId] = useState(company?.id || '');
 
 	const [searchQuery, setSearchQuery] = useState("");
@@ -29,18 +30,43 @@ export const MessagesContent = () => {
 
 	const [page, setPage] = useState(1);
 	const [next, setNext] = useState(null);	
-	const [isLoadingMore, setIsLoadingMore] = useState(false);
-	const [chatResponse, setChatResponse] = useState();
+	const [isFetchingMore, setIsFetchingMore] = useState(false);
 
+	const [loading, setLoading] = useState(true);
+	const [chatResponse, setChatResponse] = useState();
 
 	const [chatType, setChatType] = useState(searchParams.get("chat") || "leads");
 	const chatId = searchParams.get("id");
 
+	const [cachedData, setCachedData] = useState({
+        leads: { users: null, histories: {} },
+        customers: { users: null, histories: {} },
+        archived: { users: null, histories: {} }
+    });
+
 	const wsRef = useRef(null);
+	const currentTabRef = useRef(chatType);
+    const abortControllerRef = useRef(null);
 
 	useEffect(() => {
-		setChatType(searchParams.get("chat") || "leads");
-	}, [searchParams]);
+        const newChatType = searchParams.get("chat") || "leads";
+        setChatType(newChatType);
+		currentTabRef.current = newChatType;
+
+		if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+
+        // Load cached data for the new tab if available
+        if (cachedData[newChatType]?.users) {
+            setUsers(cachedData[newChatType].users);
+			setLoading(false);
+			console.log('found cache')
+        } else {
+			setLoading(true);
+			console.log('cache not found')
+		}
+    }, [searchParams]);
 
 	useEffect(() => {
 		fetchChatHistory();
@@ -51,7 +77,6 @@ export const MessagesContent = () => {
 			fetchChatHistory();
 		}
 	}, [chatType, chatId]);
-
 
 	useEffect(() => {
 		fetchChatList()
@@ -108,16 +133,35 @@ export const MessagesContent = () => {
 				message.customer_sender === activeUser.id ||
 				message.lead_info?.id === activeUser.id)
 			) {
-				setChatHistory((prev) => [...prev, message]);
+				const newHistory = [...chatHistory, message];
+                setChatHistory(newHistory);
+                setCachedData(prev => ({
+                    ...prev,
+                    [chatType]: {
+                        ...prev[chatType],
+                        histories: {
+                            ...prev[chatType].histories,
+                            [activeUser.id]: newHistory
+                        }
+                    }
+                }));
 			} else {
 				fetchChatList();
 			}
 		};
-	}, [activeUser, users]);
+	}, [activeUser, chatHistory, chatType]);
+
+	useEffect(() => {
+        return () => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+        };
+    }, []);
+
 
 	const fetchChatList = async () => {
 		let endpoint;
-
 		if (chatType === "customers") {
 			endpoint = `/communication/chatted-customers/?search=${debouncedSearchQuery}`;
 		} else if (chatType === "leads") {
@@ -127,27 +171,77 @@ export const MessagesContent = () => {
 		}
 
 		if (!endpoint) return;
-		
-		await axiosInstance
-			.get(endpoint)
-			.then((response) => {
-				setUsers(response.data);
-				setNext(response.data.next);	
 
-				const foundUser = response.data.results?.find((user) => user.id.toString() === chatId);
-				if (foundUser) {
-					setActiveUser(foundUser);
-				}
-			})
-        .catch(handleApiError);
+		if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
+
+		const requestChatType = chatType;
+		
+		try {
+			if (!cachedData[chatType]?.users) {
+				console.log('is loading')
+                setLoading(true);
+            }
+
+            // Use cached data while fetching
+            if (cachedData[chatType]?.users && !debouncedSearchQuery) {
+                setUsers(cachedData[chatType].users);
+            }
+
+            const response = await axiosInstance.get(endpoint, {
+                signal: abortControllerRef.current.signal
+            });
+            console.log('resp is', response)
+			
+			setLoading(false);
+
+            // Only update state if we're still on the same tab
+            if (currentTabRef.current === requestChatType) {
+                setCachedData(prev => ({
+                    ...prev,
+                    [requestChatType]: {
+                        ...prev[requestChatType],
+                        users: response.data
+                    }
+                }));
+                
+                setUsers(response.data);
+                setNext(response.data.next);
+
+                const foundUser = response.data.results?.find(
+                    (user) => user.id.toString() === chatId
+                );
+                if (foundUser) {
+                    setActiveUser(foundUser);
+                }
+            }
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                handleApiError(error);
+            }
+        }
 	};
 
 	const fetchChatHistory = async () => {
 		if (!activeUser)
 			return;
 
-		let endpoint;
+		if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
 
+		const requestChatType = chatType;
+        const requestUserId = activeUser.id;
+		
+		const cachedHistory = cachedData[chatType]?.histories[activeUser.id];
+        if (cachedHistory) {
+            setChatHistory(cachedHistory);
+        }
+
+		let endpoint;
 		if (chatType === "customers") {
 			endpoint = `/communication/customer-chat-history/${activeUser.id}`;
 		} else if (chatType === "leads") {
@@ -156,13 +250,36 @@ export const MessagesContent = () => {
 			endpoint = `/communication/conversations/${activeUser.id}/messages?status=ended`;
 		}
 
-		await axiosInstance
-			.get(endpoint)
-			.then((response) => {
-				setChatHistory(response.data.results.reverse() || []);
-				setChatResponse(response.data)
-			})
-			.catch(handleApiError);
+		try {
+			const response = await axiosInstance.get(endpoint, {
+                signal: abortControllerRef.current.signal
+            });
+
+            if (currentTabRef.current === requestChatType && activeUser?.id === requestUserId) {
+                const newHistory = response.data.results.reverse() || [];
+                
+                setCachedData(prev => ({
+                    ...prev,
+                    [requestChatType]: {
+                        ...prev[requestChatType],
+                        histories: {
+                            ...prev[requestChatType].histories,
+                            [requestUserId]: newHistory
+                        }
+                    }
+                }));
+                
+                setChatHistory(newHistory);
+                setChatResponse(response.data);
+            }
+            
+            setChatHistory(newHistory);
+            setChatResponse(response.data);
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                handleApiError(error);
+            }
+        }
 	};
 
 	const handleChatSelect = (user) => {
@@ -171,10 +288,27 @@ export const MessagesContent = () => {
 	};
 
 	const handleTabChange = (tab) => {
-		setActiveUser(null)
-		setChatHistory(null)
-	    router.push(`/nativecrm/messages?chat=${tab}`, { scroll: false });
-	};
+        // Cancel any ongoing requests
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        
+        setActiveUser(null);
+        setChatHistory(null);
+        router.push(`/nativecrm/messages?chat=${tab}`, { scroll: false });
+        
+        // Update current tab reference
+        currentTabRef.current = tab;
+        
+		if (!cachedData[tab]?.users) {
+            setLoading(true);
+        }
+
+        // Load cached data for the new tab immediately
+        if (cachedData[tab]?.users) {
+            setUsers(cachedData[tab].users);
+        }
+    };
 	
 	const handleSendMessage = (messageContent) => {
 		const payload = {
@@ -238,13 +372,12 @@ export const MessagesContent = () => {
 	};
 
 	const loadMoreUsers = async () => {
-		if (isLoadingMore || !next) return;
+		if (isFetchingMore || !next) return;
 	  
-		setIsLoadingMore(true);
+		setIsFetchingMore(true);
 	  
 		try {
 		  const response = await axiosInstance.get(`/communication/chatted-customers/?page=${page}`);
-		  console.log(response.data);
 	  
 		  if (response.status === 200) {
 			const newContacts = response.data.results;
@@ -262,10 +395,9 @@ export const MessagesContent = () => {
 			  }
 		  }
 		} catch (error) {
-		  console.error("Error loading more users:", error);
 		  handleApiError(error);
 		} finally {
-		  setIsLoadingMore(false);
+		  setIsFetchingMore(false);
 		}
 	  };
 
@@ -338,6 +470,7 @@ export const MessagesContent = () => {
 						activeUser={activeUser} 
 						handleChatSelect={handleChatSelect}
 						loadMoreUsers={loadMoreUsers}
+						loading={loading}
 					/>
 				</div>
 				
