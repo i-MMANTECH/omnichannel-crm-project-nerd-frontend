@@ -18,10 +18,10 @@ export const Messages = () => {
 
 	const [message, setMessage] = useState("");
 	const [activeUser, setActiveUser] = useState(null);
-	const [users, setUsers] = useState([]);
-	const [chatHistory, setChatHistory] = useState([]);
 
+	const [users, setUsers] = useState([]);
 	const { company } = useAuth();
+	const [chatHistory, setChatHistory] = useState([]);
     const [companyId, setCompanyId] = useState(company?.id || '');
 
 	const [searchQuery, setSearchQuery] = useState("");
@@ -32,15 +32,33 @@ export const Messages = () => {
 	const [isLoadingMore, setIsLoadingMore] = useState(false);
 	const [chatResponse, setChatResponse] = useState();
 
-
 	const [chatType, setChatType] = useState(searchParams.get("chat") || "leads");
 	const chatId = searchParams.get("id");
 
+	const [cachedData, setCachedData] = useState({
+        leads: { users: null, histories: {} },
+        customers: { users: null, histories: {} },
+        archived: { users: null, histories: {} }
+    });
+
 	const wsRef = useRef(null);
+	const currentTabRef = useRef(chatType);
+    const abortControllerRef = useRef(null);
 
 	useEffect(() => {
-		setChatType(searchParams.get("chat") || "leads");
-	}, [searchParams]);
+        const newChatType = searchParams.get("chat") || "leads";
+        setChatType(newChatType);
+		currentTabRef.current = newChatType;
+
+		if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+
+        // Load cached data for the new tab if available
+        if (cachedData[newChatType]?.users) {
+            setUsers(cachedData[newChatType].users);
+        }
+    }, [searchParams]);
 
 	useEffect(() => {
 		fetchChatHistory();
@@ -108,16 +126,34 @@ export const Messages = () => {
 				message.customer_sender === activeUser.id ||
 				message.lead_info?.id === activeUser.id)
 			) {
-				setChatHistory((prev) => [...prev, message]);
+				const newHistory = [...chatHistory, message];
+                setChatHistory(newHistory);
+                setCachedData(prev => ({
+                    ...prev,
+                    [chatType]: {
+                        ...prev[chatType],
+                        histories: {
+                            ...prev[chatType].histories,
+                            [activeUser.id]: newHistory
+                        }
+                    }
+                }));
 			} else {
 				fetchChatList();
 			}
 		};
-	}, [activeUser, users]);
+	}, [activeUser, chatHistory, chatType]);
+
+	useEffect(() => {
+        return () => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+        };
+    }, []);
 
 	const fetchChatList = async () => {
 		let endpoint;
-
 		if (chatType === "customers") {
 			endpoint = `/communication/chatted-customers/?search=${debouncedSearchQuery}`;
 		} else if (chatType === "leads") {
@@ -127,27 +163,69 @@ export const Messages = () => {
 		}
 
 		if (!endpoint) return;
-		
-		await axiosInstance
-			.get(endpoint)
-			.then((response) => {
-				setUsers(response.data);
-				setNext(response.data.next);	
 
-				const foundUser = response.data.results?.find((user) => user.id.toString() === chatId);
-				if (foundUser) {
-					setActiveUser(foundUser);
-				}
-			})
-        .catch(handleApiError);
+		if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
+
+		const requestChatType = chatType;
+		
+		try {
+            // Use cached data while fetching
+            if (cachedData[chatType]?.users && !debouncedSearchQuery) {
+                setUsers(cachedData[chatType].users);
+            }
+
+            const response = await axiosInstance.get(endpoint, {
+                signal: abortControllerRef.current.signal
+            });
+            
+            // Only update state if we're still on the same tab
+            if (currentTabRef.current === requestChatType) {
+                setCachedData(prev => ({
+                    ...prev,
+                    [requestChatType]: {
+                        ...prev[requestChatType],
+                        users: response.data
+                    }
+                }));
+                
+                setUsers(response.data);
+                setNext(response.data.next);
+
+                const foundUser = response.data.results?.find(
+                    (user) => user.id.toString() === chatId
+                );
+                if (foundUser) {
+                    setActiveUser(foundUser);
+                }
+            }
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                handleApiError(error);
+            }
+        }
 	};
 
 	const fetchChatHistory = async () => {
 		if (!activeUser)
 			return;
 
-		let endpoint;
+		if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
 
+		const requestChatType = chatType;
+        const requestUserId = activeUser.id;
+		
+		const cachedHistory = cachedData[chatType]?.histories[activeUser.id];
+        if (cachedHistory) {
+            setChatHistory(cachedHistory);
+        }
+
+		let endpoint;
 		if (chatType === "customers") {
 			endpoint = `/communication/customer-chat-history/${activeUser.id}`;
 		} else if (chatType === "leads") {
@@ -156,13 +234,36 @@ export const Messages = () => {
 			endpoint = `/communication/conversations/${activeUser.id}/messages?status=ended`;
 		}
 
-		await axiosInstance
-			.get(endpoint)
-			.then((response) => {
-				setChatHistory(response.data.results.reverse() || []);
-				setChatResponse(response.data)
-			})
-			.catch(handleApiError);
+		try {
+			const response = await axiosInstance.get(endpoint, {
+                signal: abortControllerRef.current.signal
+            });
+
+            if (currentTabRef.current === requestChatType && activeUser?.id === requestUserId) {
+                const newHistory = response.data.results.reverse() || [];
+                
+                setCachedData(prev => ({
+                    ...prev,
+                    [requestChatType]: {
+                        ...prev[requestChatType],
+                        histories: {
+                            ...prev[requestChatType].histories,
+                            [requestUserId]: newHistory
+                        }
+                    }
+                }));
+                
+                setChatHistory(newHistory);
+                setChatResponse(response.data);
+            }
+            
+            setChatHistory(newHistory);
+            setChatResponse(response.data);
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                handleApiError(error);
+            }
+        }
 	};
 
 	const handleChatSelect = (user) => {
@@ -171,10 +272,23 @@ export const Messages = () => {
 	};
 
 	const handleTabChange = (tab) => {
-		setActiveUser(null)
-		setChatHistory(null)
-	    router.push(`/nativecrm/messages?chat=${tab}`, { scroll: false });
-	};
+        // Cancel any ongoing requests
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        
+        setActiveUser(null);
+        setChatHistory(null);
+        router.push(`/nativecrm/messages?chat=${tab}`, { scroll: false });
+        
+        // Update current tab reference
+        currentTabRef.current = tab;
+        
+        // Load cached data for the new tab immediately
+        if (cachedData[tab]?.users) {
+            setUsers(cachedData[tab].users);
+        }
+    };
 	
 	const handleSendMessage = (messageContent) => {
 		const payload = {
