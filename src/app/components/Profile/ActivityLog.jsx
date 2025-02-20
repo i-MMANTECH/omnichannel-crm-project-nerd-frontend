@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import UserAvatar from '../UserAvatar';
 import Image from 'next/image';
 import { timeAgo } from '@/utils/timeUtils';
-import Pagination from '@/app/components/Pagination/Pagination'; // Import pagination
+import Pagination from '@/app/components/Pagination/Pagination';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 const ActivityLog = () => {

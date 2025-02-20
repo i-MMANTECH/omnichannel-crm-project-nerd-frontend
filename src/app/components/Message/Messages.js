@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, act } from "react";
+import React, { useState, useEffect, useRef, act, Suspense } from "react";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
@@ -11,7 +11,7 @@ import "./style.css";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2 } from "lucide-react";
 
-export const Messages = () => {
+export const MessagesContent = () => {
 	const { axiosInstance } = useApi();
 	const { handleApiError } = useError();
 	const router = useRouter();
@@ -515,3 +515,16 @@ export const Messages = () => {
 		</div>
 	);
 };
+
+
+export const Messages = () => {
+	return (
+	  <Suspense fallback={
+		<div className="flex items-center justify-center h-screen">
+		  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+		</div>
+	  }>
+		<MessagesContent />
+	  </Suspense>
+	);
+  };

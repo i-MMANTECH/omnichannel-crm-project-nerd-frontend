@@ -1,0 +1,26 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  NODE_ENV: production
+
+before_script:
+  - echo "Installing dependencies..."
+  - npm install --legacy-peer-deps
+
+build:
+  stage: build
+  script:
+    - echo "Building the project..."
+    - npm run build
+  only:
+    - dev
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Restarting service..."
+    - sudo systemctl restart omnichannel-crm-frontend-staging.service
+  only:
+    - dev
