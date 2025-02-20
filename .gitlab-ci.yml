@@ -1,9 +1,16 @@
+image: node:18
+
 stages:
   - build
   - deploy
 
 variables:
   NODE_ENV: production
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/ # Cache dependencies to speed up builds
 
 before_script:
   - echo "Installing dependencies..."
@@ -14,13 +21,17 @@ build:
   script:
     - echo "Building the project..."
     - npm run build
+  artifacts:
+    paths:
+      - dist/ # Adjust to your actual build directory (e.g., 'build/' or 'out/')
+    expire_in: 1 week
   only:
     - dev
 
 deploy:
   stage: deploy
   script:
-    - echo "Restarting service..."
+    - echo "Deploying to server..."
     - sudo systemctl restart omnichannel-crm-frontend-staging.service
   only:
     - dev
