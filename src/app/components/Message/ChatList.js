@@ -6,13 +6,28 @@ import "./chatlist.css";
 import Image from "next/image";
 import UserAvatar from "../UserAvatar";
 
-const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers }) => {
+const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading }) => {
   const results = users?.results || [];
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
   const chatListRef = useRef(null);
 
-  const filteredUsers = results;
+  const toggleMenu = (id) => {
+    setMenuOpen(menuOpen === id ? null : id);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const truncateMessage = (message, maxLength) => {
     if (!message) return "";
@@ -47,32 +62,40 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers }) => {
     };
   }, [handleScroll]);
 
-  const toggleMenu = (id) => {
-    setMenuOpen(menuOpen === id ? null : id);
-  };
-
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuOpen(null);
-      }
-    };
+    console.log("Prop loading in ChatList:", loading); 
+  }, [loading]);  
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  if (loading) {
+    return (
+      <div className="flex items-start flex-col relative body-theme px-2">
+        <div className="chat-list-container animate-pulse flex flex-col overflow-y-auto h-[60vh] items-start w-full">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="flex items-center gap-3 p-3 w-full">
+                <div className="rounded-full bg-gray-200 h-11 w-11"></div>
+                <div className="flex-1 content w-full">
+                  <div className="h-4 bg-gray-200 rounded w-full"></div>
+                  <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!loading && results.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-[60vh] w-full">
+        <p className="text-gray-500">No chats in this category</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-start flex-col relative body-theme px-2">
       <div ref={chatListRef} className="chat-list-container flex flex-col overflow-y-auto h-[60vh] items-start">
-        {filteredUsers.length === 0 ? (
-          <div className="text-gray-500 text-center px-20 mt-4 flex flex-col items-center justify-center">
-            No chats in this category
-          </div>
-        ):
-          filteredUsers.map((user) => {
+        {results.map((user) => {
             return (
               <div
                 key={user.id}

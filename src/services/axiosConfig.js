@@ -32,11 +32,18 @@ export const useApi = () => {
             return config;
         },
         (error) => {
-            console.log('Error in request:', error);
-            NProgress.setColor('red');
-            NProgress.done();
-            setLoading(false);
-            return Promise.reject(error);
+            if (axios.isCancel(error) || error.name === 'CanceledError') {
+                NProgress.done();  
+                return Promise.reject(error); 
+            }
+
+            else {
+                console.log('Error in request:', error);
+                NProgress.setColor('red');
+                NProgress.done();
+                setLoading(false);
+                return Promise.reject(error);
+            }
         }
     );
 
@@ -47,6 +54,11 @@ export const useApi = () => {
             return response;
         },
         (error) => {
+            if (axios.isCancel(error) || error.name === 'CanceledError') {
+                NProgress.done();  
+                return Promise.reject(error);
+            }
+
             // Handle 401 Unauthorized error
             if (error.response && error.response.status === 401) {
                 // Clear session and local storage
@@ -59,13 +71,6 @@ export const useApi = () => {
 
                 router.push('/auth/sign-in');
                 return;
-            }
-
-            // Don't handle canceled requests as errors
-            if (error.name === 'CanceledError') {
-                NProgress.done();
-                setLoading(false);
-                return Promise.reject(error);
             }
 
             console.log('Error in request:', error);

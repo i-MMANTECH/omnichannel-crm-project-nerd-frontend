@@ -9,6 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "use-debounce";
 import "./style.css";
 import { useAuth } from "@/context/AuthContext";
+import { Loader2 } from "lucide-react";
 
 export const Messages = () => {
 	const { axiosInstance } = useApi();
@@ -29,7 +30,9 @@ export const Messages = () => {
 
 	const [page, setPage] = useState(1);
 	const [next, setNext] = useState(null);	
-	const [isLoadingMore, setIsLoadingMore] = useState(false);
+	const [isFetchingMore, setIsFetchingMore] = useState(false);
+
+	const [loading, setLoading] = useState(true);
 	const [chatResponse, setChatResponse] = useState();
 
 	const [chatType, setChatType] = useState(searchParams.get("chat") || "leads");
@@ -57,7 +60,12 @@ export const Messages = () => {
         // Load cached data for the new tab if available
         if (cachedData[newChatType]?.users) {
             setUsers(cachedData[newChatType].users);
-        }
+			setLoading(false);
+			console.log('found cache')
+        } else {
+			setLoading(true);
+			console.log('cache not found')
+		}
     }, [searchParams]);
 
 	useEffect(() => {
@@ -69,7 +77,6 @@ export const Messages = () => {
 			fetchChatHistory();
 		}
 	}, [chatType, chatId]);
-
 
 	useEffect(() => {
 		fetchChatList()
@@ -152,6 +159,7 @@ export const Messages = () => {
         };
     }, []);
 
+
 	const fetchChatList = async () => {
 		let endpoint;
 		if (chatType === "customers") {
@@ -172,6 +180,11 @@ export const Messages = () => {
 		const requestChatType = chatType;
 		
 		try {
+			if (!cachedData[chatType]?.users) {
+				console.log('is loading')
+                setLoading(true);
+            }
+
             // Use cached data while fetching
             if (cachedData[chatType]?.users && !debouncedSearchQuery) {
                 setUsers(cachedData[chatType].users);
@@ -180,7 +193,10 @@ export const Messages = () => {
             const response = await axiosInstance.get(endpoint, {
                 signal: abortControllerRef.current.signal
             });
-            
+            console.log('resp is', response)
+			
+			setLoading(false);
+
             // Only update state if we're still on the same tab
             if (currentTabRef.current === requestChatType) {
                 setCachedData(prev => ({
@@ -284,6 +300,10 @@ export const Messages = () => {
         // Update current tab reference
         currentTabRef.current = tab;
         
+		if (!cachedData[tab]?.users) {
+            setLoading(true);
+        }
+
         // Load cached data for the new tab immediately
         if (cachedData[tab]?.users) {
             setUsers(cachedData[tab].users);
@@ -352,13 +372,12 @@ export const Messages = () => {
 	};
 
 	const loadMoreUsers = async () => {
-		if (isLoadingMore || !next) return;
+		if (isFetchingMore || !next) return;
 	  
-		setIsLoadingMore(true);
+		setIsFetchingMore(true);
 	  
 		try {
 		  const response = await axiosInstance.get(`/communication/chatted-customers/?page=${page}`);
-		  console.log(response.data);
 	  
 		  if (response.status === 200) {
 			const newContacts = response.data.results;
@@ -376,10 +395,9 @@ export const Messages = () => {
 			  }
 		  }
 		} catch (error) {
-		  console.error("Error loading more users:", error);
 		  handleApiError(error);
 		} finally {
-		  setIsLoadingMore(false);
+		  setIsFetchingMore(false);
 		}
 	  };
 
@@ -452,6 +470,7 @@ export const Messages = () => {
 						activeUser={activeUser} 
 						handleChatSelect={handleChatSelect}
 						loadMoreUsers={loadMoreUsers}
+						loading={loading}
 					/>
 				</div>
 				
