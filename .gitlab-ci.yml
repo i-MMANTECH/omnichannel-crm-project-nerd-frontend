@@ -20,6 +20,6 @@ deploy:
   stage: deploy
   script:
     - echo "Deploying to server..."
-    - sudo systemctl restart omnichannel-crm-frontend-staging.service
+    - systemctl restart omnichannel-crm-frontend-staging.service
   only:
     - dev
