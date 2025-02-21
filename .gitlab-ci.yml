@@ -14,7 +14,7 @@ cache:
 
 before_script:
   - echo "Installing dependencies..."
-  - npm install --legacy-peer-deps
+  - npm install --force
 
 build:
   stage: build
