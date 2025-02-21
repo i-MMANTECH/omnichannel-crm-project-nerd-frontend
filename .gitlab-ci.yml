@@ -4,9 +4,6 @@ stages:
   - build
   - deploy
 
-variables:
-  NODE_ENV: production
-
 before_script:
   - echo "Installing dependencies..."
   - npm install --force
