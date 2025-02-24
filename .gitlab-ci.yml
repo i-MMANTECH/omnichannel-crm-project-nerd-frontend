@@ -27,7 +27,7 @@ deploy:
         set -e
         echo 'Pulling latest code...'
         cd /root/omnichannel-crm/staging/newnativetalkcrm_frontend &&
-        git pull origin dev &&
+        git pull https://$GITLAB_USERNAME:$GITLAB_TOKEN@gitlab.com/Jtobyy/newnativetalkcrm_frontend.git dev &&
         echo 'Installing dependencies...' &&
         npm install --force &&
         echo 'Building project...' &&
