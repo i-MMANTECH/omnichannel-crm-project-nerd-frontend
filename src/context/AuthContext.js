@@ -2,14 +2,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { useApi } from '.././services/axiosConfig';
 import NProgress from '@/services/nprogressConfig';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const { axiosInstance } = useApi();
     const [company, setCompany] = useState();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true); 
@@ -18,7 +17,7 @@ export const AuthProvider = ({ children }) => {
 
     const fetchCompanyDetails = async () => {
         try {
-            const response = await axiosInstance.get("/companies/details/");
+            const response = await axios.get("/companies/details/");
             if (response.data.company) {
                 setCompany(response.data.company);
                 localStorage.setItem('company', JSON.stringify(response.data.company));
@@ -38,14 +37,14 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
     };
 
-    const logout = () => {    
+    const logout = () => {
         NProgress.setColor('green');
         NProgress.start();
+
+        console.log('login out')
         setUser(null);
         setCompany(null);
-        localStorage.removeItem('user');
-        localStorage.removeItem('company');
-        localStorage.removeItem('permissions');
+        localStorage.clear();
         setIsAuthenticated(false);
         setLoading(false);
         

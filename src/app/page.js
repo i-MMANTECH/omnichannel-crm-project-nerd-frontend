@@ -10,15 +10,7 @@ const Page = () => {
     const { user, loading } = useContext(AuthContext);
     const router = useRouter();
 
-    useEffect(() => {
-        if (!loading) {
-            if (user) {
-                router.push('/nativecrm');
-            } else {
-                router.push('/auth/sign-in');
-            }
-        }
-    }, [user, loading, router]);
+    router.push('/nativecrm');
 
     if (loading) {
         return (

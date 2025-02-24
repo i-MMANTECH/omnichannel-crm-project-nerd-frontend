@@ -203,7 +203,7 @@ export const MessagesContent = () => {
                     ...prev,
                     [requestChatType]: {
                         ...prev[requestChatType],
-                        users: response.data
+                        users: response?.data
                     }
                 }));
                 

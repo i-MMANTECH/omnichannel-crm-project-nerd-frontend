@@ -3,9 +3,13 @@ import axios from 'axios';
 import NProgress from './nprogressConfig';
 import { getUserDomain } from '@/utils/getUserDomain';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'react-toastify';
+
 
 let isRefreshing = false;
 let failedQueue = [];
+let isBlockedForRequests = false;
 
 const processQueue = (error, token = null) => {
   failedQueue.forEach(prom => {
@@ -21,6 +25,13 @@ const processQueue = (error, token = null) => {
 export const useApi = () => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const cancelTokens = [];
+  const {logout} = useAuth()
+
+  const cancelAllRequests = () => {
+    cancelTokens.forEach(source => source.cancel("Request cancelled due to logout or navigation"));
+    cancelTokens.length = 0;
+  };
 
   const axiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -29,6 +40,16 @@ export const useApi = () => {
 
   axiosInstance.interceptors.request.use(
     (config) => {
+      const source = axios.CancelToken.source();
+      config.cancelToken = source.token;
+      cancelTokens.push(source);
+
+      if (isBlockedForRequests && !config.url.includes('/auth')) {
+        console.warn(`🚫 Request blocked during token refresh: ${config.url}`);
+        source.cancel("Request blocked during token refresh.");
+        return Promise.reject(new axios.Cancel("Request blocked during token refresh."));
+      }
+
       NProgress.setColor('green');
       NProgress.start();
       setLoading(true);
@@ -47,7 +68,7 @@ export const useApi = () => {
         }
 
         else {
-            console.log('Error in request:', error);
+            console.error('Error in api request:', error);
             NProgress.setColor('red');
             NProgress.done();
             setLoading(false);
@@ -71,10 +92,18 @@ export const useApi = () => {
       const originalRequest = error.config;
 
       if (error.response?.status === 401 && !originalRequest._retry) {
+        console.warn('⚠️ 401 detected, handling token refresh or redirect...');
+
+        cancelAllRequests();
+        isBlockedForRequests = true;
+
+
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         if (!user?.refresh) {
+          localStorage.clear();
           router.push('/auth/sign-in');
           NProgress.done()
+          isBlockedForRequests = false;
           return Promise.reject(error);
         }
 
@@ -87,13 +116,14 @@ export const useApi = () => {
               return axiosInstance(originalRequest);
             })
             .catch((err) => Promise.reject(err))
-            .finally(() => console.log('nothing'));
         }
 
         originalRequest._retry = true;
         isRefreshing = true;
 
         try {
+            console.warn('🔄 Refreshing user session...');
+
             const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/token/refresh/`, {
                 refresh: user.refresh,
             });
@@ -106,11 +136,14 @@ export const useApi = () => {
             return axiosInstance(originalRequest);
         } catch (refreshError) {
             processQueue(refreshError, null);
-            localStorage.clear();
-            router.push('/auth/sign-in');
-            return Promise.reject(refreshError);
+            cancelAllRequests();
+            toast.error('session expired');
+            logout()
+
+            return;
         } finally {
             isRefreshing = false;
+            isBlockedForRequests = false;
         }
       }
 
@@ -121,5 +154,5 @@ export const useApi = () => {
     }
   );
 
-  return { axiosInstance, loading };
+  return { axiosInstance, loading, cancelAllRequests };
 };

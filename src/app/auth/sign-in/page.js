@@ -53,9 +53,10 @@ const SignIn = () => {
             });
 
             if (response.status === 200) {
-                console.log('response is, ', response);
                 login(response.data);
-                router.push('/');
+                setTimeout(() => {
+                  router.push('/');
+                }, 200);
             }
         } catch (error) {
             toast.error('Login failed. Please check your credentials.');
