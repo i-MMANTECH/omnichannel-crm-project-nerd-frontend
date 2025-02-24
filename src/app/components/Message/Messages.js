@@ -61,10 +61,8 @@ export const MessagesContent = () => {
         if (cachedData[newChatType]?.users) {
             setUsers(cachedData[newChatType].users);
 			setLoading(false);
-			console.log('found cache')
         } else {
 			setLoading(true);
-			console.log('cache not found')
 		}
     }, [searchParams]);
 
