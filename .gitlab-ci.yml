@@ -1,7 +1,6 @@
 image: node:18
 
 stages:
-  - build
   - deploy
 
 cache:
@@ -10,16 +9,7 @@ cache:
     - node_modules/
 
 before_script:
-  - echo "Installing dependencies..."
-  - npm install --force
-
-build:
-  stage: build
-  script:
-    - echo "Building the project..."
-    - npm run build
-  only:
-    - dev
+  - echo "Preparing for deployment..."
 
 deploy:
   stage: deploy
@@ -31,7 +21,19 @@ deploy:
     - chmod 600 ~/.ssh/id_rsa
     - ssh-keyscan -H "$OMNICRM_SERVER_IP" >> ~/.ssh/known_hosts
   script:
-    - echo "Restarting service on the server..."
-    - ssh "$OMNICRM_SERVER_USER@$OMNICRM_SERVER_IP" "sudo systemctl restart omnichannel-crm-frontend-staging.service"
+    - echo "Connecting to server and deploying..."
+    - |
+      ssh "$OMNICRM_SERVER_USER@$OMNICRM_SERVER_IP" "
+        set -e
+        echo 'Pulling latest code...'
+        cd /root/omnichannel-crm/staging/newnativetalkcrm_frontend &&
+        git pull origin dev &&
+        echo 'Installing dependencies...' &&
+        npm install --force &&
+        echo 'Building project...' &&
+        npm run build &&
+        echo 'Restarting service...' &&
+        sudo systemctl restart omnichannel-crm-frontend-staging.service
+      "
   only:
     - dev
