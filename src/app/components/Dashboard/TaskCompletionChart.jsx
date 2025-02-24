@@ -38,7 +38,7 @@ const TaskCompletionChart = () => {
       setLoading(true);
       const response = await axiosInstance.get('/analytics/tasks/completion-rate/');
 
-      setData(response.data.data);
+      setData(response?.data?.data);
     } catch (error) {
       handleApiError(error);
     } finally {

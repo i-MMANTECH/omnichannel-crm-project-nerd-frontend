@@ -29,7 +29,7 @@ export const PermissionsProvider = ({ children }) => {
       try {
         const response = await axiosInstance.get('/users/me');
 
-        if (response.data.success) {
+        if (response?.data?.success) {
           const userPermissions = response.data.user.roles.flatMap(role => role.permissions);
           setPermissions(userPermissions);
           if (typeof window !== "undefined") {
