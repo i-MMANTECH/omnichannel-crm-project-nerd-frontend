@@ -372,32 +372,40 @@ export const MessagesContent = () => {
 	const loadMoreUsers = async () => {
 		if (isFetchingMore || !next) return;
 	  
+		const endpointMap = {
+			leads: `/communication/contacts/?page=${page}&page_size=${15}`,
+			customers: `/communication/chatted-customers/?page=${page}&page_size=${15}`,
+			archived: `/communication/conversations/?page=${page}&page_size=${15}`,
+		};
+
+		const endpoint = next || endpointMap[chatType];
+		if (!endpoint) return;
 		setIsFetchingMore(true);
 	  
 		try {
-		  const response = await axiosInstance.get(`/communication/chatted-customers/?page=${page}`);
-	  
-		  if (response.status === 200) {
-			const newContacts = response.data.results;
-	  
-			  setUsers((prevUsers) => ({
-				...prevUsers,
-				contacts: [...prevUsers.results, ...newContacts],
-				next: response.data.next,
-			  }));
-			  
-			  setPage((prevPage) => prevPage + 1);
-	  
-			  if (response.data.next === null) {
-				setNext(null);
-			  }
-		  }
+			const { data } = await axiosInstance.get(endpoint);
+			const newContacts = data.results;
+			setNext(data.next);
+
+			setUsers((prevUsers) => {
+				const currentResults = Array.isArray(prevUsers.results) ? prevUsers.results : [];
+				const usersMap = new Map(currentResults.map((user) => [user.id, user]));
+		  
+				newContacts.forEach((user) => usersMap.set(user.id, user));
+		  
+				return {
+				  ...prevUsers,
+				  results: Array.from(usersMap.values()),
+				};
+			});
+			
+			setPage((prevPage) => prevPage + 1);
 		} catch (error) {
 		  handleApiError(error);
 		} finally {
 		  setIsFetchingMore(false);
 		}
-	  };
+	};
 
 	return (
 		<div className="body-theme flex flex-col px-5 ">
