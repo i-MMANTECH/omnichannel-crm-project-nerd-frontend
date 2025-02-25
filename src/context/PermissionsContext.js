@@ -32,7 +32,9 @@ export const PermissionsProvider = ({ children }) => {
         if (response.data.success) {
           const userPermissions = response.data.user.roles.flatMap(role => role.permissions);
           setPermissions(userPermissions);
-          localStorage.setItem('permissions', JSON.stringify(userPermissions));
+          if (typeof window !== "undefined") {
+            localStorage.setItem('permissions', JSON.stringify(userPermissions));
+          }
         }
       } catch (err) {
         handleApiError(err);
@@ -43,13 +45,16 @@ export const PermissionsProvider = ({ children }) => {
   }, [user]);
 
   const checkPermission = (permission) => {
-    let currentPermissions = permissions.length
-      ? permissions
-      : JSON.parse(localStorage.getItem('permissions')) || [];
-
+    let currentPermissions = permissions.length ? permissions : [];
+    
+    if (typeof window !== 'undefined') {
+      currentPermissions = permissions.length 
+        ? permissions 
+        : JSON.parse(localStorage.getItem('permissions')) || [];
+    }
+  
     return currentPermissions.some((perm) => perm.codename === permission);
   };
-
 
   const contextValue = useMemo(() => ({
     permissions,

@@ -70,9 +70,11 @@ const CustomersContent = () => {
     }, [isSuccessModalOpen, currentPage, pageSize]); 
 
     useEffect(() => {
-        const storedView = localStorage.getItem("view");
-        if (storedView) {
-            setView(storedView);
+        if (typeof window !== 'undefined') {
+            const storedView = localStorage.getItem("view");
+            if (storedView) {
+                setView(storedView);
+            }
         }
     }, []);
 
@@ -104,9 +106,11 @@ const CustomersContent = () => {
     };
     
     const toggleView = () => {
-        const newView = view === 'grid' ? 'table' : 'grid';
-        setView(newView);
-        localStorage.setItem('view', newView);
+        if (typeof window !== 'undefined') {
+            const newView = view === 'grid' ? 'table' : 'grid';
+            setView(newView);
+            localStorage.setItem('view', newView);
+        }
     };
 
     return (
