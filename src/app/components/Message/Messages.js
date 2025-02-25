@@ -9,7 +9,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "use-debounce";
 import "./style.css";
 import { useAuth } from "@/context/AuthContext";
-import { Loader2 } from "lucide-react";
 
 export const MessagesContent = () => {
 	const { axiosInstance } = useApi();
@@ -33,6 +32,7 @@ export const MessagesContent = () => {
 	const [isFetchingMore, setIsFetchingMore] = useState(false);
 
 	const [loading, setLoading] = useState(true);
+	const [isLoadingMore, setIsLoadingMore] = useState(true)
 	const [chatResponse, setChatResponse] = useState();
 
 	const [chatType, setChatType] = useState(searchParams.get("chat") || "leads");
@@ -77,7 +77,8 @@ export const MessagesContent = () => {
 	}, [chatType, chatId]);
 
 	useEffect(() => {
-		fetchChatList()
+		fetchChatList({ reset: true });
+		setPage(1);
 	}, [debouncedSearchQuery, chatType])
 
 	useEffect(() => {
@@ -158,7 +159,7 @@ export const MessagesContent = () => {
     }, []);
 
 
-	const fetchChatList = async () => {
+	const fetchChatList = async ({ reset = false } = {}) => {
 		let endpoint;
 		if (chatType === "customers") {
 			endpoint = `/communication/chatted-customers/?search=${debouncedSearchQuery}`;
@@ -178,20 +179,17 @@ export const MessagesContent = () => {
 		const requestChatType = chatType;
 		
 		try {
-			if (!cachedData[chatType]?.users) {
-				console.log('is loading')
+			if (!cachedData[chatType]?.users || reset) {
                 setLoading(true);
             }
 
-            // Use cached data while fetching
-            if (cachedData[chatType]?.users && !debouncedSearchQuery) {
+            if (cachedData[chatType]?.users && !debouncedSearchQuery && !reset) {
                 setUsers(cachedData[chatType].users);
             }
 
             const response = await axiosInstance.get(endpoint, {
                 signal: abortControllerRef.current.signal
             });
-            console.log('resp is', response)
 			
 			setLoading(false);
 
@@ -201,11 +199,24 @@ export const MessagesContent = () => {
                     ...prev,
                     [requestChatType]: {
                         ...prev[requestChatType],
-                        users: response?.data
+                        users: reset
+                        ? response.data // Replace if reset (new search or tab change)
+                        : {
+                              ...response.data,
+                              results: [
+                                  ...(prev[requestChatType]?.users?.results || []),
+                                  ...response.data.results, // Append for pagination
+                              ],
+                          },
                     }
                 }));
                 
-                setUsers(response.data);
+                setUsers((prevUsers) => ({
+					...response.data,
+					results: reset
+						? response.data.results
+						: [...(prevUsers?.results || []), ...response.data.results],
+				}));
                 setNext(response.data.next);
 
                 const foundUser = response.data.results?.find(
@@ -383,21 +394,40 @@ export const MessagesContent = () => {
 		setIsFetchingMore(true);
 	  
 		try {
-			const { data } = await axiosInstance.get(endpoint);
+			const { data } = await axiosInstance.get(endpoint, { showLoader: false });
 			const newContacts = data.results;
 			setNext(data.next);
 
 			setUsers((prevUsers) => {
-				const currentResults = Array.isArray(prevUsers.results) ? prevUsers.results : [];
-				const usersMap = new Map(currentResults.map((user) => [user.id, user]));
-		  
-				newContacts.forEach((user) => usersMap.set(user.id, user));
-		  
-				return {
-				  ...prevUsers,
-				  results: Array.from(usersMap.values()),
-				};
+				const currentResults = Array.isArray(prevUsers?.results) ? prevUsers.results : [];
+				const mergedResults = [
+					...currentResults,
+					...newContacts.filter(
+						(user) => !currentResults.some((existingUser) => existingUser.id === user.id)
+					),
+				];
+	
+				return { ...data, results: mergedResults };
 			});
+
+			setCachedData((prev) => ({
+				...prev,
+				[chatType]: {
+					...prev[chatType],
+					users: {
+						...data,
+						results: [
+							...(prev[chatType]?.users?.results || []),
+							...newContacts.filter(
+								(user) =>
+									!(prev[chatType]?.users?.results || []).some(
+										(existingUser) => existingUser.id === user.id
+									)
+							),
+						],
+					},
+				},
+			}));
 			
 			setPage((prevPage) => prevPage + 1);
 		} catch (error) {
@@ -478,6 +508,11 @@ export const MessagesContent = () => {
 						loadMoreUsers={loadMoreUsers}
 						loading={loading}
 					/>
+					{isFetchingMore && (
+						<div className="flex justify-center py-4">
+							<div className="animate-spin rounded-full h-6 w-6 border-t-2 border-gray-500"></div>
+						</div>
+					)}
 				</div>
 				
 				<div className="detail ">

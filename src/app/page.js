@@ -7,10 +7,14 @@ import { Loader2 } from 'lucide-react';
 
 
 const Page = () => {
-    const { user, loading } = useContext(AuthContext);
+    const { loading } = useContext(AuthContext);
     const router = useRouter();
 
-    router.push('/nativecrm');
+    useEffect(() => {
+        if (!loading) {
+            router.push('/nativecrm');
+        }
+    }, [loading, router]);
 
     if (loading) {
         return (

@@ -44,15 +44,19 @@ export const useApi = () => {
       config.cancelToken = source.token;
       cancelTokens.push(source);
 
+      const showLoader = config.showLoader !== false;
+
       if (isBlockedForRequests && !config.url.includes('/auth')) {
         console.warn(`🚫 Request blocked during token refresh: ${config.url}`);
         source.cancel("Request blocked during token refresh.");
         return Promise.reject(new axios.Cancel("Request blocked during token refresh."));
       }
 
-      NProgress.setColor('green');
-      NProgress.start();
-      setLoading(true);
+      if (showLoader) {
+        NProgress.setColor('green');
+        NProgress.start();
+        setLoading(true);
+      }
 
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (user?.access) {
@@ -79,15 +83,17 @@ export const useApi = () => {
 
   axiosInstance.interceptors.response.use(
     (response) => {
-      NProgress.done();
-      setLoading(false);
+      if (response.config.showLoader !== false) {
+        NProgress.done();
+        setLoading(false);
+      }
       return response;
     },
     async (error) => {
-        if (axios.isCancel(error) || error.name === 'CanceledError') {
-            NProgress.done();  
-            return Promise.reject(error); 
-        }
+      if (axios.isCancel(error) || error.name === 'CanceledError') {
+          NProgress.done();  
+          return Promise.reject(error); 
+      }
 
       const originalRequest = error.config;
 
