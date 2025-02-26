@@ -62,9 +62,6 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading 
     };
   }, [handleScroll]);
 
-  useEffect(() => {
-    console.log("Prop loading in ChatList:", loading); 
-  }, [loading]);  
 
   if (loading) {
     return (

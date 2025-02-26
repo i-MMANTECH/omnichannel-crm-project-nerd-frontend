@@ -22,10 +22,10 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
 
   const fetchChannels = async () => {
     try {
-      const response = await axiosInstance.get("/channels/connected/");
+      const response = await axiosInstance.get("/channels/connected-channels/");
       setChannels(response.data.connected_channels.map((channel) => ({
         value: channel?.id,
-        label: channel?.value
+        label: channel?.name
       })));
     } catch (error) {
       handleApiError(error);

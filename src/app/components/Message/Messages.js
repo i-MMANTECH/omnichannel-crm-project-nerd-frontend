@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, act, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
@@ -38,6 +38,14 @@ export const MessagesContent = () => {
 	const [chatType, setChatType] = useState(searchParams.get("chat") || "leads");
 	const chatId = searchParams.get("id");
 
+	const menuRef = useRef(null);
+	const buttonRef = useRef(null);
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+	const [allChannels, setAllChannels] = useState([]);
+	const [connectedChannels, setConnectedChannels] = useState([])
+	const [selectedChannel, setSelectedChannel] = useState(null);
+
 	const [cachedData, setCachedData] = useState({
         leads: { users: null, histories: {} },
         customers: { users: null, histories: {} },
@@ -65,6 +73,10 @@ export const MessagesContent = () => {
 			setLoading(true);
 		}
     }, [searchParams]);
+
+	useEffect(() => {
+		fetchChatList({ reset: true })
+	}, [selectedChannel])
 
 	useEffect(() => {
 		fetchChatHistory();
@@ -158,16 +170,22 @@ export const MessagesContent = () => {
         };
     }, []);
 
+	useEffect(() => {
+		fetchChannelsData();
+	  }, []);
+
 
 	const fetchChatList = async ({ reset = false } = {}) => {
 		let endpoint;
+		const channelIdParam = selectedChannel ? `&channel_id=${selectedChannel.id}` : "";
+
 		if (chatType === "customers") {
-			endpoint = `/communication/chatted-customers/?search=${debouncedSearchQuery}`;
-		} else if (chatType === "leads") {
-			endpoint = `/communication/contacts/?search=${debouncedSearchQuery}`;
-		} else if (chatType === "archived") {
-			endpoint = `/communication/conversations/?status=ended&search=${debouncedSearchQuery}`;
-		}
+			endpoint = `/communication/chatted-customers/?search=${debouncedSearchQuery}${channelIdParam}`;
+		  } else if (chatType === "leads") {
+			endpoint = `/communication/contacts/?search=${debouncedSearchQuery}${channelIdParam}`;
+		  } else if (chatType === "archived") {
+			endpoint = `/communication/conversations/?status=ended&search=${debouncedSearchQuery}${channelIdParam}`;
+		  }
 
 		if (!endpoint) return;
 
@@ -179,9 +197,8 @@ export const MessagesContent = () => {
 		const requestChatType = chatType;
 		
 		try {
-			if (!cachedData[chatType]?.users || reset) {
+			if (!cachedData[chatType]?.users)
                 setLoading(true);
-            }
 
             if (cachedData[chatType]?.users && !debouncedSearchQuery && !reset) {
                 setUsers(cachedData[chatType].users);
@@ -200,23 +217,24 @@ export const MessagesContent = () => {
                     [requestChatType]: {
                         ...prev[requestChatType],
                         users: reset
-                        ? response.data // Replace if reset (new search or tab change)
+                        ? response.data
                         : {
                               ...response.data,
                               results: [
                                   ...(prev[requestChatType]?.users?.results || []),
-                                  ...response.data.results, // Append for pagination
+                                  ...response.data.results,
                               ],
                           },
                     }
                 }));
-                
+
                 setUsers((prevUsers) => ({
 					...response.data,
 					results: reset
 						? response.data.results
 						: [...(prevUsers?.results || []), ...response.data.results],
 				}));
+
                 setNext(response.data.next);
 
                 const foundUser = response.data.results?.find(
@@ -380,6 +398,38 @@ export const MessagesContent = () => {
 			});
 	};
 
+	const fetchChannelsData = async () => {
+		try {
+		  const allChannelsResponse = await axiosInstance.get("/channels/all/");
+		  setAllChannels(allChannelsResponse.data.channels);
+	
+		  const connectedChannelsResponse = await axiosInstance.get("/channels/connected-channels/");
+		  setConnectedChannels(connectedChannelsResponse.data.connected_channels);
+		} catch (error) {
+		  handleApiError(error)
+		}
+	};
+
+	const channelsMenuItems = [
+		{
+		  label: "All",
+		  onClick: () => {
+			setSelectedChannel(null);
+		  },
+		},
+		...connectedChannels
+		  .map((connectedChannel) => {
+			const channelInfo = allChannels.find(channel => channel.id === connectedChannel.id);
+			return channelInfo ? {
+			  label: channelInfo.name,
+			  onClick: () => {
+				setSelectedChannel({ id: channelInfo.id, name: channelInfo.name });
+			  },
+			} : null;
+		  })
+		  .filter(Boolean), // Removes null entries
+	];
+
 	const loadMoreUsers = async () => {
 		if (isFetchingMore || !next) return;
 	  
@@ -451,21 +501,45 @@ export const MessagesContent = () => {
 						+ Connect Channel
 					</button>
 					<div className="bg-gray-500 w-0.5 hidden"></div>
-					<div className="hidden flex h-10 w-20 px-3 justify-center items-center gap-2 rounded-lg border border-[#DFE1E6] body-theme cursor-pointer shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-							<path 
-								d="M13.3333 2H2.66667C2.29848 2 2 2.29848 2 2.66667V3.7468C2 4.33065 2.25513 4.88535 2.69842 5.26531L5.96825 8.06802C6.41154 8.44799 6.66667 9.00269 6.66667 9.58654V14L9.33333 12.6667V9.58654C9.33333 9.00269 9.58846 8.44799 10.0318 8.06802L13.3016 5.26531C13.7449 4.88535 14 4.33065 14 3.7468V2.66667C14 2.29848 13.7015 2 13.3333 2Z" 
-								stroke="#808897" 
-								strokeWidth="1.33333" 
-								strokeLinecap="round" 
-								strokeLinejoin="round"
-							/>
-						</svg>
+					<div 
+						className=" flex h-10 min-w-20 px-3 justify-center items-center gap-2 rounded-lg border border-[#DFE1E6] body-theme cursor-pointer shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]"
+						ref={buttonRef}
+						onClick={() => setIsMenuOpen(!isMenuOpen)}>
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+								<path 
+									d="M13.3333 2H2.66667C2.29848 2 2 2.29848 2 2.66667V3.7468C2 4.33065 2.25513 4.88535 2.69842 5.26531L5.96825 8.06802C6.41154 8.44799 6.66667 9.00269 6.66667 9.58654V14L9.33333 12.6667V9.58654C9.33333 9.00269 9.58846 8.44799 10.0318 8.06802L13.3016 5.26531C13.7449 4.88535 14 4.33065 14 3.7468V2.66667C14 2.29848 13.7015 2 13.3333 2Z" 
+									stroke="#808897" 
+									strokeWidth="1.33333" 
+									strokeLinecap="round" 
+									strokeLinejoin="round"
+								/>
+							</svg>
 
-						<p className=" text-[14px] font-medium leading-[150%] tracking-[0.2px]">
-							Filter
-						</p>
+							<p className=" text-[14px] font-medium leading-[150%] tracking-[0.2px]">
+								{selectedChannel ? selectedChannel.name : "Filter"}
+							</p>
 					</div>
+					{isMenuOpen && (
+						<div
+						ref={menuRef}
+						className="absolute right-0 mt-12 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
+						>
+						<div className="py-1">
+							{(channelsMenuItems).map((item, index) => (
+							<button
+								key={index}
+								onClick={() => {
+								item.onClick();
+								setIsMenuOpen(false);
+								}}
+								className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+							>
+								{item.label}
+							</button>
+							))}
+						</div>
+					</div>
+					)}
 				</div>
 			</div>
 
@@ -560,12 +634,12 @@ export const MessagesContent = () => {
 
 export const Messages = () => {
 	return (
-	  <Suspense fallback={
-		<div className="flex items-center justify-center h-screen">
-		  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-		</div>
-	  }>
-		<MessagesContent />
-	  </Suspense>
+		<Suspense fallback={
+			<div className="flex items-center justify-center h-screen">
+			<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+			</div>
+		}>
+			<MessagesContent />
+		</Suspense>
 	);
   };

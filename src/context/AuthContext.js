@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(false);
         setLoading(false);
         
-        toast.success('Logout successful');
+        toast.warning("You've been logged out");
         NProgress.done();
         
         router.push('/auth/sign-in');
