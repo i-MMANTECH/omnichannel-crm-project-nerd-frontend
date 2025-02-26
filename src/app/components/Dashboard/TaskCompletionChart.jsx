@@ -80,7 +80,7 @@ const TaskCompletionChart = () => {
     return (
       <div className="w-full h-[320px] body-theme rounded-lg border border-gray-200 shadow-sm">
         <div className="flex items-center justify-center h-full">
-          <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-gray-400"></div>
         </div>
       </div>
     );

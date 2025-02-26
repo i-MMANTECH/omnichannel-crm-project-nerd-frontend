@@ -52,22 +52,26 @@ export const useApi = () => {
         return Promise.reject(new axios.Cancel("Request blocked during token refresh."));
       }
 
+      setLoading(true);
       if (showLoader) {
         NProgress.setColor('green');
         NProgress.start();
-        setLoading(true);
       }
 
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (user?.access) {
-        config.headers['Authorization'] = `Bearer ${user.access}`;
+      try {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user?.access) {
+          config.headers['Authorization'] = `Bearer ${user.access}`;
+        }
       }
+      catch {}
 
       return config;
     },
     (error) => {
         if (axios.isCancel(error) || error.name === 'CanceledError') {
             NProgress.done();  
+            setLoading(false);
             return Promise.reject(error); 
         }
 
@@ -92,6 +96,7 @@ export const useApi = () => {
     async (error) => {
       if (axios.isCancel(error) || error.name === 'CanceledError') {
           NProgress.done();  
+          setLoading(false);
           return Promise.reject(error); 
       }
 
@@ -109,6 +114,7 @@ export const useApi = () => {
           localStorage.clear();
           router.push('/auth/sign-in');
           NProgress.done()
+          setLoading(false);
           isBlockedForRequests = false;
           return Promise.reject(error);
         }

@@ -59,6 +59,7 @@ const SignIn = () => {
                 }, 200);
             }
         } catch (error) {
+            handleApiError(error)
             toast.error('Login failed. Please check your credentials.');
         }
     };

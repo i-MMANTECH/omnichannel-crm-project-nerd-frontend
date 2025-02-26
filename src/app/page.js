@@ -1,30 +1,44 @@
 "use client";
 
-import { useContext, useEffect } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 
 const Page = () => {
-    const { loading } = useContext(AuthContext);
+    const { isAuthenticated } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
-        if (!loading) {
-            router.push('/nativecrm');
-        }
-    }, [loading, router]);
+        if (typeof window != 'undefined') {
+            window.addEventListener('load', () => {    
+                if (!isAuthenticated && !localStorage.getItem('user')) {
+                    router.push('/auth/sign-in');
+                } else if (localStorage.getItem('user') && isAuthenticated) {
+                    router.push('/nativecrm');
+                } else {
+                    router.push('/auth/sign-in');
+                }
+            });
+        } 
+    }, [])
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
-            </div>
-        );
-    }
-    
-    return null;
+    useEffect(() => {
+        if (isAuthenticated && localStorage.getItem('user')) {
+            const timer = setTimeout(() => {
+                router.push('/nativecrm');    
+            }, 1000);
+            return () => clearTimeout(timer);
+        } else if (!isAuthenticated && !localStorage.getItem('user')) {
+            router.push('/auth/sign-in');
+        }
+    }, [isAuthenticated])
+
+    return (
+        <div className="flex items-center justify-center h-screen">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-gray-400"></div>
+        </div>
+    );    
 };
 
 export default Page;
