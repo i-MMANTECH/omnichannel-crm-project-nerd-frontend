@@ -1,6 +1,5 @@
 'use client'
 
-
 import React, { useState, useEffect, useMemo, useRef, Suspense } from "react";
 import AssignedMessages from "./AssignedMessages";
 import './CustomerDetailsStyle.css';
@@ -14,7 +13,7 @@ import SuccessModal from '@/app/components/SuccessModal';
 import SendMessageModal from "./SendMessageModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
-
+import ConfirmationModal from "../../components/ConfirmationModal";
 
 const ModalController = ({ children }) => {
   const searchParams = useSearchParams();
@@ -53,20 +52,23 @@ export default function CustomerDetails() {
   const [isLoading, setIsLoading] = useState(false);
   const [customer, setCustomer] = useState({})
 
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
   const { id } = useParams();
 
   useEffect(() => {
-    getCustomer()
-  }, [])
-
-  const getCustomer = async () => {
-    try {
-        const { data } = await axiosInstance.get(`/customers/${id}`);
+    const getCustomer = async () => {
+      try {
+        const { data } = await axiosInstance.get(`/customers/${id}/`);
         setCustomer(data.customer);
-    } catch (error) {
+      } catch (error) {
         handleApiError(error);
-    }
-};
+      }
+    };
+  
+    getCustomer();
+  }, [id]);
+  
 
   const handleChatSelect = async () => {
     setIsLoading(true);
@@ -102,6 +104,17 @@ export default function CustomerDetails() {
       return '--'
     }
   })
+
+  const handleConfirmDelete = async () => {
+    try {
+      await axiosInstance.delete(`/customers/${id}/`);
+      setIsDeleteModalOpen(false);
+      setIsSuccessModalOpen(true);
+      router.push("/nativecrm/customers");
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
 
   return (
     <Suspense fallback={<div>Loading...</div>}>    
@@ -196,6 +209,18 @@ export default function CustomerDetails() {
                               className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                             >
                               Edit customer
+                            </button>
+                          </div>
+                          <div className="py-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIsDeleteModalOpen(true);
+                                setMenuOpen(null);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            >
+                              Delete customer
                             </button>
                           </div>
                         </div>
@@ -326,11 +351,16 @@ export default function CustomerDetails() {
                   buttonText="Okay, thank you"
                   onClose={closeSuccessModal}
               />
+            <ConfirmationModal
+              isOpen={isDeleteModalOpen}
+              title="Confirm Delete"
+              message="Are you sure you want to delete this customer?"
+              onConfirm={handleConfirmDelete}
+              onCancel={() => setIsDeleteModalOpen(false)}
+            />
           </div>
         )}
       </ModalController>
     </Suspense>
   );
 }
-
-

@@ -48,7 +48,7 @@ const KanbanViewTaskCard = ({ task, handleDelete, openViewModal, openUpdateModal
   };
 
   return (
-    <div className="dark:bg-neutral-900 border rounded-lg p-4 shadow-sm hover:shadow-md task_card mt-3 pl-4">
+    <div onClick={() => handleTaskClick(task.id, "view")} className="pointer dark:bg-neutral-900 border rounded-lg p-4 shadow-sm hover:shadow-md task_card mt-3 pl-4">
       <div className="flex justify-between items-center mb-5">
         {task.title?.length > 20 ? `${task.title.substring(0, 20)}...` : task.title}
         <div className="relative">
