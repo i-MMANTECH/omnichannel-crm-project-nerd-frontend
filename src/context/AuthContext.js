@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import NProgress from '@/services/nprogressConfig';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { getUserDomain } from '@/utils/getUserDomain';
 
 export const AuthContext = createContext();
 
@@ -14,45 +15,6 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true); 
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const router = useRouter();
-
-    const fetchCompanyDetails = async () => {
-        try {
-            const response = await axios.get("/companies/details/");
-            if (response.data.company) {
-                setCompany(response.data.company);
-                localStorage.setItem('company', JSON.stringify(response.data.company));
-            }
-        } catch (error) {
-            console.error("Error fetching company details:", error);
-        }
-    };
-
-    const login = async (userData) => {
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-        toast.success('Login Successful');
-
-        await fetchCompanyDetails();
-        setLoading(false);
-        setIsAuthenticated(true);
-    };
-
-    const logout = () => {
-        NProgress.setColor('green');
-        NProgress.start();
-
-        console.log('login out')
-        setUser(null);
-        setCompany(null);
-        localStorage.clear();
-        setIsAuthenticated(false);
-        setLoading(false);
-        
-        toast.warning("You've been logged out");
-        NProgress.done();
-        
-        router.push('/auth/sign-in');
-    };
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -94,6 +56,56 @@ export const AuthProvider = ({ children }) => {
             };
         }
     }, []);
+
+    useEffect(() => {
+        if (user) {
+            const fetchCompanyDetails = async () => {
+                try {
+                    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/companies/details/`, {
+                            headers: { 
+                                'Authorization': `Bearer ${user.access}`,
+                                'User-Domain': getUserDomain() 
+                            },
+                        }
+                    );
+
+                    if (response.data.company) {
+                        setCompany(response.data.company);
+                        localStorage.setItem('company', JSON.stringify(response.data.company));
+                    }
+                } catch (error) {
+                    console.error("Error fetching company details:", error);
+                }
+            };    
+
+            fetchCompanyDetails();
+        }
+    }, [user])
+    
+    const login = async (userData) => {
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        toast.success('Login Successful');
+
+        setLoading(false);
+        setIsAuthenticated(true);
+    };
+
+    const logout = () => {
+        NProgress.setColor('green');
+        NProgress.start();
+
+        setUser(null);
+        setCompany(null);
+        localStorage.clear();
+        setIsAuthenticated(false);
+        setLoading(false);
+        
+        toast.warning("You've been logged out");
+        NProgress.done();
+        
+        router.push('/auth/sign-in');
+    };
 
     return (
         <AuthContext.Provider value={{ user, company, login, isAuthenticated, loading, logout }}>

@@ -44,7 +44,6 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading 
     const { scrollTop, scrollHeight, clientHeight } = chatListRef.current;
 
     if (scrollHeight - scrollTop <= clientHeight + 5) {
-      // console.log("Reached Bottom, Loading More Users...");
       loadMoreUsers();
     }
   }, [loadMoreUsers]);

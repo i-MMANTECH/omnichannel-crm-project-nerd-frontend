@@ -1,7 +1,7 @@
 "use client";
 
-import { useContext, useEffect, useState } from 'react';
-import { AuthContext } from '@/context/AuthContext';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
@@ -14,7 +14,7 @@ const SignIn = () => {
     const router = useRouter();
     const { axiosInstance, loading } = useApi();
     const { handleApiError } = useError();
-    const { user, login } = useContext(AuthContext);
+    const { user, login } = useAuth();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');

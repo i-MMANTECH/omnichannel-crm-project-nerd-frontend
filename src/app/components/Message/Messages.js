@@ -22,7 +22,6 @@ export const MessagesContent = () => {
 	const [users, setUsers] = useState([]);
 	const { company } = useAuth();
 	const [chatHistory, setChatHistory] = useState([]);
-    const [companyId, setCompanyId] = useState(company?.id || '');
 
 	const [searchQuery, setSearchQuery] = useState("");
 	const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
@@ -94,15 +93,9 @@ export const MessagesContent = () => {
 	}, [debouncedSearchQuery, chatType])
 
 	useEffect(() => {
-        if (company?.id) {
-            setCompanyId(company.id);
-        }
-    }, [company]);
-
-	useEffect(() => {
-		if (companyId && !wsRef.current) {
+		if (company?.id && !wsRef.current) {
 			const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-			const wsUrl = `${protocol}://ws-staging.nativetalkcrm.com/ws/chat/?uuid=${companyId}&type=company`;
+			const wsUrl = `${protocol}://ws-staging.nativetalkcrm.com/ws/chat/?uuid=${company?.id}&type=company`;
 			wsRef.current = new WebSocket(wsUrl);
 
 			wsRef.current.onopen = () => {
@@ -125,12 +118,14 @@ export const MessagesContent = () => {
 				}
 			};
 		}
-	}, [companyId]);
+	}, [company]);
 
 	useEffect(() => {
 		if (!wsRef.current) return;
   
 		wsRef.current.onmessage = (event) => {
+			console.log('message event', event)
+
 			const data = JSON.parse(event.data);
 			const message = data.message;
   
@@ -299,9 +294,6 @@ export const MessagesContent = () => {
                 setChatHistory(newHistory);
                 setChatResponse(response.data);
             }
-            
-            setChatHistory(newHistory);
-            setChatResponse(response.data);
         } catch (error) {
             if (error.name !== 'AbortError') {
                 handleApiError(error);
