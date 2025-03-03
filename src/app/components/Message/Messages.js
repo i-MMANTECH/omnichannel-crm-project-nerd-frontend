@@ -16,7 +16,6 @@ export const MessagesContent = () => {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 
-	const [message, setMessage] = useState("");
 	const [activeUser, setActiveUser] = useState(null);
 
 	const [users, setUsers] = useState([]);
@@ -31,7 +30,6 @@ export const MessagesContent = () => {
 	const [isFetchingMore, setIsFetchingMore] = useState(false);
 
 	const [loading, setLoading] = useState(true);
-	const [isLoadingMore, setIsLoadingMore] = useState(true)
 	const [chatResponse, setChatResponse] = useState();
 
 	const [chatType, setChatType] = useState(searchParams.get("chat") || "leads");
@@ -124,8 +122,6 @@ export const MessagesContent = () => {
 		if (!wsRef.current) return;
   
 		wsRef.current.onmessage = (event) => {
-			console.log('message event', event)
-
 			const data = JSON.parse(event.data);
 			const message = data.message;
   
@@ -330,64 +326,76 @@ export const MessagesContent = () => {
     };
 	
 	const handleSendMessage = (messageContent) => {
+		const tempMessage = {
+			id: `temp-${new Date().getTime()}`, // Temporary unique ID
+			content: messageContent.text,
+			content_type: "text",
+			created_at: new Date().toISOString(),
+			status: "sending", // Mark as sending
+			user_sender: activeUser?.user_id,
+			lead_receiver: activeUser.id,
+			company: activeUser?.company || null,
+			lead_receiver_details: activeUser?.lead_receiver_details || null,
+			user_sender_details: {
+				...activeUser?.user_sender_details,
+				image: activeUser?.lastUserSender?.image,
+				name: activeUser?.lastUserSender?.first_name,
+				id: activeUser?.id,
+			},
+			company_is_sender: true,
+		};
+	
+		// Instant UI update (add the temp message)
+		setChatHistory((prevHistory) => [...prevHistory, tempMessage]);
+	
 		const payload = {
 			lead_id: activeUser.id,
 			content: messageContent.text || "",
 			content_type: "text",
 		};
-
-		let url = '/communication/';
+	
+		let url = "/communication/";
 		let dataToSend = payload;
+	
 		if (chatType === "customers") {
 			url += "send-to-customer/";
-  
 			const formData = new FormData();
 			formData.append("customer_id", activeUser.id);
 			formData.append("content", messageContent.text || "");
 			formData.append("channel_id", 2);
-  
 			dataToSend = formData;
 		} else {
 			url += "send-to-lead/";
 		}
-  
+	
 		axiosInstance
 			.post(url, dataToSend, {
 				headers: chatType === "customers" ? { "Content-Type": "multipart/form-data" } : {},
+				showLoader: false,
 			})
-			.then((response) => {  
-				setActiveUser((prevUser) => {
-					const updatedMessages = prevUser.messages
-						? [...prevUser.messages, {
-							id: response.data.id,
-							content: messageContent.text,
-							content_type: "text",
-							created_at: new Date().toISOString(),
-							status: "SENT",
-							user_sender: activeUser?.user_id,
-							lead_receiver: activeUser.id,
-						}]
-						: [{
-							id: response.data.id,
-							content: messageContent.text,
-							content_type: "text",
-							created_at: new Date().toISOString(),
-							status: "SENT",
-							user_sender: activeUser?.user_id,
-							lead_receiver: activeUser.id,
-						}];
-					
-					return {
-						...prevUser,
-						messages: updatedMessages,
-					};
-				});
-  
-				setMessage("");
+			.then((response) => {
+				console.log("API Response:", response.data);
+	
+				setChatHistory((prevHistory) =>
+					prevHistory.map((msg) =>
+						msg.id === tempMessage.id
+							? { ...msg, id: response.data.message_id, status: "SENT" }
+							: msg
+					)
+				);
+	
+				console.log(chatHistory, "after updating status");
 			})
 			.catch((error) => {
+				setChatHistory((prevHistory) =>
+					prevHistory.map((msg) =>
+						msg.id === tempMessage.id ? { ...msg, status: "FAILED" } : msg
+					)
+				);
+	
 				handleApiError(error);
 			});
+	
 	};
 
 	const fetchChannelsData = async () => {
@@ -543,7 +551,7 @@ export const MessagesContent = () => {
 								className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
 								placeholder="Search Users..."
 								value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                				onChange={(e) => setSearchQuery(e.target.value)}
 							/>
 							<button
 								className="absolute top-1 right-1 flex items-center rounded body-theme py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 active:dark:bg-black hover:bg-gray-100 hover:dark:bg-gray-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
@@ -593,10 +601,7 @@ export const MessagesContent = () => {
 
 								{chatType != "archived" ? ( 
 									<MessageInput
-										message={message}
-										onInputChange={(e) => setMessage(e.target.value)}
 										onSendMessage={handleSendMessage}
-										audioRecordingEnabled
 									/>
 								): (
 									<h2 className="w-full absolute bottom-5 flex items-center justify-center fw-bold text-red-300 p-2">Chat ended</h2>
