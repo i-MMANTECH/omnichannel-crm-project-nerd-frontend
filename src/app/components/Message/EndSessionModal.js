@@ -17,6 +17,7 @@ const EndSessionModal = ({
   };
 
   const handleEndSession = async () => {
+    console.log("converstaino id is ", conversationId)
     if (!conversationId) return;
 
     try {

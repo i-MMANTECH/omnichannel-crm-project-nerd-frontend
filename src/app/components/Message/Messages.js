@@ -138,10 +138,10 @@ export const MessagesContent = () => {
 
 		wsRef.current.onmessage = (event) => {
 			const data = JSON.parse(event.data);
-			console.log('message event data', data)
 
 			const message = data.message;
 			const newUser = data.message.lead_sender_details;
+			console.log("message ", message)
 
 			if (
 				activeUser &&
@@ -249,7 +249,6 @@ export const MessagesContent = () => {
             });
 			
 			setLoading(false);
-			console.log('response users ', response.data.results)
 
             // Only update state if we're still on the same tab
             if (currentTabRef.current === requestChatType) {
@@ -338,6 +337,7 @@ export const MessagesContent = () => {
                 }));
                 
                 setChatHistory(newHistory);
+				console.log('chat response is', response.data)
                 setChatResponse(response.data);
             }
         } catch (error) {

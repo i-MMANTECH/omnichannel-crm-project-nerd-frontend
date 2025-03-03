@@ -28,7 +28,7 @@
 
 .bubble-chat {
   display: inline-flex;
-  padding: 10px 19px;
+  padding: 10px 15px;
   max-width: 600px;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -39,13 +39,13 @@
 
 .bubble-chat-user {
   background: var(--Primary-0, #EFFFE6);
-  border-radius: 16px 0px 16px 16px;
+  border-radius: 15px 0px 15px 15px;
   color: var(--greyscale-900);
 }
 
 .bubble-chat-other {
   background: var(--Greyscale-25, #F8F9FB);
-  border-radius: 0px 16px 16px 16px;
+  border-radius: 0px 15px 15px 15px;
   color: var(--greyscale-900);
 }
 
@@ -73,7 +73,7 @@
 .image-message {
   max-width: 100%;
   height: auto;
-  border-radius: 8px;
+  border-radius: 0px 15px 15px 15px;
   margin-top: 5px;
 }
 

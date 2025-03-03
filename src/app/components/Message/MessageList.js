@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faXmark, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { faCheck, faCheckDouble, faCircleExclamation, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import "./messageList.css";
 import Image from "next/image";
@@ -10,6 +11,7 @@ const MessageList = ({ chatHistory }) => {
   const messageEndRef = useRef(null);
   const router = useRouter();
   const [hoveredUserId, setHoveredUserId] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null); 
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -30,6 +32,23 @@ const MessageList = ({ chatHistory }) => {
       default:
         return null;
     }
+  };
+
+  const openImageModal = (imageUrl) => {
+    setSelectedImage(imageUrl);
+  };
+
+  const closeImageModal = () => {
+    setSelectedImage(null);
+  };
+
+  const downloadImage = (imageUrl) => {
+    const link = document.createElement("a");
+    link.href = imageUrl;
+    link.download = `image_${new Date().getTime()}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (!chatHistory || chatHistory?.length === 0) return null;
@@ -59,7 +78,6 @@ const MessageList = ({ chatHistory }) => {
               <div className="relative ">
                 {isOutgoing ? (
                   <div className="flex items-center relative ">
-                    {/* User Profile Image with Hover Effect */}
                     <div
                       className="relative pointer"
                       onMouseEnter={() => setHoveredUserId(index)} 
@@ -87,24 +105,64 @@ const MessageList = ({ chatHistory }) => {
                       )}
                     </div>
 
-                    {msg.content_type === "text" ? (
-                      <p style={{ whiteSpace: "pre-wrap" }}>{msg.content}</p>
-                    ) : msg.content_type === "html" ? (
-                      <div
-                        dangerouslySetInnerHTML={{ __html: msg.content }} 
-                      />
-                    ) : null}
+                     {/* Handle Different Content Types */}
+                     <div className="flex flex-col">
+                      {/* If message contains images, display them first */}
+                      {msg.content_type === "image" && msg.attachments && msg.attachments.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {msg.attachments.map((attachment, i) => (
+                            <Image
+                              key={i}
+                              loader={() => attachment.file}
+                              src={attachment.file}
+                              alt="Sent Image"
+                              className="image-message max-w-[250px] max-h-[250px] pointer"
+                              width={250}
+                              height={250}
+                              onClick={() => openImageModal(attachment.file)}
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Display text content below images (if available) */}
+                      {msg.content_type === "text" || msg.content_type === "image" ? (
+                        <p style={{ whiteSpace: "pre-wrap", marginTop: msg.attachments?.length ? "8px" : "0" }}>
+                          {msg.content}
+                        </p>
+                      ) : msg.content_type === "html" ? (
+                        <div dangerouslySetInnerHTML={{ __html: msg.content }} />
+                      ) : null}
+                    </div>
                   </div>
                 ) : (
                   <div>
-                    {msg.content_type === "text" && (
-                      <p style={{ whiteSpace: "pre-wrap" }}>{msg.content}</p>
+                    {msg.content_type === "image" && msg.attachments && msg.attachments.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {msg.attachments.map((attachment, i) => (
+                          <Image
+                            key={i}
+                            loader={() => attachment.file}
+                            src={attachment.file}
+                            alt="Received Image"
+                            className="image-message max-w-[500px] max-h-[500px] pointer"
+                            width={350}
+                            height={500}
+                            onClick={() => openImageModal(attachment.file)}
+                          />
+                        ))}
+                      </div>
                     )}
-                    {msg.content_type === "html" && (
-                      <div
-                        dangerouslySetInnerHTML={{ __html: msg.content }}
-                      />
-                    )}
+
+                    {/* Show text content below images if present */}
+                    {msg.content_type === "text" || msg.content_type === "image" ? (
+                      <p style={{ whiteSpace: "pre-wrap", marginTop: msg.attachments?.length ? "8px" : "0" }}>
+                        {msg.content}
+                      </p>
+                    ) : msg.content_type === "html" ? (
+                      <div dangerouslySetInnerHTML={{ __html: msg.content }} />
+                    ) : <i>invalid content</i>}
+
                   </div>
                 )}
               </div>
@@ -122,6 +180,20 @@ const MessageList = ({ chatHistory }) => {
         );
       })}
       <div ref={messageEndRef} />
+
+      {selectedImage && (
+        <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-80 z-50" onClick={closeImageModal}>
+          <div className="relative p-4" onClick={(e) => e.stopPropagation()}>
+            <button className="absolute top-2 right-2 text-white text-xl" onClick={closeImageModal}>
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+            <Image src={selectedImage} alt="Full Image" width={600} height={600} className="rounded-lg" />
+            <button className="mt-3 px-4 py-2 bg-white text-gray-800 rounded-lg shadow" onClick={() => downloadImage(selectedImage)}>
+              <FontAwesomeIcon icon={faDownload} className="mr-2" /> Download
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

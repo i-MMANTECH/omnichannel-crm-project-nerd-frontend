@@ -40,6 +40,7 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
                 try {
                     const response = await axiosInstance.get(`/customers/leads/${leadId}`);
                     if (response?.data) {
+                        console.log('lead response ', response?.data)
                         const leadData = response.data.lead;
                         const [firstName, lastName] = leadData.name.split(' ');
 

@@ -113,6 +113,10 @@ const ChatHeader = ({ activeUser, isLead, conversationId }) => {
       label: "Archived messages", 
       onClick: () => setIsArchivedModalOpen(true),
     },
+    {
+      label: "End Session",
+      onClick: () => setIsEndSessionModalOpen(true),
+    },
     // { label: "Create a ticket", onClick: () => console.log("Create a ticket") },
   ];
 
