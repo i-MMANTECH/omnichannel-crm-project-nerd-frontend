@@ -93,52 +93,63 @@ export const MessagesContent = () => {
 	}, [debouncedSearchQuery, chatType])
 
 	useEffect(() => {
-		if (company?.id && !wsRef.current) {
-			const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-			const wsUrl = `${protocol}://ws-staging.nativetalkcrm.com/ws/chat/?uuid=${company?.id}&type=company`;
+		if (!company?.id) return;
+		const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+		const wsUrl = `${protocol}://ws-staging.nativetalkcrm.com/ws/chat/?uuid=${company?.id}&type=company`;
+
+		const connectWebSocket = () => {
+			if (wsRef.current) return;
+	
 			wsRef.current = new WebSocket(wsUrl);
-
+	
 			wsRef.current.onopen = () => {
-				console.log("WebSocket connected");
+				console.log("✅ WebSocket connected");
 			};
-
+	
 			wsRef.current.onerror = (error) => {
-				console.error("WebSocket error:", error);
+				console.error("❌ WebSocket error:", error);
 			};
-
+	
 			wsRef.current.onclose = () => {
-				console.log("WebSocket disconnected");
+				console.log("🔄 WebSocket disconnected, attempting to reconnect...");
 				wsRef.current = null;
+				setTimeout(connectWebSocket, 3000);
 			};
-
-			return () => {
-				if (wsRef.current) {
-					wsRef.current.close();
-					wsRef.current = null;
-				}
-			};
-		}
+		};
+	
+		connectWebSocket();
+	
+		return () => {
+			console.log('returning')
+			if (wsRef.current) {
+				console.log("🔌 Closing WebSocket connection...");
+				wsRef.current.close();
+				wsRef.current = null;
+			}
+		};
+		
 	}, [company]);
 
 	useEffect(() => {
-		if (!wsRef.current) return;
-  
-		wsRef.current.onmessage = (event) => {
-			console.log('message event', event)
+		if (!wsRef.current) {
+			console.log('message event returning')
+			return;
+		}
 
+		wsRef.current.onmessage = (event) => {
 			const data = JSON.parse(event.data);
+			console.log('message event data', data)
+
 			const message = data.message;
-  
-			if (message.is_new_lead) {
-				fetchChatList();
-			}
-  
+			const newUser = data.message.lead_sender_details;
+
 			if (
 				activeUser &&
 				(message.lead_sender === activeUser.id ||
 				message.customer_sender === activeUser.id ||
 				message.lead_info?.id === activeUser.id)
 			) {
+				console.log('new chat histroy found')
 				const newHistory = [...chatHistory, message];
                 setChatHistory(newHistory);
                 setCachedData(prev => ({
@@ -151,8 +162,43 @@ export const MessagesContent = () => {
                         }
                     }
                 }));
-			} else {
-				fetchChatList();
+			} else {	
+				setUsers((prevUsers) => {
+					const existingUsers = prevUsers?.results || [];
+					const existingUserIndex = existingUsers.findIndex(user => user?.id === newUser?.id);
+	
+					let updatedUsers;
+	
+					if (existingUserIndex !== -1) {
+						// If user already exists, remove them and move to top with updated details
+						updatedUsers = [
+							newUser, // Updated user
+							...existingUsers.filter(user => user.id !== newUser.id)
+						];
+					} else {
+						// If user is new, add them to the top of the list
+						updatedUsers = [newUser, ...existingUsers];
+					}
+	
+					return {
+						...prevUsers,
+						results: updatedUsers
+					};
+				});
+	
+				setCachedData(prev => ({
+					...prev,
+					[chatType]: {
+						...prev[chatType],
+						users: {
+							...prev[chatType]?.users,
+							results: [
+								newUser,
+								...(prev[chatType]?.users?.results || []).filter(user => user.id !== newUser.id)
+							]
+						}
+					}
+				}));
 			}
 		};
 	}, [activeUser, chatHistory, chatType]);
@@ -168,7 +214,6 @@ export const MessagesContent = () => {
 	useEffect(() => {
 		fetchChannelsData();
 	  }, []);
-
 
 	const fetchChatList = async ({ reset = false } = {}) => {
 		let endpoint;
@@ -204,6 +249,7 @@ export const MessagesContent = () => {
             });
 			
 			setLoading(false);
+			console.log('response users ', response.data.results)
 
             // Only update state if we're still on the same tab
             if (currentTabRef.current === requestChatType) {

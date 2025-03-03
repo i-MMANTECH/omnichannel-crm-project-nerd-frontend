@@ -87,9 +87,9 @@ export const useApi = () => {
 
   axiosInstance.interceptors.response.use(
     (response) => {
+      setLoading(false);
       if (response.config.showLoader !== false) {
         NProgress.done();
-        setLoading(false);
       }
       return response;
     },
