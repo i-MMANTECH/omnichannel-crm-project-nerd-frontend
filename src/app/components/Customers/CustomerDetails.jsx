@@ -93,17 +93,33 @@ export default function CustomerDetails() {
     getCustomer()
 };
 
+const customerUsername = useMemo(() => {
+  if (customer?.username) {
+    return customer.username;
+  } else if (customer?.name) {
+    return customer.name;
+  } else if (customer?.first_name && customer?.last_name) {
+    return `${customer.first_name} ${customer.last_name}`;
+  } else if (customer?.first_name) {
+    return customer.first_name;
+  } else {
+    return '--';
+  }
+}, [customer]);
+
+
   const customerName = useMemo(() => {
-    if (customer?.username) {
-      return customer?.username
-    } else if (customer?.name) {
-      return customer?.name
-    } else  if (customer.first_name) {
-      return customer?.first_name + " " + customer?.last_name
+    if (customer?.first_name && customer?.last_name) {
+      return `${customer.first_name} ${customer.last_name}`;
+    } else if (customer?.first_name) {
+      return customer.first_name;
+    } else if (customer?.username) {
+      return customer.username;
     } else {
-      return '--'
+      return '--';
     }
-  })
+  }, [customer]);
+  
 
   const handleConfirmDelete = async () => {
     try {
@@ -131,9 +147,9 @@ export default function CustomerDetails() {
                     className="customer-left-image mt-2 rounded-full w-20 h-20" 
                     src={customer.image} 
                   />}
-                  {!customer?.image && <UserAvatar name={ customerName } width="w-20" height="h-20" />}
+                  {!customer?.image && <UserAvatar name={ customerUsername } width="w-20" height="h-20" />}
 
-                  <p className="customer-left-name text-xl font-bold mt-1">{ customerName.slice(0, 10) }</p>
+                  <p className="customer-left-name text-xl font-bold mt-1">{ customerUsername.slice(0, 10) }</p>
                   <p className="customer-left-email text-sm mt-1">{ customer?.email }</p>
                   <div className="flex gap-6 mt-5">
                     <div className="flex flex-col items-center gap-2">
