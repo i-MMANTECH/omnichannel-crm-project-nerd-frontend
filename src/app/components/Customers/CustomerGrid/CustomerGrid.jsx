@@ -23,12 +23,32 @@ const CustomerGrid = ({ customers }) => {
                         className="mt-2 w-10 h-10 rounded-full" 
                         src={customer.image} 
                         />}
-                    {!customer?.image && <UserAvatar name={`${customer.first_name} ${customer.last_name}`} width="w-10" height="h-10" />}
-                    <span>{`${customer.first_name} ${customer.last_name}` || "--"}</span>
-                  <h3 className="text-lg font-semibold">{`${customer.first_name} ${customer.last_name}` || "--"}</h3>
+                        
+                        {customer?.image ? (
+                          <h3 className="text-lg font-semibold">
+                            {customer?.first_name && customer?.last_name
+                              ? `${customer.first_name} ${customer.last_name}`
+                              : customer?.first_name
+                              ? customer.first_name
+                              : customer?.username
+                              ? customer.username
+                              : "--"}
+                          </h3>
+                        ) : (
+                          <UserAvatar
+                            name={
+                              customer?.first_name && customer?.last_name
+                                ? `${customer.first_name} ${customer.last_name}`
+                                : customer?.first_name
+                                ? customer.first_name
+                                : customer?.username || "Guest"
+                            }
+                            width="w-10"
+                            height="h-10"
+                          />
+                        )}
                 </div>             
               </div>
-
             </div>
             
             <div className='p-3 text-sm'>
