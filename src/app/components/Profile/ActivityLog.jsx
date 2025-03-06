@@ -44,16 +44,24 @@ const ActivityLog = () => {
             <div className="flex flex-col gap-2 w-full mb-1">
               <div className='flex items-center gap-3'>
                 {log?.user?.image ? (
-                  <Image
-                    alt="profile pic"
-                    width={8}
-                    height={8}
-                    className="customer-left-image mt-2 w-8 h-8 rounded-full"
-                    src={log.user.image}
-                  />
-                ) : (
-                  <UserAvatar name={log?.user?.first_name ? `${log?.user.first_name} ${log?.user.last_name}` : '--'} width="w-8" height="h-8" />
-                )}
+                        <Image
+                            src={log.user.image}
+                            alt="Profile pic"                        
+                            width={8}
+                            height={8}
+                            className="customer-left-image mt-2 w-8 h-8 rounded-full"
+                        />
+                    ) : (
+                      <UserAvatar 
+                          name={log?.user?.first_name ? 
+                            `${log?.user?.first_name} ${log?.user?.last_name}` : 
+                            log?.user?.email || '--'
+                          } 
+                          className="customer-left-image mt-2 w-8 h-8 rounded-full"
+                          width="w-8" 
+                          height="h-8" 
+                      />
+                  )}
                 <p className="font-medium">{log.description}</p>
               </div>
 
