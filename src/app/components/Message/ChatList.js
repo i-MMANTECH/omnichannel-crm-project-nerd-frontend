@@ -145,7 +145,7 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading 
                       </div>
                     </div>
                     <div className="flex justify-between w-full ">
-                      <p className="label last-message ">{truncateMessage(user.lastMessage, 27)}</p>
+                      <p className="label last-message ">{truncateMessage(user.lastMessage || user?.end_reason, 27)}</p>
                       <div className="hidden">
                         {user.unreadCount > 0 && (
                           <div className="title-wrapper">

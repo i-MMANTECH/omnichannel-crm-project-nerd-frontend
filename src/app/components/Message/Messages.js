@@ -44,6 +44,8 @@ export const MessagesContent = () => {
 	const [allChannels, setAllChannels] = useState([]);
 	const [connectedChannels, setConnectedChannels] = useState([])
 	const [selectedChannel, setSelectedChannel] = useState(null);
+	const [isRotating, setIsRotating] = useState(false);
+
 
 	const [cachedData, setCachedData] = useState({
         leads: { users: null, histories: {} },
@@ -113,18 +115,16 @@ export const MessagesContent = () => {
 			wsRef.current.onclose = () => {
 				console.log("🔄 WebSocket disconnected, attempting to reconnect...");
 				wsRef.current = null;
-				setTimeout(connectWebSocket, 3000);
+				setTimeout(connectWebSocket, 2000);
 			};
 		};
 	
 		connectWebSocket();
 	
 		return () => {
-			console.log('returning')
 			if (wsRef.current) {
 				console.log("🔌 Closing WebSocket connection...");
 				wsRef.current.close();
-				wsRef.current = null;
 			}
 		};
 		
@@ -149,7 +149,6 @@ export const MessagesContent = () => {
 				message.customer_sender === activeUser.id ||
 				message.lead_info?.id === activeUser.id)
 			) {
-				console.log('new chat histroy found')
 				const newHistory = [...chatHistory, message];
                 setChatHistory(newHistory);
                 setCachedData(prev => ({
@@ -215,6 +214,71 @@ export const MessagesContent = () => {
 		fetchChannelsData();
 	  }, []);
 
+	const markConversationAsRead = async () => {
+		try {
+			const resp = await axiosInstance.patch(`/communication/conversations/${chatResponse?.conversation_id}/messages/status/`, 
+				{ 'status': 'read'}, 
+				{ showLoader: false });
+
+				const userIndex = users?.results?.findIndex((user) => user.id === activeUser.id);
+
+				if (userIndex !== -1) {
+				const currentUnreadCount = users.results[userIndex].unreadCount || 0;
+				// const updatedCount = currentUnreadCount - (resp?.data?.data?.updated_count || 0);
+				const updatedCount = 0
+
+				const updatedUser = { ...users.results[userIndex], unreadCount: updatedCount };
+				const updatedUsersResults = [
+					...users.results.slice(0, userIndex),
+					updatedUser,
+					...users.results.slice(userIndex + 1),
+				];
+
+				const updatedUsers = { ...users, results: updatedUsersResults };
+				setUsers(updatedUsers);
+
+				setCachedData((prevCachedData) => {
+					const cachedUsers = prevCachedData[chatType]?.users;
+					if (cachedUsers) {
+					  const cachedUserIndex = cachedUsers.results.findIndex(
+						(user) => user.id === activeUser.id
+					  );
+				
+					  if (cachedUserIndex !== -1) {
+						// Update the user in the cached data
+						const updatedCachedUser = {
+						  ...cachedUsers.results[cachedUserIndex],
+						  unreadCount: updatedCount,
+						};
+				
+						const updatedCachedResults = [
+						  ...cachedUsers.results.slice(0, cachedUserIndex),
+						  updatedCachedUser,
+						  ...cachedUsers.results.slice(cachedUserIndex + 1),
+						];
+				
+						return {
+						  ...prevCachedData,
+						  [chatType]: {
+							...prevCachedData[chatType],
+							users: {
+							  ...cachedUsers,
+							  results: updatedCachedResults,
+							},
+						  },
+						};
+					  }
+					}
+				
+					// If no cached data is found, return the previous state
+					return prevCachedData;
+				})
+			}
+		} catch (error) {
+			handleApiError(error)
+		}
+	}
+
 	const fetchChatList = async ({ reset = false } = {}) => {
 		let endpoint;
 		const channelIdParam = selectedChannel ? `&channel_id=${selectedChannel.id}` : "";
@@ -228,6 +292,8 @@ export const MessagesContent = () => {
 		  }
 
 		if (!endpoint) return;
+
+		setIsRotating(true);
 
 		if (abortControllerRef.current) {
             abortControllerRef.current.abort();
@@ -245,11 +311,12 @@ export const MessagesContent = () => {
             }
 
             const response = await axiosInstance.get(endpoint, {
-                signal: abortControllerRef.current.signal
+                signal: abortControllerRef.current.signal,
+				showLoader: false
             });
 			
 			setLoading(false);
-
+			console.log('chat lit response', response)
             // Only update state if we're still on the same tab
             if (currentTabRef.current === requestChatType) {
                 setCachedData(prev => ({
@@ -288,7 +355,9 @@ export const MessagesContent = () => {
             if (error.name !== 'AbortError') {
                 handleApiError(error);
             }
-        }
+        } finally {
+			setIsRotating(false);
+		}
 	};
 
 	const fetchChatHistory = async () => {
@@ -337,8 +406,9 @@ export const MessagesContent = () => {
                 }));
                 
                 setChatHistory(newHistory);
-				console.log('chat response is', response.data)
                 setChatResponse(response.data);
+
+				markConversationAsRead()
             }
         } catch (error) {
             if (error.name !== 'AbortError') {
@@ -584,21 +654,34 @@ export const MessagesContent = () => {
 			<div className="overflow-y-hidden overflow-x-hidden messages flex items-start border border-gray-500 rounded-lg relative h-[80vh] m-4 mt-0">
 				<div>
 					<div className="body-theme justify-center gap-5 p-5 flex items-start flex-col w-full">
-						<div className="relative">
-							<input
-								className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
-								placeholder="Search Users..."
-								value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-							/>
-							<button
-								className="absolute top-1 right-1 flex items-center rounded body-theme py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 active:dark:bg-black hover:bg-gray-100 hover:dark:bg-gray-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-								type="button"
+						<div className="flex items-center justify-between space-x-4 ">
+							<div className="relative">
+								<input
+									className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
+									placeholder="Search Users..."
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+								/>
+								<button
+									className="absolute top-1 right-1 flex items-center rounded body-theme py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 active:dark:bg-black hover:bg-gray-100 hover:dark:bg-gray-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+									type="button"
+								>
+									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 mr-2">
+										<path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
+									</svg>                                        
+								</button> 
+							</div>
+							<svg
+								className={`cursor-pointer ${isRotating ? 'rotate' : ''}`}
+								xmlns="http://www.w3.org/2000/svg"
+								width="20"
+								height="20"
+								viewBox="0 0 16 16"
+								fill="none"
+								onClick={() => fetchChatList({ reset: true })}
 							>
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 mr-2">
-									<path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
-								</svg>                                        
-							</button> 
+								<path d="M7.99984 2.66683C5.05432 2.66683 2.6665 5.05464 2.6665 8.00016C2.6665 9.97425 3.73903 11.6978 5.33317 12.62M7.99984 2.66683L6.6665 1.3335M7.99984 2.66683L6.99984 4.3335M7.99984 13.3335C10.9454 13.3335 13.3332 10.9457 13.3332 8.00016C13.3332 6.02608 12.2606 4.30249 10.6665 3.38033M7.99984 13.3335L9.33317 14.6668M7.99984 13.3335L8.99984 11.6668" stroke="#3EBF0F" strokeLinecap="round" strokeLinejoin="round"/>
+							</svg>
 						</div>
 						<div className="flex gap-3 w-full ">
 							<div className="tab-atom">
@@ -630,7 +713,15 @@ export const MessagesContent = () => {
 				<div className="detail ">
 					{activeUser ? (
 						<div>
-							<ChatHeader activeUser={activeUser} conversationId={chatResponse?.conversation_id} isLead={chatType === "leads"}/>
+							<ChatHeader 
+								activeUser={activeUser}
+								conversationId={chatResponse?.conversation_id} 
+								isLead={chatType === "leads"}
+								refreshChatList={() => {
+									fetchChatList({ reset: true })
+									setActiveUser(null)
+								}}
+							/>
 							<div className="flex items-center ">
 								<MessageList 
 									chatHistory={chatHistory} 
