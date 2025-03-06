@@ -79,13 +79,16 @@ function Sidebar() {
 
         <div className="body-theme sidebar z-20 p-6 pt-3 w-1/2 h-screen fixed top-0 -left-96 lg:left-0 lg:w-60 peer-focus:left-0 peer:transition ease-out delay-150 duration-200">
           <div className="flex flex-col justify-start items-start h-full relative">
-            <div className="py-5">
-              <Image src="/assets/nativetalk-logo.svg" 
-              alt="Logo" 
-              width={100}
-              height={100}
+          <Link href="/nativecrm/dashboard" passHref>
+            <div className="py-5 cursor-pointer">
+              <Image 
+                src="/assets/nativetalk-logo.svg" 
+                alt="Logo" 
+                width={100} 
+                height={100} 
               />
             </div>
+          </Link>
 
             <div className="w-full mb-2 border-t border-gray-300 dark:border-gray-600 ">
               <h2 className="text-sm text-gray-500 dark:text-gray-400 pl-4 mt-4">Main Menu</h2>

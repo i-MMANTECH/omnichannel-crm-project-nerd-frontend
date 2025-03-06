@@ -21,16 +21,44 @@ const PlansAndBillings = () => {
     fetchPlans();
   }, []);
 
+  useEffect(() => {
+     // Ensure plans are fetched before fetching the current subscription
+    if (plans.length > 0) {
+      fetchCurrentSubscription();
+    }
+  }, [plans]);
+  
+  const fetchCurrentSubscription = async () => {
+    try {
+      const response = await axiosInstance.get('/billings/subscriptions/current/');
+      if (response.data.success && response.data.subscription) {
+        const subscription = response.data.subscription;
+        const planId = Number(subscription.plan.id);
+  
+        const matchedPlan = plans.find(plan => Number(plan.id) === planId);
+  
+        if (matchedPlan) {
+          setSelectedPlan(matchedPlan.id);
+        } else {
+          setSelectedPlan(null)
+        }
+      }
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+  
+  useEffect(() => {
+  }, [selectedPlan]);
+  
+ 
+
   const fetchPlans = async () => {
     try {
       setIsLoadingPlans(true);
       const response = await axiosInstance.get('/billings/plans/');
       if (response.data.success) {
         setPlans(response.data.results);
-        // Set the first plan as selected if no plan is selected
-        if (!selectedPlan && response.data.results.length > 0) {
-          setSelectedPlan(response.data.results[0].id);
-        }
       }
     } catch (error) {
       handleApiError(error);
@@ -117,7 +145,11 @@ const PlansAndBillings = () => {
                       : "bg-white text-[#0D0D12] hover:bg-gray-200 rounded-lg border border-[#DFE1E6]"
                   } rounded-lg py-2 px-4 font-medium mt-auto`}
                 >
-                  {selectedPlan === plan.id ? "Selected Plan" : "Switch Plan"}
+                  {selectedPlan === plan.id 
+                    ? "Selected Plan" 
+                    : selectedPlan === null 
+                      ? "Select Plan" 
+                      : "Switch Plan"}
                 </button>
               </div>
             ))}
