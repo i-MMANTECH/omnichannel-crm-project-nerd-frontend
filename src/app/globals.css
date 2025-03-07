@@ -71,6 +71,20 @@ input {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Apply margin fix only on small screens (mobile) */
+@media (max-width: 768px) {
+  .body-theme {
+    margin-left: -20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .customers-page .body-theme {
+    margin-left: 0px !important;
+  }
+}
+
 .pointer {
   cursor: pointer;
 }
