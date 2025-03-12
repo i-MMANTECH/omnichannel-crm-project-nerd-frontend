@@ -113,7 +113,7 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading 
                           className="w-11 h-11 rounded-full"
                         />
                       ) : (
-                        <UserAvatar name={user.name || user.lead_name} width="w-11" height="h-11" />
+                        <UserAvatar name={user.name || user.lead_name || user.lead?.name || user.customer_name || user.customer.first_name || user.customer.username || user.customer.email || "Unknown "} width="w-11" height="h-11" />
                       )}
                     </div>
                     {user.channel?.image && (
@@ -131,7 +131,7 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading 
                   </div>
                   <div className="content ">
                     <div className="flex justify-between  w-full ">
-                      <div className="text-black dark:text-white user-name">{user.name || user.lead_name || "Unknown User"}</div>
+                      <div className="text-black dark:text-white user-name">{user.name || user.lead_name || user.lead?.name || user.customer_name || user.customer.first_name || user.customer.username || user.customer.email || "Unknown "}</div>
                       <div className="relative flex items-center">
                         {/* Time Display */}
                         <div className="title-2 ">{formatChatTime(user.lastMessageTime || user.last_message_at)}</div>

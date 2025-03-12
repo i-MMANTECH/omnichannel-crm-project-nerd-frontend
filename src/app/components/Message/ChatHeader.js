@@ -122,8 +122,8 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
       label: "End Session",
       onClick: () => setIsEndSessionModalOpen(true),
     },
-    // { label: "Create a ticket", onClick: () => console.log("Create a ticket") },
   ];
+
 
   const closeSuccessModal = () => {
     setIsSuccessModalOpen(false);
@@ -146,7 +146,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
                     className="w-9 h-9 rounded-full"
                   />
                 ) : (
-                  <UserAvatar name={activeUser.name || activeUser.lead_name} width="w-9" height="h-9" />
+                  <UserAvatar name={activeUser.name || activeUser.lead_name || activeUser.name || activeUser.customer_name || activeUser.first_name || activeUser.username || activeUser.email || "Unknown "} width="w-9" height="h-9" />
                 )}
               </div>
               {activeUser.channel?.image && (
@@ -169,19 +169,21 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
               <div className="title-4">Last Seen {formattedTime}</div>
             </div>
             <div className="relative">
-              <button
-                ref={buttonRef}
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-2 hover:bg-gray-100 rounded-full dark:hover:bg-gray-700 transition-colors"
-              >
-                <FontAwesomeIcon icon={faEllipsisH} className="icon-instance-node" />
-              </button>
+              {!activeUser.ended_at &&
+                <button
+                  ref={buttonRef}
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="p-2 hover:bg-gray-100 rounded-full dark:hover:bg-gray-700 transition-colors"
+                >
+                  <FontAwesomeIcon icon={faEllipsisH} className="icon-instance-node" />
+                </button>
+              }
               {isMenuOpen && (
                 <div
                   ref={menuRef}
                   className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
                 >
-                  <div className="py-1">
+                    <div className="py-1">
                     {(isLead ? leadMenuItems : customerMenuItems).map((item, index) => (
                       <button
                         key={index}
@@ -195,6 +197,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
                       </button>
                     ))}
                   </div>
+                  
                 </div>
               )}
             </div>
