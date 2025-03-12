@@ -376,7 +376,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                           <Image
                             key={index}
                             alt={`Agent ${assignee.id}`}
-                            className="w-6 h-6 rounded-full border-2 border-white"
+                            className="w-7 h-7 rounded-full border-2 border-white"
                             src={assignee.image}
                             width={24}
                             height={24}
@@ -388,8 +388,8 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                             className="border-white border-2" 
                             key={index} 
                             name={assigneeName} 
-                            width="w-6" 
-                            height="h-6" 
+                            width="w-7" 
+                            height="h-7" 
                           />
                         );
                       }
