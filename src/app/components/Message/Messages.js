@@ -48,7 +48,7 @@ export const MessagesContent = () => {
 	const [selectedChannel, setSelectedChannel] = useState(null);
 	const [isRotating, setIsRotating] = useState(false);
 	const [agents, setAgents] = useState([])
-	const [selectedAgent, setSelectedAgent] = useState([])
+	const [selectedAgent, setSelectedAgent] = useState(null)
 	const [isFilterActive, setIsFilterActive] = useState(false)
 
 
@@ -95,9 +95,9 @@ export const MessagesContent = () => {
 	}, [chatType, chatId]);
 
 	useEffect(() => {
-		fetchChatList({ reset: true });
+		fetchChatList({ reset: true});
 		setPage(1);
-	}, [debouncedSearchQuery, chatType])
+	}, [debouncedSearchQuery, chatType, selectedAgent])
 
 	useEffect(() => {
 		if (!company?.id) return;
@@ -317,16 +317,17 @@ export const MessagesContent = () => {
 		}
 	}
 
-	const fetchChatList = async ({ reset = false, agent = null } = {}) => {
+	const fetchChatList = async ({ reset = false} = {}) => {
 		let endpoint;
 		const channelIdParam = selectedChannel ? `&channel_id=${selectedChannel.id}` : "";
+		const assigneeParam = selectedAgent ? `&assignee=${selectedAgent}` : "";
 
 		if (chatType === "customers") {
-			endpoint = `/communication/chatted-customers/?search=${debouncedSearchQuery}${channelIdParam}`;
+			endpoint = `/communication/chatted-customers/?search=${debouncedSearchQuery}${channelIdParam}${assigneeParam}`;
 		  } else if (chatType === "leads") {
-			endpoint = `/communication/contacts/?search=${debouncedSearchQuery}${channelIdParam}`;
+			endpoint = `/communication/contacts/?search=${debouncedSearchQuery}${channelIdParam}${assigneeParam}`;
 		  } else if (chatType === "archived") {
-			endpoint = `/communication/conversations/?status=ended&search=${debouncedSearchQuery}${channelIdParam}`;
+			endpoint = `/communication/conversations/?status=ended&search=${debouncedSearchQuery}${channelIdParam}${assigneeParam}`;
 		  }
 
 		if (!endpoint) return;
@@ -465,15 +466,15 @@ export const MessagesContent = () => {
 
 	const handleAssigneeClick = (agentId) => {
 		if (selectedAgent === agentId) {
-		  setSelectedAgent(null);
-		  setIsFilterActive(false);
-		  fetchChatList({ reset: true });
+			setSelectedAgent(null);
+			setIsFilterActive(false);
+			fetchChatList({ reset: true});
 		} else {
-		  setSelectedAgent(agentId);
-		  setIsFilterActive(true);
-		  fetchChatList({ reset: true, agent: agentId });
+			setSelectedAgent(agentId);
+			setIsFilterActive(true);
+			fetchChatList({ reset: true });
 		}
-	  };
+	};	
 	
 	const clearFilter = () => {
 		setSelectedAgent(null);
