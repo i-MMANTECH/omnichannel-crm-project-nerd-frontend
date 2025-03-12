@@ -32,16 +32,6 @@ export default function Profile() {
         }
     }
 
-    const userName = useMemo(() => {
-        if (userProfile?.first_name && userProfile?.last_name) {
-          return userProfile?.first_name + " " + userProfile?.last_name
-        } else if(userProfile?.first_name) {
-          return userProfile?.first_name
-        } else {
-          return '--'
-        }
-    }, [userProfile])
-
     return (
         <div className="flex flex-col md:flex-row justify-center my-5 gap-4 p-4">
             <div className="flex flex-col items-center p-5 rounded-lg border border-gray-300 w-full md:w-1/3 lg:w-1/4 shadow-md">
@@ -55,14 +45,21 @@ export default function Profile() {
                             className="rounded-full w-20 h-20" 
                         />
                     ) : (
-                        <UserAvatar
-                        name={userName}
-                        width="w-20"
-                        height="h-20"
+                        <UserAvatar 
+                            name={userProfile?.first_name ? 
+                            `${userProfile.first_name} ${userProfile?.last_name}` : 
+                            userProfile?.email || '--'
+                            } 
+                            className="w-20 h-20 rounded-full profile-icon cursor-pointer flex-shrink-0"
+                            width="w-20" 
+                            height="h-20" 
                         />
                     )}    
-                    <p className="text-center text-xl font-bold self-stretch mt-3">
-                        {userName}
+                    <p className="text-center text-xl font-bold self-stretch mt-3 truncate">
+                        {userProfile?.first_name ? 
+                          `${userProfile.first_name} ${userProfile?.last_name}` : 
+                          userProfile?.email || '--'
+                        }
                     </p>
                     <div className="flex justify-center items-center gap-1 text-right admin w-auto p-[2px_8px] rounded-md text-sm font-medium">
                         <svg

@@ -1,7 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
-      domains: ['img.icons8.com', 'core-staging.nativetalkcrm.com', 'staging.core.nativetalkcrm.com'],
+      unoptimized: true,
+      domains: [
+        'img.icons8.com', 
+        'core-staging.nativetalkcrm.com', 
+        'staging.core.nativetalkcrm.com',
+      ],
     },
     async redirects() {
       return [

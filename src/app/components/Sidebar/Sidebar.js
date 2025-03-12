@@ -278,10 +278,15 @@ function Sidebar() {
                             className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
                         />
                     ) : (
-                      <UserAvatar
-                      name={userProfile?.first_name ? `${userProfile?.first_name} ${userProfile?.last_name}`: '--'} 
-                      className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
-                      width="w-8" height="h-8" />
+                      <UserAvatar 
+                        name={userProfile?.first_name ? 
+                          `${userProfile.first_name} ${userProfile?.last_name}` : 
+                          userProfile?.email || '--'
+                        } 
+                        className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
+                        width="w-8" 
+                        height="h-8" 
+                      />
                     )}   
                     <div className="text-sm min-w-0 flex-1">
                       <h3 className="font-medium text-gray-800 dark:text-gray-200 truncate">
@@ -329,13 +334,25 @@ function Sidebar() {
                       href="/nativecrm/profile"
                       className="flex items-center gap-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
-                      <Image
-                        src="/assets/user-profile-image.png"
-                        alt="Agent"
-                        className="w-8 h-8 rounded-full"
-                        width={30}
-                        height={30}
-                      />
+                      {userProfile?.image ? (
+                        <Image
+                            src={userProfile?.image}
+                            alt="User Profile"                        
+                            width={30}
+                            height={30}
+                            className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
+                          />
+                      ) : (
+                        <UserAvatar 
+                          name={userProfile?.first_name ? 
+                            `${userProfile.first_name} ${userProfile?.last_name}` : 
+                            userProfile?.email || '--'
+                          } 
+                          className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
+                          width="w-8" 
+                          height="h-8" 
+                        />
+                        )}
                       <h3 className="text-gray-800 dark:text-gray-200 font-medium">View Profile</h3>
                     </Link>
 

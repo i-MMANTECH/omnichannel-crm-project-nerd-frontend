@@ -35,7 +35,7 @@ const ModalController = ({ children }) => {
   return children({ isModalOpen, openModal, closeModal });
 };
 
-const ChatHeader = ({ activeUser, isLead, conversationId }) => {
+const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successModalMessage, setSuccessModalMessage] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -68,6 +68,11 @@ const ChatHeader = ({ activeUser, isLead, conversationId }) => {
   }, []);
 
   if (!activeUser) return null;
+
+  const closeSessionModal = () => {
+    setIsEndSessionModalOpen(false)
+    refreshChatList()
+  }
 
   const formattedTime = new Date(activeUser.lastMessageTime || activeUser.last_message_at).toLocaleString([], {
     hour: "2-digit",
@@ -230,7 +235,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId }) => {
           {isEndSessionModalOpen && (
             <EndSessionModal
               isOpen={isEndSessionModalOpen}
-              onClose={() => setIsEndSessionModalOpen(false)}
+              onClose={closeSessionModal}
               conversationId={conversationId}
               setIsSuccessModalOpen={setIsSuccessModalOpen}
               setSuccessModalMessage={setSuccessModalMessage}
