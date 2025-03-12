@@ -15,6 +15,7 @@ import TaskUpdateModal from "./TaskUpdateModal";
 import TaskViewModal from "./TaskViewModal";
 import useCustomAlert from "@/context/useCustomAlert";
 import { usePermissions } from "@/context/PermissionsContext";
+import UserAvatar from "../UserAvatar";
 
 const ModalController = ({ children }) => {
     const searchParams = useSearchParams();
@@ -95,6 +96,9 @@ export default function Task() {
   const [loading, setLoading] = useState(true);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);
+  const [users, setUsers] = useState([])
+  const [selectedUser, setSelectedUser] = useState([])
+  const [isFilterActive, setIsFilterActive] = useState(false)
 
   const { checkPermission } = usePermissions();
   const addTask = checkPermission('add_task');
@@ -128,10 +132,14 @@ export default function Task() {
     }
   }, [view]);
 
-  const fetchTasks = async () => {
+  const fetchTasks = async (assignee = null) => {
     setLoading(true);
     try {
-      const { data } = await axiosInstance.get("tasks/list/");
+      let url = "tasks/list/";
+      if (assignee) {
+        url += `?assignee=${assignee}`;
+      }
+      const { data } = await axiosInstance.get(url);
       setTasks(data.tasks);
     } catch (err) {
       handleApiError(err);
@@ -139,9 +147,37 @@ export default function Task() {
       setLoading(false);
     }
   };
+  
+  const fetchUsers = async () => {
+    try {
+        const { data } = await axiosInstance.get(`/users`);
+        setUsers(data.results || []);
+    } catch (error) {
+        handleApiError(error);
+    }
+};
 
   const { showAlert, AlertModal } = useCustomAlert();
 
+  const handleAssigneeClick = (userId) => {
+    if (selectedUser === userId) {
+      setSelectedUser(null);
+      setIsFilterActive(false);
+      fetchTasks();
+    } else {
+      setSelectedUser(userId);
+      setIsFilterActive(true);
+      fetchTasks(userId);
+    }
+  };
+
+  const clearFilter = () => {
+    setSelectedUser(null);
+    setIsFilterActive(false);
+    fetchTasks();
+  };
+  
+  
   const handleDelete = (id) => {
     showAlert("Confirm Deletion", "Are you sure you want to delete this task?", async () => {
       try {
@@ -179,6 +215,7 @@ export default function Task() {
 
   useEffect(() => {
     fetchTasks();
+    fetchUsers()
   }, []);
 
   const closeSuccessModal = () => {
@@ -214,26 +251,70 @@ export default function Task() {
                   </span>
                 </button>
                 <div className="relative">
-            <button 
-            onClick={() => setIsSortModalOpen((prev) => !prev)}
-            className="hidden flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
-                  <FontAwesomeIcon icon={faSort} className="text-gray-500 mr-2" />
-                  <span className="text-sm font-medium">Sort by</span>
-                </button>
+                <div className="relative flex items-center">
+                  {users.map((assignee, index) => (
+                    <div 
+                      key={index}
+                      className={`cursor-pointer rounded-full transition-all duration-300
+                      ${selectedUser === assignee.id ? 'ring-2 dark:ring-white ring-gray-500 z-10' : ''}`}
+                      style={{ marginLeft: index !== 0 ? '-7px' : '0px' }} 
+                      onClick={() => handleAssigneeClick(assignee.id)}
+                      onMouseEnter={(e) => e.currentTarget.classList.add("z-10")}
+                      onMouseLeave={(e) => e.currentTarget.classList.remove("z-10")}
+                    >
+                      {assignee?.image ? (
+                        <Image
+                          alt="profile pic"
+                          className="w-9 h-9 rounded-full border-2 border-white"
+                          src={assignee.image} 
+                          width={30}
+                          height={30}
+                        />
+                      ) : (
+                        <UserAvatar 
+                          name={assignee?.first_name ? 
+                            `${assignee.first_name} ${assignee?.last_name}` : 
+                            assignee?.email || '--'
+                          } 
+                          className="w-10 h-10 rounded-full flex-shrink-0 border-2 border-white"
+                          width="w-9" 
+                          height="h-9" 
+                        />
+                      )}
+                    </div>
+                  ))}
+                  
+                  {isFilterActive && (
+                    <button 
+                      className="ml-3 px-3 py-1.5 text-sm bg-gray-200 dark:bg-neutral-800 text-gray-700 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-neutral-700 transition"
+                      onClick={clearFilter}
+                    >
+                      Clear Filter
+                    </button>
+                  )}
+                </div>
+                </div>
+                <div className="relative">
+                  <button 
+                  onClick={() => setIsSortModalOpen((prev) => !prev)}
+                  className="hidden flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
+                        <FontAwesomeIcon icon={faSort} className="text-gray-500 mr-2" />
+                        <span className="text-sm font-medium">Sort by</span>
+                  </button>
                     {isSortModalOpen && (
-              <div  className="absolute  top-full left-[-32px] mt-2 flex items-center justify-center z-50 ">
-                <div style={{width:220}} className="flex flex-col gap-2 p-4 rounded-lg border border-[#DFE1E6] bg-white">
-                  <div className="flex items-center gap-3 cursor-pointer">
-                    <p className="text-[#0D0D12] text-[14px] font-normal">Agent</p>
-                  </div>
-                  <div className="flex items-center gap-3 cursor-pointer">
-                    <p className="text-[#0D0D12] text-[14px] font-normal">Date Range</p>
-                  </div>
-                  <div className="flex items-center gap-3 cursor-pointer">
-                    <p className="text-[#0D0D12] text-[14px] font-normal">Task type</p>
+                  <div  className="absolute  top-full left-[-32px] mt-2 flex items-center justify-center z-50 ">
+                    <div style={{width:220}} className="flex flex-col gap-2 p-4 rounded-lg border border-[#DFE1E6] bg-white">
+                      <div className="flex items-center gap-3 cursor-pointer">
+                        <p className="text-[#0D0D12] text-[14px] font-normal">Agent</p>
+                      </div>
+                      <div className="flex items-center gap-3 cursor-pointer">
+                        <p className="text-[#0D0D12] text-[14px] font-normal">Date Range</p>
+                      </div>
+                      <div className="flex items-center gap-3 cursor-pointer">
+                        <p className="text-[#0D0D12] text-[14px] font-normal">Task type</p>
+                      </div>
                   </div>
                 </div>
-              </div>
             )}
           </div>
 

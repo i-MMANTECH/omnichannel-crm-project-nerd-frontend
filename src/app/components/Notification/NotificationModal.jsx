@@ -146,7 +146,15 @@ const NotificationModal = () => {
                   className="rounded-full w-8 h-8" 
                   src={notification?.receiver?.image} 
                 />}
-                {!notification?.receiver?.image && <UserAvatar name={notification?.receiver?.first_name ? `${notification?.receiver.first_name} ${notification?.receiver.last_name}`: '--'} width="w-8" height="h-8" />}
+                {!notification?.receiver?.image && (
+                  <UserAvatar 
+                    name={notification?.receiver?.first_name ? 
+                      `${notification.receiver.first_name} ${notification.receiver.last_name}` : 
+                      notification?.receiver?.email || '--'} 
+                    width="w-8" 
+                    height="h-8" 
+                  />
+                )}
               </div>
               <div className="flex flex-col">
                 <p className="text-sm">

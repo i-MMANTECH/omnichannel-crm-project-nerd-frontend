@@ -222,7 +222,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                     <strong>
                       {comment.created_by.first_name?.trim() || comment.created_by.last_name?.trim() 
                         ? `${comment.created_by.first_name} ${comment.created_by.last_name}`.trim()
-                        : 'Unnamed User'}
+                        : '--'}
                     </strong>
                       <span className="ml-2 text-gray-500">{timeAgo(comment.created_at)}</span>
                     </p>
@@ -263,7 +263,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                     <p className="font-medium">
                       {member.first_name ? 
                         `${member.first_name} ${member.last_name}` : 
-                        'Unnamed User'
+                        '--'
                       }
                     </p>
                     <p className="text-sm ">{member.email}</p>

@@ -9,6 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "use-debounce";
 import "./style.css";
 import { useAuth } from "@/context/AuthContext";
+import UserAvatar from "../UserAvatar";
 
 export const MessagesContent = () => {
 	const { axiosInstance } = useApi();
@@ -45,6 +46,9 @@ export const MessagesContent = () => {
 	const [connectedChannels, setConnectedChannels] = useState([])
 	const [selectedChannel, setSelectedChannel] = useState(null);
 	const [isRotating, setIsRotating] = useState(false);
+	const [agents, setAgents] = useState([])
+	const [selectedAgent, setSelectedAgent] = useState([])
+	const [isFilterActive, setIsFilterActive] = useState(false)
 
 
 	const [cachedData, setCachedData] = useState({
@@ -211,6 +215,7 @@ export const MessagesContent = () => {
     }, []);
 
 	useEffect(() => {
+		fetchAgents()
 		fetchChannelsData();
 	  }, []);
 
@@ -279,7 +284,7 @@ export const MessagesContent = () => {
 		}
 	}
 
-	const fetchChatList = async ({ reset = false } = {}) => {
+	const fetchChatList = async ({ reset = false, agent = null } = {}) => {
 		let endpoint;
 		const channelIdParam = selectedChannel ? `&channel_id=${selectedChannel.id}` : "";
 
@@ -415,6 +420,33 @@ export const MessagesContent = () => {
                 handleApiError(error);
             }
         }
+	};
+
+	const fetchAgents = async () => {
+		try {
+			const { data } = await axiosInstance.get(`/users`);
+			setAgents(data.results || []);
+		} catch (error) {
+			handleApiError(error);
+		}
+	};
+
+	const handleAssigneeClick = (agentId) => {
+		if (selectedAgent === agentId) {
+		  setSelectedAgent(null);
+		  setIsFilterActive(false);
+		  fetchChatList({ reset: true });
+		} else {
+		  setSelectedAgent(agentId);
+		  setIsFilterActive(true);
+		  fetchChatList({ reset: true, agent: agentId });
+		}
+	  };
+	
+	const clearFilter = () => {
+		setSelectedAgent(null);
+		setIsFilterActive(false);
+		fetchChatList({ reset: true });
 	};
 
 	const handleChatSelect = (user) => {
@@ -598,9 +630,53 @@ export const MessagesContent = () => {
 	return (
 		<div className="body-theme flex flex-col px-5 ">
 			<div className="flex p-4 items-center justify-between w-full ">
-				<h1 className="font-bold ">
-					All Messages
-				</h1>
+				<div className="flex items-center gap-8">
+					<h1 className="font-bold ">
+						All Messages
+					</h1>
+					<div className="relative flex items-center">
+					{agents.map((assignee, index) => (
+						<div 
+						key={index}
+						className={`cursor-pointer rounded-full transition-all duration-300
+						${selectedAgent === assignee.id ? 'ring-2 dark:ring-white ring-gray-500 z-10' : ''}`}
+						style={{ marginLeft: index !== 0 ? '-7px' : '0px' }} 
+						onClick={() => handleAssigneeClick(assignee.id)}
+						onMouseEnter={(e) => e.currentTarget.classList.add("z-10")}
+						onMouseLeave={(e) => e.currentTarget.classList.remove("z-10")}
+						>
+						{assignee?.image ? (
+							<Image
+							alt="profile pic"
+							className="w-9 h-9 rounded-full border-2 border-white"
+							src={assignee.image} 
+							width={30}
+							height={30}
+							/>
+						) : (
+							<UserAvatar 
+							name={assignee?.first_name ? 
+								`${assignee.first_name} ${assignee?.last_name}` : 
+								assignee?.email || '--'
+							} 
+							className="w-10 h-10 rounded-full flex-shrink-0 border-2 border-white"
+							width="w-9" 
+							height="h-9" 
+							/>
+						)}
+						</div>
+					))}
+					
+					{isFilterActive && (
+						<button 
+						className="ml-3 px-3 py-1.5 text-sm bg-gray-200 dark:bg-neutral-800 text-gray-700 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-neutral-700 transition"
+						onClick={clearFilter}
+						>
+						Clear Filter
+						</button>
+					)}
+					</div>
+				</div>
 
 				<div className="flex gap-4">
 					<button 

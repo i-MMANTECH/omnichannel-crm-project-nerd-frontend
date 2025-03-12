@@ -46,7 +46,8 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
 
       if (response.status === 201) {
         setIsLoading(false);
-        onMessageSent(); // Notify parent component (CustomerDetails) to redirect
+        onMessageSent();
+        console.log('messge sent ')
       }
     } catch (error) {
       handleApiError(error);
