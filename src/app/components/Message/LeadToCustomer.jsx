@@ -50,7 +50,7 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
                             first_name: firstName || leadData.name || "",
                             last_name: lastName || "",
                             gender: leadData.gender || "",
-                            phone_number: leadData.phone_number || "",
+                            phone_number: leadData?.channel == 2 ? leadData.unique_identifier : "",
                             email: leadData.email || "",
                             instagram: leadData.instagram || "",
                             facebook: leadData.facebook || "",

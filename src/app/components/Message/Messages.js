@@ -143,74 +143,106 @@ export const MessagesContent = () => {
 
 		wsRef.current.onmessage = (event) => {
 			const data = JSON.parse(event.data);
-
 			const message = data.message;
-			const newUser = data.message.lead_sender_details;
-			console.log("message ", message)
-
-			if (
-				activeUser &&
-				(message.lead_sender === activeUser.id ||
-				message.customer_sender === activeUser.id ||
-				message.lead_info?.id === activeUser.id)
-			) {
-				const newHistory = [...chatHistory, message];
-                setChatHistory(newHistory);
-                setCachedData(prev => ({
-                    ...prev,
-                    [chatType]: {
-                        ...prev[chatType],
-                        histories: {
-                            ...prev[chatType].histories,
-                            [activeUser.id]: newHistory
-                        }
-                    }
-                }));
-			} else {	
+		
+			// Correctly determine whether the message is from a lead or a customer
+			const isLeadMessage = typeof message.lead_sender === "number";
+			const isCustomerMessage = typeof message.customer_sender === "number";
+		
+			// Ensure the correct sender details are retrieved
+			const newUser = isLeadMessage
+				? message.lead_sender_details
+				: isCustomerMessage
+				? message.customer_sender_details
+				: null;
+		
+			console.log("Received Message:", message);
+		
+			// **Fix: Ensure messages are assigned to the correct chat type**
+			const messageChatType = isLeadMessage ? "leads" : isCustomerMessage ? "customers" : null;
+		
+			if (!messageChatType) {
+				console.warn("⚠️ Message does not belong to leads or customers:", message);
+				return;
+			}
+		
+			// **Ensure messages only appear in the correct tab**
+			if (currentTabRef.current === messageChatType) {
+				// Update chat history if the active user matches the sender
+				if (
+					activeUser &&
+					((isLeadMessage && message.lead_sender === activeUser.id) ||
+						(isCustomerMessage && message.customer_sender === activeUser.id) ||
+						message.lead_info?.id === activeUser.id)
+				) {
+					markConversationAsRead(activeUser.id);
+					const newHistory = [...chatHistory, message];
+					setChatHistory(newHistory);
+		
+					setCachedData((prev) => ({
+						...prev,
+						[messageChatType]: {
+							...prev[messageChatType],
+							histories: {
+								...prev[messageChatType].histories,
+								[activeUser.id]: newHistory,
+							},
+						},
+					}));
+				}
+			}
+		
+			// **Only update users in the correct chat type**
+			if (newUser) {
 				setUsers((prevUsers) => {
+					if (currentTabRef.current !== messageChatType) {
+						// Prevent adding customers to leads or vice versa
+						return prevUsers;
+					}
+		
 					const existingUsers = prevUsers?.results || [];
 					const existingUserIndex = existingUsers.findIndex(user => user?.id === newUser?.id);
-	
+		
 					let updatedUsers;
-	
 					if (existingUserIndex !== -1) {
-						// If user already exists, remove them and move to top with updated details
 						updatedUsers = [
-							newUser, // Updated user
-							...existingUsers.filter(user => user.id !== newUser.id)
+							newUser, // Move to top
+							...existingUsers.filter(user => user.id !== newUser.id),
 						];
 					} else {
-						// If user is new, add them to the top of the list
 						updatedUsers = [newUser, ...existingUsers];
 					}
-	
+		
 					return {
 						...prevUsers,
-						results: updatedUsers
+						results: updatedUsers,
 					};
 				});
-	
-				setCachedData(prev => ({
+				
+				// **Ensure users are cached in the correct chat type**
+				setCachedData((prev) => ({
 					...prev,
-					[chatType]: {
-						...prev[chatType],
+					[messageChatType]: {
+						...prev[messageChatType],
 						users: {
-							...prev[chatType]?.users,
+							...prev[messageChatType]?.users,
 							results: [
 								newUser,
-								...(prev[chatType]?.users?.results || []).filter(user => user.id !== newUser.id)
-							]
-						}
-					}
+								...(prev[messageChatType]?.users?.results || []).filter(user => user.id !== newUser.id),
+							],
+						},
+					},
 				}));
 			}
 		};
+		
+		
 	}, [activeUser, chatHistory, chatType]);
 
 	useEffect(() => {
         return () => {
             if (abortControllerRef.current) {
-                abortControllerRef.current.abort();
+                abortControllerRef?.current?.abort();
             }
         };
     }, []);
@@ -322,7 +354,6 @@ export const MessagesContent = () => {
             });
 			
 			setLoading(false);
-			console.log('chat lit response', response)
             // Only update state if we're still on the same tab
             if (currentTabRef.current === requestChatType) {
                 setCachedData(prev => ({
@@ -462,7 +493,7 @@ export const MessagesContent = () => {
         }
         
         setActiveUser(null);
-        setChatHistory(null);
+        setChatHistory([]);
         router.push(`/nativecrm/messages?chat=${tab}`, { scroll: false });
         
         // Update current tab reference
@@ -470,12 +501,9 @@ export const MessagesContent = () => {
         
 		if (!cachedData[tab]?.users) {
             setLoading(true);
-        }
-
-        // Load cached data for the new tab immediately
-        if (cachedData[tab]?.users) {
-            setUsers(cachedData[tab].users);
-        }
+        } else {
+			setUsers(cachedData[tab].users);
+		}
     };
 	
 	const handleSendMessage = (messageContent) => {
