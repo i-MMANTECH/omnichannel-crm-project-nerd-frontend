@@ -10,6 +10,7 @@ import { useDebounce } from "use-debounce";
 import "./style.css";
 import { useAuth } from "@/context/AuthContext";
 import UserAvatar from "../UserAvatar";
+import Image from "next/image";
 
 export const MessagesContent = () => {
 	const { axiosInstance } = useApi();

@@ -16,6 +16,8 @@ import TaskViewModal from "./TaskViewModal";
 import useCustomAlert from "@/context/useCustomAlert";
 import { usePermissions } from "@/context/PermissionsContext";
 import UserAvatar from "../UserAvatar";
+import Image from "next/image";
+
 
 const ModalController = ({ children }) => {
     const searchParams = useSearchParams();
