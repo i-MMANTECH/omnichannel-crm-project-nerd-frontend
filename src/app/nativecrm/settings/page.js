@@ -6,6 +6,7 @@ import SettingsSidebar from "@/app/components/Settings/SettingsSidebar";
 import IntegrateChannels from "@/app/components/Settings/channels/IntegrateChannels";
 import RoleManagement from '@/app/components/Settings/role-management/RoleManagement';
 import dynamic from 'next/dynamic';
+import SlaPolicies from '@/app/components/Settings/sla-policies/SlaPolicies';
 
 
 const PlansAndBillings = dynamic(() => import('@/app/components/Settings/plans-and-billings/PlansAndBillings'), { 
@@ -48,6 +49,8 @@ export default function Settings() {
         return <div>Security Settings Component</div>;
       case 'plans-and-billings':
         return <PlansAndBillings/>;
+      case 'sla-policies':
+        return <SlaPolicies/>;
       default:
         return <div>Select a setting from the sidebar</div>;
     }
