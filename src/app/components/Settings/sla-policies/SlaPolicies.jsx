@@ -1,34 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import SlaModal from "./SlaModal";
+import { useApi } from "@/services/axiosConfig";
+import { useError } from "@/context/ErrorContext";
 
 const SlaPolicies = () => {
+    const { axiosInstance } = useApi();
+    const { handleApiError } = useError();
     const [showModal, setShowModal] = useState(false);
-    const dummyData = [
-        {
-        id: 1,
-        name: "Ogechi Arinze",
-        email: "ogechiarinze@gmail.com",
-        department: "VoIP",
-        startAlert: "00:20:00",
-        dueAlert: "00:20:00",
-        },
-        {
-        id: 2,
-        name: "Ogechi Arinze",
-        email: "ogechiarinze@gmail.com",
-        department: "VoIP",
-        startAlert: "00:20:00",
-        dueAlert: "00:20:00",
-        },
-        {
-        id: 3,
-        name: "Ogechi Arinze",
-        email: "ogechiarinze@gmail.com",
-        department: "VoIP",
-        startAlert: "00:20:00",
-        dueAlert: "00:20:00",
-        },
-    ];
+    const [slaData, setSlaData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+      const fetchSlaPolicies = async () => {
+          try {
+              const response = await axiosInstance.get("/sla/", {
+                  params: { plan_id: 1 },
+              });
+              setSlaData(response.data.results);
+          } catch (err) {
+              setError(handleApiError(err));
+          } finally {
+              setLoading(false);
+          }
+      };
+      fetchSlaPolicies();
+  }, []);
+  
+console.log(slaData)
 
   return (
     <>
@@ -71,7 +70,12 @@ const SlaPolicies = () => {
       )}
 
       {/* Table Section */}
-      <div className="overflow-auto">
+      {loading ? (
+        <p>Loading...</p>
+      ) : error ? (
+        <p className="text-red-500">{error}</p>
+      ) : (
+        <div className="overflow-auto">
         <table className="min-w-full body-theme">
           <thead className="bg-gray-100 dark:bg-neutral-900">
             <tr>
@@ -93,21 +97,25 @@ const SlaPolicies = () => {
             </tr>
           </thead>
           <tbody>
-            {dummyData.map((sla) => (
+            {slaData.map((sla) => (
               <tr
                 key={sla.id}
                 className="hover:bg-gray-100 dark:hover:bg-neutral-900 cursor-pointer"
               >
-                <td className="py-3 px-4 border-b">{sla.name}</td>
-                <td className="py-3 px-4 border-b">{sla.email}</td>
+                <td className="py-3 px-4 border-b">{sla.title}</td>
                 <td className="py-3 px-4 border-b">{sla.department}</td>
-                <td className="py-3 px-4 border-b">{sla.startAlert}</td>
-                <td className="py-3 px-4 border-b">{sla.dueAlert}</td>
+                <td className="py-3 px-4 border-b">
+                  {`${sla.not_started_hours}h ${sla.not_started_minutes}m`}
+                </td>
+                <td className="py-3 px-4 border-b">
+                  {sla.dueAlert || "N/A"}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      )}
     </>
   );
 };

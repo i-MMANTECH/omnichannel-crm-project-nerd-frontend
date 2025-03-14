@@ -12,69 +12,131 @@ import { getRoleStyle } from "@/utils/getRoleStyle";
 
 export default function UserDetails({ user }) {
   const [selected, setSelected] = useState("work-schedule");
+  const [previewImage, setPreviewImage] = useState(user?.image || null);
 
-
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result); // Set preview image
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const name = useMemo(() => {
-    if (user?.name) {
-      return `${user?.first_name} ${user?.last_name}`
-    } else {
-      return '--'
-    }
-  })
+    return user?.first_name && user?.last_name
+      ? `${user.first_name} ${user.last_name}`
+      : "--";
+  }, [user]);
+  
 
   return (
     <div className="flex justify-center mt-5">
       <div className="flex mb-5 flex-col max-w-[788px] p-8 items-center gap-6 flex-1 rounded-lg border border-gray-300 body-theme">
       <div className="user-top-content flex flex-col md:flex-row justify-between border w-full rounded-lg p-6 gap-4">
         {/* User Profile Section */}
-        <div className="px-6 py-4 flex flex-col items-center gap-1 h-fit rounded-lg border border-gray-200 body-theme w-full md:w-auto">
-          {user?.image && (
-            <Image
-              className="user-left-image mt-2 w-10 h-10 rounded-full"
-              alt="bio"
-              src={user?.image}
-              width={50}
-              height={50}
-            />
-          )}
-          {!user?.image && <UserAvatar name={user?.name ? user?.name : '--'} />}
+        <div className="relative px-6 py-4 flex flex-col items-center gap-1 h-fit rounded-lg border border-gray-200 body-theme w-full md:w-auto">
+          {/*previewImage or User Image or Avatar */}
+          <div className="relative">
+            {previewImage ? (
+              <Image
+                className="user-left-image mt-2 w-20 h-20 rounded-full"
+                alt="User Preview"
+                src={previewImage}
+                width={80}
+                height={80}
+              />
+            ) : user?.image ? (
+              <Image
+                className="user-left-image mt-2 w-10 h-10 rounded-full"
+                alt="bio"
+                src={user?.image}
+                width={50}
+                height={50}
+              />
+            ) : (
+              <UserAvatar name={user?.name ? user?.name : "--"} />
+            )}
 
-          <p className="user-left-name">{name}</p>
-          <p className="user-left-email">{user?.email}</p>
-          <div className="flex w-full mt-4 items-center justify-between">
-            <p className="py-1 pl-2 pr-2 text-right text-[#40C4AA] -ml-1 font-medium text-[12px] font-normal rounded-sm">
-              {user?.roles.map((role) => (
-                <span key={role.id} className="px-2 py-1 rounded ml-1" style={getRoleStyle(role.name)}>
-                  {role.name}
-                </span>
-              ))}
-            </p>
-            <p className="text-right font-medium text-sm bg-[#F8F9FB] dark:bg-gray-800 px-2 py-1 rounded">
-              Last seen: {user?.last_active || '--'}
-            </p>
+              {/* Change Picture Icon */}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                id="upload-photo"
+                onChange={(e) => handleImageUpload(e)}
+              />
+              <button
+                className="absolute bottom-0 right-0 bg-gray-800 text-white p-1 rounded-full hover:bg-gray-600 transition"
+                onClick={() => document.getElementById("upload-photo").click()}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.232 5.232a2.828 2.828 0 0 1 4 4L7 21H3v-4L15.232 5.232z"
+                  />
+                </svg>
+              </button>
+
+               {previewImage && (
+                <button
+                  className="mt-2 bg-blue-500 text-white px-4 py-1 rounded-md hover:bg-blue-600 transition w-full"
+                  onClick={handleImageUpload}
+                >
+                  Submit Image
+                </button>
+              )}
+
           </div>
-        </div>
 
-        {/* User Details Section */}
-        <div className="flex flex-1 justify-start flex-col body-theme w-full">
-          <p className="font-medium text-[14px] font-normal text-left">General</p>
-          <hr className="w-full h-[1px] bg-[#DFE1E6] mt-2" />
+              {/* User Details */}
+              <p className="user-left-name">{name}</p>
+              <p className="user-left-email">{user?.email}</p>
 
-          <div className="flex items-center justify-between mt-2">
-            <p className="font-medium text-[14px] font-normal text-left">Name</p>
-            <p className="user-left-name">{name}</p>
-          </div>
-
-          <div className="flex items-center justify-between mt-2">
-            <p className="font-medium text-[14px] font-normal text-left">Role</p>
-            <p className="user-left-name -ml-1">
-              {user?.roles.map((role) => (
+              <div className="flex w-full mt-4 items-center justify-between">
+                <p className="py-1 pl-2 pr-2 text-right text-[#40C4AA] -ml-1 font-medium text-[12px] font-normal rounded-sm">
+                  {user?.roles?.map((role) => (
                 <span key={role.id} className="px-2 py-1 ml-1 rounded" style={getRoleStyle(role.name)}>
                   {role.name}
                 </span>
-              ))}
-            </p>
+              )) || "--"}
+
+                </p>
+                <p className="text-right font-medium text-sm bg-[#F8F9FB] dark:bg-gray-800 px-2 py-1 rounded">
+                  Last seen: {user?.last_active || '--'}
+                </p>
+              </div>
+              </div>
+
+            {/* User Details Section */}
+            <div className="flex flex-1 justify-start flex-col body-theme w-full">
+              <p className="font-medium text-[14px] font-normal text-left">General</p>
+              <hr className="w-full h-[1px] bg-[#DFE1E6] mt-2" />
+
+              <div className="flex items-center justify-between mt-2">
+                <p className="font-medium text-[14px] font-normal text-left">Name</p>
+                <p className="user-left-name">{name}</p>
+              </div>
+
+              <div className="flex items-center justify-between mt-2">
+                <p className="font-medium text-[14px] font-normal text-left">Role</p>
+                <p className="user-left-name -ml-1">
+                  {user?.roles.map((role) => (
+                    <span key={role.id} className="px-2 py-1 ml-1 rounded" style={getRoleStyle(role.name)}>
+                      {role.name}
+                    </span>
+                  ))}
+                </p>
           </div>
 
           <div className="flex items-center justify-between mt-2">
