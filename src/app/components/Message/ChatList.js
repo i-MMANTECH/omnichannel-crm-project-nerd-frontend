@@ -94,7 +94,7 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading 
         {results.map((user) => {
             return (
               <div
-                key={user.id}
+                key={user?.id}
                 className={`flex items-center rounded ${
                   user?.id === activeUser?.id ? "bg-gray-200 dark:bg-gray-800" : ""
                 }`}
@@ -103,25 +103,25 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading 
                 <div className="flex items-center gap-3 p-3 cursor-pointer rounded">
                   <div className="relative">
                     <div>
-                      {user.profileImage ? (
+                      {user?.image ? (
                         <Image
-                          loader={() => user.profileImage}
-                          src={user.profileImage}
+                          loader={() => user?.image}
+                          src={user?.image}
                           alt="User Profile"
                           width={100}
                           height={100}
                           className="w-11 h-11 rounded-full"
                         />
                       ) : (
-                        <UserAvatar name={user.name || user.lead_name} width="w-11" height="h-11" />
+                        <UserAvatar name={user?.name || user?.lead_name || user?.lead?.name || user?.customer_name || user?.customer?.first_name || user?.customer?.username || user?.customer?.email || "Unknown "} width="w-11" height="h-11" />
                       )}
                     </div>
-                    {user.channel?.image && (
+                    {user?.channel?.image && (
                       <div>
                         <Image
-                          loader={() => user.channel?.image}
-                          src={`${user.channel?.image}`}
-                          alt={`${user.channel?.name} Icon`}
+                          loader={() => user?.channel?.image}
+                          src={`${user?.channel?.image}`}
+                          alt={`${user?.channel?.name} Icon`}
                           className="absolute bottom-0 right-0 rounded-full bg-white p-[3.5px]"
                           width={18}
                           height={18}
@@ -131,33 +131,33 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading 
                   </div>
                   <div className="content ">
                     <div className="flex justify-between  w-full ">
-                      <div className="text-black dark:text-white user-name">{user.name || user.lead_name || "Unknown User"}</div>
+                      <div className="text-black dark:text-white user-name">{user?.name || user?.lead_name || user?.lead?.name || user?.customer_name || user?.customer.first_name || user?.customer.username || user?.customer.email || "Unknown "}</div>
                       <div className="relative flex items-center">
                         {/* Time Display */}
-                        <div className="title-2 ">{formatChatTime(user.lastMessageTime || user.last_message_at)}</div>
+                        <div className="title-2 ">{formatChatTime(user?.lastMessageTime || user?.last_message_at)}</div>
 
                         {/* Unread Message Indicator */}
-                        {user.unreadCount > 0 && (
+                        {user?.unreadCount > 0 && (
                           <div className="absolute -bottom-7 right-0 flex items-center justify-center w-5 h-5 bg-green-600 text-white text-xs font-bold rounded-full shadow-md">
-                            {user.unreadCount}
+                            {user?.unreadCount}
                           </div>
                         )}
                       </div>
                     </div>
                     <div className="flex justify-between w-full ">
-                      <p className="label last-message ">{truncateMessage(user.lastMessage || user?.end_reason, 27)}</p>
+                      <p className="label last-message ">{truncateMessage(user?.lastMessageData?.content || user?.lastMessage || user?.end_reason, 27)}</p>
                       <div className="hidden">
-                        {user.unreadCount > 0 && (
+                        {user?.unreadCount > 0 && (
                           <div className="title-wrapper">
-                            <div className="title-3">{user.unreadCount}</div>
+                            <div className="title-3">{user?.unreadCount}</div>
                           </div>
                         )}
                         <FontAwesomeIcon
                           icon={faEllipsisH}
                           className="dots-horizontal"
-                          onClick={() => toggleMenu(user.id)}
+                          onClick={() => toggleMenu(user?.id)}
                         />
-                        {menuOpen === user.id && (
+                        {menuOpen === user?.id && (
                           <div
                             ref={menuRef}
                             className="absolute right-0 mt-2 w-32 bg-white border border-gray-300 rounded-lg shadow-lg z-50"

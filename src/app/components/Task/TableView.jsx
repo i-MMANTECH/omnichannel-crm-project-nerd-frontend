@@ -20,6 +20,8 @@ export default function TableView({ tasks, updateTask, handleDelete, openViewMod
       return assignee?.name
     } else  if (assignee.first_name) {
       return assignee?.first_name + " " + assignee?.last_name
+    } else  if (assignee.email) {
+      return assignee?.email
     } else {
       return '--'
     }
@@ -205,7 +207,7 @@ export default function TableView({ tasks, updateTask, handleDelete, openViewMod
                       <Image 
                         key={index}
                         alt="profile pic"
-                        className="w-6 h-6 rounded-full border-2 border-white"
+                        className="w-7 h-7 rounded-full border-2 border-white"
                         src={assignee.image} 
                         width={30}
                         height={30}
@@ -217,11 +219,11 @@ export default function TableView({ tasks, updateTask, handleDelete, openViewMod
                           className="border-white border-2" 
                           key={index} 
                           name={ assigneeName } 
-                          width="w-6" 
-                          height="h-6" />
+                          width="w-7" 
+                          height="h-7" />
                       )
                     }
-                  })}
+                })}
               </div>
             </td>
             <td className="px-4 py-2">

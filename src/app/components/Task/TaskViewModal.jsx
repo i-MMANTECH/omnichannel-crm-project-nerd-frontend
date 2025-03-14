@@ -6,6 +6,10 @@ import getStatusSvg from "./getStatusSvg";
 import Image from "next/image";
 import UserAvatar from "../UserAvatar";
 import { timeAgo } from "@/utils/timeUtils";
+import { useRouter } from "next/navigation";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faComments } from '@fortawesome/free-regular-svg-icons';
+
 
 const TaskViewModal = ({ isOpen, taskId, onClose }) => {
   const { axiosInstance } = useApi();
@@ -17,6 +21,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
   const [comments, setComments] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
   const [newComment, setNewComment] = useState("");
+  const router = useRouter()
 
   const fetchActivities = async () => {
     try {
@@ -62,6 +67,13 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
     return assignee?.email || "--";
   };
 
+  const openConversation = () => {
+    const chat = task?.conversation?.customer ? 'customers' : 'leads'
+    const id = task?.conversation?.customer ? task?.conversation?.customer.id : task?.conversation?.lead.id
+
+    router.push(`/nativecrm/messages?chat=${chat}&id=${id}`);
+  }
+
   useEffect(() => {
     if (selectedTab === "activities") fetchActivities();
     if (selectedTab === "comments") fetchComments();
@@ -79,6 +91,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
           signal: abortController.signal
         });
         setTask(data.task);
+        console.log(data)
       } catch (err) {
         if (err.name !== 'CanceledError') {
           handleApiError(err);
@@ -127,7 +140,6 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
   const renderTabContent = () => {
     switch (selectedTab) {
       case "activities":
-        console.log('activity logs is ', activityLogs)
         return (
           <div className="flex mt-5 flex-col items-start gap-4 self-stretch rounded-lg ">
           {activityLogs.map((log, index) => (
@@ -222,7 +234,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                     <strong>
                       {comment.created_by.first_name?.trim() || comment.created_by.last_name?.trim() 
                         ? `${comment.created_by.first_name} ${comment.created_by.last_name}`.trim()
-                        : 'Unnamed User'}
+                        : '--'}
                     </strong>
                       <span className="ml-2 text-gray-500">{timeAgo(comment.created_at)}</span>
                     </p>
@@ -263,7 +275,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                     <p className="font-medium">
                       {member.first_name ? 
                         `${member.first_name} ${member.last_name}` : 
-                        'Unnamed User'
+                        '--'
                       }
                     </p>
                     <p className="text-sm ">{member.email}</p>
@@ -364,7 +376,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                           <Image
                             key={index}
                             alt={`Agent ${assignee.id}`}
-                            className="w-6 h-6 rounded-full border-2 border-white"
+                            className="w-7 h-7 rounded-full border-2 border-white"
                             src={assignee.image}
                             width={24}
                             height={24}
@@ -376,8 +388,8 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                             className="border-white border-2" 
                             key={index} 
                             name={assigneeName} 
-                            width="w-6" 
-                            height="h-6" 
+                            width="w-7" 
+                            height="h-7" 
                           />
                         );
                       }
@@ -400,7 +412,15 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                   </div>
                   <span className="font-medium">{task.sla || "None"}</span>
                 </div>
+
+                {task?.conversation &&
+                  <div className="flex justify-between items-center">
+                    <a onClick={openConversation} className="font-medium pointer mt-5">View related conversation</a>
+                  </div>
+                }
+                
               </div>
+              
       
               <div className="mt-6">
                 <div className="flex border-b">
