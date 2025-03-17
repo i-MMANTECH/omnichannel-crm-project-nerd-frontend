@@ -230,15 +230,18 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                   )}
                   
                   <div className="flex-1">
-                    <p className="text-sm">
-                    <strong>
-                      {comment.created_by.first_name?.trim() || comment.created_by.last_name?.trim() 
-                        ? `${comment.created_by.first_name} ${comment.created_by.last_name}`.trim()
-                        : '--'}
-                    </strong>
-                      <span className="ml-2 text-gray-500">{timeAgo(comment.created_at)}</span>
-                    </p>
-                    <p className="text-sm mt-1">{comment.content}</p>
+                  <p className="text-sm">
+                  <strong>
+                    {comment?.created_by?.first_name?.trim() || comment?.created_by?.last_name?.trim()
+                      ? `${comment?.created_by?.first_name || ''} ${comment?.created_by?.last_name || ''}`.trim()
+                      : '--'}
+                  </strong>
+                  <span className="ml-2 text-gray-500">
+                    {comment?.created_at ? timeAgo(comment.created_at) : '--'}
+                  </span>
+                </p>
+                <p className="text-sm mt-1">{comment?.content || '--'}</p>
+
                   </div>
                 </div>
                 )
@@ -410,7 +413,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
 
                     <span className="font-medium">SLA</span>
                   </div>
-                  <span className="font-medium">{task.sla || "None"}</span>
+                  <span className="font-medium">{task.sla?.title || "N/A"}</span>
                 </div>
 
                 {task?.conversation &&
