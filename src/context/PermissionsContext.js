@@ -45,16 +45,14 @@ export const PermissionsProvider = ({ children }) => {
   }, [user]);
 
   const checkPermission = (permission) => {
-    let currentPermissions = permissions.length ? permissions : [];
-    
-    if (typeof window !== 'undefined') {
-      currentPermissions = permissions.length 
-        ? permissions 
-        : JSON.parse(localStorage.getItem('permissions')) || [];
+    let permissions = JSON.parse(localStorage.getItem('permissions')) || [];
+  
+    if (!permissions.length) {
+      permissions = usePermissions();
     }
   
-    return currentPermissions.some((perm) => perm.codename === permission);
-  };
+    return permissions.some(perm => perm.codename === permission);
+  };  
 
   const contextValue = useMemo(() => ({
     permissions,
