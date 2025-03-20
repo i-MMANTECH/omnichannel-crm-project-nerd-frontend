@@ -15,12 +15,18 @@ export const PermissionsProvider = ({ children }) => {
   const { axiosInstance } = useApi();
   const { user } = useAuth();
   const { handleApiError } = useError();
-  const [permissions, setPermissions] = useState(() => {
-    if (typeof window !== "undefined") {
-      return JSON.parse(localStorage.getItem('permissions')) || [];
+  
+  const [permissions, setPermissions] = useState(null);
+
+  // ✅ Load permissions from localStorage when component mounts
+  useEffect(() => {
+    const storedPermissions = localStorage.getItem("permissions");
+    if (storedPermissions) {
+      setPermissions(JSON.parse(storedPermissions));
+    } else {
+      setPermissions([]);
     }
-    return [];
-  });
+  }, []);
 
   useEffect(() => {
     const fetchPermissions = async () => {
@@ -32,9 +38,9 @@ export const PermissionsProvider = ({ children }) => {
         if (response?.data?.success) {
           const userPermissions = response.data.user.roles.flatMap(role => role.permissions);
           setPermissions(userPermissions);
-          if (typeof window !== "undefined") {
-            localStorage.setItem('permissions', JSON.stringify(userPermissions));
-          }
+
+          // ✅ Store in localStorage
+          localStorage.setItem('permissions', JSON.stringify(userPermissions));
         }
       } catch (err) {
         handleApiError(err);
@@ -44,20 +50,14 @@ export const PermissionsProvider = ({ children }) => {
     fetchPermissions();
   }, [user]);
 
-  const checkPermission = (permission) => {
-    let permissions = JSON.parse(localStorage.getItem('permissions')) || [];
-  
-    if (!permissions.length) {
-      permissions = usePermissions();
-    }
-  
-    return permissions.some(perm => perm.codename === permission);
-  };  
-
   const contextValue = useMemo(() => ({
     permissions,
-    checkPermission,
+    checkPermission: (permission) => permissions.some(perm => perm.codename === permission),
   }), [permissions]);
+
+  if (permissions === null) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <PermissionsContext.Provider value={contextValue}>
