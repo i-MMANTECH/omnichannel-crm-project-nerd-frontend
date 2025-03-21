@@ -462,6 +462,7 @@ export const MessagesContent = () => {
                 setChatHistory(newHistory);
                 setChatResponse(response.data);
 
+				console.log('newhistory ', newHistory)
 				markConversationAsRead()
             }
         } catch (error) {
@@ -529,14 +530,12 @@ export const MessagesContent = () => {
 			content: messageContent.text,
 			content_type: "text",
 			created_at: new Date().toISOString(),
-			status: "sending", // Mark as sending
+			status: "sending",
 			user_sender: userProfile?.id,
 			company: company,
 			user_sender_details: userProfile,
 			company_is_sender: true,
 		};
-		console.log('tempmessage', tempMessage)
-
 	
 		// Instant UI update (add the temp message)
 		setChatHistory((prevHistory) => [...prevHistory, tempMessage]);
@@ -567,54 +566,60 @@ export const MessagesContent = () => {
 				showLoader: false,
 			})
 			.then((response) => {
-				setActiveUser((prevUser) => {
-                    const updatedMessages = prevUser.messages
-                        ? [...prevUser.messages, {
-                            id: response.data.id,
-                            content: messageContent.text,
-                            content_type: "text",
-                            created_at: new Date().toISOString(),
-                            status: "SENT",
-                            user_sender: activeUser?.user_id,
-                            lead_receiver: activeUser.id,
-                        }]
-                        : [{
-                            id: response.data.id,
-                            content: messageContent.text,
-                            content_type: "text",
-                            created_at: new Date().toISOString(),
-                            status: "SENT",
-                            user_sender: activeUser?.user_id,
-                            lead_receiver: activeUser.id,
-                        }];
+				// setActiveUser((prevUser) => {
+                //     const updatedMessages = prevUser.messages
+                //         ? [...prevUser.messages, {
+                //             id: response.data.id,
+                //             content: messageContent.text,
+                //             content_type: "text",
+                //             created_at: new Date().toISOString(),
+                //             status: "sent",
+                //             user_sender: activeUser?.user_id,
+                //             lead_receiver: activeUser.id,
+                //         }]
+                //         : [{
+                //             id: response.data.id,
+                //             content: messageContent.text,
+                //             content_type: "text",
+                //             created_at: new Date().toISOString(),
+                //             status: "sent",
+                //             user_sender: activeUser?.user_id,
+                //             lead_receiver: activeUser.id,
+                //         }];
                     
-                    return {
-                        ...prevUser,
-                        messages: updatedMessages,
-                    };
-				});
+                //     return {
+                //         ...prevUser,
+                //         messages: updatedMessages,
+                //     };
+				// });
 				console.log("API Response:", response.data);
 	
-				setChatHistory((prevHistory) =>
-					prevHistory.map((msg) =>
-						msg.id === tempMessage.id
-							? { ...msg, id: response.data.message_id, status: "SENT" }
-							: msg
-					)
-				);
-	
-				console.log(chatHistory, "after updating status");
+				setChatHistory((prevHistory) => {
+					return prevHistory.map((msg) => {
+					  if (msg.id === tempMessage.id) {
+						// Keep the same message object but update properties
+						return { 
+						  ...msg, 
+						  id: response.data.id || response.data.message_id, 
+						  status: "sent",
+						  // Preserve all other properties from the temp message
+						};
+					  }
+					  return msg;
+					});
+				});
 			})
 			.catch((error) => {
 				setChatHistory((prevHistory) =>
-					prevHistory.map((msg) =>
-						msg.id === tempMessage.id ? { ...msg, status: "FAILED" } : msg
-					)
+				  prevHistory.map((msg) =>
+					msg.id === tempMessage.id 
+					  ? { ...msg, status: "failed" } 
+					  : msg
+				  )
 				);
-	
+		  
 				handleApiError(error);
 			});
-	
 	};
 
 	const fetchChannelsData = async () => {
