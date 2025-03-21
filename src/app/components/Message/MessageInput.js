@@ -9,7 +9,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import "./messageInput.css";
 
-const MessageInput = ({ onInputChange, onSendMessage }) => {
+const MessageInput = ({onSendMessage }) => {
   const [showAttachOptions, setShowAttachOptions] = useState(false);
   const [inputText, setInputText] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
@@ -23,7 +23,6 @@ const MessageInput = ({ onInputChange, onSendMessage }) => {
   const handleInputChangeInternal = (e) => {
     const text = e.target.value;
     setInputText(text);
-    onInputChange(e);
   };
 
   const handleKeyDown = (e) => {

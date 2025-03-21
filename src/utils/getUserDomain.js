@@ -7,8 +7,7 @@ export const getUserDomain = () => {
 
         // Check for localhost (development environment)
         if (hostname.includes('localhost')) {
-            // return process.env.NEXT_PUBLIC_USER_DOMAIN || 'codex-r';
-            return process.env.NEXT_PUBLIC_USER_DOMAIN || 'codex-softwares';
+            return process.env.NEXT_PUBLIC_USER_DOMAIN || '';
         }
 
         // Check for staging environment
