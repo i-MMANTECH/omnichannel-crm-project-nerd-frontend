@@ -567,6 +567,32 @@ export const MessagesContent = () => {
 				showLoader: false,
 			})
 			.then((response) => {
+				setActiveUser((prevUser) => {
+                    const updatedMessages = prevUser.messages
+                        ? [...prevUser.messages, {
+                            id: response.data.id,
+                            content: messageContent.text,
+                            content_type: "text",
+                            created_at: new Date().toISOString(),
+                            status: "SENT",
+                            user_sender: activeUser?.user_id,
+                            lead_receiver: activeUser.id,
+                        }]
+                        : [{
+                            id: response.data.id,
+                            content: messageContent.text,
+                            content_type: "text",
+                            created_at: new Date().toISOString(),
+                            status: "SENT",
+                            user_sender: activeUser?.user_id,
+                            lead_receiver: activeUser.id,
+                        }];
+                    
+                    return {
+                        ...prevUser,
+                        messages: updatedMessages,
+                    };
+				});
 				console.log("API Response:", response.data);
 	
 				setChatHistory((prevHistory) =>
