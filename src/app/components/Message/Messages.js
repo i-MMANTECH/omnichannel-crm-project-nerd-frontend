@@ -21,7 +21,7 @@ export const MessagesContent = () => {
 	const [activeUser, setActiveUser] = useState(null);
 
 	const [users, setUsers] = useState([]);
-	const { company } = useAuth();
+	const { company, user } = useAuth();
 	const [chatHistory, setChatHistory] = useState([]);
 
 	const [searchQuery, setSearchQuery] = useState("");
@@ -47,7 +47,12 @@ export const MessagesContent = () => {
 	const [isRotating, setIsRotating] = useState(false);
 	const [agents, setAgents] = useState([])
 	const [selectedAgent, setSelectedAgent] = useState(null)
+
+	const [activeAgent, setActiveAgent] = useState(null)
+	const [userProfile, setUserProfile] = useState({})
+
 	const [isFilterActive, setIsFilterActive] = useState(false)
+
 
 
 	const [cachedData, setCachedData] = useState({
@@ -132,6 +137,19 @@ export const MessagesContent = () => {
 		};
 		
 	}, [company]);
+
+	useEffect(() => {
+		const fetchUserProfile = async () => {
+			try {
+				const resp = await axiosInstance.get(`/users/me`)
+				setUserProfile(resp?.data?.user)
+			} catch(error) {
+				handleApiError(error)
+			}
+		}
+	
+		fetchUserProfile()
+	}, []);	
 
 	useEffect(() => {
 		if (!wsRef.current) {
@@ -512,18 +530,13 @@ export const MessagesContent = () => {
 			content_type: "text",
 			created_at: new Date().toISOString(),
 			status: "sending", // Mark as sending
-			user_sender: activeUser?.user_id,
-			lead_receiver: activeUser.id,
-			company: activeUser?.company || null,
-			lead_receiver_details: activeUser?.lead_receiver_details || null,
-			user_sender_details: {
-				...activeUser?.user_sender_details,
-				image: activeUser?.lastUserSender?.image,
-				name: activeUser?.lastUserSender?.first_name,
-				id: activeUser?.id,
-			},
+			user_sender: userProfile?.id,
+			company: company,
+			user_sender_details: userProfile,
 			company_is_sender: true,
 		};
+		console.log('tempmessage', tempMessage)
+
 	
 		// Instant UI update (add the temp message)
 		setChatHistory((prevHistory) => [...prevHistory, tempMessage]);

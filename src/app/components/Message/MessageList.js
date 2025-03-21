@@ -121,7 +121,14 @@ const MessageList = ({ chatHistory }) => {
                           title={msg.user_sender_details.name}
                         />
                       ) : (
-                        <UserAvatar className={'mr-3'} name={userDisplayInfo} width="w-8" height="h-8" />
+                        <UserAvatar 
+                          className={'mr-3'} 
+                          name={msg.user_sender_details?.first_name ? 
+                            `${msg.user_sender_details?.first_name} ${msg.user_sender_details?.last_name}` : 
+                            msg.user_sender_details?.email || '--'
+                          } 
+                          width="w-8" 
+                          height="h-8" />
                       )}
                     </div>
 
