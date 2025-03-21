@@ -462,7 +462,6 @@ export const MessagesContent = () => {
                 setChatHistory(newHistory);
                 setChatResponse(response.data);
 
-				console.log('newhistory ', newHistory)
 				markConversationAsRead()
             }
         } catch (error) {
@@ -566,43 +565,11 @@ export const MessagesContent = () => {
 				showLoader: false,
 			})
 			.then((response) => {
-				// setActiveUser((prevUser) => {
-                //     const updatedMessages = prevUser.messages
-                //         ? [...prevUser.messages, {
-                //             id: response.data.id,
-                //             content: messageContent.text,
-                //             content_type: "text",
-                //             created_at: new Date().toISOString(),
-                //             status: "sent",
-                //             user_sender: activeUser?.user_id,
-                //             lead_receiver: activeUser.id,
-                //         }]
-                //         : [{
-                //             id: response.data.id,
-                //             content: messageContent.text,
-                //             content_type: "text",
-                //             created_at: new Date().toISOString(),
-                //             status: "sent",
-                //             user_sender: activeUser?.user_id,
-                //             lead_receiver: activeUser.id,
-                //         }];
-                    
-                //     return {
-                //         ...prevUser,
-                //         messages: updatedMessages,
-                //     };
-				// });
-				console.log("API Response:", response.data);
-	
 				setChatHistory((prevHistory) => {
 					return prevHistory.map((msg) => {
 					  if (msg.id === tempMessage.id) {
-						// Keep the same message object but update properties
 						return { 
-						  ...msg, 
-						  id: response.data.id || response.data.message_id, 
-						  status: "sent",
-						  // Preserve all other properties from the temp message
+						  ...response.data.data, 
 						};
 					  }
 					  return msg;

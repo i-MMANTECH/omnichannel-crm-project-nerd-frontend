@@ -19,25 +19,31 @@ const MessageList = ({ chatHistory }) => {
   }, [chatHistory]);
 
   const getIconForStatus = (status) => {
-    switch (status) {
+    // Convert status to lowercase for case-insensitive comparison
+    const statusLower = status?.toLowerCase();
+    
+    switch (statusLower) {
+      case "read":
+        return <FontAwesomeIcon className="ms-1 text-green-500" style={{ fontSize: 12 }} icon={faCheckDouble} />;
+        
       case "delivered":
-        return <FontAwesomeIcon className="ms-1" style={{ fontSize: 12 }} icon={faCheckDouble} />;
+        return <FontAwesomeIcon className="ms-1 text-gray-500" style={{ fontSize: 12 }} icon={faCheckDouble} />;
         
       case "sent":
-        return <FontAwesomeIcon className="ms-1" style={{ fontSize: 12 }} icon={faCheck} />;
+        return <FontAwesomeIcon className="ms-1 text-gray-500" style={{ fontSize: 12 }} icon={faCheck} />;
         
       case "failed":
-        return <FontAwesomeIcon className="ms-1 text-danger" style={{ fontSize: 12 }} icon={faCircleExclamation} />;
+        return <FontAwesomeIcon className="ms-1 text-red-500" style={{ fontSize: 12 }} icon={faCircleExclamation} />;
         
       case "sending":
         return (
-              <div className="flex justify-center items-center py-4">
-                <div className="animate-spin rounded-full h-2 w-2 ms-2 border-t-2 border-gray-400"></div>
-              </div>
-              );
+          <div className="flex justify-center items-center">
+            <div className="animate-spin rounded-full h-2 w-2 ms-2 border-t-2 border-gray-400"></div>
+          </div>
+        );
         
       case "received":
-        return <FontAwesomeIcon className="ms-1" style={{ fontSize: 12 }} icon={faCheck} />;
+        return <FontAwesomeIcon className="ms-1 text-gray-500" style={{ fontSize: 12 }} icon={faCheck} />;
         
       default:
         return null;
