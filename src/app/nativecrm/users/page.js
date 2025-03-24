@@ -16,6 +16,7 @@ import NoDataFound from "@/app/components/NoDataFound";
 import empty from "/public/assets/empty.svg";
 import Pagination from "@/app/components/Pagination/Pagination";
 import { useDebounce } from 'use-debounce';
+import { useAuth } from "@/context/AuthContext";
 
 const ModalController = ({ children }) => {
     const searchParams = useSearchParams();
@@ -41,6 +42,7 @@ const ModalController = ({ children }) => {
 
 // Main Users component
 const Users = () => {
+    const { user } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const { handleApiError } = useError();
@@ -64,7 +66,7 @@ const Users = () => {
     const fetchUsers = async (page = 1, limit = 10, search = "") => {
         try {
             const { data } = await axiosInstance.get(`/users?limit=${limit}&page=${page}&search=${search}`);
-            setUsers(data.results || []);
+            setUsers(data.results.filter(u => u.id !== Number(user.user_id)));
             setTotalPages(Math.ceil(data.count / limit));
         } catch (error) {
             handleApiError(error);
@@ -89,6 +91,8 @@ const Users = () => {
         params.set("page", 1); // Reset to first page when limit changes
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
     };
+
+    console.log(users)
 
     return (
         <Suspense fallback={<div>Loading...</div>}>

@@ -18,11 +18,10 @@ export const MessagesContent = () => {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 
-	const [message, setMessage] = useState("");
 	const [activeUser, setActiveUser] = useState(null);
 
 	const [users, setUsers] = useState([]);
-	const { company } = useAuth();
+	const { company, user } = useAuth();
 	const [chatHistory, setChatHistory] = useState([]);
 
 	const [searchQuery, setSearchQuery] = useState("");
@@ -33,7 +32,6 @@ export const MessagesContent = () => {
 	const [isFetchingMore, setIsFetchingMore] = useState(false);
 
 	const [loading, setLoading] = useState(true);
-	const [isLoadingMore, setIsLoadingMore] = useState(true)
 	const [chatResponse, setChatResponse] = useState();
 
 	const [chatType, setChatType] = useState(searchParams.get("chat") || "leads");
@@ -49,7 +47,12 @@ export const MessagesContent = () => {
 	const [isRotating, setIsRotating] = useState(false);
 	const [agents, setAgents] = useState([])
 	const [selectedAgent, setSelectedAgent] = useState(null)
+
+	const [activeAgent, setActiveAgent] = useState(null)
+	const [userProfile, setUserProfile] = useState({})
+
 	const [isFilterActive, setIsFilterActive] = useState(false)
+
 
 
 	const [cachedData, setCachedData] = useState({
@@ -134,6 +137,19 @@ export const MessagesContent = () => {
 		};
 		
 	}, [company]);
+
+	useEffect(() => {
+		const fetchUserProfile = async () => {
+			try {
+				const resp = await axiosInstance.get(`/users/me`)
+				setUserProfile(resp?.data?.user)
+			} catch(error) {
+				handleApiError(error)
+			}
+		}
+	
+		fetchUserProfile()
+	}, []);	
 
 	useEffect(() => {
 		if (!wsRef.current) {
@@ -508,62 +524,67 @@ export const MessagesContent = () => {
     };
 	
 	const handleSendMessage = (messageContent) => {
+		const tempMessage = {
+			id: `temp-${new Date().getTime()}`, // Temporary unique ID
+			content: messageContent.text,
+			content_type: "text",
+			created_at: new Date().toISOString(),
+			status: "sending",
+			user_sender: userProfile?.id,
+			company: company,
+			user_sender_details: userProfile,
+			company_is_sender: true,
+		};
+	
+		// Instant UI update (add the temp message)
+		setChatHistory((prevHistory) => [...prevHistory, tempMessage]);
+	
 		const payload = {
 			lead_id: activeUser.id,
 			content: messageContent.text || "",
 			content_type: "text",
 		};
-
-		let url = '/communication/';
+	
+		let url = "/communication/";
 		let dataToSend = payload;
+	
 		if (chatType === "customers") {
 			url += "send-to-customer/";
-  
 			const formData = new FormData();
 			formData.append("customer_id", activeUser.id);
 			formData.append("content", messageContent.text || "");
 			formData.append("channel_id", 2);
-  
 			dataToSend = formData;
 		} else {
 			url += "send-to-lead/";
 		}
-  
+	
 		axiosInstance
 			.post(url, dataToSend, {
 				headers: chatType === "customers" ? { "Content-Type": "multipart/form-data" } : {},
+				showLoader: false,
 			})
-			.then((response) => {  
-				setActiveUser((prevUser) => {
-					const updatedMessages = prevUser.messages
-						? [...prevUser.messages, {
-							id: response.data.id,
-							content: messageContent.text,
-							content_type: "text",
-							created_at: new Date().toISOString(),
-							status: "SENT",
-							user_sender: activeUser?.user_id,
-							lead_receiver: activeUser.id,
-						}]
-						: [{
-							id: response.data.id,
-							content: messageContent.text,
-							content_type: "text",
-							created_at: new Date().toISOString(),
-							status: "SENT",
-							user_sender: activeUser?.user_id,
-							lead_receiver: activeUser.id,
-						}];
-					
-					return {
-						...prevUser,
-						messages: updatedMessages,
-					};
+			.then((response) => {
+				setChatHistory((prevHistory) => {
+					return prevHistory.map((msg) => {
+					  if (msg.id === tempMessage.id) {
+						return { 
+						  ...response.data.data, 
+						};
+					  }
+					  return msg;
+					});
 				});
-  
-				setMessage("");
 			})
 			.catch((error) => {
+				setChatHistory((prevHistory) =>
+				  prevHistory.map((msg) =>
+					msg.id === tempMessage.id 
+					  ? { ...msg, status: "failed" } 
+					  : msg
+				  )
+				);
+		  
 				handleApiError(error);
 			});
 	};
@@ -836,10 +857,7 @@ export const MessagesContent = () => {
 
 								{chatType != "archived" ? ( 
 									<MessageInput
-										message={message}
-										onInputChange={(e) => setMessage(e.target.value)}
 										onSendMessage={handleSendMessage}
-										audioRecordingEnabled
 									/>
 								): (
 									<h2 className="w-full absolute bottom-5 flex items-center justify-center fw-bold text-red-300 p-2">Chat ended</h2>

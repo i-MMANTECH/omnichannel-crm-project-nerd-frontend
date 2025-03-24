@@ -19,21 +19,37 @@ const MessageList = ({ chatHistory }) => {
   }, [chatHistory]);
 
   const getIconForStatus = (status) => {
-    switch (status) {
+    // Convert status to lowercase for case-insensitive comparison
+    const statusLower = status?.toLowerCase();
+    
+    switch (statusLower) {
+      case "read":
+        return <FontAwesomeIcon className="ms-1 text-green-500" style={{ fontSize: 12 }} icon={faCheckDouble} />;
+        
       case "delivered":
-        return faCheckDouble;
+        return <FontAwesomeIcon className="ms-1 text-gray-500" style={{ fontSize: 12 }} icon={faCheckDouble} />;
+        
       case "sent":
-        return faCheck;
+        return <FontAwesomeIcon className="ms-1 text-gray-500" style={{ fontSize: 12 }} icon={faCheck} />;
+        
       case "failed":
-        return faCircleExclamation;
+        return <FontAwesomeIcon className="ms-1 text-red-500" style={{ fontSize: 12 }} icon={faCircleExclamation} />;
+        
       case "sending":
-        return faSpinner;
+        return (
+          <div className="flex justify-center items-center">
+            <div className="animate-spin rounded-full h-2 w-2 ms-2 border-t-2 border-gray-400"></div>
+          </div>
+        );
+        
       case "received":
-        return faCheck;
+        return <FontAwesomeIcon className="ms-1 text-gray-500" style={{ fontSize: 12 }} icon={faCheck} />;
+        
       default:
         return null;
     }
   };
+  
 
   const openImageModal = (imageUrl) => {
     setSelectedImage(imageUrl);
@@ -111,7 +127,14 @@ const MessageList = ({ chatHistory }) => {
                           title={msg.user_sender_details.name}
                         />
                       ) : (
-                        <UserAvatar className={'mr-3'} name={userDisplayInfo} width="w-8" height="h-8" />
+                        <UserAvatar 
+                          className={'mr-3'} 
+                          name={msg.user_sender_details?.first_name ? 
+                            `${msg.user_sender_details?.first_name} ${msg.user_sender_details?.last_name}` : 
+                            msg.user_sender_details?.email || '--'
+                          } 
+                          width="w-8" 
+                          height="h-8" />
                       )}
                     </div>
 
@@ -231,9 +254,8 @@ const MessageList = ({ chatHistory }) => {
               <p className="message-time">
                 {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </p>
-              {isOutgoing && getIconForStatus(msg.status) && (
-                <FontAwesomeIcon className="ms-1" style={{ fontSize: 12 }} icon={getIconForStatus(msg.status)} />
-              )}
+              {isOutgoing && getIconForStatus(msg.status)}
+
             </div>
           </div>
         );
