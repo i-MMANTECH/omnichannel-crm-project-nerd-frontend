@@ -17,6 +17,7 @@ import useCustomAlert from "@/context/useCustomAlert";
 import { usePermissions } from "@/context/PermissionsContext";
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
+import { Tooltip } from "react-tooltip";
 
 
 const ModalController = ({ children }) => {
@@ -254,37 +255,41 @@ export default function Task() {
                 </button>
                 <div className="relative">
                 <div className="relative flex items-center">
-                  {users.map((assignee, index) => (
-                    <div 
-                      key={index}
-                      className={`cursor-pointer rounded-full transition-all duration-300
-                      ${selectedUser === assignee.id ? 'ring-2 dark:ring-white ring-gray-500 z-10' : ''}`}
-                      style={{ marginLeft: index !== 0 ? '-7px' : '0px' }} 
-                      onClick={() => handleAssigneeClick(assignee.id)}
-                      onMouseEnter={(e) => e.currentTarget.classList.add("z-10")}
-                      onMouseLeave={(e) => e.currentTarget.classList.remove("z-10")}
-                    >
-                      {assignee?.image ? (
-                        <Image
-                          alt="profile pic"
-                          className="w-9 h-9 rounded-full border-2 border-white"
-                          src={assignee.image} 
-                          width={30}
-                          height={30}
-                        />
-                      ) : (
-                        <UserAvatar 
-                          name={assignee?.first_name ? 
-                            `${assignee.first_name} ${assignee?.last_name}` : 
-                            assignee?.email || '--'
-                          } 
-                          className="w-10 h-10 rounded-full flex-shrink-0 border-2 border-white"
-                          width="w-9" 
-                          height="h-9" 
-                        />
-                      )}
-                    </div>
-                  ))}
+                {users.map((assignee, index) => (
+                  <div 
+                    key={index}
+                    className={`cursor-pointer rounded-full transition-all duration-300
+                    ${selectedUser === assignee.id ? 'ring-2 dark:ring-white ring-gray-500 z-10' : ''}`}
+                    style={{ marginLeft: index !== 0 ? '-7px' : '0px' }} 
+                    onClick={() => handleAssigneeClick(assignee.id)}
+                    onMouseEnter={(e) => e.currentTarget.classList.add("z-10")}
+                    onMouseLeave={(e) => e.currentTarget.classList.remove("z-10")}
+                    data-tooltip-id={`tooltip-${assignee.id}`} // Unique ID for each tooltip
+                  >
+                    {assignee?.image ? (
+                      <Image
+                        alt="profile pic"
+                        className="w-9 h-9 rounded-full border-2 border-white"
+                        src={assignee.image} 
+                        width={30}
+                        height={30}
+                      />
+                    ) : (
+                      <UserAvatar 
+                        name={assignee?.first_name ? 
+                          `${assignee.first_name} ${assignee?.last_name}` : 
+                          assignee?.email || '--'
+                        } 
+                        className="w-10 h-10 rounded-full flex-shrink-0 border-2 border-white"
+                        width="w-9" 
+                        height="h-9" 
+                      />
+                    )}
+                    <Tooltip className="mt-1" id={`tooltip-${assignee.id}`} place="top">
+                      {assignee?.first_name} {assignee?.last_name || ""}
+                    </Tooltip>
+                  </div>
+                ))}
                   
                   {isFilterActive && (
                     <button 
