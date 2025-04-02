@@ -62,7 +62,7 @@ const SlaDetail = ({ isOpen, onClose, slaId }) => {
             width="600px"
         >
             {loading ? (
-                <p className="text-center py-4">Loading SLA details...</p>
+                <p className="text-center py-4">Loading SLA detail...</p>
             ) : sla ? (
                 <div className="max-w-full">
                    <div className="mb-4 flex justify-between items-center">
@@ -126,7 +126,7 @@ const SlaDetail = ({ isOpen, onClose, slaId }) => {
                     </div>
                 </div>
             ) : (
-                <p className="text-center py-4">No SLA details available.</p>
+                <p className="text-center py-4">No SLA detail available.</p>
             )}
         </Modal>
     );

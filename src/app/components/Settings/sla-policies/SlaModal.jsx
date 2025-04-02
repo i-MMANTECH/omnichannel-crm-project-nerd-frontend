@@ -133,15 +133,15 @@ const SlaModal = ({ isOpen, onClose, fetchSlaPolicies }) => {
               <h3 className="font-medium text-gray-900 dark:text-white mb-2">Not Started Staff</h3>
               <select name="not_started_staff_1" value={formData.not_started_staff_1} onChange={handleChange} className="w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white shadow-sm dark:bg-gray-700 dark:text-white">
                 <option value="">Select Level 1 Staff</option>
-                {users.map(user => <option key={user.id} value={user.id}>{user.first_name}</option>)}
+                {users.map(user => <option key={user.id} value={user.id}>{user.first_name} {user.last_name}</option>)}
               </select>
               <select name="not_started_staff_2" value={formData.not_started_staff_2} onChange={handleChange} className="mt-2 w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white shadow-sm dark:bg-gray-700 dark:text-white">
                 <option value="">Select Level 2 Staff</option>
-                {users.map(user => <option key={user.id} value={user.id}>{user.first_name}</option>)}
+                {users.map(user => <option key={user.id} value={user.id}>{user.first_name} {user.last_name}</option>)}
               </select>
               <select name="not_started_staff_3" value={formData.not_started_staff_3} onChange={handleChange} className="mt-2 w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white shadow-sm dark:bg-gray-700 dark:text-white">
                 <option value="">Select Level 3 Staff</option>
-                {users.map(user => <option key={user.id} value={user.id}>{user.first_name}</option>)}
+                {users.map(user => <option key={user.id} value={user.id}>{user.first_name} {user.last_name}</option>)}
               </select>
             </div>
 
@@ -149,15 +149,15 @@ const SlaModal = ({ isOpen, onClose, fetchSlaPolicies }) => {
               <h3 className="font-medium text-gray-900 dark:text-white mb-2">Overdue Staff</h3>
               <select name="overdue_staff_1" value={formData.overdue_staff_1} onChange={handleChange} className="w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white shadow-sm dark:bg-gray-700 dark:text-white">
                 <option value="">Select Level 1 Staff</option>
-                {users.map(user => <option key={user.id} value={user.id}>{user.first_name}</option>)}
+                {users.map(user => <option key={user.id} value={user.id}>{user.first_name} {user.last_name}</option>)}
               </select>
               <select name="overdue_staff_2" value={formData.overdue_staff_2} onChange={handleChange} className="mt-2 w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white shadow-sm dark:bg-gray-700 dark:text-white">
                 <option value="">Select Level 2 Staff</option>
-                {users.map(user => <option key={user.id} value={user.id}>{user.first_name}</option>)}
+                {users.map(user => <option key={user.id} value={user.id}>{user.first_name} {user.last_name}</option>)}
               </select>
               <select name="overdue_staff_3" value={formData.overdue_staff_3} onChange={handleChange} className="mt-2 w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white shadow-sm dark:bg-gray-700 dark:text-white">
                 <option value="">Select Level 3 Staff</option>
-                {users.map(user => <option key={user.id} value={user.id}>{user.first_name}</option>)}
+                {users.map(user => <option key={user.id} value={user.id}>{user.first_name} {user.last_name}</option>)}
               </select>
             </div>
           </div>

@@ -84,32 +84,31 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
 
   useEffect(() => {
     if (!isOpen || !taskId) return;
-
+  
     const abortController = new AbortController();
-    
+    const { signal } = abortController; 
+  
     const fetchTask = async () => {
       setLoading(true);
       try {
-        const { data } = await axiosInstance.get(`tasks/${taskId}`, {
-          signal: abortController.signal
-        });
+        const { data } = await axiosInstance.get(`/tasks/${taskId}`, { signal });
         setTask(data.task);
-        console.log(data)
       } catch (err) {
-        if (err.name !== 'CanceledError') {
+        if (err.name !== "AbortError") {
           handleApiError(err);
         }
       } finally {
-        setLoading(false);
+        if (!signal.aborted) setLoading(false); // ✅ Update state only if not aborted
       }
     };
-
+  
     fetchTask();
-
+  
     return () => {
       abortController.abort();
     };
   }, [taskId, isOpen]);
+  
 
   useEffect(() => {
     const getActivityLogs = async () => {
@@ -304,7 +303,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
   const handlereview = (id) => {
     setSlaId(id)
     setIsReview(true)
-  }
+  } 
 
   return (
     <Modal 
@@ -320,7 +319,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
       <div>
         <div className="max-w-full ">
           {loading ? (
-            <div>Loading...</div>
+            <p className="text-center py-4">Loading Task detail...</p>
           ) : task ? (
             <>
               <div className="flex justify-between items-center">
