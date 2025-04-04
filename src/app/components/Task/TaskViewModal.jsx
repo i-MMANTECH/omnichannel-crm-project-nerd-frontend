@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import Modal from "../Modal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
@@ -9,6 +9,7 @@ import { timeAgo } from "@/utils/timeUtils";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComments } from '@fortawesome/free-regular-svg-icons';
+import SlaDetail from "../Settings/sla-policies/SlaDetail";
 
 
 const TaskViewModal = ({ isOpen, taskId, onClose }) => {
@@ -22,6 +23,8 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
   const [activityLogs, setActivityLogs] = useState([]);
   const [newComment, setNewComment] = useState("");
   const router = useRouter()
+  const [slaId, setSlaId] = useState(null);
+  const [isReview, setIsReview] = useState(false);
 
   const fetchActivities = async () => {
     try {
@@ -298,6 +301,11 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
     }
   };
 
+  const handlereview = (id) => {
+    setSlaId(id)
+    setIsReview(true)
+  }
+
   return (
     <Modal 
       isOpen={isOpen} 
@@ -413,7 +421,12 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
 
                     <span className="font-medium">SLA</span>
                   </div>
-                  <span className="font-medium">{task.sla?.title || "N/A"}</span>
+                  <span  
+                      onClick={() => handlereview(task.sla?.id)}
+                      className="cursor-pointer font-medium"
+                  >
+                      {task.sla?.title || "N/A"}
+                  </span>
                 </div>
 
                 {task?.conversation &&
@@ -449,6 +462,13 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
           )}
         </div>
       </div>
+
+      {isReview && 
+        <SlaDetail 
+        isOpen={isReview}
+        onClose={() => setIsReview(false)}
+        slaId={slaId} />
+      }
 
     </Modal>
   );

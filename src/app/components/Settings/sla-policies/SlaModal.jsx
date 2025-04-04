@@ -98,8 +98,8 @@ const SlaModal = ({ isOpen, onClose, fetchSlaPolicies }) => {
           <h3 className="font-medium text-gray-900 dark:text-white mb-2">Escalation Matrix</h3>
           <div className="grid grid-cols-2 gap-4 mb-3">
             {[
-              { label: "Tasked not started escalation", hourKey: "not_started_hours", minKey: "not_started_minutes" },
-              { label: "Tasked overdue escalation", hourKey: "overdue_hours", minKey: "overdue_minutes" },
+              { label: "Task not started escalation", hourKey: "not_started_hours", minKey: "not_started_minutes" },
+              { label: "Task overdue escalation", hourKey: "overdue_hours", minKey: "overdue_minutes" },
             ].map((item, index) => (
               <div key={index}>
                 <p className="text-gray-700 dark:text-gray-300 mb-1">{item.label}</p>

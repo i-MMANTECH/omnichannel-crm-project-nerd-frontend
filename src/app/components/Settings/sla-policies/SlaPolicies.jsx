@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import SlaModal from "./SlaModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
+import SlaDetail from "./SlaDetail";
 
 const SlaPolicies = () => {
     const { axiosInstance } = useApi();
@@ -10,6 +11,8 @@ const SlaPolicies = () => {
     const [slaData, setSlaData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isReview, setIsReview] = useState(false)
+    const [slaId, setSlaId] = useState(null);
 
     const fetchSlaPolicies = async () => {
       setLoading(true);
@@ -28,6 +31,11 @@ const SlaPolicies = () => {
         useEffect(() => {
             fetchSlaPolicies();
         }, []);
+
+    const handlereview = (id) => {
+      setSlaId(id)
+      setIsReview(true)
+    }
         
   return (
     <>
@@ -99,6 +107,7 @@ const SlaPolicies = () => {
               <tr
                 key={sla.id}
                 className="hover:bg-gray-100 dark:hover:bg-neutral-900 cursor-pointer"
+                onClick={() => handlereview(sla.id)}
               >
                 <td className="py-3 px-4 border-b">{sla.title}</td>
                 <td className="py-3 px-4 border-b">
@@ -113,6 +122,13 @@ const SlaPolicies = () => {
         </table>
       </div>
       )}
+
+      {isReview && 
+        <SlaDetail 
+        isOpen={isReview}
+        onClose={() => setIsReview(false)}
+        slaId={slaId} />
+      }
     </>
   );
 };
