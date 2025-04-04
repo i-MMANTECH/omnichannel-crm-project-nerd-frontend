@@ -20,11 +20,55 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
   const [priorities, setPriorities] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [users, setUsers] = useState([]);
-  const [sla, setSla] = useState("");
+  const [sla, setSla] = useState(null);
+  const [slaData, setSlaData] = useState([]);
 
   const getAssigneesEndpoint = "/users/";
   const prioritiesEndpoint = "tasks/priorities/";
   const statusesEndpoint = "tasks/statuses/";
+  const slaEndpoint = "/sla/";
+
+  const fetchSlaPolicies = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get(slaEndpoint, { params: { plan_id: 1 } });
+      setSlaData(response.data.results || []);
+    } catch (err) {
+      handleApiError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
+  const fetchSla = async () => {
+    if (!task?.sla?.id) return;
+
+    setLoading(true);
+    try {
+      const { data } = await axiosInstance.get(`/sla/${task.sla.id}`);
+      setSla(data.result);
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSla();
+    fetchSlaPolicies();
+  }, []);
+  
+  useEffect(() => {
+    if (task && slaData.length > 0) {
+      const selectedSla = slaData.find((s) => s.id === task.sla?.id);
+      setSla(selectedSla ? { value: selectedSla.id, label: selectedSla.title } : null);
+    }
+  }, [task, slaData]);
+  
+  
+  
 
   useEffect(() => {
     if (isOpen) {
@@ -55,9 +99,9 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
         }
       };
 
-      fetchPriorities();
-      fetchStatuses();
-      fetchAssignees();
+      if (priorities.length === 0) fetchPriorities();
+      if (statuses.length === 0) fetchStatuses();
+      if (users.length === 0) fetchAssignees();
     }
   }, [isOpen]);
 
@@ -68,7 +112,6 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
       setLoading(true);
       try {
         const { data } = await axiosInstance.get(`tasks/${taskId}`);
-        console.log("data is ", data);
         setTask(data.task);
       } catch (err) {
         handleApiError(err);
@@ -78,7 +121,7 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
     };
 
     fetchTask();
-  }, [taskId, isOpen]);
+  }, [taskId]);
 
   useEffect(() => {
     if (task) {
@@ -134,19 +177,18 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
     if (description !== task.description) updatedFields.description = description;
     if (priority?.value !== task.priority.id) updatedFields.priority = priority?.value;
     if (status?.value !== task.status.id) updatedFields.status = status?.value;
-  
+    if (sla?.id !== task.sla?.id) updatedFields.sla = String(sla?.id);
+
     const formattedDueDate = new Date(dueDate).toISOString().split("T")[0];
     const originalDueDate = new Date(task.due_date).toISOString().split("T")[0];
   
     if (formattedDueDate !== originalDueDate) updatedFields.due_date = dueDate;
-    if (sla !== task.sla) updatedFields.sla = sla;
+    if (sla?.value !== task.sla?.id) updatedFields.sla = sla?.value;
   
     // Fix: Ensure Assignees are included if changed
     const originalAgentIds = task.assignees.map((a) => a.id).sort((a, b) => a - b);
     const selectedAgentIds = agents.map((id) => parseInt(id)).sort((a, b) => a - b);
 
-    console.log(selectedAgentIds)
-  
     if (JSON.stringify(originalAgentIds) !== JSON.stringify(selectedAgentIds)) {
       updatedFields.assignees = selectedAgentIds.length > 0 ? selectedAgentIds : [];
     }
@@ -219,12 +261,12 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
         </div>
 
         <div className="mb-7">
-          <input
-            type="number"
+          <label className="block text-sm font-medium mb-1">SLA Policy</label>
+          <Select
+            options={slaData.map((s) => ({ value: s.id, label: s.title }))}
             value={sla}
-            onChange={(e) => setSla(e.target.value)}
-            placeholder="SLA"
-            className="w-full border border-gray-300 rounded-lg px-2 py-3"
+            onChange={(selectedOption) => setSla(selectedOption)}
+            styles={selectStyles}
           />
         </div>
 
