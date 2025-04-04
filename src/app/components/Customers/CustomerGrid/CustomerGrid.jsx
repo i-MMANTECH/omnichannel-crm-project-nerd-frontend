@@ -9,7 +9,6 @@ import { getRoleStyle } from '@/utils/getRoleStyle';
 
 const CustomerGrid = ({ customers }) => {
   return (
-<<<<<<< HEAD
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
     {customers.map((customer) => (
       <Link 
@@ -28,57 +27,6 @@ const CustomerGrid = ({ customers }) => {
                     height={40}
                     className="w-10 h-10 rounded-full" 
                     src={customer.image} 
-=======
-        <div className="grid gap-6 grid-cols-3">
-          {customers.map((customer) => (
-          <Link key={customer.id} style={{color:"inherit", textDecoration:"none"}} href={`/nativecrm/customers/${customer.id}`}>
-            <div className="bg-theme border rounded-lg">
-            <div className='flex justify-between items-center p-2 border-b'>
-              <div className='flex items-center space-x-2'>
-                <div className="flex items-center space-x-2">
-                    {customer?.image && <Image 
-                        alt="profile pic"
-                        width={10}
-                        height={10}
-                        className="mt-2 w-10 h-10 rounded-full" 
-                        src={customer.image} 
-                        />}
-                        
-                        {customer?.image ? (
-                          <h3 className="text-lg font-semibold">
-                            {customer?.first_name && customer?.last_name
-                              ? `${customer.first_name} ${customer.last_name}`
-                              : customer?.first_name
-                              ? customer.first_name
-                              : customer?.username
-                              ? customer.username
-                              : "--"}
-                          </h3>
-                        ) : (
-                          <UserAvatar
-                            name={
-                              customer?.first_name && customer?.last_name
-                                ? `${customer.first_name} ${customer.last_name}`
-                                : customer?.first_name
-                                ? customer.first_name
-                                : customer?.username || "Guest"
-                            }
-                            width="w-10"
-                            height="h-10"
-                          />
-                        )}
-                </div>             
-              </div>
-            </div>
-            
-            <div className='p-3 text-sm'>
-              <p className="mb-2 flex gap-2">
-                <Image
-                    src="/assets/mail-icon.svg"
-                    alt="email"
-                    width={20}
-                    height={20}
->>>>>>> df40d7a11fd8712c3a9b2ad0b550a7c550f4b782
                   />
                 ) : (
                   <UserAvatar 

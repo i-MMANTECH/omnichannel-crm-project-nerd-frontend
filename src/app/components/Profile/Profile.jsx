@@ -33,7 +33,7 @@ export default function Profile() {
     }
 
     return (
-        <div className="flex flex-col md:flex-row justify-center my-5 gap-4 p-4">
+        <div className="flex flex-col md:flex-row justify-center my-5 gap-4 p-4 ">
             <div className="flex flex-col items-center p-5 rounded-lg border border-gray-300 w-full md:w-1/3 lg:w-1/4 shadow-md">
                 <div className='flex flex-col items-center gap-3 w-[300px]'>
                     {userProfile?.image ? (
@@ -153,7 +153,7 @@ export default function Profile() {
                 </div>
             </div>
 
-            <div  className="flex flex-col md:flex-row flex-1 gap-4 p-6 rounded-lg border border-gray-300 shadow-md">
+            <div  className="flex flex-col  flex-1 gap-4 p-6 rounded-lg border border-gray-300 shadow-md ">
                 <div className='flex gap-6'>
                     <p
                         className={`h-[30px] cursor-pointer ${selected === "general" ? "selected" : "not-selected"}`}
