@@ -16,7 +16,9 @@ export default function Profile() {
     const { axiosInstance } = useApi();
     const { handleApiError } = useError();
     const [userProfile, setUserProfile] = useState({})
-
+    const [previewImage, setPreviewImage] = useState(userProfile?.image || null);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [selected, setSelected] = useState("general");
 
     useEffect(() => {
@@ -32,17 +34,56 @@ export default function Profile() {
         }
     }
 
+    const handleImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          setSelectedFile(file);
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setPreviewImage(reader.result);
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+    
+      const submitImage = async () => {
+        if (!selectedFile) return;
+    
+        setLoading(true);
+        const formData = new FormData();
+        formData.append("image", selectedFile);
+    
+        try {
+            const response = await axiosInstance.put("/users/me/update/", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+    
+            if (response.status === 200) {
+                const data = response.data;
+                setPreviewImage(data.image);
+                setSelectedFile(null)
+            }
+        } catch (error) {
+            handleApiError(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+
     return (
         <div className="flex flex-col md:flex-row justify-center my-5 gap-4 p-4 ">
             <div className="flex flex-col items-center p-5 rounded-lg border border-gray-300 w-full md:w-1/3 lg:w-1/4 shadow-md">
-                <div className='flex flex-col items-center gap-3 w-[300px]'>
+            <div className='relative px-6 py-4 flex flex-col items-center gap-1 h-fit rounded-lg body-theme w-full md:w-auto'>
+                {/* Profile Image Section */}
+                <div className="relative">
                     {userProfile?.image ? (
                         <Image
                             src={userProfile?.image}
-                            alt="User Profile"                        
+                            alt="User Profile"
                             width={100}
                             height={100}
-                            className="rounded-full w-20 h-20" 
+                            className="rounded-full w-20 h-20"
                         />
                     ) : (
                         <UserAvatar 
@@ -54,38 +95,67 @@ export default function Profile() {
                             width="w-20" 
                             height="h-20" 
                         />
-                    )}    
-                    <p className="text-center text-xl font-bold self-stretch mt-3 truncate">
-                        {userProfile?.first_name ? 
-                          `${userProfile.first_name} ${userProfile?.last_name}` : 
-                          userProfile?.email || '--'
-                        }
-                    </p>
-                    <div className="flex justify-center items-center gap-1 text-right admin w-auto p-[2px_8px] rounded-md text-sm font-medium">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="4"
-                            height="4"
-                            viewBox="0 0 4 4"
-                            fill="none"
-                            className="flex-shrink-0 fill-[#F36F4A]"
+                    )}
+
+                     {/* Change Picture Icon */}
+                        <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            id="upload-photo"
+                            onChange={(e) => handleImageUpload(e)}
+                        />
+                        <button
+                            className="absolute bottom-0 right-0 bg-gray-800 text-white p-1 rounded-full hover:bg-gray-600 transition"
+                            onClick={() => document.getElementById("upload-photo").click()}
                         >
-                            <circle cx="2" cy="2" r="2" fill="#F36F4A" />
-                        </svg>
-                        {userProfile?.roles?.map((role) => (
-                            <span
-                                key={role.id}
-                                className="px-2 py-1 rounded"
-                                style={getRoleStyle(role.name)}
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="w-4 h-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
                             >
-                                {role.name}
-                            </span>
-                        ))}
-                    </div>
-                    <p className=" text-center text-sm ">
-                        {userProfile?.url}
-                    </p>
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15.232 5.232a2.828 2.828 0 0 1 4 4L7 21H3v-4L15.232 5.232z"
+                                />
+                            </svg>
+                        </button>
+                        {selectedFile && (
+                            <button
+                                className="mt-2 bg-[#3EBF0F] text-white px-4 py-1 rounded-md hover:bg-[#3EBF0F] transition w-full"
+                                onClick={submitImage}
+                            >
+                                Submit Image
+                            </button>
+                        )}
                 </div>
+
+                <p className="text-center text-xl font-bold self-stretch mt-3 truncate">
+                    {userProfile?.first_name ? 
+                        `${userProfile.first_name} ${userProfile?.last_name}` : 
+                        userProfile?.email || '--'
+                    }
+                </p>
+
+                <div className="flex justify-center items-center gap-1 text-right admin w-auto p-[2px_8px] rounded-md text-sm font-medium">
+                    {userProfile?.roles?.map((role) => (
+                        <span
+                            key={role.id}
+                            className="px-2 py-1 rounded"
+                            style={getRoleStyle(role.name)}
+                        >
+                            {role.name}
+                        </span>
+                    ))}
+                </div>
+
+                <p className="text-center text-sm">{userProfile?.url}</p>
+            </div>
+
 
                 <div className="flex h-[1px] items-center self-stretch bg-[#DFE1E6] mt-5 mb-5"></div>
 
