@@ -14,44 +14,40 @@ import { useApi } from "@/services/axiosConfig";
 import { usePermissions } from "@/context/PermissionsContext";
 import UserAvatar from "../UserAvatar";
 
-
 function Sidebar() {
   const { logout } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [userProfile, setUserProfile] = useState({})
+  const [userProfile, setUserProfile] = useState({});
+  const [isOpen, setIsOpen] = useState(false);
+
   const modalRef = useRef(null);
-  const {handleApiError} = useError()
-  const {axiosInstance} = useApi()
+  const { handleApiError } = useError();
+  const { axiosInstance } = useApi();
 
   const { checkPermission } = usePermissions();
 
-  const viewUser = checkPermission('view_user');
-  const viewCustomer = checkPermission('view_customer');
-  const viewTask = checkPermission('view_task');
-  const viewMessage = checkPermission('view_message');
+  const viewUser = checkPermission("view_user");
+  const viewCustomer = checkPermission("view_customer");
+  const viewTask = checkPermission("view_task");
+  const viewMessage = checkPermission("view_message");
 
   const pathname = usePathname();
   const activeStyle = "active";
-
   const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
 
   const isActive = (path) => pathname.startsWith(path);
-  const { toggleNotification } = useNotification()
-
-  
+  const { toggleNotification } = useNotification();
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-        try {
-            const resp = await axiosInstance.get(`/users/me`)
-            setUserProfile(resp?.data?.user)
-        } catch(error) {
-            handleApiError(error)
-        }
-    }
-
-      fetchUserProfile()
+      try {
+        const resp = await axiosInstance.get(`/users/me`);
+        setUserProfile(resp?.data?.user);
+      } catch (error) {
+        handleApiError(error);
+      }
+    };
+    fetchUserProfile();
   }, []);
 
   useEffect(() => {
@@ -71,31 +67,35 @@ function Sidebar() {
   }, [isModalOpen]);
 
   return (
-    <div>
-      <Disclosure as="nav">
-        <Disclosure.Button className="absolute top-4 right-4 inline-flex items-center peer justify-center rounded-md p-2 text-gray-800 dark:text-white hover:bg-gray-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white group">
-          <GiHamburgerMenu className="block md:hidden h-6 w-6" aria-hidden="true" />
-        </Disclosure.Button>
+    <>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="hamburger-btn absolute top-4 right-4 inline-flex items-center justify-center rounded-md p-2 text-gray-800 dark:text-white hover:bg-gray-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+      >
+        <GiHamburgerMenu className="block md:hidden h-6 w-6" aria-hidden="true" />
+      </button>
 
-        <div className="body-theme sidebar z-20 p-6 pt-3 w-1/2 h-screen fixed top-0 -left-96 lg:left-0 lg:w-60 peer-focus:left-0 peer:transition ease-out delay-150 duration-200">
-          <div className="flex flex-col justify-start items-start h-full relative">
-          <Link href="/nativecrm/dashboard" passHref>
+      <div
+        className={`body-theme sidebar z-20 p-6 pt-3 w-1/2 h-screen fixed top-0 ${
+          isOpen ? "left-0" : "-left-96"
+        } lg:left-0 lg:w-60 transition-all duration-300 ease-in-out`}
+      >
+        <div className="flex flex-col justify-start items-start h-full relative">
+          <Link href="/nativecrm" legacyBehavior>
             <div className="py-5 cursor-pointer">
-              <Image 
-                src="/assets/nativetalk-logo.svg" 
-                alt="Logo" 
-                width={100} 
-                height={100} 
-              />
+              <Image src="/assets/nativetalk-logo.svg" alt="Logo" width={100} height={100} />
             </div>
           </Link>
 
-            <div className="w-full mb-2 border-t border-gray-300 dark:border-gray-600 ">
-              <h2 className="text-sm text-gray-500 dark:text-gray-400 pl-4 mt-4">Main Menu</h2>
-            </div>
+
+          <div className="w-full mb-2 border-t border-gray-300 dark:border-gray-600 ">
+            <h2 className="text-sm text-gray-500 dark:text-gray-400 pl-4 mt-4">Main Menu</h2>
+          </div>
 
             <div className="mt-2  pb-3 w-full">
               <Link
+                onClick={() => setIsOpen(false)} // Close sidebar on navigation
+              
                 href="/nativecrm/dashboard"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
               >
@@ -114,6 +114,8 @@ function Sidebar() {
 
               {viewUser && (
                  <Link
+                onClick={() => setIsOpen(false)} // Close sidebar on navigation
+                 
                  href="/nativecrm/users"
                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
                >
@@ -132,6 +134,8 @@ function Sidebar() {
 
               {viewMessage && (
                 <Link
+                onClick={() => setIsOpen(false)} // Close sidebar on navigation
+                
                 href="/nativecrm/messages?chat=leads"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
               >
@@ -150,6 +154,8 @@ function Sidebar() {
               
                 {viewTask && (
                   <Link
+                onClick={() => setIsOpen(false)} // Close sidebar on navigation
+                  
                   href="/nativecrm/tasks"
                   className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
                 >
@@ -168,6 +174,8 @@ function Sidebar() {
 
                 {viewCustomer && (
                   <Link
+                onClick={() => setIsOpen(false)} // Close sidebar on navigation
+                  
                   href="/nativecrm/customers"
                   className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
                 >
@@ -185,6 +193,8 @@ function Sidebar() {
                 )}
 
               <Link
+                onClick={() => setIsOpen(false)} // Close sidebar on navigation
+              
                 href="/nativecrm/reports"
                 className={`hidden flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
               >
@@ -220,13 +230,14 @@ function Sidebar() {
             <div className="self-end mt-auto w-full">
               <div className="mb-5">
                 <Link
-                  href="/nativecrm/settings#channels-integration"
-                  className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
                   onClick={(e) => {
+                    setIsOpen(false); // Close sidebar
                     if (window.location.pathname === "/nativecrm/settings") {
-                      e.preventDefault();
+                      e.preventDefault(); // Prevent navigation if already on the same page
                     }
                   }}
+                  href="/nativecrm/settings#channels-integration"
+                  className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
                 >
                   <Image
                     src="/assets/settings.svg"
@@ -241,6 +252,8 @@ function Sidebar() {
                 </Link>
 
                 <Link
+                onClick={() => setIsOpen(false)} // Close sidebar on navigation
+                
                   href="/nativecrm/support"
                   className={`hidden flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
                 >
@@ -319,6 +332,8 @@ function Sidebar() {
                 >
                   <div className="flex flex-col gap-4 px-2">
                     <Link
+                onClick={() => setIsOpen(false)} // Close sidebar on navigation
+                    
                       href="/nativecrm/profile"
                       className="flex items-center gap-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
@@ -361,10 +376,9 @@ function Sidebar() {
                 </div>
               </div>
             )}
-          </div>
         </div>
-      </Disclosure>
-    </div>
+      </div>
+    </>
   );
 }
 

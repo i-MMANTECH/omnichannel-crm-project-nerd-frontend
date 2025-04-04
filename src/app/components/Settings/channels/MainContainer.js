@@ -65,7 +65,7 @@ export const MainContainer = () => {
       <div className="frame min-h-full">
         <p className="text-lg">Select the channels you want to connect</p>
 
-        <div className="grid grid-cols-3 gap-x-5 justify-between w-full flex-wrap">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-5 justify-between w-full flex-wrap">
           {channels.map((channel) => (
             <div key={channel.id} className="rounded-lg p-4 flex mb-6 items-center border">
               <div className="flex items-center justify-between w-full h-full gap-3">

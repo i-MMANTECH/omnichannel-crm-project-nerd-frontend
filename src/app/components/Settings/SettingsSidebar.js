@@ -42,6 +42,21 @@ function SettingsSidebar({ onSidebarClick }) {
                   Role Management
                 </h3>
               </button>  
+              
+              <button
+                  onClick={() => onSidebarClick('sla-policies')}
+                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${pathname.includes('sla-policies') ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+              >
+                <Image
+                    src="/assets/alarm-clock.svg"
+                    alt="Users"
+                    width={20}
+                    height={20}
+                  />
+                <h3 className={`text-sm font-medium`}>
+                Sla Policies
+                </h3>
+              </button>  
 
               <button
                   onClick={() => onSidebarClick('channels-integration')}
