@@ -1,5 +1,4 @@
-'use client'
-
+'use client';
 
 import React, { useState, useMemo } from "react";
 import AssignedMessages from "./AssignedMessages";
@@ -8,22 +7,54 @@ import './UserDetailsStyle.css';
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
 import { getRoleStyle } from "@/utils/getRoleStyle";
-
+import { useApi } from "@/services/axiosConfig";
+import { useError } from "@/context/ErrorContext";
 
 export default function UserDetails({ user }) {
+    const { axiosInstance } = useApi();
+    const { handleApiError } = useError();
+
   const [selected, setSelected] = useState("work-schedule");
   const [previewImage, setPreviewImage] = useState(user?.image || null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreviewImage(reader.result); // Set preview image
+        setPreviewImage(reader.result);
       };
       reader.readAsDataURL(file);
     }
   };
+
+  const submitImage = async () => {
+    if (!selectedFile) return;
+
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("image", selectedFile);
+
+    try {
+        const response = await axiosInstance.put("/users/me/update/", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        if (response.status === 200) {
+            const data = response.data;
+            setPreviewImage(data.image);
+            setSelectedFile(null)
+        }
+    } catch (error) {
+        handleApiError(error);
+    } finally {
+        setLoading(false);
+    }
+};
+
 
   const name = useMemo(() => {
     return user?.first_name && user?.last_name
@@ -88,10 +119,10 @@ export default function UserDetails({ user }) {
                 </svg>
               </button>
 
-               {previewImage && (
+               {selectedFile  && (
                 <button
                   className="mt-2 bg-blue-500 text-white px-4 py-1 rounded-md hover:bg-blue-600 transition w-full"
-                  onClick={handleImageUpload}
+                  onClick={submitImage}
                 >
                   Submit Image
                 </button>
