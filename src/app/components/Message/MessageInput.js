@@ -9,10 +9,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import "./messageInput.css";
 
-const MessageInput = ({onSendMessage }) => {
+const MessageInput = ({onSendMessage, onSendImage, onRemoveImage}) => {
   const [showAttachOptions, setShowAttachOptions] = useState(false);
   const [inputText, setInputText] = useState("");
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState("");
 
   const imageInputRef = useRef(null);
 
@@ -40,17 +40,19 @@ const MessageInput = ({onSendMessage }) => {
     const file = e.target.files[0];
     if (file) {
       setSelectedImage(file);
-      console.log("Image file selected:", file);
+      onSendImage(file)
     }
   };
 
   const removeSelectedImage = () => {
-    setSelectedImage(null);
+    setSelectedImage(""); 
+    onRemoveImage('')
+    imageInputRef.current.value = ""; 
   };
+  
 
   const sendMessage = () => {
-    if (!inputText.trim()) return;
-
+    if (!inputText.trim() && !selectedImage) return;
     const messagePayload = {
       text: inputText.trim(),
     };
@@ -110,20 +112,19 @@ const MessageInput = ({onSendMessage }) => {
           rows={inputText.split("\n").length}
         />
         {selectedImage && (
-          <div className="image-preview">
+          <div className="image-preview-container">
             <img
               src={URL.createObjectURL(selectedImage)}
-              alt="Preview"
-              className="preview-img"
+              alt="Selected"
+              className="image-preview"
             />
-            <button className="remove-image" onClick={removeSelectedImage}>
-              <FontAwesomeIcon icon={faTimes} />
-            </button>
+            <FontAwesomeIcon icon={faTimes} className="remove-image" onClick={removeSelectedImage} />
           </div>
         )}
+
       </div>
-      {inputText ? (
-        <button className="send-button" onClick={sendMessage}>
+      {inputText || selectedImage ? (
+        <button className="send-button" onClick={(sendMessage)}>
           <FontAwesomeIcon icon={faPaperPlane} />
         </button>
       ) : (

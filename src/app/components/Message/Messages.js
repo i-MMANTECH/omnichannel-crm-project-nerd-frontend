@@ -51,6 +51,7 @@ export const MessagesContent = () => {
 
 	const [activeAgent, setActiveAgent] = useState(null)
 	const [userProfile, setUserProfile] = useState({})
+	const [selectedImage, setSelectedImage] = useState('')
 
 	const [isFilterActive, setIsFilterActive] = useState(false)
 
@@ -528,7 +529,8 @@ export const MessagesContent = () => {
 		const tempMessage = {
 			id: `temp-${new Date().getTime()}`, // Temporary unique ID
 			content: messageContent.text,
-			content_type: "text",
+			content_type: selectedImage ? "image" : "text",
+			image: selectedImage,
 			created_at: new Date().toISOString(),
 			status: "sending",
 			user_sender: userProfile?.id,
@@ -540,14 +542,8 @@ export const MessagesContent = () => {
 		// Instant UI update (add the temp message)
 		setChatHistory((prevHistory) => [...prevHistory, tempMessage]);
 	
-		const payload = {
-			lead_id: activeUser.id,
-			content: messageContent.text || "",
-			content_type: "text",
-		};
-	
 		let url = "/communication/";
-		let dataToSend = payload;
+		let dataToSend;
 	
 		if (chatType === "customers") {
 			url += "send-to-customer/";
@@ -555,40 +551,50 @@ export const MessagesContent = () => {
 			formData.append("customer_id", activeUser.id);
 			formData.append("content", messageContent.text || "");
 			formData.append("channel_id", 2);
+			if (selectedImage) {
+				formData.append("image", selectedImage);
+				formData.append("content_type", "image");
+			} else {
+				formData.append("content_type", "text");
+			}
 			dataToSend = formData;
 		} else {
 			url += "send-to-lead/";
+			const formData = new FormData();
+			formData.append("lead_id", activeUser.id);
+			formData.append("content", messageContent.text || "");
+			if (selectedImage) {
+				formData.append("image", selectedImage);
+				formData.append("content_type", "image");
+			} else {
+				formData.append("content_type", "text");
+			}
+			dataToSend = formData;
 		}
 	
 		axiosInstance
 			.post(url, dataToSend, {
-				headers: chatType === "customers" ? { "Content-Type": "multipart/form-data" } : {},
+				headers: { "Content-Type": "multipart/form-data" },
 				showLoader: false,
 			})
 			.then((response) => {
-				setChatHistory((prevHistory) => {
-					return prevHistory.map((msg) => {
-					  if (msg.id === tempMessage.id) {
-						return { 
-						  ...response.data.data, 
-						};
-					  }
-					  return msg;
-					});
-				});
+				setChatHistory((prevHistory) =>
+					prevHistory.map((msg) =>
+						msg.id === tempMessage.id ? { ...response.data.data } : msg
+					)
+				);
+				 setSelectedImage(""); 
 			})
 			.catch((error) => {
 				setChatHistory((prevHistory) =>
-				  prevHistory.map((msg) =>
-					msg.id === tempMessage.id 
-					  ? { ...msg, status: "failed" } 
-					  : msg
-				  )
+					prevHistory.map((msg) =>
+						msg.id === tempMessage.id ? { ...msg, status: "failed" } : msg
+					)
 				);
-		  
 				handleApiError(error);
 			});
 	};
+	
 
 	const fetchChannelsData = async () => {
 		try {
@@ -862,6 +868,8 @@ export const MessagesContent = () => {
 
 								{chatType != "archived" ? ( 
 									<MessageInput
+										onRemoveImage={setSelectedImage}
+										onSendImage={setSelectedImage}
 										onSendMessage={handleSendMessage}
 									/>
 								): (
