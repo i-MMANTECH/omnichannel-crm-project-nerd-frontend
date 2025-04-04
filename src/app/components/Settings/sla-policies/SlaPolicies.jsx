@@ -11,24 +11,24 @@ const SlaPolicies = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-      const fetchSlaPolicies = async () => {
-          try {
-              const response = await axiosInstance.get("/sla/", {
-                  params: { plan_id: 1 },
-              });
-              setSlaData(response.data.results);
-          } catch (err) {
-              setError(handleApiError(err));
-          } finally {
-              setLoading(false);
-          }
-      };
-      fetchSlaPolicies();
-  }, []);
-  
-console.log(slaData)
+    const fetchSlaPolicies = async () => {
+      setLoading(true);
+      try {
+          const response = await axiosInstance.get("/sla/", {
+              params: { plan_id: 1 },
+          });
+          setSlaData(response.data.results);
+            } catch (err) {
+                setError(handleApiError(err));
+            } finally {
+                setLoading(false);
+            }
+        };
 
+        useEffect(() => {
+            fetchSlaPolicies();
+        }, []);
+        
   return (
     <>
       {/* Search and Button Wrapper */}
@@ -66,7 +66,11 @@ console.log(slaData)
       </div>
 
       {setShowModal && (
-        <SlaModal isOpen={showModal} onClose={() => setShowModal(false)} />
+        <SlaModal 
+            isOpen={showModal} 
+            onClose={() => setShowModal(false)} 
+            fetchSlaPolicies={fetchSlaPolicies} 
+        />
       )}
 
       {/* Table Section */}
@@ -83,12 +87,6 @@ console.log(slaData)
                 SLA Name
               </th>
               <th className="styled-th py-3 px-4 text-left font-semibold text-gray-600 border-b border-gray-500">
-                Tags
-              </th>
-              <th className="styled-th py-3 px-4 text-left font-semibold text-gray-600 border-b border-gray-500">
-                Department
-              </th>
-              <th className="styled-th py-3 px-4 text-left font-semibold text-gray-600 border-b border-gray-500">
                 Start Alert
               </th>
               <th className="styled-th py-3 px-4 text-left font-semibold text-gray-600 border-b border-gray-500">
@@ -103,12 +101,11 @@ console.log(slaData)
                 className="hover:bg-gray-100 dark:hover:bg-neutral-900 cursor-pointer"
               >
                 <td className="py-3 px-4 border-b">{sla.title}</td>
-                <td className="py-3 px-4 border-b">{sla.department}</td>
                 <td className="py-3 px-4 border-b">
-                  {`${sla.not_started_hours}h ${sla.not_started_minutes}m`}
+                {`${sla.not_started_hours}h ${sla.not_started_minutes}m` || "N/A"}
                 </td>
                 <td className="py-3 px-4 border-b">
-                  {sla.dueAlert || "N/A"}
+                {`${sla.overdue_hours}h ${sla.overdue_minutes}m` || "N/A"}
                 </td>
               </tr>
             ))}
