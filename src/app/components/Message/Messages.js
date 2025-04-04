@@ -11,6 +11,7 @@ import "./style.css";
 import { useAuth } from "@/context/AuthContext";
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
+import { Tooltip } from "react-tooltip";
 
 export const MessagesContent = () => {
 	const { axiosInstance } = useApi();
@@ -695,6 +696,7 @@ export const MessagesContent = () => {
 						onClick={() => handleAssigneeClick(assignee.id)}
 						onMouseEnter={(e) => e.currentTarget.classList.add("z-10")}
 						onMouseLeave={(e) => e.currentTarget.classList.remove("z-10")}
+						data-tooltip-id={`tooltip-${assignee.id}`} // Unique ID for each tooltip
 						>
 						{assignee?.image ? (
 							<Image
@@ -715,6 +717,9 @@ export const MessagesContent = () => {
 							height="h-9" 
 							/>
 						)}
+						 <Tooltip id={`tooltip-${assignee.id}`} place="top">
+							{assignee?.first_name} {assignee?.last_name || ""}
+						</Tooltip>
 						</div>
 					))}
 					
