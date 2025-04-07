@@ -35,7 +35,7 @@ function Sidebar() {
   const activeStyle = "active";
   const openModal = () => setIsModalOpen(true);
 
-  const isActive = (path) => pathname.startsWith(path);
+  const isActive = (path) => pathname.includes(path);
   const { toggleNotification } = useNotification();
 
   useEffect(() => {

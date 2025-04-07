@@ -52,12 +52,12 @@ export const ConnectWhatsAppModal = ({ onCancel }) => {
          />
          </div>
  
-         <p className="mb-3 text-center text-2xl font-bold text-black dark:text-white py-2">
+         <p className="body-theme mb-3 text-center text-2xl font-bold">
            WhatsApp
          </p>
  
-         <div className="ms-6 justify-center border flex p-[16px_19px] items-center gap-[10px] rounded-[0px_16px_16px_16px]">
-             <p className="text-lg font-medium text-gray-700">
+         <div className="ms-6 justify-center flex p-[16px_19px] items-center">
+             <p className="text-lg font-medium text-center">
                Your request has been received! <br />
                We’ll review it and get back to you on WhatsApp.
              </p>
