@@ -319,7 +319,9 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
       <div>
         <div className="max-w-full ">
           {loading ? (
-            <p className="text-center py-4">Loading Task detail...</p>
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-gray-400"></div>
+            </div>
           ) : task ? (
             <>
               <div className="flex justify-between items-center">

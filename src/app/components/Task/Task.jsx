@@ -227,7 +227,10 @@ export default function Task() {
 
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>    
+    <Suspense fallback={
+      <div className="flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-gray-400"></div>
+      </div>}>    
       <ModalController>
         {({ 
           isModalOpen, 
@@ -342,7 +345,9 @@ export default function Task() {
 
             <div className="mt-16 h-4/5 overflow-auto">
               {loading ? (
-                <div>Loading...</div>
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-gray-400"></div>
+                </div>
               ) : view === "kanban" ? (
                 <KanbanView 
                   tasks={tasks} 

@@ -75,7 +75,9 @@ export const ConnectEmailModal = ({ onCancel }) => {
 
         <div className="ms-6 justify-center border flex p-[16px_19px] items-center gap-[10px] rounded-[0px_16px_16px_16px]">
           {loading ? (
-            <p>Loading...</p>
+           <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-gray-400"></div>
+          </div>
           ) : (
             <>
               <p className="font-normal ">

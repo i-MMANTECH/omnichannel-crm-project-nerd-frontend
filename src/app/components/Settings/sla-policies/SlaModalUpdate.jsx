@@ -115,7 +115,11 @@ const SlaModalUpdate = ({ isOpen, onClose, fetchSlaPolicies, slaId }) => {
                 footer={<Footer onClose={onClose} handleSubmit={handleSubmit} loading={loading} />} 
                 title="Update SLA">
 
-                {isFetching ? (<p >Loading SLA Detail</p>) : (
+                {isFetching ? (
+                    <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-gray-400"></div>
+                    </div>
+                ) : (
                     <form onSubmit={handleSubmit}>
                     <h3 className="font-medium text-gray-900 dark:text-white mb-2">SLA Title</h3>
                     <input

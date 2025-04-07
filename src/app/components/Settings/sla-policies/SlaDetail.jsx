@@ -62,7 +62,9 @@ const SlaDetail = ({ isOpen, onClose, slaId }) => {
             width="600px"
         >
             {loading ? (
-                <p className="text-center py-4">Loading SLA detail...</p>
+                <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-gray-400"></div>
+                </div>
             ) : sla ? (
                 <div className="max-w-full">
                    <div className="mb-4 flex justify-between items-center">
