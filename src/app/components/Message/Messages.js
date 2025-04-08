@@ -13,6 +13,18 @@ import UserAvatar from "../UserAvatar";
 import Image from "next/image";
 import { Tooltip } from "react-tooltip";
 
+
+const getMessageType = (message) => {
+	if (message.lead_sender != null || message.lead_receiver != null) {
+	  return "leads";
+	}
+	if (message.customer_sender != null || message.customer_receiver != null) {
+	  return "customers";
+	}
+	return null;
+  };
+
+  
 export const MessagesContent = () => {
 	const { axiosInstance } = useApi();
 	const { handleApiError } = useError();
@@ -164,8 +176,10 @@ export const MessagesContent = () => {
 			const message = data.message;
 		
 			// Correctly determine whether the message is from a lead or a customer
-			const isLeadMessage = typeof message.lead_sender === "number";
-			const isCustomerMessage = typeof message.customer_sender === "number";
+			const isLeadMessage = message.lead_sender != null || message.lead_receiver != null;
+
+			const isCustomerMessage = message.customer_sender != null || message.customer_receiver != null;
+
 		
 			// Ensure the correct sender details are retrieved
 			const newUser = isLeadMessage
@@ -173,25 +187,28 @@ export const MessagesContent = () => {
 				: isCustomerMessage
 				? message.customer_sender_details
 				: null;
+				
 		
-			console.log("Received Message:", message);
+			console.log("New event:", message);
 		
-			// **Fix: Ensure messages are assigned to the correct chat type**
-			const messageChatType = isLeadMessage ? "leads" : isCustomerMessage ? "customers" : null;
-		
-			if (!messageChatType) {
-				console.warn("⚠️ Message does not belong to leads or customers:", message);
-				return;
-			}
-		
+			const messageChatType = getMessageType(message);
+
 			// **Ensure messages only appear in the correct tab**
 			if (currentTabRef.current === messageChatType) {
 				// Update chat history if the active user matches the sender
 				if (
 					activeUser &&
-					((isLeadMessage && message.lead_sender === activeUser.id) ||
-						(isCustomerMessage && message.customer_sender === activeUser.id) ||
-						message.lead_info?.id === activeUser.id)
+					(
+						(isLeadMessage && (
+							message.lead_sender === activeUser.id ||
+							message.lead_receiver === activeUser.id ||
+							message.lead_info?.id === activeUser.id
+						)) ||
+						(isCustomerMessage && (
+							message.customer_sender === activeUser.id ||
+							message.customer_receiver === activeUser.id
+						))
+					)
 				) {
 					markConversationAsRead(activeUser.id);
 					const newHistory = [...chatHistory, message];
