@@ -167,112 +167,137 @@ export const MessagesContent = () => {
 
 	useEffect(() => {
 		if (!wsRef.current) {
-			console.log('message event returning')
+			console.log('message event returning');
 			return;
 		}
-
+	
 		wsRef.current.onmessage = (event) => {
 			const data = JSON.parse(event.data);
 			const message = data.message;
-		
-			// Correctly determine whether the message is from a lead or a customer
+	
 			const isLeadMessage = message.lead_sender != null || message.lead_receiver != null;
-
 			const isCustomerMessage = message.customer_sender != null || message.customer_receiver != null;
-
-		
-			// Ensure the correct sender details are retrieved
+	
 			const newUser = isLeadMessage
 				? message.lead_sender_details
 				: isCustomerMessage
 				? message.customer_sender_details
 				: null;
-				
-		
-			console.log("New event:", message);
-		
+	
+			console.log("🟢 WebSocket message:", message);
+	
 			const messageChatType = getMessageType(message);
-
-			// **Ensure messages only appear in the correct tab**
-			if (currentTabRef.current === messageChatType) {
-				// Update chat history if the active user matches the sender
-				if (
-					activeUser &&
-					(
-						(isLeadMessage && (
-							message.lead_sender === activeUser.id ||
-							message.lead_receiver === activeUser.id ||
-							message.lead_info?.id === activeUser.id
-						)) ||
-						(isCustomerMessage && (
-							message.customer_sender === activeUser.id ||
-							message.customer_receiver === activeUser.id
-						))
-					)
-				) {
-					markConversationAsRead(activeUser.id);
-					const newHistory = [...chatHistory, message];
-					setChatHistory(newHistory);
-		
-					setCachedData((prev) => ({
+	
+			const isRelevantToActiveUser = activeUser &&
+				(
+					(isLeadMessage && (
+						message.lead_sender === activeUser.id ||
+						message.lead_receiver === activeUser.id ||
+						message.lead_info?.id === activeUser.id
+					)) ||
+					(isCustomerMessage && (
+						message.customer_sender === activeUser.id ||
+						message.customer_receiver === activeUser.id
+					))
+				);
+	
+			if (currentTabRef.current === messageChatType && isRelevantToActiveUser) {
+				markConversationAsRead(activeUser.id);
+	
+				setChatHistory((prevHistory) => {
+					// Check for duplicate by real ID
+					const alreadyExists = prevHistory.some((msg) => msg.id === message.id);
+	
+					// Try to find a temporary message to replace (optional, based on content)
+					const tempMatchIndex = prevHistory.findIndex(
+						(msg) =>
+							typeof msg.id === 'string' &&
+							msg.id.startsWith('temp-') &&
+							msg.content === message.content &&
+							msg.created_at &&
+							new Date(msg.created_at).getTime() <= new Date(message.created_at).getTime() + 500
+					);
+	
+					if (alreadyExists) return prevHistory;
+	
+					if (tempMatchIndex !== -1) {
+						const newHistory = [...prevHistory];
+						newHistory[tempMatchIndex] = message;
+						return newHistory;
+					}
+	
+					return [...prevHistory, message];
+				});
+	
+				setCachedData((prev) => {
+					const existing = prev[messageChatType]?.histories[activeUser.id] || [];
+					const messageExists = existing.some((msg) => msg.id === message.id);
+	
+					if (messageExists) return prev;
+	
+					const tempMatchIndex = existing.findIndex(
+						(msg) =>
+							typeof msg.id === 'string' &&
+							msg.id.startsWith('temp-') &&
+							msg.content === message.content
+					);
+	
+					let updatedHistory = [...existing];
+					if (tempMatchIndex !== -1) {
+						updatedHistory[tempMatchIndex] = message;
+					} else {
+						updatedHistory.push(message);
+					}
+	
+					return {
 						...prev,
 						[messageChatType]: {
 							...prev[messageChatType],
 							histories: {
 								...prev[messageChatType].histories,
-								[activeUser.id]: newHistory,
+								[activeUser.id]: updatedHistory,
 							},
 						},
-					}));
-				}
+					};
+				});
 			}
-		
-			// **Only update users in the correct chat type**
-			if (newUser) {
+	
+			// Only update users in the correct chat type
+			if (newUser && currentTabRef.current === messageChatType) {
 				setUsers((prevUsers) => {
-					if (currentTabRef.current !== messageChatType) {
-						// Prevent adding customers to leads or vice versa
-						return prevUsers;
-					}
-		
 					const existingUsers = prevUsers?.results || [];
-					const existingUserIndex = existingUsers.findIndex(user => user?.id === newUser?.id);
-		
-					let updatedUsers;
-					if (existingUserIndex !== -1) {
-						updatedUsers = [
-							newUser, // Move to top
-							...existingUsers.filter(user => user.id !== newUser.id),
-						];
-					} else {
-						updatedUsers = [newUser, ...existingUsers];
-					}
-		
+					const updatedUsers = [
+						newUser,
+						...existingUsers.filter((user) => user.id !== newUser.id),
+					];
 					return {
 						...prevUsers,
 						results: updatedUsers,
 					};
 				});
-				
-				// **Ensure users are cached in the correct chat type**
-				setCachedData((prev) => ({
-					...prev,
-					[messageChatType]: {
-						...prev[messageChatType],
-						users: {
-							...prev[messageChatType]?.users,
-							results: [
-								newUser,
-								...(prev[messageChatType]?.users?.results || []).filter(user => user.id !== newUser.id),
-							],
+	
+				setCachedData((prev) => {
+					const existing = prev[messageChatType]?.users?.results || [];
+					const updated = [
+						newUser,
+						...existing.filter((user) => user.id !== newUser.id),
+					];
+	
+					return {
+						...prev,
+						[messageChatType]: {
+							...prev[messageChatType],
+							users: {
+								...prev[messageChatType].users,
+								results: updated,
+							},
 						},
-					},
-				}));
+					};
+				});
 			}
 		};
-		
-		
-	}, [activeUser, chatHistory, chatType]);
+	}, [activeUser, chatHistory, chatType]);	
+
 
 	useEffect(() => {
         return () => {
@@ -541,7 +566,7 @@ export const MessagesContent = () => {
 			setUsers(cachedData[tab].users);
 		}
     };
-	
+
 	const handleSendMessage = (messageContent) => {
 		const tempMessage = {
 			id: `temp-${new Date().getTime()}`, // Temporary unique ID
@@ -556,53 +581,42 @@ export const MessagesContent = () => {
 			company_is_sender: true,
 		};
 	
-		// Instant UI update (add the temp message)
+		// Show temp message instantly in UI
 		setChatHistory((prevHistory) => [...prevHistory, tempMessage]);
 	
 		let url = "/communication/";
 		let dataToSend;
 	
+		const formData = new FormData();
 		if (chatType === "customers") {
 			url += "send-to-customer/";
-			const formData = new FormData();
 			formData.append("customer_id", activeUser.id);
-			formData.append("content", messageContent.text || "");
 			formData.append("channel_id", 2);
-			if (selectedImage) {
-				formData.append("image", selectedImage);
-				formData.append("content_type", "image");
-			} else {
-				formData.append("content_type", "text");
-			}
-			dataToSend = formData;
 		} else {
 			url += "send-to-lead/";
-			const formData = new FormData();
 			formData.append("lead_id", activeUser.id);
-			formData.append("content", messageContent.text || "");
-			if (selectedImage) {
-				formData.append("image", selectedImage);
-				formData.append("content_type", "image");
-			} else {
-				formData.append("content_type", "text");
-			}
-			dataToSend = formData;
 		}
+	
+		formData.append("content", messageContent.text || "");
+		formData.append("content_type", selectedImage ? "image" : "text");
+		if (selectedImage) {
+			formData.append("image", selectedImage);
+		}
+	
+		dataToSend = formData;
 	
 		axiosInstance
 			.post(url, dataToSend, {
 				headers: { "Content-Type": "multipart/form-data" },
 				showLoader: false,
 			})
-			.then((response) => {
-				setChatHistory((prevHistory) =>
-					prevHistory.map((msg) =>
-						msg.id === tempMessage.id ? { ...response.data.data } : msg
-					)
-				);
-				 setSelectedImage(""); 
+			.then(() => {
+				// No need to manually replace temp message.
+				// The WebSocket will handle the correct update.
+				setSelectedImage("");
 			})
 			.catch((error) => {
+				// Mark the temp message as failed
 				setChatHistory((prevHistory) =>
 					prevHistory.map((msg) =>
 						msg.id === tempMessage.id ? { ...msg, status: "failed" } : msg
@@ -610,8 +624,8 @@ export const MessagesContent = () => {
 				);
 				handleApiError(error);
 			});
-	};
-	
+	};	
+
 
 	const fetchChannelsData = async () => {
 		try {
