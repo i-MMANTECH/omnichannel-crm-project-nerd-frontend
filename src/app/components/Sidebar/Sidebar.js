@@ -130,6 +130,7 @@ function Sidebar() {
                 
                 href="/nativecrm/messages?chat=leads"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/messages") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+
               >
                    <Mail 
                     size={18}
@@ -161,11 +162,11 @@ function Sidebar() {
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation
                   
                   href="/nativecrm/customers"
-                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
+                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/customers") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
                 >
                    <Users size={18} />
                     
-                  <h3 className={`text-sm font-medium ${isActive("/customers") ? activeStyle : ""}`}>
+                  <h3 className={`text-sm font-medium`}>
                     Customers
                   </h3>
                 </Link>

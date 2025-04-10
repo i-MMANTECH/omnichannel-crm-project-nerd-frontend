@@ -89,7 +89,9 @@ input {
   cursor: pointer;
 }
 .sidebar .active {
+  border-bottom: 2px solid var(--link-color); /* Example blue border */
   color: var(--link-color);
+  font-weight: 600;
 }
 body {
   color: var(--foreground);
