@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import { Disclosure } from "@headlessui/react";
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
+import { AlarmClock, UserPlus } from "lucide-react";
 
 
 function SettingsSidebar({ onSidebarClick, currentSection  }) {
@@ -30,11 +31,8 @@ function SettingsSidebar({ onSidebarClick, currentSection  }) {
                   onClick={() => onSidebarClick('role-management')}
                   className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${currentSection === 'role-management' ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
-                <Image
-                    src="/assets/users-plus.svg"
-                    alt="Users"
-                    width={20}
-                    height={20}
+                <UserPlus 
+                    size={18}
                   />
                 <h3 className={`text-sm font-medium`}>
                   Role Management
@@ -45,12 +43,7 @@ function SettingsSidebar({ onSidebarClick, currentSection  }) {
                   onClick={() => onSidebarClick('sla-policies')}
                   className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${currentSection === 'sla-policies' ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
-                <Image
-                    src="/assets/alarm-clock.svg"
-                    alt="Users"
-                    width={20}
-                    height={20}
-                  />
+                 <AlarmClock size={18} />
                 <h3 className={`text-sm font-medium`}>
                 Sla Policies
                 </h3>
