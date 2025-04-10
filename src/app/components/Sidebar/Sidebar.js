@@ -13,7 +13,7 @@ import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import { usePermissions } from "@/context/PermissionsContext";
 import UserAvatar from "../UserAvatar";
-import { Bell, House, Mail, SquareCheck, UserPlus } from 'lucide-react';
+import { Bell, House, Mail, Settings, SquareCheck, UserPlus, Users } from 'lucide-react';
 
 function Sidebar() {
   const { logout } = useAuth();
@@ -163,13 +163,7 @@ function Sidebar() {
                   href="/nativecrm/customers"
                   className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
                 >
-                  <Image
-                      src="/assets/customers.svg"
-                      className={`${isActive("/customers") ? activeStyle : ""}`}
-                      alt="Customers"
-                      width={20}
-                      height={20}
-                    />
+                   <Users size={18} />
                     
                   <h3 className={`text-sm font-medium ${isActive("/customers") ? activeStyle : ""}`}>
                     Customers
@@ -221,12 +215,7 @@ function Sidebar() {
                   href="/nativecrm/settings#channels-integration"
                   className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/settings") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
                 >
-                  <Image
-                    src="/assets/settings.svg"
-                    alt="Settings"
-                    width={20}
-                    height={20}
-                  />
+                    <Settings size={18} />
                   <h3 className={`text-sm font-medium`}>
                     Settings
                   </h3>

@@ -4,7 +4,7 @@ import React, { useState, useRef } from "react";
 import { Disclosure } from "@headlessui/react";
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
-import { AlarmClock, UserPlus } from "lucide-react";
+import { AlarmClock, FileText, Link, UserPlus } from "lucide-react";
 
 
 function SettingsSidebar({ onSidebarClick, currentSection  }) {
@@ -53,13 +53,7 @@ function SettingsSidebar({ onSidebarClick, currentSection  }) {
                   onClick={() => onSidebarClick('channels-integration')}
                   className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${currentSection === 'channels-integration' ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
-                <Image
-                    src="/assets/channels.svg"
-                    style={{marginLeft: '2px'}}
-                    alt="Users"
-                    width={20}
-                    height={20}
-                  />
+                <Link size={18} />
                 <h3 className={`text-sm font-medium`}>
                   Channel Integration
                 </h3>
@@ -150,14 +144,7 @@ function SettingsSidebar({ onSidebarClick, currentSection  }) {
                   onClick={() => onSidebarClick('plans-and-billings')}
                   className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${currentSection === 'plans-and-billings' ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
-                <Image
-                    src="/assets/invoice.svg"
-                    className={`${isActive("/plans-and-billings") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
-                    style={{marginLeft: '2px'}}
-                    alt="Users"
-                    width={20}
-                    height={20}
-                  />
+                <FileText size={18} />
                 <h3 className={`text-sm font-medium`}>
                   Plans & Billing
                 </h3>
