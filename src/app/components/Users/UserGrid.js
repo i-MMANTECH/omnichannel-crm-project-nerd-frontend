@@ -45,7 +45,7 @@ const UserGrid = ({ users }) => {
             <div className="p-2">
               <div className="flex items-center gap-2 mb-2">
                 <Image src="/assets/mail.svg" alt="Email" width={22} height={22} />
-                {user.email}
+                <span className="break-all whitespace-normal">{user.email}</span>
               </div>
 
               <div className="flex items-center gap-2 mb-2">

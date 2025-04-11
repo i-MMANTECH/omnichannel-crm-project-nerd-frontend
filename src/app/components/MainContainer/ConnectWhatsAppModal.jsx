@@ -23,8 +23,6 @@ export const ConnectWhatsAppModal = ({ onCancel }) => {
       getChannel()
     }, [])
 
-    console.log(channel)
-
   const modalFooter = (
     <div className="flex gap-3 w-7/12">
       <button
@@ -57,10 +55,16 @@ export const ConnectWhatsAppModal = ({ onCancel }) => {
          </p>
  
          <div className="ms-6 justify-center flex p-[16px_19px] items-center">
-             <p className="text-lg font-medium text-center">
-               Your request has been received! <br />
-               We’ll review it and get back to you on WhatsApp.
-             </p>
+             {
+               channel?.connected ? (
+                <p className="text-lg font-medium text-center me-5">Your WhatsApp is Connected</p>
+            ) : (
+                <p className="text-lg font-medium text-center">
+                    Your request has been received! <br />
+                    We’ll review it and get back to you on WhatsApp.
+                </p>
+            )
+             }
          </div>
        </div>
      )}
