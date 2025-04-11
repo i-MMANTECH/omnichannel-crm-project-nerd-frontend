@@ -173,6 +173,39 @@ export const MessagesContent = () => {
 	
 		wsRef.current.onmessage = (event) => {
 			const data = JSON.parse(event.data);
+	
+			if (data.type === "message_status") {
+				const updatedMessage = data.message;
+				// console.log("📦 Message status update:", updatedMessage);
+	
+				setChatHistory((prevHistory) =>
+					prevHistory.map((msg) =>
+						msg.id === updatedMessage.id ? { ...msg, ...updatedMessage } : msg
+					)
+				);
+	
+				setCachedData((prev) => {
+					const current = prev[chatType]?.histories[activeUser?.id] || [];
+					const updatedHistory = current.map((msg) =>
+						msg.id === updatedMessage.id ? { ...msg, ...updatedMessage } : msg
+					);
+	
+					return {
+						...prev,
+						[chatType]: {
+							...prev[chatType],
+							histories: {
+								...prev[chatType].histories,
+								[activeUser.id]: updatedHistory,
+							},
+						},
+					};
+				});
+	
+				return; // ✅ Exit early – don't process further
+			}
+	
+			// 🎯 Handle normal "message"
 			const message = data.message;
 	
 			const isLeadMessage = message.lead_sender != null || message.lead_receiver != null;
@@ -184,7 +217,7 @@ export const MessagesContent = () => {
 				? message.customer_sender_details
 				: null;
 	
-			console.log("🟢 WebSocket message:", message);
+			// console.log("🟢 WebSocket message:", message);
 	
 			const messageChatType = getMessageType(message);
 	
@@ -205,10 +238,8 @@ export const MessagesContent = () => {
 				markConversationAsRead(activeUser.id);
 	
 				setChatHistory((prevHistory) => {
-					// Check for duplicate by real ID
 					const alreadyExists = prevHistory.some((msg) => msg.id === message.id);
 	
-					// Try to find a temporary message to replace (optional, based on content)
 					const tempMatchIndex = prevHistory.findIndex(
 						(msg) =>
 							typeof msg.id === 'string' &&
@@ -262,7 +293,7 @@ export const MessagesContent = () => {
 				});
 			}
 	
-			// Only update users in the correct chat type
+			// 👥 Update users (only in the correct chat type)
 			if (newUser && currentTabRef.current === messageChatType) {
 				setUsers((prevUsers) => {
 					const existingUsers = prevUsers?.results || [];
