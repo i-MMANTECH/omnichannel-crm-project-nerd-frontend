@@ -174,7 +174,7 @@ export default function Profile() {
                         className="bg-[#3EBF0F] text-white text-sm px-3 py-1 rounded-md hover:bg-[#34a40d] transition w-full"
                         onClick={submitImage}
                         >
-                        Submit
+                        Upload
                         </button>
                     )}
                 </div>
