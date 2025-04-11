@@ -6,6 +6,8 @@ import { ConnectEmailModal } from "../../MainContainer/ConnectEmailModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import ComingSoonModal from "../../ComingSoonModal";
+import { ConnectWhatsAppModal } from "../../MainContainer/ConnectWhatsAppModal";
+
 
 export const MainContainer = () => {
   const [showModal, setShowModal] = useState(false);
@@ -13,23 +15,26 @@ export const MainContainer = () => {
   const [modalContent, setModalContent] = useState("");
   const [isLiveChat, setIsLiveChat] = useState(false);
   const { axiosInstance, loading } = useApi();
+  const { handleApiError } = useError();
   const [isEmail, setIsEmail] = useState(false);
+  const [isWhatsApp, setIsWhatsApp] = useState(false);
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
   const [channels, setChannels] = useState([])
-  const { handleApiError } = useError();
 
 
   const handleConnectClick = (title, icon) => {
     const lowerCaseTitle = title.toLowerCase();
-    const comingSoonChannels = ["facebook", "whatsapp", "instagram", "sms", "telegram"];
-
-    if (comingSoonChannels.includes(lowerCaseTitle)) {
+    const comingSoonChannels = ["facebook", "instagram", "sms", "telegram"];
+  
+    if (lowerCaseTitle === "whatsapp") {
+      setIsWhatsApp(true);
+    } else if (comingSoonChannels.includes(lowerCaseTitle)) {
       setModalTitle("Coming Soon");
       setModalContent("This feature is coming soon!");
       setShowModal(true);
-    } else if (title === 'Nativetalk Livechat') {
+    } else if (title === "Nativetalk Livechat") {
       setIsLiveChat(true);
-    } else if (title === 'Email') {
+    } else if (title === "Email") {
       setIsEmail(true);
     } else {
       setModalTitle(title);
@@ -37,12 +42,14 @@ export const MainContainer = () => {
       setShowModal(true);
     }
   };
+  
 
   const closeModal = () => {
     setShowModal(false);
     setShowDisconnectModal(false);
     setIsLiveChat(false);
-    setIsEmail(false)
+    setIsEmail(false);
+    setIsWhatsApp(false); 
   };
 
   useEffect(() => {
@@ -107,6 +114,7 @@ export const MainContainer = () => {
           title={modalTitle} 
           message={modalContent} />
 
+        {isWhatsApp && <ConnectWhatsAppModal onCancel={closeModal} />}
         {isLiveChat && <ConnectLiveChatModal onCancel={closeModal} />}
         {isEmail && <ConnectEmailModal onCancel={closeModal} />}
       </div>

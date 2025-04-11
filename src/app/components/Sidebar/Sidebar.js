@@ -13,6 +13,7 @@ import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import { usePermissions } from "@/context/PermissionsContext";
 import UserAvatar from "../UserAvatar";
+import { Bell, House, Mail, Settings, SquareCheck, UserPlus, Users } from 'lucide-react';
 
 function Sidebar() {
   const { logout } = useAuth();
@@ -35,7 +36,7 @@ function Sidebar() {
   const activeStyle = "active";
   const openModal = () => setIsModalOpen(true);
 
-  const isActive = (path) => pathname.startsWith(path);
+  const isActive = (path) => pathname.includes(path);
   const { toggleNotification } = useNotification();
 
   useEffect(() => {
@@ -97,17 +98,12 @@ function Sidebar() {
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation
               
                 href="/nativecrm/dashboard"
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/dashboard") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
               >
-                <Image
-                    src="/assets/dashboard.svg"
-                    className={`${isActive("/dashboard") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
-                    style={{marginLeft: '2px'}}
-                    alt="Users"
-                    width={16}
-                    height={16}
+                   <House 
+                    size={18}
                   />
-                <h3 className={`text-sm font-medium ${isActive("/dashboard") ? activeStyle : ""}`}>
+                <h3 className={`text-sm font-medium`}>
                   Dashboard
                 </h3>
               </Link>
@@ -117,16 +113,12 @@ function Sidebar() {
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation
                  
                  href="/nativecrm/users"
-                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
+                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/users") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
                >
-                 <Image
-                     src="/assets/users-plus.svg"
-                     className={`${isActive("/users") ? activeStyle : ""}`}
-                     alt="Users"
-                     width={20}
-                     height={20}
-                   />
-                 <h3 className={`text-sm font-medium ${isActive("/users") ? activeStyle : ""}`}>
+                  <UserPlus 
+                    size={18}
+                  />
+                 <h3 className={`text-sm font-medium`}>
                    Users
                  </h3>
                </Link>
@@ -137,16 +129,12 @@ function Sidebar() {
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation
                 
                 href="/nativecrm/messages?chat=leads"
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/messages") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
               >
-                <Image
-                    src="/assets/mail-icon.svg"
-                    className={`${isActive("/messages") ? activeStyle : ""}`} 
-                    alt="Messages"
-                    width={20}
-                    height={20}
-                  />
-                <h3 className={`text-sm font-medium ${isActive("/messages") ? activeStyle : ""}`}>
+                   <Mail 
+                    size={18}
+                   />
+                <h3 className={`text-sm font-medium`}>
                   Messages
                 </h3>
               </Link>
@@ -157,16 +145,12 @@ function Sidebar() {
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation
                   
                   href="/nativecrm/tasks"
-                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
+                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/tasks") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
                 >
-                  <Image
-                      src="/assets/tasks.svg"
-                      className={`${isActive("/tasks") ? activeStyle : ""}`}
-                      alt="Tasks"
-                      width={20}
-                      height={20}
-                    />
-                  <h3 className={`text-sm font-medium ${isActive("/tasks") ? activeStyle : ""}`}>
+                   <SquareCheck
+                    size={18}
+                   />
+                  <h3 className={`text-sm font-medium`}>
                     Tasks
                   </h3>
                 </Link>
@@ -179,13 +163,8 @@ function Sidebar() {
                   href="/nativecrm/customers"
                   className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
                 >
-                  <Image
-                      src="/assets/customers.svg"
-                      className={`${isActive("/customers") ? activeStyle : ""}`}
-                      alt="Customers"
-                      width={20}
-                      height={20}
-                    />
+                   <Users size={18} />
+                    
                   <h3 className={`text-sm font-medium ${isActive("/customers") ? activeStyle : ""}`}>
                     Customers
                   </h3>
@@ -205,23 +184,20 @@ function Sidebar() {
                     width={20}
                     height={20}
                   />
+                  
                 <h3 className={`text-sm font-medium ${isActive("/reports") ? activeStyle : ""}`}>
                   Reports
                 </h3>
               </Link>
 
               <div
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/notifications") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
                 onClick={toggleNotification}
               >
-                <Image
-                    src="/assets/bell.svg"
-                    className={`${isActive("/notifications") ? activeStyle : ""}`}
-                    alt="Bell"
-                    width={20}
-                    height={20}
-                  />
-                <h3 className={`text-sm font-medium ${isActive("/notifications") ? activeStyle : ""}`}>
+                <Bell 
+                  size={18}
+                />
+                <h3 className={`text-sm font-medium`}>
                   Notifications
                 </h3>
               </div>
@@ -237,16 +213,10 @@ function Sidebar() {
                     }
                   }}
                   href="/nativecrm/settings#channels-integration"
-                  className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
+                  className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/settings") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
                 >
-                  <Image
-                    src="/assets/settings.svg"
-                    className={`${isActive("/settings") ? activeStyle : ""}`}
-                    alt="Settings"
-                    width={20}
-                    height={20}
-                  />
-                  <h3 className={`text-sm font-medium ${isActive("/settings") ? activeStyle : ""}`}>
+                    <Settings size={18} />
+                  <h3 className={`text-sm font-medium`}>
                     Settings
                   </h3>
                 </Link>

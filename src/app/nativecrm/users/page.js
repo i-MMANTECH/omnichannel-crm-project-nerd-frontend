@@ -92,8 +92,6 @@ const Users = () => {
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
     };
 
-    console.log(users)
-
     return (
         <Suspense fallback={<div>Loading...</div>}>
             <ModalController>
