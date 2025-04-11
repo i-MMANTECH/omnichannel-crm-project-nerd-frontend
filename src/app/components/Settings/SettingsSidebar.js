@@ -45,7 +45,7 @@ function SettingsSidebar({ onSidebarClick, currentSection  }) {
               >
                  <AlarmClock size={18} />
                 <h3 className={`text-sm font-medium`}>
-                Sla Policies
+                SLA Policies
                 </h3>
               </button>  
 
