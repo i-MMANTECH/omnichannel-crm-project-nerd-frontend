@@ -46,15 +46,15 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
 
                         setFormData((prevData) => ({
                             ...prevData,
-                            username: leadData.name || "",
+                            username: (leadData.name || "").replace(/\s+/g, ""),
                             first_name: firstName || leadData.name || "",
                             last_name: lastName || "",
                             gender: leadData.gender || "",
-                            phone_number: leadData?.channel == 2 ? leadData.unique_identifier : "",
+                            phone_number: leadData?.channel?.id == 2 ? leadData.unique_identifier : "",
                             email: leadData.email || "",
                             instagram: leadData.instagram || "",
                             facebook: leadData.facebook || "",
-                            whatsapp: leadData.whatsapp || "",
+                            whatsapp: leadData?.channel?.id == 2 ? leadData.unique_identifier : "",
                             tiktok: leadData.tiktok || "",
                             tag: leadData.tag || [],
                             country: { id: 160, name: "Nigeria" },

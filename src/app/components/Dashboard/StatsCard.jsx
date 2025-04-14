@@ -10,7 +10,7 @@ const StatsCard = ({ summary }) => {
   const viewMessage = checkPermission('view_message');
 
   return (
-    <div className="flex gap-5 mt-5">
+    <div className="gap-5 mt-5 flex flex-wrap">
       {viewMessage && (
           <a href="/nativecrm/messages?chat=leads" className="flex cursor-pointer flex-col items-start gap-4 p-[16px_16px_14px] rounded-[16px] border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] flex-1">
           <div className="flex justify-center items-center gap-2 w-[36px] h-[36px] p-[8px] rounded-[8px] border border-[#30A808] bg-[#3EBF0F] shadow-[0px_-4px_6px_0px_rgba(255,255,255,0.50)_inset,_0px_1px_2px_0px_rgba(13,13,18,0.10)]">

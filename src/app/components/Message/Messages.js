@@ -11,7 +11,20 @@ import "./style.css";
 import { useAuth } from "@/context/AuthContext";
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
+import { Tooltip } from "react-tooltip";
 
+
+const getMessageType = (message) => {
+	if (message.lead_sender != null || message.lead_receiver != null) {
+	  return "leads";
+	}
+	if (message.customer_sender != null || message.customer_receiver != null) {
+	  return "customers";
+	}
+	return null;
+  };
+
+  
 export const MessagesContent = () => {
 	const { axiosInstance } = useApi();
 	const { handleApiError } = useError();
@@ -50,6 +63,7 @@ export const MessagesContent = () => {
 
 	const [activeAgent, setActiveAgent] = useState(null)
 	const [userProfile, setUserProfile] = useState({})
+	const [selectedImage, setSelectedImage] = useState('')
 
 	const [isFilterActive, setIsFilterActive] = useState(false)
 
@@ -153,107 +167,168 @@ export const MessagesContent = () => {
 
 	useEffect(() => {
 		if (!wsRef.current) {
-			console.log('message event returning')
+			console.log('message event returning');
 			return;
 		}
-
+	
 		wsRef.current.onmessage = (event) => {
 			const data = JSON.parse(event.data);
+	
+			if (data.type === "message_status") {
+				const updatedMessage = data.message;
+				// console.log("📦 Message status update:", updatedMessage);
+	
+				setChatHistory((prevHistory) =>
+					prevHistory.map((msg) =>
+						msg.id === updatedMessage.id ? { ...msg, ...updatedMessage } : msg
+					)
+				);
+	
+				setCachedData((prev) => {
+					const current = prev[chatType]?.histories[activeUser?.id] || [];
+					const updatedHistory = current.map((msg) =>
+						msg.id === updatedMessage.id ? { ...msg, ...updatedMessage } : msg
+					);
+	
+					return {
+						...prev,
+						[chatType]: {
+							...prev[chatType],
+							histories: {
+								...prev[chatType].histories,
+								[activeUser.id]: updatedHistory,
+							},
+						},
+					};
+				});
+	
+				return; // ✅ Exit early – don't process further
+			}
+	
+			// 🎯 Handle normal "message"
 			const message = data.message;
-		
-			// Correctly determine whether the message is from a lead or a customer
-			const isLeadMessage = typeof message.lead_sender === "number";
-			const isCustomerMessage = typeof message.customer_sender === "number";
-		
-			// Ensure the correct sender details are retrieved
+	
+			const isLeadMessage = message.lead_sender != null || message.lead_receiver != null;
+			const isCustomerMessage = message.customer_sender != null || message.customer_receiver != null;
+	
 			const newUser = isLeadMessage
 				? message.lead_sender_details
 				: isCustomerMessage
 				? message.customer_sender_details
 				: null;
-		
-			console.log("Received Message:", message);
-		
-			// **Fix: Ensure messages are assigned to the correct chat type**
-			const messageChatType = isLeadMessage ? "leads" : isCustomerMessage ? "customers" : null;
-		
-			if (!messageChatType) {
-				console.warn("⚠️ Message does not belong to leads or customers:", message);
-				return;
-			}
-		
-			// **Ensure messages only appear in the correct tab**
-			if (currentTabRef.current === messageChatType) {
-				// Update chat history if the active user matches the sender
-				if (
-					activeUser &&
-					((isLeadMessage && message.lead_sender === activeUser.id) ||
-						(isCustomerMessage && message.customer_sender === activeUser.id) ||
-						message.lead_info?.id === activeUser.id)
-				) {
-					markConversationAsRead(activeUser.id);
-					const newHistory = [...chatHistory, message];
-					setChatHistory(newHistory);
-		
-					setCachedData((prev) => ({
+	
+			// console.log("🟢 WebSocket message:", message);
+	
+			const messageChatType = getMessageType(message);
+	
+			const isRelevantToActiveUser = activeUser &&
+				(
+					(isLeadMessage && (
+						message.lead_sender === activeUser.id ||
+						message.lead_receiver === activeUser.id ||
+						message.lead_info?.id === activeUser.id
+					)) ||
+					(isCustomerMessage && (
+						message.customer_sender === activeUser.id ||
+						message.customer_receiver === activeUser.id
+					))
+				);
+	
+			if (currentTabRef.current === messageChatType && isRelevantToActiveUser) {
+				markConversationAsRead(activeUser.id);
+	
+				setChatHistory((prevHistory) => {
+					const alreadyExists = prevHistory.some((msg) => msg.id === message.id);
+	
+					const tempMatchIndex = prevHistory.findIndex(
+						(msg) =>
+							typeof msg.id === 'string' &&
+							msg.id.startsWith('temp-') &&
+							msg.content === message.content &&
+							msg.created_at &&
+							new Date(msg.created_at).getTime() <= new Date(message.created_at).getTime() + 500
+					);
+	
+					if (alreadyExists) return prevHistory;
+	
+					if (tempMatchIndex !== -1) {
+						const newHistory = [...prevHistory];
+						newHistory[tempMatchIndex] = message;
+						return newHistory;
+					}
+	
+					return [...prevHistory, message];
+				});
+	
+				setCachedData((prev) => {
+					const existing = prev[messageChatType]?.histories[activeUser.id] || [];
+					const messageExists = existing.some((msg) => msg.id === message.id);
+	
+					if (messageExists) return prev;
+	
+					const tempMatchIndex = existing.findIndex(
+						(msg) =>
+							typeof msg.id === 'string' &&
+							msg.id.startsWith('temp-') &&
+							msg.content === message.content
+					);
+	
+					let updatedHistory = [...existing];
+					if (tempMatchIndex !== -1) {
+						updatedHistory[tempMatchIndex] = message;
+					} else {
+						updatedHistory.push(message);
+					}
+	
+					return {
 						...prev,
 						[messageChatType]: {
 							...prev[messageChatType],
 							histories: {
 								...prev[messageChatType].histories,
-								[activeUser.id]: newHistory,
+								[activeUser.id]: updatedHistory,
 							},
 						},
-					}));
-				}
+					};
+				});
 			}
-		
-			// **Only update users in the correct chat type**
-			if (newUser) {
+	
+			// 👥 Update users (only in the correct chat type)
+			if (newUser && currentTabRef.current === messageChatType) {
 				setUsers((prevUsers) => {
-					if (currentTabRef.current !== messageChatType) {
-						// Prevent adding customers to leads or vice versa
-						return prevUsers;
-					}
-		
 					const existingUsers = prevUsers?.results || [];
-					const existingUserIndex = existingUsers.findIndex(user => user?.id === newUser?.id);
-		
-					let updatedUsers;
-					if (existingUserIndex !== -1) {
-						updatedUsers = [
-							newUser, // Move to top
-							...existingUsers.filter(user => user.id !== newUser.id),
-						];
-					} else {
-						updatedUsers = [newUser, ...existingUsers];
-					}
-		
+					const updatedUsers = [
+						newUser,
+						...existingUsers.filter((user) => user.id !== newUser.id),
+					];
 					return {
 						...prevUsers,
 						results: updatedUsers,
 					};
 				});
-				
-				// **Ensure users are cached in the correct chat type**
-				setCachedData((prev) => ({
-					...prev,
-					[messageChatType]: {
-						...prev[messageChatType],
-						users: {
-							...prev[messageChatType]?.users,
-							results: [
-								newUser,
-								...(prev[messageChatType]?.users?.results || []).filter(user => user.id !== newUser.id),
-							],
+	
+				setCachedData((prev) => {
+					const existing = prev[messageChatType]?.users?.results || [];
+					const updated = [
+						newUser,
+						...existing.filter((user) => user.id !== newUser.id),
+					];
+	
+					return {
+						...prev,
+						[messageChatType]: {
+							...prev[messageChatType],
+							users: {
+								...prev[messageChatType].users,
+								results: updated,
+							},
 						},
-					},
-				}));
+					};
+				});
 			}
 		};
-		
-		
-	}, [activeUser, chatHistory, chatType]);
+	}, [activeUser, chatHistory, chatType]);	
+
 
 	useEffect(() => {
         return () => {
@@ -522,12 +597,13 @@ export const MessagesContent = () => {
 			setUsers(cachedData[tab].users);
 		}
     };
-	
+
 	const handleSendMessage = (messageContent) => {
 		const tempMessage = {
 			id: `temp-${new Date().getTime()}`, // Temporary unique ID
 			content: messageContent.text,
-			content_type: "text",
+			content_type: selectedImage ? "image" : "text",
+			image: selectedImage,
 			created_at: new Date().toISOString(),
 			status: "sending",
 			user_sender: userProfile?.id,
@@ -536,58 +612,51 @@ export const MessagesContent = () => {
 			company_is_sender: true,
 		};
 	
-		// Instant UI update (add the temp message)
+		// Show temp message instantly in UI
 		setChatHistory((prevHistory) => [...prevHistory, tempMessage]);
 	
-		const payload = {
-			lead_id: activeUser.id,
-			content: messageContent.text || "",
-			content_type: "text",
-		};
-	
 		let url = "/communication/";
-		let dataToSend = payload;
+		let dataToSend;
 	
+		const formData = new FormData();
 		if (chatType === "customers") {
 			url += "send-to-customer/";
-			const formData = new FormData();
 			formData.append("customer_id", activeUser.id);
-			formData.append("content", messageContent.text || "");
 			formData.append("channel_id", 2);
-			dataToSend = formData;
 		} else {
 			url += "send-to-lead/";
+			formData.append("lead_id", activeUser.id);
 		}
+	
+		formData.append("content", messageContent.text || "");
+		formData.append("content_type", selectedImage ? "image" : "text");
+		if (selectedImage) {
+			formData.append("image", selectedImage);
+		}
+	
+		dataToSend = formData;
 	
 		axiosInstance
 			.post(url, dataToSend, {
-				headers: chatType === "customers" ? { "Content-Type": "multipart/form-data" } : {},
+				headers: { "Content-Type": "multipart/form-data" },
 				showLoader: false,
 			})
-			.then((response) => {
-				setChatHistory((prevHistory) => {
-					return prevHistory.map((msg) => {
-					  if (msg.id === tempMessage.id) {
-						return { 
-						  ...response.data.data, 
-						};
-					  }
-					  return msg;
-					});
-				});
+			.then(() => {
+				// No need to manually replace temp message.
+				// The WebSocket will handle the correct update.
+				setSelectedImage("");
 			})
 			.catch((error) => {
+				// Mark the temp message as failed
 				setChatHistory((prevHistory) =>
-				  prevHistory.map((msg) =>
-					msg.id === tempMessage.id 
-					  ? { ...msg, status: "failed" } 
-					  : msg
-				  )
+					prevHistory.map((msg) =>
+						msg.id === tempMessage.id ? { ...msg, status: "failed" } : msg
+					)
 				);
-		  
 				handleApiError(error);
 			});
-	};
+	};	
+
 
 	const fetchChannelsData = async () => {
 		try {
@@ -695,6 +764,7 @@ export const MessagesContent = () => {
 						onClick={() => handleAssigneeClick(assignee.id)}
 						onMouseEnter={(e) => e.currentTarget.classList.add("z-10")}
 						onMouseLeave={(e) => e.currentTarget.classList.remove("z-10")}
+						data-tooltip-id={`tooltip-${assignee.id}`} // Unique ID for each tooltip
 						>
 						{assignee?.image ? (
 							<Image
@@ -715,6 +785,9 @@ export const MessagesContent = () => {
 							height="h-9" 
 							/>
 						)}
+						 <Tooltip id={`tooltip-${assignee.id}`} place="top">
+							{assignee?.first_name} {assignee?.last_name || ""}
+						</Tooltip>
 						</div>
 					))}
 					
@@ -857,6 +930,8 @@ export const MessagesContent = () => {
 
 								{chatType != "archived" ? ( 
 									<MessageInput
+										onRemoveImage={setSelectedImage}
+										onSendImage={setSelectedImage}
 										onSendMessage={handleSendMessage}
 									/>
 								): (

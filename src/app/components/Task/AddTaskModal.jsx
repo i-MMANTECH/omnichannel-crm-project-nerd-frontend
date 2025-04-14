@@ -13,56 +13,55 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
   const [taskDescription, setTaskDescription] = useState("");
   const [assignees, setAssignees] = useState([]);
   const [dueDate, setDueDate] = useState("");
-  const [sla, setSla] = useState("");
+  const [sla, setSla] = useState(null);
   const [priority, setPriority] = useState(null);
   const [status, setStatus] = useState(null);
   const [priorities, setPriorities] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [users, setUsers] = useState([]);
+  const [slas, setSlas] = useState([]);
 
   const prioritiesEndpoint = "tasks/priorities/";
   const statusesEndpoint = "tasks/statuses/";
   const createTaskEndpoint = "tasks/create/";
   const getAssigneesEndpoint = "/users/";
+  const getSlasEndpoint = "/sla/";
 
   useEffect(() => {
     if (isOpen) {
-      const fetchPriorities = async () => {
+      const fetchData = async () => {
         try {
-          const response = await axiosInstance.get(prioritiesEndpoint);
-          setPriorities(response.data.priorities || []);
+          const [prioritiesRes, statusesRes, assigneesRes, slasRes] =
+            await Promise.all([
+              axiosInstance.get(prioritiesEndpoint),
+              axiosInstance.get(statusesEndpoint),
+              axiosInstance.get(getAssigneesEndpoint),
+              axiosInstance.get(getSlasEndpoint),
+            ]);
+  
+          setPriorities(prioritiesRes.data.priorities || []);
+          setStatuses(statusesRes.data.statuses || []);
+          setUsers(
+            assigneesRes.data.results.map((user) => ({
+              value: user.id,
+              label: user.email,
+            }))
+          );
+          setSlas(
+            slasRes.data.results.map((sla) => ({
+              value: sla.id,
+              label: sla.title,
+            }))
+          );
         } catch (error) {
           handleApiError(error);
         }
       };
-
-      const fetchStatuses = async () => {
-        try {
-          const response = await axiosInstance.get(statusesEndpoint);
-          setStatuses(response.data.statuses || []);
-        } catch (error) {
-          handleApiError(error);
-        }
-      };
-
-      const fetchAssignees = async () => {
-        try {
-          const response = await axiosInstance.get(getAssigneesEndpoint);
-          const formattedUsers = response.data.results.map((user) => ({
-            value: user.id,
-            label: user.email,
-          }));
-          setUsers(formattedUsers);
-        } catch (error) {
-          handleApiError(error);
-        }
-      };
-
-      fetchPriorities();
-      fetchStatuses();
-      fetchAssignees();
+  
+      fetchData();
     }
   }, [isOpen]);
+  
 
   const handlePriorityChange = (selectedOption) => {
     setPriority(selectedOption);
@@ -76,18 +75,23 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
     setAssignees(selectedOptions || []);
   };
 
+  const handleSlaChange = (selectedOption) => {
+    setSla(selectedOption);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const taskData = {
       title: taskTitle,
       description: taskDescription,
-      assignees: assignees.map((agent) => agent.value), // Send only IDs to API
+      assignees: assignees.map((agent) => agent.value), 
       due_date: dueDate,
-      sla,
+      sla_id: sla?.value, 
       priority: priority?.value,
       status: status?.value,
     };
+     
 
     try {
       const response = await axiosInstance.post(createTaskEndpoint, taskData);
@@ -198,12 +202,12 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
         </div>
 
         <div className="mb-7">
-          <input
-            type="number"
+          <label className="block text-sm font-medium mb-1">SLA</label>
+          <Select
+            options={slas}
             value={sla}
-            onChange={(e) => setSla(e.target.value)}
-            placeholder="SLA"
-            className="w-full border border-gray-300 rounded-lg px-2 py-3"
+            onChange={handleSlaChange}
+            styles={selectStyles}
           />
         </div>
       </form>

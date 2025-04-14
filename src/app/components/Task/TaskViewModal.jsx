@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import Modal from "../Modal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
@@ -9,6 +9,7 @@ import { timeAgo } from "@/utils/timeUtils";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComments } from '@fortawesome/free-regular-svg-icons';
+import SlaDetail from "../Settings/sla-policies/SlaDetail";
 
 
 const TaskViewModal = ({ isOpen, taskId, onClose }) => {
@@ -22,6 +23,8 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
   const [activityLogs, setActivityLogs] = useState([]);
   const [newComment, setNewComment] = useState("");
   const router = useRouter()
+  const [slaId, setSlaId] = useState(null);
+  const [isReview, setIsReview] = useState(false);
 
   const fetchActivities = async () => {
     try {
@@ -81,32 +84,31 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
 
   useEffect(() => {
     if (!isOpen || !taskId) return;
-
+  
     const abortController = new AbortController();
-    
+    const { signal } = abortController; 
+  
     const fetchTask = async () => {
       setLoading(true);
       try {
-        const { data } = await axiosInstance.get(`tasks/${taskId}`, {
-          signal: abortController.signal
-        });
+        const { data } = await axiosInstance.get(`/tasks/${taskId}`, { signal });
         setTask(data.task);
-        console.log(data)
       } catch (err) {
-        if (err.name !== 'CanceledError') {
+        if (err.name !== "AbortError") {
           handleApiError(err);
         }
       } finally {
-        setLoading(false);
+        if (!signal.aborted) setLoading(false); // ✅ Update state only if not aborted
       }
     };
-
+  
     fetchTask();
-
+  
     return () => {
       abortController.abort();
     };
   }, [taskId, isOpen]);
+  
 
   useEffect(() => {
     const getActivityLogs = async () => {
@@ -230,15 +232,18 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                   )}
                   
                   <div className="flex-1">
-                    <p className="text-sm">
-                    <strong>
-                      {comment.created_by.first_name?.trim() || comment.created_by.last_name?.trim() 
-                        ? `${comment.created_by.first_name} ${comment.created_by.last_name}`.trim()
-                        : '--'}
-                    </strong>
-                      <span className="ml-2 text-gray-500">{timeAgo(comment.created_at)}</span>
-                    </p>
-                    <p className="text-sm mt-1">{comment.content}</p>
+                  <p className="text-sm">
+                  <strong>
+                    {comment?.created_by?.first_name?.trim() || comment?.created_by?.last_name?.trim()
+                      ? `${comment?.created_by?.first_name || ''} ${comment?.created_by?.last_name || ''}`.trim()
+                      : '--'}
+                  </strong>
+                  <span className="ml-2 text-gray-500">
+                    {comment?.created_at ? timeAgo(comment.created_at) : '--'}
+                  </span>
+                </p>
+                <p className="text-sm mt-1">{comment?.content || '--'}</p>
+
                   </div>
                 </div>
                 )
@@ -295,6 +300,11 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
     }
   };
 
+  const handlereview = (id) => {
+    setSlaId(id)
+    setIsReview(true)
+  } 
+
   return (
     <Modal 
       isOpen={isOpen} 
@@ -309,7 +319,9 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
       <div>
         <div className="max-w-full ">
           {loading ? (
-            <div>Loading...</div>
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-gray-400"></div>
+            </div>
           ) : task ? (
             <>
               <div className="flex justify-between items-center">
@@ -410,7 +422,12 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
 
                     <span className="font-medium">SLA</span>
                   </div>
-                  <span className="font-medium">{task.sla || "None"}</span>
+                  <span  
+                      onClick={() => handlereview(task.sla?.id)}
+                      className="cursor-pointer font-medium"
+                  >
+                      {task.sla?.title || "N/A"}
+                  </span>
                 </div>
 
                 {task?.conversation &&
@@ -446,6 +463,13 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
           )}
         </div>
       </div>
+
+      {isReview && 
+        <SlaDetail 
+        isOpen={isReview}
+        onClose={() => setIsReview(false)}
+        slaId={slaId} />
+      }
 
     </Modal>
   );

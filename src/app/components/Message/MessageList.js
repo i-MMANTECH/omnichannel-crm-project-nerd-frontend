@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark, faDownload, faFilePdf, faFileWord, faFile } from '@fortawesome/free-solid-svg-icons';
-import { faCheck, faCheckDouble, faCircleExclamation, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faCheckDouble, faCircleExclamation, faRobot } from "@fortawesome/free-solid-svg-icons";
 import "./messageList.css";
 import Image from "next/image";
 import UserAvatar from "../UserAvatar";
@@ -116,26 +116,35 @@ const MessageList = ({ chatHistory }) => {
                       onMouseLeave={() => setHoveredUserId(null)}
                     >
                       {msg.user_sender_details?.image ? (
-                        <Image
-                          loader={() => msg.user_sender_details.image}
-                          src={msg.user_sender_details.image}
-                          alt={`${msg.user_sender_details.name} Profile`}
-                          className="w-8 h-8 rounded-full mr-3"
-                          width={30}
-                          height={30}
-                          onClick={() => router.push(`/nativecrm/users/${msg.user_sender_details.id}`)}
-                          title={msg.user_sender_details.name}
-                        />
-                      ) : (
-                        <UserAvatar 
-                          className={'mr-3'} 
-                          name={msg.user_sender_details?.first_name ? 
-                            `${msg.user_sender_details?.first_name} ${msg.user_sender_details?.last_name}` : 
-                            msg.user_sender_details?.email || '--'
-                          } 
-                          width="w-8" 
-                          height="h-8" />
-                      )}
+                      <Image
+                        loader={() => msg.user_sender_details.image}
+                        src={msg.user_sender_details.image}
+                        alt={`${msg.user_sender_details.name} Profile`}
+                        className="w-8 h-8 rounded-full mr-3"
+                        width={30}
+                        height={30}
+                        onClick={() => router.push(`/nativecrm/users/${msg.user_sender_details.id}`)}
+                        title={msg.user_sender_details.name}
+                      />
+                    ) : msg.user_sender_details?.first_name || msg.user_sender_details?.last_name || msg.user_sender_details?.email ? (
+                      <UserAvatar 
+                        className="mr-3" 
+                        name={
+                          msg.user_sender_details?.first_name || msg.user_sender_details?.last_name
+                            ? `${msg.user_sender_details?.first_name || ''} ${msg.user_sender_details?.last_name || ''}`.trim()
+                            : msg.user_sender_details?.email
+                        }
+                        width="w-8" 
+                        height="h-8"
+                      />
+                    ) : (
+                      <div 
+                        className="w-8 h-8 flex items-center justify-center bg-green-200 text-white rounded-full border mr-3"
+                        title="AI Assistant"
+                      >
+                        <FontAwesomeIcon icon={faRobot} className="sm" color="#3EBF0F" />
+                      </div>
+                    )}
                     </div>
 
                     {/* Handle Different Content Types */}

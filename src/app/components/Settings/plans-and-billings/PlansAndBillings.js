@@ -113,7 +113,9 @@ const PlansAndBillings = () => {
         </div>
 
         {isLoadingPlans ? (
-          <div className="text-center py-8">Loading plans...</div>
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-gray-400"></div>
+          </div>
         ) : (
           <div className="flex justify-start gap-4 mb-10 w-full">
             {plans.map((plan) => (
