@@ -107,36 +107,47 @@ export default function UserDetails({ user }) {
             <hr className="w-[318px] h-[1px] bg-[#DFE1E6] mt-2" />
 
             <div className="flex items-center justify-between mt-2">
-              <p className="font-medium text-[14px] font-normal text-left">
-                Gender
-              </p>
-              <p className="user-left-name">{ user?.gender || '--'}</p>
+              {user?.gender && (
+                <>
+                  <p className="font-medium text-[14px] font-normal text-left">
+                    Gender
+                  </p>
+                  <p className="user-left-name">{user.gender}</p>
+                </>
+              )}
             </div>
 
-            <div className="flex items-center justify-between mt-2">
-              <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
-                DOB
-              </p>
-              <p className="user-left-name">{ user?.dob || '--'}</p>
-            </div>
+            {user?.dob && (
+              <div className="flex items-center justify-between mt-2">
+                <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
+                  DOB
+                </p>
+                <p className="user-left-name">{user.dob}</p>
+              </div>
+            )}
 
-            <div className="flex items-center justify-between mt-2">
-              <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
-                Country
-              </p>
-              <p className="user-left-name">{ user?.country || '--' }</p>
-            </div>
+            {user?.country && (
+              <div className="flex items-center justify-between mt-2">
+                <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
+                  Country
+                </p>
+                <p className="user-left-name">{user.country}</p>
+              </div>
+            )}
 
-            <div className="flex items-center justify-between mt-2">
-              <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
-                State
-              </p>
-              <p className="user-left-name">{ user?.state || '--' }</p>
-            </div>
+            {user?.state && (
+              <div className="flex items-center justify-between mt-2">
+                <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
+                  State
+                </p>
+                <p className="user-left-name">{user.state}</p>
+              </div>
+            )}
+
           </div>
         </div>
 
-        <div className="w-full">
+        <div className="hidden w-full">
           <div className="flex flex-selected justify-start gap-4 w-full mt-4">
             <p
               className={`cursor-pointer ${selected === "work-schedule" ? "selected" : "not-selected"}`}

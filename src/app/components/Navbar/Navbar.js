@@ -36,7 +36,7 @@ const Navbar = () => {
     const showBackButton = path.split('/').length > 3;
 
     return (
-        <div  className="fixed top-0 right-0 w-10/12 pr-10 body-theme px-4 py-7 z-10 border-b border-gray-300 dark:border-gray-600 flex items-center justify-between">
+        <div  className="hidden md:flex fixed top-0 right-0 w-10/12 pr-10 body-theme px-4 py-7 z-10 border-b border-gray-300 dark:border-gray-600 flex items-center justify-between">
             <div className="flex items-center gap-2">
                 {showBackButton && (
                     <Image

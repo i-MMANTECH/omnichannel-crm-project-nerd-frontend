@@ -117,9 +117,10 @@ const CustomersContent = () => {
         <Suspense fallback={<div>Loading...</div>}>    
             <ModalController>
                 {({ isModalOpen, openModal, closeModal }) => (
-                    <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh]">
+                    <div className="overflow-x-hidden flex flex-row body-theme min-h-[83vh]">
                         <div className='relative body-theme flex-1 flex flex-col'>  
-                            <div className="flex justify-between items-center mb-6">
+                        <div className="w-[89%] max-w-[1200px] sm:max-w-full flex justify-between items-center mb-6 mx-auto">
+
                                 <div className="flex items-center space-x-4">
                                     <button
                                         onClick={toggleView}
@@ -149,7 +150,8 @@ const CustomersContent = () => {
                                 </button>
                             </div>
 
-                            <div className="h-full">
+                            <div className="w-[90%] mx-auto sm:w-full">
+
                                 {customers.length > 0 ? (
                                     view === 'table' ? (
                                         <CustomerTable searchQuery={searchQuery} customers={customers} />

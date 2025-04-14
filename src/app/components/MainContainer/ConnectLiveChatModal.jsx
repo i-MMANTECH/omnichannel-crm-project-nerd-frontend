@@ -13,9 +13,12 @@ export const ConnectLiveChatModal = ({ onCancel }) => {
   const [copyStatus, setCopyStatus] = useState('');
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const fetchScript = async () => {
+      setLoading(true);
+      
       if (user?.refresh) {
         try {
           const response = await axiosInstance.post('/channels/generate-livechat-script/',
@@ -33,6 +36,8 @@ export const ConnectLiveChatModal = ({ onCancel }) => {
           } 
         } catch (error) {
           handleApiError(error);
+        } finally {
+          setLoading(false);
         }
       }
     };
@@ -66,11 +71,18 @@ export const ConnectLiveChatModal = ({ onCancel }) => {
 
   return (
     <Modal isOpen={true} onClose={onCancel} title="Nativetalk Chat" footer={modalFooter}>
-      <div>
-        <p className="mb-2">Please copy the script to embed in your website:</p>
-        <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }} className="font-semibold">{codeSnippet}</pre>
-        {copyStatus && <p>{copyStatus}</p>}
-      </div>
+      {loading ? (
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-gray-400"></div>
+        </div>
+      ) : (
+        <div>
+          <p className="mb-2">Please copy the script to embed in your website:</p>
+          <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }} className="font-semibold">{codeSnippet}</pre>
+          {copyStatus && <p>{copyStatus}</p>}
+        </div>
+      )}
+      
     </Modal>
   );
 };

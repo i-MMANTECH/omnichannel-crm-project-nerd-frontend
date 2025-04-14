@@ -20,7 +20,7 @@ const UserTable = ({ searchQuery, users }) => {
 
 
   return (
-    <div >
+    < >
         <div >
           <div className="overflow-auto ">
           <table className="min-w-full body-theme ">
@@ -93,7 +93,7 @@ const UserTable = ({ searchQuery, users }) => {
         </div>
 
       </div>
-    </div>
+    </>
   );
 };
 

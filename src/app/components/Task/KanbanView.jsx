@@ -23,7 +23,8 @@ export default function KanbanView({ tasks, handleDelete, openViewModal, openUpd
 
   return (
     <>
-      <div className="flex justify-between">
+    
+      <div className="overflow-x-auto sm:flex justify-between">
         {columns.map((column, index) => (
           <KanbanViewColumn key={index} 
             column={column} 

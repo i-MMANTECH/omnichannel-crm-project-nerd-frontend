@@ -16,6 +16,7 @@ import NoDataFound from "@/app/components/NoDataFound";
 import empty from "/public/assets/empty.svg";
 import Pagination from "@/app/components/Pagination/Pagination";
 import { useDebounce } from 'use-debounce';
+import { useAuth } from "@/context/AuthContext";
 
 const ModalController = ({ children }) => {
     const searchParams = useSearchParams();
@@ -41,6 +42,7 @@ const ModalController = ({ children }) => {
 
 // Main Users component
 const Users = () => {
+    const { user } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const { handleApiError } = useError();
@@ -64,7 +66,7 @@ const Users = () => {
     const fetchUsers = async (page = 1, limit = 10, search = "") => {
         try {
             const { data } = await axiosInstance.get(`/users?limit=${limit}&page=${page}&search=${search}`);
-            setUsers(data.results || []);
+            setUsers(data.results.filter(u => u.id !== Number(user.user_id)));
             setTotalPages(Math.ceil(data.count / limit));
         } catch (error) {
             handleApiError(error);
@@ -94,55 +96,60 @@ const Users = () => {
         <Suspense fallback={<div>Loading...</div>}>
             <ModalController>
                 {({ isModalOpen, openModal, closeModal }) => (
-                    <div className="overflow-x-hidden flex flex-col  px-10 min-h-[83vh] h-full">
+                    <div className="customers-page overflow-x-hidden flex flex-col px-10 min-h-[83vh] h-full !ml-0">
+
                         <div className="relative body-theme flex-1 flex flex-col h-full">
-                            <div className="flex justify-between items-center mb-6 ">
-                                <div className="flex items-center space-x-4 ">
-                                    <button
-                                        onClick={toggleView}
-                                        className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-50 hover:dark:bg-neutral-900 hover:bg-gray-100"
-                                    >
-                                        {view === "grid" ? 
-                                            <Image src={table} alt="table" className="mr-2" width={15} height={15} /> : 
-                                            <Image src={grid} alt="grid" className="mr-2" width={15} height={15} />
-                                        }
-                                        <span className="text-sm font-medium">
-                                            {view === "grid" ? "Grid View" : "Table View"}
-                                        </span>
-                                    </button>
-                                    <button className="hidden flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
-                                        <Image src={sort} alt="sort" className="mr-2" width={15} height={15} />
-                                        <span className="text-sm font-medium">Sort by</span>
-                                    </button>
-                                    <button className="hidden flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
-                                        <Image src={filter} alt="filter" className="mr-2" width={15} height={15} />
-                                        <span className="text-sm font-medium">Filter</span>
-                                    </button>
-                                </div>
-                                <div className="flex gap-4 items-center">
-                                    <div className="relative">
-                                        <input
-                                            className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
-                                            placeholder="Search Users..."
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                        />
-                                        <button
-                                            className="absolute top-1 right-1 flex items-center rounded body-theme py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 active:dark:bg-black hover:bg-gray-100 hover:dark:bg-gray-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                                            type="button"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 mr-2">
-                                                <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
-                                            </svg>                                        
-                                        </button> 
-                                    </div>
-                                    <button 
-                                        onClick={openModal}
-                                        className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm">
-                                        + Invite User
-                                    </button>
-                                </div>
+                        <div className="flex flex-wrap justify-between items-center mb-6 gap-4 sm:flex-nowrap">
+                            <div className="flex items-center space-x-2 sm:space-x-4">
+                                <button
+                                    onClick={toggleView}
+                                    className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-100 dark:hover:bg-neutral-900"
+                                >
+                                    {view === "grid" ? 
+                                        <Image src={table} alt="table" className="mr-2" width={15} height={15} /> : 
+                                        <Image src={grid} alt="grid" className="mr-2" width={15} height={15} />
+                                    }
+                                    <span className="text-sm font-medium">
+                                        {view === "grid" ? "Grid View" : "Table View"}
+                                    </span>
+                                </button>
+
+                                {/* Hidden Sort & Filter Buttons */}
+                                <button className="hidden flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-100 dark:hover:bg-neutral-900">
+                                    <Image src={sort} alt="sort" className="mr-2" width={15} height={15} />
+                                    <span className="text-sm font-medium">Sort by</span>
+                                </button>
+                                <button className="hidden flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-100 dark:hover:bg-neutral-900">
+                                    <Image src={filter} alt="filter" className="mr-2" width={15} height={15} />
+                                    <span className="text-sm font-medium">Filter</span>
+                                </button>
                             </div>
+
+                            {/* Search and Invite User */}
+                            <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto sm:flex-nowrap">
+                                <div className="relative w-full sm:w-auto">
+                                    <input
+                                        className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
+                                        placeholder="Search Users..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                    <button
+                                        className="absolute top-1 right-1 flex items-center rounded py-1 px-2.5 text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 dark:active:bg-black hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
+                                        type="button"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                                            <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <button 
+                                    onClick={openModal}
+                                    className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm w-full sm:w-auto">
+                                    + Invite User
+                                </button>
+                            </div>
+                        </div>
 
                             <div className="h-full">
                                 {users.length > 0 ? (
