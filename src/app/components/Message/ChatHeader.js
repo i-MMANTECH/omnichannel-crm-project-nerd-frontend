@@ -119,6 +119,10 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
       onClick: () => setIsArchivedModalOpen(true),
     },
     {
+      label: "Assign to Agent",
+      onClick: () => setIsAssignAgentModalOpen(true),
+    },
+    {
       label: "End Session",
       onClick: () => setIsEndSessionModalOpen(true),
     },
