@@ -17,6 +17,7 @@ import empty from "/public/assets/empty.svg";
 import Pagination from "@/app/components/Pagination/Pagination";
 import { useDebounce } from 'use-debounce';
 import { useAuth } from "@/context/AuthContext";
+import CreateUserModal2 from "@/app/components/Users/CreateUserModal2";
 
 const ModalController = ({ children }) => {
     const searchParams = useSearchParams();
@@ -55,6 +56,7 @@ const Users = () => {
     const [view, setView] = useState("table");
     const [searchQuery, setSearchQuery] = useState("");
     const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
+    const [isCreateUser, setIsCreateUser] = useState(false)
 
     useEffect(() => {
         fetchUsers(currentPage, pageSize, debouncedSearchQuery);
@@ -148,6 +150,11 @@ const Users = () => {
                                     className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm w-full sm:w-auto">
                                     + Invite User
                                 </button>
+                                <button 
+                                    onClick={() => setIsCreateUser(true)}
+                                    className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm w-full sm:w-auto">
+                                   + Create User
+                                </button>
                             </div>
                         </div>
 
@@ -177,6 +184,7 @@ const Users = () => {
                         </div>
 
                         <CreateUserModal isModalOpen={isModalOpen} closeModal={closeModal} />
+                        <CreateUserModal2 isModalOpen={isCreateUser} closeModal={() => setIsCreateUser(false)} />
                     </div>
                 )}
             </ModalController>

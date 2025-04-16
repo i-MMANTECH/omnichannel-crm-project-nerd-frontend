@@ -70,6 +70,13 @@ export default function Profile() {
             setLoading(false);
         }
     };
+
+    const tabs = [
+        { key: "general", label: "General" },
+        { key: "notification", label: "Notification" },
+        { key: "activity-log", label: "Activity log" },
+        { key: "security-settings", label: "Security settings" }
+    ];
     
 
     return (
@@ -269,33 +276,17 @@ export default function Profile() {
             </div>
 
             <div  className="flex flex-col  flex-1 gap-4 p-6 rounded-lg border border-gray-300 shadow-md ">
-                <div className='flex gap-6'>
-                    <p
-                        className={`h-[30px] cursor-pointer ${selected === "general" ? "selected" : "not-selected"}`}
-                        onClick={() => setSelected("general")}
-                        aria-selected={selected === "general"}
+            <div className='flex gap-6'>
+                    {tabs.map(tab => (
+                        <p
+                            key={tab.key}
+                            className={`h-[30px] cursor-pointer ${selected === tab.key ? "selected" : "not-selected"}`}
+                            onClick={() => setSelected(tab.key)}
+                            aria-selected={selected === tab.key}
                         >
-                        General
-                    </p>
-
-                    <p
-                        className={`h-[30px] cursor-pointer ${selected === "notification" ? "selected" : "not-selected"}`}
-                        onClick={() => setSelected("notification")}
-                    >
-                        Notification
-                    </p>
-                    <p
-                        className={`h-[30px] cursor-pointer ${selected === "activity-log" ? "selected" : "not-selected"}`}
-                        onClick={() => setSelected("activity-log")}
-                    >
-                        Activity log
-                    </p>
-                    <p
-                        className={`h-[30px] cursor-pointer ${selected === "security-settings" ? "selected" : "not-selected"}`}
-                        onClick={() => setSelected("security-settings")}
-                    >
-                        Security settings
-                    </p>
+                            {tab.label}
+                        </p>
+                    ))}
                 </div>
 
                 {selected === "general" && <General onProfileChanged={fetchUserProfile} />}
