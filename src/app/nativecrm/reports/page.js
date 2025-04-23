@@ -8,12 +8,16 @@ import { useApi } from '@/services/axiosConfig';
 import { ChevronDown, FolderDown, UserPlus } from 'lucide-react';
 import RoleDistribution from '@/app/components/Reports/RoleDistribution';
 import UserDropdown from '@/app/components/Reports/UserDropdown';
+import MessagesReport from '@/app/components/Reports/MessagesReport';
+import TasksReport from '@/app/components/Reports/TasksReport';
+import CustomersReport from '@/app/components/Reports/CustomersReport';
 
 const Page = () => {
     const [isRotating, setIsRotating] = useState(false);
     const { axiosInstance } = useApi();
     const [lastUpdated, setLastUpdated] = useState(null);
     const [open, setOpen] = useState(false);
+    const [selectedSection, setSelectedSection] = useState('users');
 
     const handleToggle = () => setOpen(!open);
 
@@ -21,6 +25,28 @@ const Page = () => {
         setIsRotating(true);
         await fetchSummary(); 
         setIsRotating(false);
+    };
+
+    
+
+    const renderSection = () => {
+      switch (selectedSection) {
+        case 'users':
+          return (
+            <>
+              <Reports />
+              <RoleDistribution />
+            </>
+          );
+        case 'messages':
+          return <MessagesReport />;
+        case 'tasks':
+          return <TasksReport/>;
+        case 'customers':
+          return <CustomersReport/>;
+        default:
+          return null;
+      }
     };
 
   if(isRotating) {
@@ -34,7 +60,10 @@ const Page = () => {
             <div className='relative body-theme flex-1 flex flex-col'> 
             <div className="flex justify-center sm:justify-between">
                <div className='flex gap-4'>
-                   <UserDropdown/>
+                    <UserDropdown
+                        selectedSection={selectedSection}
+                        setSelectedSection={setSelectedSection}
+                    />
                     <div className="flex h-[40px] w-fit p-[8px_12px] justify-center items-center gap-2 rounded-[10px] border border-[#DFE1E6] body-theme shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
                             <path d="M5.33333 2.00016H4C2.89543 2.00016 2 2.89559 2 4.00016V6.00016M5.33333 2.00016V1.3335M5.33333 2.00016H10.6667M5.33333 2.00016V2.66683M10.6667 2.00016H12C13.1046 2.00016 14 2.89559 14 4.00016V6.00016M10.6667 2.00016V1.3335M10.6667 2.00016V2.66683M2 6.00016V12.6668C2 13.7714 2.89543 14.6668 4 14.6668H12C13.1046 14.6668 14 13.7714 14 12.6668V6.00016M2 6.00016H14" stroke="#808897" strokeWidth="1.33333" strokeLinecap="round"/>
@@ -59,10 +88,10 @@ const Page = () => {
                </div>
                 
                 <div className='flex gap-2'>
-                <div className="cursor-pointer flex h-[40px] p-[8px_12px_8px_14px]  gap-2 rounded-[10px] text-white  bg-[#3EBF0F]">
+                <div className="cursor-pointer flex h-[40px] p-[8px_12px_8px_14px]  gap-2 rounded-[10px] bg-[#3EBF0F]">
                     <FolderDown />
                     
-                    <span className=" text-[#666D80] text-center font-[500] text-[14px] font-[Encode Sans] leading-[150%] tracking-[0.2px]">
+                    <span className="text-center font-[500] text-[14px] font-[Encode Sans] leading-[150%] tracking-[0.2px]">
                         Export
                     </span>
                  </div>
@@ -70,17 +99,15 @@ const Page = () => {
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M13.3333 2H2.66667C2.29848 2 2 2.29848 2 2.66667V3.7468C2 4.33065 2.25513 4.88535 2.69842 5.26531L5.96825 8.06802C6.41154 8.44799 6.66667 9.00269 6.66667 9.58654V14L9.33333 12.6667V9.58654C9.33333 9.00269 9.58846 8.44799 10.0318 8.06802L13.3016 5.26531C13.7449 4.88535 14 4.33065 14 3.7468V2.66667C14 2.29848 13.7015 2 13.3333 2Z" stroke="#808897" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                    
-                    <span className=" text-[#666D80] text-center font-[500] text-[14px] font-[Encode Sans] leading-[150%] tracking-[0.2px]">
+                    <span className="text-[#666D80] text-center font-[500] text-[14px] font-[Encode Sans] leading-[150%] tracking-[0.2px]">
                         Filter
                     </span>
                  </div>
                 </div>
             </div>
 
-                <ReportStats />  
-                <Reports/>
-                <RoleDistribution/>
+            <ReportStats />  
+            {renderSection()}
             </div>
         </div>
     );
