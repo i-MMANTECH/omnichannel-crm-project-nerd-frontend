@@ -41,7 +41,7 @@ const AssignAgentModal = ({ isOpen, onClose, conversationId, setIsSuccessModalOp
       await axiosInstance.post(`communication/conversations/${conversationId}/assign/`, {
         "agent_id": selectedAgent.value
       });
-      setSuccessModalMessage(`Lead has been successfully assigned to ${selectedAgent.label}.`)
+      setSuccessModalMessage(`Conversation has been successfully assigned to ${selectedAgent.label}.`)
       setIsSuccessModalOpen(true)
       onClose()
     } catch (error) {
