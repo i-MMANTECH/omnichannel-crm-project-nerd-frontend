@@ -35,7 +35,6 @@ const Page = () => {
           return (
             <>
               <Reports />
-              <RoleDistribution />
             </>
           );
         case 'messages':
@@ -106,7 +105,6 @@ const Page = () => {
                 </div>
             </div>
 
-            <ReportStats />  
             {renderSection()}
             </div>
         </div>
