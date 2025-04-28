@@ -1,58 +1,54 @@
 "use client";
 
-import React, { useState } from 'react';
-import StatsCard from '@/app/components/Dashboard/StatsCard';
-import Reports from '@/app/components/Reports/Reports';
-import ReportStats from '@/app/components/Reports/ReportStats';
+import React, { useEffect, useState } from 'react';
+import UsersReport from '@/app/components/Reports/UsersReport';
 import { useApi } from '@/services/axiosConfig';
-import { ChevronDown, FolderDown, UserPlus } from 'lucide-react';
-import RoleDistribution from '@/app/components/Reports/RoleDistribution';
+import { FolderDown } from 'lucide-react';
 import UserDropdown from '@/app/components/Reports/UserDropdown';
 import MessagesReport from '@/app/components/Reports/MessagesReport';
 import TasksReport from '@/app/components/Reports/TasksReport';
 import CustomersReport from '@/app/components/Reports/CustomersReport';
 
 const Page = () => {
-    const [isRotating, setIsRotating] = useState(false);
-    const { axiosInstance } = useApi();
-    const [lastUpdated, setLastUpdated] = useState(null);
-    const [open, setOpen] = useState(false);
-    const [selectedSection, setSelectedSection] = useState('users');
+  const [isRotating, setIsRotating] = useState(false);
+  const { axiosInstance } = useApi();
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [selectedSection, setSelectedSection] = useState('users');
 
-    const handleToggle = () => setOpen(!open);
+  const updateLastUpdatedTime = () => {
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString();
+    setLastUpdated(formattedTime);
+  };
+  
+  const handleRefreshClick = async () => {
+    setIsRotating(true);
+    await fetchSummary();
+    setIsRotating(false);
+    updateLastUpdatedTime();
+  };
+  
+  useEffect(() => {
+    updateLastUpdatedTime();
+  }, [selectedSection]);
+  
 
-    const handleRefreshClick = async () => {
-        setIsRotating(true);
-        await fetchSummary(); 
-        setIsRotating(false);
-    };
 
-    
 
-    const renderSection = () => {
-      switch (selectedSection) {
-        case 'users':
-          return (
-            <>
-              <Reports />
-            </>
-          );
-        case 'messages':
-          return <MessagesReport />;
-        case 'tasks':
-          return <TasksReport/>;
-        case 'customers':
-          return <CustomersReport/>;
-        default:
-          return null;
-      }
-    };
-
-  if(isRotating) {
-    setTimeout(() => {
-        setIsRotating(false);
-      }, 3000);
+  const renderSection = () => {
+    switch (selectedSection) {
+      case 'users':
+        return <UsersReport />;
+      case 'messages':
+        return <MessagesReport />;
+      case 'tasks':
+        return <TasksReport/>;
+      case 'customers':
+        return <CustomersReport/>;
+      default:
+        return null;
     }
+  };
 
     return (
         <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh] mb-5">      
