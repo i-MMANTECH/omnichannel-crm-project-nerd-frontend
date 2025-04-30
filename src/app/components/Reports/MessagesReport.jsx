@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -12,23 +12,47 @@ import {
   Legend
 } from 'chart.js';
 import Dropdown from './Dropdown';
-import ReportStats from './ReportStats';
+import { useApi } from '@/services/axiosConfig';
+import { useError } from '@/context/ErrorContext';
+import StatCard from './StatCard';
+import { MessageSquareIcon, PhoneCallIcon, UsersIcon } from 'lucide-react';
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const MessagesReport = () => {
   const router = useRouter();
+  const { axiosInstance } = useApi();
+  const { handleApiError } = useError();
+
+  const [loading, setLoading] = useState(true);
+  const [messagesReportData, setMessagesReportData] = useState(null);
 
   useEffect(() => {
-    // router.push('/nativecrm/reports/messages-report');
+    axiosInstance.get('/analytics/messages/')
+      .then(res => {
+        const data = res.data.data;
+        setMessagesReportData(data);
+        setLoading(false);
+      })
+      .catch(error => {
+        handleApiError(error);
+        setLoading(false);
+      });
   }, []);
 
+  if (loading) return <p>Loading...</p>;
+
   const monthlyChartData = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    labels: messagesReportData.messages_by_period.map(item => item.period_label),
     datasets: [
       {
         label: 'Messages',
-        data: [220, 310, 280, 260, 350, 230, 330, 360, 380, 250, 240, 300],
-        backgroundColor: (ctx) => (ctx.dataIndex === 4 ? '#3EBF0F' : '#EEEFF2'),
+        data: messagesReportData.messages_by_period.map(item => item.total),
+        backgroundColor: (ctx) => {
+          const index = ctx.dataIndex;
+          return index === (messagesReportData.messages_by_period.length - 1)
+            ? '#3EBF0F'
+            : '#EEEFF2';
+        },
         borderRadius: 8,
       }
     ]
@@ -48,7 +72,7 @@ const MessagesReport = () => {
     scales: {
       y: {
         beginAtZero: true,
-        max: 500,
+        max: Math.max(...messagesReportData.messages_by_period.map(item => item.total)) + 100,
         ticks: {
           stepSize: 100
         }
@@ -57,11 +81,11 @@ const MessagesReport = () => {
   };
 
   const channelChartData = {
-    labels: ['Facebook', 'E-mail', 'Whatsapp', 'Livechat', 'SMS', 'Telegram', 'Others'],
+    labels: messagesReportData.channel_usage.map(c => c.channel_name),
     datasets: [
       {
         label: 'Usage %',
-        data: [47.5, 89.17, 55.02, 55.02, 55.02, 47.5, 47.5],
+        data: messagesReportData.channel_usage.map(c => c.percentage),
         backgroundColor: [
           '#936DFF', '#F36F4A', '#3EBF0F', '#808897', '#40C4AA', '#1285FE', '#EEEFF2'
         ],
@@ -93,16 +117,44 @@ const MessagesReport = () => {
     }
   };
 
+  const statsData = [
+    {
+      title: 'Total Users',
+      value: 200,
+      icon: <UsersIcon className="text-white" size={20} />,
+      borderColor: '#0B6BEA',
+      bgColor: '#1285FE',
+    },
+    {
+      title: 'Total Calls',
+      value: 76,
+      icon: <PhoneCallIcon className="text-white" size={20} />,
+      borderColor: '#30A808',
+      bgColor: '#3EBF0F',
+    },
+    {
+      title: 'Total Chats',
+      value: 42,
+      icon: <MessageSquareIcon className="text-white" size={20} />,
+      borderColor: '#FF5722',
+      bgColor: '#FF7043',
+    },
+  ];
+
   return (
     <>
-      <ReportStats/>
+       <div className="gap-5 mt-5 flex flex-wrap border border-[#DFE1E6] body-theme rounded-[16px] p-5">
+      {statsData.map((stat, index) => (
+        <StatCard key={index} {...stat} />
+      ))}
+    </div>
       <div className="mt-6 space-y-6">
         <div className="body-theme w-full rounded-lg border border-[#DFE1E6] shadow-lg p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-medium">Channels</h3>
+            <h3 className="text-base font-medium">Monthly Messages</h3>
             <Dropdown
-              options={['Instagram', 'Facebook', 'Whatsapp']}
-              selected="Instagram"
+              options={['All Channels', 'Email', 'WhatsApp', 'Facebook']}
+              selected="All Channels"
               width="w-40"
             />
           </div>

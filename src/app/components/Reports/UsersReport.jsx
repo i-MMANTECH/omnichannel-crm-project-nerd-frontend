@@ -2,14 +2,17 @@ import React, { useEffect, useState } from "react";
 import NoDataFound from "../NoDataFound";
 import { Doughnut } from "react-chartjs-2";
 import { Chart, ArcElement } from 'chart.js';
-import ReportStats from "./ReportStats";
 import RoleDistribution from "./RoleDistribution";
 import { useApi } from "@/services/axiosConfig";
+import { useError } from "@/context/ErrorContext";
+import StatCard from "./StatCard";
+import { UsersIcon, PhoneCallIcon, MessageSquareIcon } from 'lucide-react';
 
 Chart.register(ArcElement);
 
 export default function UsersReport() {
     const { axiosInstance } = useApi();
+    const { handleApiError } = useError();
     const [usersReportData, setUsersReportData] = useState(null);
     const [activityStatus, setActivityStatus] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -44,7 +47,7 @@ export default function UsersReport() {
                 }
             })
             .catch(error => {
-                console.error('Error fetching user analytics:', error);
+               handleApiError(error)
             })
             .finally(() => {
                 setLoading(false);
@@ -73,11 +76,37 @@ export default function UsersReport() {
         );
     }
 
+    const statsData = [
+        {
+          title: 'Total Users',
+          value: 200,
+          icon: <UsersIcon className="text-white" size={20} />,
+          borderColor: '#0B6BEA',
+          bgColor: '#1285FE',
+        },
+        {
+          title: 'Total Calls',
+          value: 76,
+          icon: <PhoneCallIcon className="text-white" size={20} />,
+          borderColor: '#30A808',
+          bgColor: '#3EBF0F',
+        },
+        {
+          title: 'Total Chats',
+          value: 42,
+          icon: <MessageSquareIcon className="text-white" size={20} />,
+          borderColor: '#FF5722',
+          bgColor: '#FF7043',
+        },
+      ];
+
     return (
         <>
-            {usersReportData?.users && (
-                <ReportStats users={usersReportData.users} />
-            )}
+            <div className="gap-5 mt-5 flex flex-wrap border border-[#DFE1E6] body-theme rounded-[16px] p-5">
+                {statsData.map((stat, index) => (
+                    <StatCard key={index} {...stat} />
+                ))}
+            </div>
             
             <div className="my-5 flex flex-wrap sm:flex-nowrap justify-between gap-5 w-full">
                 <div className="body-theme w-full sm:w-10/12 md:w-8/12 lg:w-6/12 border border-[#DFE1E6] rounded-[16px] shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)]">

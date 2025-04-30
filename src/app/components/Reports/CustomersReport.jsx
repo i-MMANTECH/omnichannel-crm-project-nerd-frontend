@@ -10,8 +10,9 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
-import ReportStats from './ReportStats';
 import NoDataFound from '../NoDataFound';
+import StatCard from './StatCard';
+import { MessageSquareIcon, PhoneCallIcon, UsersIcon } from 'lucide-react';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -71,9 +72,38 @@ const CustomersReport = () => {
               },
             };
 
+  const statsData = [
+    { 
+      title: 'Total Users',
+      value: 200,
+      icon: <UsersIcon className="text-white" size={20} />,
+      borderColor: '#0B6BEA',
+      bgColor: '#1285FE',
+    },
+    {
+      title: 'Total Calls',
+      value: 76,
+      icon: <PhoneCallIcon className="text-white" size={20} />,
+      borderColor: '#30A808',
+      bgColor: '#3EBF0F',
+    },
+    {
+      title: 'Total Chats',
+      value: 42,
+      icon: <MessageSquareIcon className="text-white" size={20} />,
+      borderColor: '#FF5722',
+      bgColor: '#FF7043',
+    },
+  ];
+
   return (
     <>
-      <ReportStats/>
+    <div className="gap-5 mt-5 flex flex-wrap border border-[#DFE1E6] body-theme rounded-[16px] p-5">
+      {statsData.map((stat, index) => (
+        <StatCard key={index} {...stat} />
+      ))}
+    </div>
+
       <div className="mt-6">
         <div className="body-theme w-full rounded-lg border border-[#DFE1E6] shadow-lg p-4">
           <div className="flex items-center justify-between mb-4">
