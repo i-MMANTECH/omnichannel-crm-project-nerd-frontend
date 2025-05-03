@@ -119,25 +119,25 @@ const MessagesReport = () => {
 
   const statsData = [
     {
-      title: 'Total Users',
+      title: 'Total Messages Sent',
       value: 200,
       icon: <UsersIcon className="text-white" size={20} />,
-      borderColor: '#0B6BEA',
+      borderColor: '#DFE1E6',
       bgColor: '#1285FE',
     },
     {
-      title: 'Total Calls',
+      title: 'Total Messages Received',
       value: 76,
       icon: <PhoneCallIcon className="text-white" size={20} />,
-      borderColor: '#30A808',
+      borderColor: '#DFE1E6',
       bgColor: '#3EBF0F',
     },
     {
-      title: 'Total Chats',
-      value: 42,
+      title: 'Most Used Channels',
       icon: <MessageSquareIcon className="text-white" size={20} />,
-      borderColor: '#FF5722',
+      borderColor: '#DFE1E6',
       bgColor: '#FF7043',
+      isMessagesReport: true
     },
   ];
 

@@ -40,41 +40,6 @@ const TasksReport = () => {
 
   if (loading) return <p>Loading...</p>;
 
-  const labels = tasksReportData?.tasks_by_period.map(item => item.period_label) || [];
-  const todoData = tasksReportData?.tasks_by_period.map(item => item.todo) || [];
-  const inProgressData = tasksReportData?.tasks_by_period.map(item => item.in_progress) || [];
-  const doneData = tasksReportData?.tasks_by_period.map(item => item.done) || [];
-  const overdueData = tasksReportData?.tasks_by_period.map(item => item.overdue) || [];
-
-  const monthlyChartData1 = {
-    labels,
-    datasets: [
-      {
-        label: 'To Do',
-        data: todoData,
-        backgroundColor: '#F59E0B',
-        borderRadius: 6
-      },
-      {
-        label: 'In Progress',
-        data: inProgressData,
-        backgroundColor: '#3B82F6',
-        borderRadius: 6
-      },
-      {
-        label: 'Done',
-        data: doneData,
-        backgroundColor: '#10B981',
-        borderRadius: 6
-      },
-      {
-        label: 'Overdue',
-        data: overdueData,
-        backgroundColor: '#EF4444',
-        borderRadius: 6
-      }
-    ]
-  };
 
   const monthlyChartData = {
     labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
@@ -114,24 +79,24 @@ const TasksReport = () => {
 
   const statsData = [
     {
-      title: 'Total Users',
+      title: 'Tasks Completed',
       value: 200,
       icon: <UsersIcon className="text-white" size={20} />,
-      borderColor: '#0B6BEA',
+      borderColor: '#DFE1E6',
       bgColor: '#1285FE',
     },
     {
-      title: 'Total Calls',
+      title: 'Tasks Overdue',
       value: 76,
       icon: <PhoneCallIcon className="text-white" size={20} />,
-      borderColor: '#30A808',
+      borderColor: '#DFE1E6',
       bgColor: '#3EBF0F',
     },
     {
-      title: 'Total Chats',
-      value: 42,
+      title: 'Completion Rate',
+      value: "42%",
       icon: <MessageSquareIcon className="text-white" size={20} />,
-      borderColor: '#FF5722',
+      borderColor: '#DFE1E6',
       bgColor: '#FF7043',
     },
   ];

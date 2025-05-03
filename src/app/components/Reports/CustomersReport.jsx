@@ -18,6 +18,14 @@ ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 
 const CustomersReport = () => {
+  const [agentsData, setAgentsData] = useState([
+    {
+      data: [20, 18],
+      backgroundColor: ["#3EBF0F", "#FFBD4C"],
+      borderWidth: 1,
+    }
+  ]);
+
   const monthlyChartData = {
     labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
     datasets: [
@@ -53,45 +61,37 @@ const CustomersReport = () => {
       }
     }
   };
-
-   const [agentsData, setAgentsData] = useState([
-              {
-                data: [20, 18],
-                backgroundColor: ["#3EBF0F", "#FFBD4C"],
-                borderWidth: 1,
-              }
-            ]);
           
-            const options = {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  position: "bottom",
-                },
-              },
-            };
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "bottom",
+      },
+    },
+  };
 
   const statsData = [
     { 
-      title: 'Total Users',
+      title: 'Total Customers',
       value: 200,
       icon: <UsersIcon className="text-white" size={20} />,
-      borderColor: '#0B6BEA',
+      borderColor: '#DFE1E6',
       bgColor: '#1285FE',
     },
     {
-      title: 'Total Calls',
+      title: 'New Customers',
       value: 76,
       icon: <PhoneCallIcon className="text-white" size={20} />,
-      borderColor: '#30A808',
+      borderColor: '#DFE1E6',
       bgColor: '#3EBF0F',
     },
     {
-      title: 'Total Chats',
-      value: 42,
+      title: 'Drop-off Rate',
+      value: "12%",
       icon: <MessageSquareIcon className="text-white" size={20} />,
-      borderColor: '#FF5722',
+      borderColor: '#DFE1E6',
       bgColor: '#FF7043',
     },
   ];
