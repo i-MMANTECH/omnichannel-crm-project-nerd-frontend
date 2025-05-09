@@ -17,7 +17,7 @@ import { MessageSquareIcon, PhoneCallIcon, UsersIcon } from 'lucide-react';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-const TasksReport = () => {
+const TasksReport = ({data}) => {
   const router = useRouter();
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
