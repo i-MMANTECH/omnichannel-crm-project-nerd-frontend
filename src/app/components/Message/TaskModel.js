@@ -26,7 +26,6 @@ function TaskModel({ isOpen, onClose, conversationId, setIsSuccessModalOpen, set
   const [users, setUsers] = useState([]);
   const [slas, setSlas] = useState([]);
   const [tags, setTags] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const prioritiesEndpoint = "tasks/priorities/";
@@ -70,7 +69,6 @@ function TaskModel({ isOpen, onClose, conversationId, setIsSuccessModalOpen, set
   useEffect(() => {
     if (isOpen) {
       const fetchData = async () => {
-        setIsLoading(true);
         try {
           const [prioritiesRes, statusesRes, assigneesRes, slasRes] = await Promise.all([
             axiosInstance.get(prioritiesEndpoint),
@@ -95,8 +93,6 @@ function TaskModel({ isOpen, onClose, conversationId, setIsSuccessModalOpen, set
           );
         } catch (error) {
           handleApiError(error);
-        } finally {
-          setIsLoading(false);
         }
       };
   
@@ -201,12 +197,6 @@ function TaskModel({ isOpen, onClose, conversationId, setIsSuccessModalOpen, set
 
 
   return (
-    <>
-      {isLoading ? (
-         <div className="flex items-center justify-center">
-         <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-gray-400"></div>
-       </div>
-      ) : (
         <Modal
           isOpen={isOpen}
           onClose={onClose}
@@ -305,8 +295,6 @@ function TaskModel({ isOpen, onClose, conversationId, setIsSuccessModalOpen, set
             />
           </form>
         </Modal>
-      )}
-    </>
   );  
 }
 
