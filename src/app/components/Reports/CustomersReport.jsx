@@ -18,6 +18,7 @@ ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 
 const CustomersReport = () => {
+  const [loading, setLoading] = useState(false)
   const [agentsData, setAgentsData] = useState([
     {
       data: [20, 18],
@@ -25,6 +26,12 @@ const CustomersReport = () => {
       borderWidth: 1,
     }
   ]);
+
+  if (loading) return (
+    <div className="flex items-center justify-center">
+        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-gray-400"></div>
+    </div>
+  );
 
   const monthlyChartData = {
     labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],

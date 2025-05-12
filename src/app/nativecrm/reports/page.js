@@ -1,8 +1,7 @@
-"use client"
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import UsersReport from '@/app/components/Reports/UsersReport';
-import { useApi } from '@/services/axiosConfig';
 import { FolderDown } from 'lucide-react';
 import UserDropdown from '@/app/components/Reports/UserDropdown';
 import MessagesReport from '@/app/components/Reports/MessagesReport';
@@ -12,11 +11,9 @@ import DateFilter from '@/app/components/Reports/DateFilter';
 
 const Page = () => {
   const [isRotating, setIsRotating] = useState(false);
-  const { axiosInstance } = useApi();
   const [lastUpdated, setLastUpdated] = useState(null);
-  const [selectedSection, setSelectedSection] = useState('users');
+  const [selectedSection, setSelectedSection] = useState('messages');
   const [showDateFilter, setShowDateFilter] = useState(false);
-  const [reportData, setReportData] = useState(null);
   const [dateRange, setDateRange] = useState([
     {
       startDate: new Date(),
@@ -30,76 +27,26 @@ const Page = () => {
     setLastUpdated(formattedTime);
   };
 
-  const handleRefreshClick = async () => {
+  const handleRefreshClick = () => {
     setIsRotating(true);
-    await fetchSectionData();
-    setIsRotating(false);
     updateLastUpdatedTime();
+    setTimeout(() => setIsRotating(false), 500);
   };
 
   useEffect(() => {
     updateLastUpdatedTime();
   }, [selectedSection]);
 
-  const fetchSectionData = async () => {
-    try {
-      if (dateRange.length === 0) {
-        console.error('Date range is not available');
-        return;
-      }
-
-      const { startDate, endDate } = dateRange;
-
-      const formattedStart = startDate.toISOString().split('T')[0];
-      const formattedEnd = endDate.toISOString().split('T')[0];
-  
-      let endpoint = '';
-  
-      switch (selectedSection) {
-        case 'users':
-          endpoint = '/analytics/users';
-          break;
-        case 'messages':
-          endpoint = '/analytics/messages';
-          break;
-        case 'tasks':
-          endpoint = '/analytics/tasks';
-          break;
-        case 'customers':
-          endpoint = '/analytics/customers';
-          break;
-        default:
-          endpoint = '/analytics';
-      }
-  
-      const response = await axiosInstance.get(`${endpoint}`, {
-        params: {
-          start_date: formattedStart,
-          end_date: formattedEnd,
-        },
-      });
-  
-      setReportData(response.data.data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      setReportData([]);
-    }
-  };
-
-  useEffect(() => {
-    fetchSectionData();
-  }, [selectedSection, dateRange]);
-
   const renderSection = () => {
     switch (selectedSection) {
       case 'users':
-        return <UsersReport data={reportData} />;
+        return <UsersReport filters={dateRange} />;
       case 'messages':
-        return <MessagesReport data={reportData} />;
+        return <MessagesReport filters={dateRange} />;
       case 'tasks':
-        return <TasksReport data={reportData} />;
+        return <TasksReport filters={dateRange} />;
       case 'customers':
-        return <CustomersReport data={reportData} />;
+        return <CustomersReport filters={dateRange} />;
       default:
         return null;
     }
@@ -114,8 +61,8 @@ const Page = () => {
   };
 
   return (
-    <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh] mb-5">      
-      <div className='relative body-theme flex-1 flex flex-col'> 
+    <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh] mb-5">
+      <div className='relative body-theme flex-1 flex flex-col'>
         <div className="flex justify-center sm:justify-between">
           <div className='flex gap-4'>
             <UserDropdown
@@ -123,10 +70,10 @@ const Page = () => {
               setSelectedSection={setSelectedSection}
             />
             <div className="flex h-[40px] w-fit p-[8px_12px] justify-center items-center gap-2 rounded-[10px] border border-[#DFE1E6] body-theme shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M5.33333 2.00016H4C2.89543 2.00016 2 2.89559 2 4.00016V6.00016M5.33333 2.00016V1.3335M5.33333 2.00016H10.6667M5.33333 2.00016V2.66683M10.6667 2.00016H12C13.1046 2.00016 14 2.89559 14 4.00016V6.00016M10.6667 2.00016V1.3335M10.6667 2.00016V2.66683M2 6.00016V12.6668C2 13.7714 2.89543 14.6668 4 14.6668H12C13.1046 14.6668 14 13.7714 14 12.6668V6.00016M2 6.00016H14" stroke="#808897" strokeWidth="1.33333" strokeLinecap="round"/>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
+                <path d="M5.333 2H4A2 2 0 0 0 2 4v2M5.333 2v-.667M5.333 2h5.334M5.333 2v.667M10.667 2H12A2 2 0 0 1 14 4v2M10.667 2v-.667M10.667 2v.667M2 6v6.667A2 2 0 0 0 4 14.667h8A2 2 0 0 0 14 12.667V6H2Z" stroke="#808897" strokeWidth="1.333" strokeLinecap="round"/>
               </svg>
-              <span className="text-center font-[500] text-[14px] font-[Encode Sans] leading-[150%] tracking-[0.2px]">
+              <span className="text-[14px] font-medium leading-[150%] tracking-[0.2px]">
                 Last updated: {lastUpdated || 'Never'}
               </span>
               <svg
@@ -138,34 +85,33 @@ const Page = () => {
                 fill="none"
                 onClick={handleRefreshClick}
               >
-                <path d="M7.99984 2.66683C5.05432 2.66683 2.6665 5.05464 2.6665 8.00016C2.6665 9.97425 3.73903 11.6978 5.33317 12.62M7.99984 2.66683L6.6665 1.3335M7.99984 2.66683L6.99984 4.3335M7.99984 13.3335C10.9454 13.3335 13.3332 10.9457 13.3332 8.00016C13.3332 6.02608 12.2606 4.30249 10.6665 3.38033M7.99984 13.3335L9.33317 14.6668M7.99984 13.3335L8.99984 11.6668" stroke="#3EBF0F" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M8 2.667A5.333 5.333 0 1 0 13.333 8M8 2.667 6.667 1.333M8 2.667 7 4.333M8 13.333a5.333 5.333 0 1 0-5.333-5.333M8 13.333l1.333 1.334M8 13.333l1-1.667" stroke="#3EBF0F" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
           </div>
-          
+
           <div className='flex gap-2'>
-            <div className="cursor-pointer flex h-[40px] p-[8px_12px_8px_14px] gap-2 rounded-[10px] bg-[#3EBF0F]">
+            <div className="cursor-pointer flex h-[40px] px-3 gap-2 rounded-[10px] bg-[#3EBF0F] items-center">
               <FolderDown />
-              <span className="text-center font-[500] text-[14px] font-[Encode Sans] leading-[150%] tracking-[0.2px]">
-                Export
-              </span>
+              <span className="text-[14px] font-medium tracking-[0.2px] text-white">Export</span>
             </div>
             <div
-              className="body-theme cursor-pointer flex h-[40px] p-[8px_12px_8px_14px] justify-center items-center gap-2 rounded-[10px] border border-[#DFE1E6] shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]"
+              className="cursor-pointer flex h-[40px] px-3 items-center gap-2 rounded-[10px] border border-[#DFE1E6] shadow-sm"
               onClick={toggleDateFilter}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M13.3333 2H2.66667C2.29848 2 2 2.29848 2 2.66667V3.7468C2 4.33065 2.25513 4.88535 2.69842 5.26531L5.96825 8.06802C6.41154 8.44799 6.66667 9.00269 6.66667 9.58654V14L9.33333 12.6667V9.58654C9.33333 9.00269 9.58846 8.44799 10.0318 8.06802L13.3016 5.26531C13.7449 4.88535 14 4.33065 14 3.7468V2.66667C14 2.29848 13.7015 2 13.3333 2Z" stroke="#808897" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
+                <path d="M13.333 2H2.667A.667.667 0 0 0 2 2.667v1.08a2.667 2.667 0 0 0 .698 1.518l3.27 2.803A2.667 2.667 0 0 1 6.667 12v1.333A.667.667 0 0 0 7.333 14h1.334a.667.667 0 0 0 .666-.667V12a2.667 2.667 0 0 1 .698-1.932l3.27-2.803A2.667 2.667 0 0 0 14 3.747V2.667a.667.667 0 0 0-.667-.667Z" stroke="#808897" strokeLinecap="round"/>
               </svg>
-              <span className="text-[#666D80] text-center font-[500] text-[14px] font-[Encode Sans] leading-[150%] tracking-[0.2px]">
-                Filter
-              </span>
+              <span className="text-[14px] font-medium">Filter</span>
             </div>
-            {showDateFilter && <DateFilter onDateChange={handleDateChange} />}
           </div>
         </div>
 
-        {renderSection()}
+        {showDateFilter && <DateFilter onDateChange={handleDateChange} />}
+        
+        <div className="mt-6">
+          {renderSection()}
+        </div>
       </div>
     </div>
   );

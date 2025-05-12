@@ -18,28 +18,55 @@ import StatCard from './StatCard';
 import { MessageSquareIcon, PhoneCallIcon, UsersIcon } from 'lucide-react';
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-const MessagesReport = () => {
+const MessagesReport = ({filters}) => {
   const router = useRouter();
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
 
   const [loading, setLoading] = useState(true);
   const [messagesReportData, setMessagesReportData] = useState(null);
+  const [selectedFilter, setSelectedFilter] = useState(filters || 'All Channels');
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      let params = {};
+
+      if (filters?.startDate && filters?.endDate) {
+        params.start_date = filters.startDate.toISOString().split("T")[0];
+        params.end_date = filters.endDate.toISOString().split("T")[0];
+      }
+
+      if (selectedFilter && selectedFilter !== 'All Channels') {
+        params.channel = selectedFilter;
+      }
+
+      const res = await axiosInstance.get('/analytics/messages/', { params });
+      setMessagesReportData(res.data.data);
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const [customerStats, setCustomerStats] = useState({
+  total_customers: 0,
+  new_customers: 0,
+  drop_off_rate: 0
+});
+
 
   useEffect(() => {
-    axiosInstance.get('/analytics/messages/')
-      .then(res => {
-        const data = res.data.data;
-        setMessagesReportData(data);
-        setLoading(false);
-      })
-      .catch(error => {
-        handleApiError(error);
-        setLoading(false);
-      });
-  }, []);
+    fetchData();
+  }, [filters, selectedFilter]);
 
-  if (loading) return <p>Loading...</p>;
+
+  if (loading) return (
+    <div className="flex items-center justify-center">
+      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-gray-400"></div>
+    </div>
+  );
 
   const monthlyChartData = {
     labels: messagesReportData.messages_by_period.map(item => item.period_label),
@@ -119,32 +146,32 @@ const MessagesReport = () => {
 
   const statsData = [
     {
-      title: 'Total Messages Sent',
-      value: 200,
+      title: 'Total Messages',
+      value: messagesReportData.total_messages,
       icon: <UsersIcon className="text-white" size={20} />,
       borderColor: '#DFE1E6',
       bgColor: '#1285FE',
     },
     {
       title: 'Total Messages Received',
-      value: 76,
+      value: messagesReportData.total_received,
       icon: <PhoneCallIcon className="text-white" size={20} />,
       borderColor: '#DFE1E6',
       bgColor: '#3EBF0F',
     },
     {
-      title: 'Most Used Channels',
+      title: 'Total Messages Sent',
+      value: messagesReportData.total_sent,
       icon: <MessageSquareIcon className="text-white" size={20} />,
       borderColor: '#DFE1E6',
       bgColor: '#FF7043',
-      isMessagesReport: true
     },
   ];
 
   return (
     <>
        <div className="gap-5 mt-5 flex flex-wrap border border-[#DFE1E6] body-theme rounded-[16px] p-5">
-      {statsData.map((stat, index) => (
+          {statsData.map((stat, index) => (
         <StatCard key={index} {...stat} />
       ))}
     </div>

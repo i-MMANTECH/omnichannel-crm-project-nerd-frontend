@@ -36,7 +36,7 @@ const UserDropdown = ({ selectedSection, setSelectedSection }) => {
 
       {open && (
         <div className="body-theme absolute mt-2 z-1 w-40 border border-[#DFE1E6] rounded-lg shadow-lg p-2 space-y-2">
-          {['users', 'messages', 'tasks', 'customers'].map((item) => (
+          {['messages', 'tasks', 'users'].map((item) => (
             <div
               key={item}
               onClick={() => handleSelect(item)}
