@@ -622,7 +622,7 @@ export const MessagesContent = () => {
 		if (chatType === "customers") {
 			url += "send-to-customer/";
 			formData.append("customer_id", activeUser.id);
-			formData.append("channel_id", 2);
+			formData.append("channel_id", messageContent.channel_id);
 		} else {
 			url += "send-to-lead/";
 			formData.append("lead_id", activeUser.id);
@@ -933,6 +933,7 @@ export const MessagesContent = () => {
 										onRemoveImage={setSelectedImage}
 										onSendImage={setSelectedImage}
 										onSendMessage={handleSendMessage}
+										chatType={chatType}
 									/>
 								): (
 									<h2 className="w-full absolute bottom-5 flex items-center justify-center fw-bold text-red-300 p-2">Chat ended</h2>
