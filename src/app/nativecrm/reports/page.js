@@ -60,6 +60,20 @@ const Page = () => {
     setDateRange(newRange);
   };
 
+  const handleClearFilter = () => {
+  const today = new Date();
+  setDateRange([
+    {
+      startDate: today,
+      endDate: today,
+    },
+    ]);
+  };
+
+  const isClear = () => {
+    return dateRange && dateRange.startDate && dateRange.endDate
+  }
+  
   return (
     <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh] mb-5">
       <div className='relative body-theme flex-1 flex flex-col'>
@@ -91,10 +105,11 @@ const Page = () => {
           </div>
 
           <div className='flex gap-2'>
-            <div className="cursor-pointer flex h-[40px] px-3 gap-2 rounded-[10px] bg-[#3EBF0F] items-center">
+            <div className="hidden cursor-pointer flex h-[40px] px-3 gap-2 rounded-[10px] bg-[#3EBF0F] items-center">
               <FolderDown />
               <span className="text-[14px] font-medium tracking-[0.2px] text-white">Export</span>
             </div>
+            <div className='flex gap-2'>
             <div
               className="cursor-pointer flex h-[40px] px-3 items-center gap-2 rounded-[10px] border border-[#DFE1E6] shadow-sm"
               onClick={toggleDateFilter}
@@ -104,6 +119,18 @@ const Page = () => {
               </svg>
               <span className="text-[14px] font-medium">Filter</span>
             </div>
+
+            <button
+              className="cursor-pointer flex h-[40px] px-3 items-center gap-2 rounded-[10px] border border-[#DFE1E6] text-[#FF4D4F] hover:bg-[#ffecec] transition-all"
+              onClick={handleClearFilter}
+              disabled={!isClear()}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
+                <path d="M4 4L12 12M4 12L12 4" stroke="#FF4D4F" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              <span className="text-[14px] font-medium">Clear Filter</span>
+            </button>
+          </div>
           </div>
         </div>
 

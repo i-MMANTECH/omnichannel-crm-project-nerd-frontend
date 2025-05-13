@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -19,13 +18,12 @@ import { MessageSquareIcon, PhoneCallIcon, UsersIcon } from 'lucide-react';
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const MessagesReport = ({filters}) => {
-  const router = useRouter();
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
 
   const [loading, setLoading] = useState(true);
   const [messagesReportData, setMessagesReportData] = useState(null);
-  const [selectedFilter, setSelectedFilter] = useState(filters || 'All Channels');
+  const [selectedFilter, setSelectedFilter] = useState('All Channels');
 
   const fetchData = async () => {
     setLoading(true);
@@ -37,10 +35,6 @@ const MessagesReport = ({filters}) => {
         params.end_date = filters.endDate.toISOString().split("T")[0];
       }
 
-      if (selectedFilter && selectedFilter !== 'All Channels') {
-        params.channel = selectedFilter;
-      }
-
       const res = await axiosInstance.get('/analytics/messages/', { params });
       setMessagesReportData(res.data.data);
     } catch (error) {
@@ -50,16 +44,9 @@ const MessagesReport = ({filters}) => {
     }
   };
 
-  const [customerStats, setCustomerStats] = useState({
-  total_customers: 0,
-  new_customers: 0,
-  drop_off_rate: 0
-});
-
-
   useEffect(() => {
     fetchData();
-  }, [filters, selectedFilter]);
+  }, [filters]);
 
 
   if (loading) return (
@@ -181,7 +168,8 @@ const MessagesReport = ({filters}) => {
             <h3 className="text-base font-medium">Monthly Messages</h3>
             <Dropdown
               options={['All Channels', 'Email', 'WhatsApp', 'Facebook']}
-              selected="All Channels"
+              selected={selectedFilter}
+              onChange={(value) => setSelectedFilter(value)}
               width="w-40"
             />
           </div>

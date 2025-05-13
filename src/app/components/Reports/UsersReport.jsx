@@ -95,7 +95,7 @@ export default function UsersReport({ filters }) {
     );
   }
 
-  const statsData = [
+  const statsData = [ 
     {
       title: "Total Users",
       value: usersReportData?.users?.total || 0,
