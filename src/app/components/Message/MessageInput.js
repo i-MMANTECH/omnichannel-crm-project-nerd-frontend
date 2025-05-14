@@ -152,7 +152,7 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, setOnSendFile,
         {selectedFile && (
         <div className="file-preview">
           <p>{selectedFile.name}</p>
-           <button onClick={removeSelectedImage}>Remove Image</button>
+           <button onClick={removeSelectedFile}>Remove Image</button>
         </div>
       )}
 
