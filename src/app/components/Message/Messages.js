@@ -64,6 +64,7 @@ export const MessagesContent = () => {
 	const [activeAgent, setActiveAgent] = useState(null)
 	const [userProfile, setUserProfile] = useState({})
 	const [selectedImage, setSelectedImage] = useState('')
+	const [fileToSend, setFileToSend] = useState(null);
 
 	const [isFilterActive, setIsFilterActive] = useState(false)
 
@@ -599,11 +600,30 @@ export const MessagesContent = () => {
     };
 
 	const handleSendMessage = (messageContent) => {
+		const formData = new FormData();
+		
+		const contentType = selectedImage
+			? "image"
+			: fileToSend
+			? "document"
+			: "text";
+
+		formData.append("content", messageContent.text || "");
+		formData.append("content_type", contentType);
+
+		if (selectedImage) {
+			formData.append("image", selectedImage);
+		}
+		else if (fileToSend) {
+			formData.append("document", fileToSend);
+		}
+
 		const tempMessage = {
-			id: `temp-${new Date().getTime()}`, // Temporary unique ID
+			id: `temp-${new Date().getTime()}`,
 			content: messageContent.text,
-			content_type: selectedImage ? "image" : "text",
+			content_type: contentType, // use the same logic
 			image: selectedImage,
+			document: fileToSend,
 			created_at: new Date().toISOString(),
 			status: "sending",
 			user_sender: userProfile?.id,
@@ -618,7 +638,6 @@ export const MessagesContent = () => {
 		let url = "/communication/";
 		let dataToSend;
 	
-		const formData = new FormData();
 		if (chatType === "customers") {
 			url += "send-to-customer/";
 			formData.append("customer_id", activeUser.id);
@@ -645,6 +664,7 @@ export const MessagesContent = () => {
 				// No need to manually replace temp message.
 				// The WebSocket will handle the correct update.
 				setSelectedImage("");
+				setFileToSend(null);
 			})
 			.catch((error) => {
 				// Mark the temp message as failed
@@ -745,6 +765,11 @@ export const MessagesContent = () => {
 		} finally {
 		  setIsFetchingMore(false);
 		}
+	};
+
+	const handleFile = (file) => {
+		console.log("File received from child:", file);
+		setFileToSend(file);
 	};
 
 	return (
@@ -933,6 +958,8 @@ export const MessagesContent = () => {
 										onRemoveImage={setSelectedImage}
 										onSendImage={setSelectedImage}
 										onSendMessage={handleSendMessage}
+										setOnSendFile={handleFile}
+										onRemoveFile={setFileToSend}
 									/>
 								): (
 									<h2 className="w-full absolute bottom-5 flex items-center justify-center fw-bold text-red-300 p-2">Chat ended</h2>

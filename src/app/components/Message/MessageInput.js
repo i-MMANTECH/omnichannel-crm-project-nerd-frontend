@@ -9,12 +9,14 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import "./messageInput.css";
 
-const MessageInput = ({onSendMessage, onSendImage, onRemoveImage}) => {
+const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, setOnSendFile, onRemoveFile}) => {
   const [showAttachOptions, setShowAttachOptions] = useState(false);
   const [inputText, setInputText] = useState("");
   const [selectedImage, setSelectedImage] = useState("");
+  const [selectedFile, setSelectedFile] = useState("");
 
   const imageInputRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const handleAttachClick = () => {
     setShowAttachOptions((prev) => !prev);
@@ -35,7 +37,18 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage}) => {
   const handleFileSelect = () => {
     imageInputRef.current.click();
   };
+  const handleDocSelect = () => {
+    fileInputRef.current.click();
+  };
 
+  const handleDocumentChange = (e) => {
+    const file = e.target.files[0];
+    console.log(file)
+    if (file) {
+      setSelectedFile(file);
+      setOnSendFile(file)
+    }
+  };
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -50,17 +63,24 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage}) => {
     imageInputRef.current.value = ""; 
   };
   
+  const removeSelectedFile = () => {
+    setSelectedFile("");
+    onRemoveFile("");
+    fileInputRef.current.value = "";
+  };
 
-  const sendMessage = () => {
-    if (!inputText.trim() && !selectedImage) return;
+ const sendMessage = () => {
+    if (!inputText.trim() && !selectedImage && !selectedFile) return;
+
     const messagePayload = {
       text: inputText.trim(),
+      file: selectedFile || null,
     };
 
     onSendMessage(messagePayload);
-
     setInputText("");
     setSelectedImage(null);
+    setSelectedFile(null);
     setShowAttachOptions(false);
   };
 
@@ -73,7 +93,7 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage}) => {
           </svg>
         </div>
         {showAttachOptions && (
-          <div className="attach-options top-[-85px]">
+          <div className="attach-options top-[-140px]">
             <div
               onClick={handleFileSelect}
               className="pointer"
@@ -87,8 +107,8 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage}) => {
                 <path fillRule="evenodd" clipRule="evenodd" d="M38.5249 31.5358L37.5303 32.5303C37.2374 32.8232 36.7626 32.8232 36.4697 32.5303C36.1768 32.2374 36.1768 31.7626 36.4697 31.4697L37.4697 30.4697L37.48 30.4596C38.0458 29.9151 38.7415 29.5801 39.5 29.5801C40.2585 29.5801 40.9542 29.9151 41.52 30.4596L41.5303 30.4697L43.5303 32.4697C43.8232 32.7626 43.8232 33.2374 43.5303 33.5303C43.2374 33.8232 42.7626 33.8232 42.4697 33.5303L40.4751 31.5358C40.1305 31.206 39.7933 31.0801 39.5 31.0801C39.2067 31.0801 38.8695 31.206 38.5249 31.5358Z" fill="white"/>
                 </g>
                 <defs>
-                <filter id="filter0_d_3555_1663" x="0" y="0" width="70" height="70" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-                <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                <filter id="filter0_d_3555_1663" x="0" y="0" width="70" height="70" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+                <feFlood floodOpacity="0" result="BackgroundImageFix"/>
                 <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
                 <feOffset dy="5"/>
                 <feGaussianBlur stdDeviation="5"/>
@@ -100,7 +120,14 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage}) => {
                 </defs>
               </svg>
             </div>
-
+            
+             <div onClick={handleDocSelect} className="pointer">
+              <div className="mb-2 ms-[9px] w-[50px] h-[50px] rounded-full bg-[#0D0D12] flex items-center justify-center shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 448 512" fill="white">
+                  <path d="M43.2 466.7c-56.9-56.9-56.9-149.4 0-206.4l206.4-206.4c37.7-37.7 98.7-37.7 136.4 0s37.7 98.7 0 136.4L179.7 433.2c-18.8 18.8-49.4 18.8-68.2 0s-18.8-49.4 0-68.2l182.9-182.9c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6L134.1 387.6c-6.2 6.2-6.2 16.4 0 22.6s16.4 6.2 22.6 0l204.3-204.3c25-25 25-65.5 0-90.5s-65.5-25-90.5 0L64.1 355.5c-31.3 31.3-31.3 82.2 0 113.5s82.2 31.3 113.5 0L400 246.1c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6L200.3 491.9c-43.8 43.8-114.8 43.8-158.6 0z"/>
+                </svg>
+              </div>
+            </div>
           </div>
         )}
         <textarea
@@ -122,8 +149,16 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage}) => {
           </div>
         )}
 
+        {selectedFile && (
+        <div className="file-preview">
+          <p>{selectedFile.name}</p>
+           <button onClick={removeSelectedImage}>Remove Image</button>
+        </div>
+      )}
+
+
       </div>
-      {inputText || selectedImage ? (
+      {inputText || selectedImage || selectedFile ? (
         <button className="send-button" onClick={(sendMessage)}>
           <FontAwesomeIcon icon={faPaperPlane} />
         </button>
@@ -140,6 +175,15 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage}) => {
         ref={imageInputRef}
         onChange={handleImageChange}
       />
+
+      <input
+        type="file"
+        accept=".pdf,.doc,.docx,.txt"
+        ref={fileInputRef}
+        style={{ display: "none" }}
+        onChange={handleDocumentChange}
+      />
+
     </div>
   );
 };
