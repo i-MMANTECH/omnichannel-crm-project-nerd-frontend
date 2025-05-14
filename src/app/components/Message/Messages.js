@@ -768,7 +768,6 @@ export const MessagesContent = () => {
 	};
 
 	const handleFile = (file) => {
-		console.log("File received from child:", file);
 		setFileToSend(file);
 	};
 
