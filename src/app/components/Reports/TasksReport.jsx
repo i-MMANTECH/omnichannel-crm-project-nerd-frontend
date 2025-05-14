@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useRouter } from "next/navigation";
 import Dropdown from './Dropdown';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -17,38 +16,58 @@ import { MessageSquareIcon, PhoneCallIcon, UsersIcon } from 'lucide-react';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-const TasksReport = ({data}) => {
-  const router = useRouter();
+const TasksReport = ({filters}) => {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
 
   const [loading, setLoading] = useState(true);
   const [tasksReportData, setTasksReportData] = useState(null);
+  const [statusFilter, setStatusFilter] = useState(null);
+  const [userFilter, setUserFilter] = useState(null);
 
-  useEffect(() => {
-    axiosInstance.get('/analytics/tasks/')
-      .then(res => {
-        setTasksReportData(res.data.data);
-      })
-      .catch(err => {
-        handleApiError(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
 
-  if (loading) return <p>Loading...</p>;
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      let params = {};
+
+      if (filters && filters.startDate && filters.endDate) {
+        params.start_date = filters.startDate.toISOString().split("T")[0];
+        params.end_date = filters.endDate.toISOString().split("T")[0];
+      }
+
+      const res = await axiosInstance.get('/analytics/tasks/', { params });
+      setTasksReportData(res.data.data);
+    } catch (err) {
+      handleApiError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+    useEffect(() => {
+      fetchData();
+    }, [filters]);
+
+
+  if (loading) return (
+    <div className="flex items-center justify-center">
+      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-gray-400"></div>
+    </div>
+  );
 
 
   const monthlyChartData = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    labels: tasksReportData?.tasks_by_period?.map(item => item.period_label),
     datasets: [
       {
-        label: 'Tasks',
-        data: [220, 310, 280, 260, 350, 230, 330, 360, 380, 250, 240, 300],
-        backgroundColor: (ctx) => {
-          return ctx.dataIndex === 4 ? '#3EBF0F' : '#EEEFF2';
+        label: 'Total Tasks',
+        data: tasksReportData?.tasks_by_period?.map(item => item.total),
+       backgroundColor: (ctx) => {
+          const index = ctx.dataIndex;
+          return index === (tasksReportData.tasks_by_period.length - 1)
+            ? '#3EBF0F'
+            : '#EEEFF2';
         },
         borderRadius: 8,
       }
@@ -80,21 +99,21 @@ const TasksReport = ({data}) => {
   const statsData = [
     {
       title: 'Tasks Completed',
-      value: 200,
+      value: tasksReportData.completion_rate.completed,
       icon: <UsersIcon className="text-white" size={20} />,
       borderColor: '#DFE1E6',
       bgColor: '#1285FE',
     },
     {
       title: 'Tasks Overdue',
-      value: 76,
+      value: tasksReportData.completion_rate.total,
       icon: <PhoneCallIcon className="text-white" size={20} />,
       borderColor: '#DFE1E6',
       bgColor: '#3EBF0F',
     },
     {
       title: 'Completion Rate',
-      value: "42%",
+      value: `${tasksReportData.completion_rate.rate}%`,
       icon: <MessageSquareIcon className="text-white" size={20} />,
       borderColor: '#DFE1E6',
       bgColor: '#FF7043',
