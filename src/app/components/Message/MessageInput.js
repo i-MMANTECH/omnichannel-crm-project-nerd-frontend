@@ -139,6 +139,7 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setO
       channel_id: selectedChannel?.value,
       file: selectedFile || null,
     };
+    console.log('message payload', messagePayload)
 
     onSendMessage(messagePayload);
     setInputText("");
