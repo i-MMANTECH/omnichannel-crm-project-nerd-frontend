@@ -84,7 +84,7 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setO
     console.log(file)
     if (file) {
       setSelectedFile(file);
-      setOnSendFile(file)
+      // setOnSendFile(file)
     }
   };
   const handleImageChange = (e) => {
@@ -115,6 +115,7 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setO
       channel_id: selectedChannel?.value,
       file: selectedFile || null,
     };
+    console.log('message payload', messagePayload)
 
     onSendMessage(messagePayload);
     setInputText("");

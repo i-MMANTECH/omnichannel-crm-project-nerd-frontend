@@ -64,7 +64,6 @@ export const MessagesContent = () => {
 	const [activeAgent, setActiveAgent] = useState(null)
 	const [userProfile, setUserProfile] = useState({})
 	const [selectedImage, setSelectedImage] = useState('')
-	const [fileToSend, setFileToSend] = useState(null);
 
 	const [isFilterActive, setIsFilterActive] = useState(false)
 
@@ -604,7 +603,7 @@ export const MessagesContent = () => {
 		
 		const contentType = selectedImage
 			? "image"
-			: fileToSend
+			: messageContent?.file
 			? "document"
 			: "text";
 
@@ -613,17 +612,19 @@ export const MessagesContent = () => {
 
 		if (selectedImage) {
 			formData.append("image", selectedImage);
+			console.log('there is a selected image')
 		}
-		else if (fileToSend) {
-			formData.append("document", fileToSend);
+		else if (messageContent?.file) {
+			formData.append("document", messageContent?.file);
+			console.log('there is a selected file')
 		}
 
 		const tempMessage = {
 			id: `temp-${new Date().getTime()}`,
 			content: messageContent.text,
-			content_type: contentType, // use the same logic
+			content_type: contentType,
 			image: selectedImage,
-			document: fileToSend,
+			document: messageContent?.file,
 			created_at: new Date().toISOString(),
 			status: "sending",
 			user_sender: userProfile?.id,
@@ -636,7 +637,6 @@ export const MessagesContent = () => {
 		setChatHistory((prevHistory) => [...prevHistory, tempMessage]);
 	
 		let url = "/communication/";
-		let dataToSend;
 	
 		if (chatType === "customers") {
 			url += "send-to-customer/";
@@ -646,17 +646,14 @@ export const MessagesContent = () => {
 			url += "send-to-lead/";
 			formData.append("lead_id", activeUser.id);
 		}
-	
-		formData.append("content", messageContent.text || "");
-		formData.append("content_type", selectedImage ? "image" : "text");
-		if (selectedImage) {
-			formData.append("image", selectedImage);
+		
+		console.log('url is ', url)
+		for (let [key, value] of formData.entries()) {
+			console.log(`${key}:`, value);
 		}
-	
-		dataToSend = formData;
-	
+		
 		axiosInstance
-			.post(url, dataToSend, {
+			.post(url, formData, {
 				headers: { "Content-Type": "multipart/form-data" },
 				showLoader: false,
 			})
@@ -664,7 +661,6 @@ export const MessagesContent = () => {
 				// No need to manually replace temp message.
 				// The WebSocket will handle the correct update.
 				setSelectedImage("");
-				setFileToSend(null);
 			})
 			.catch((error) => {
 				// Mark the temp message as failed
@@ -765,10 +761,6 @@ export const MessagesContent = () => {
 		} finally {
 		  setIsFetchingMore(false);
 		}
-	};
-
-	const handleFile = (file) => {
-		setFileToSend(file);
 	};
 
 	return (
@@ -951,15 +943,12 @@ export const MessagesContent = () => {
 									chatHistory={chatHistory} 
 								/>
 
-
 								{chatType != "archived" ? ( 
 									<MessageInput
 										onRemoveImage={setSelectedImage}
 										onSendImage={setSelectedImage}
 										onSendMessage={handleSendMessage}
 										chatType={chatType}
-										setOnSendFile={handleFile}
-										onRemoveFile={setFileToSend}
 									/>
 								): (
 									<h2 className="w-full absolute bottom-5 flex items-center justify-center fw-bold text-red-300 p-2">Chat ended</h2>
