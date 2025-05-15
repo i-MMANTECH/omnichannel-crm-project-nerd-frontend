@@ -81,18 +81,42 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setO
 
   const handleDocumentChange = (e) => {
     const file = e.target.files[0];
-    console.log(file)
+
     if (file) {
+      const maxSizeInMB = 5;
+      const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+
+      if (file.size > maxSizeInBytes) {
+        alert(`File is too large. Maximum size allowed is ${maxSizeInMB}MB.`);
+        e.target.value = "";
+        return;
+      }
+
       setSelectedFile(file);
-      setOnSendFile(file)
+      setOnSendFile(file);
     }
   };
+
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedImage(file);
-      onSendImage(file)
-    }
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  const maxSizeInMB = 5;
+  const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+
+  if (!validTypes.includes(file.type)) {
+    alert('Invalid file type. Please upload a JPG, PNG, or WEBP image.');
+    return;
+  }
+
+  if (file.size > maxSizeInBytes) {
+    alert(`File is too large. Maximum allowed size is ${maxSizeInMB}MB.`);
+    return;
+  }
+
+  setSelectedImage(file);
+  onSendImage(file);
   };
 
   const removeSelectedImage = () => {
@@ -207,7 +231,7 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setO
         {selectedFile && (
         <div className="file-preview">
           <p>{selectedFile.name}</p>
-           <button onClick={removeSelectedFile}>Remove Image</button>
+           <button onClick={removeSelectedFile}>Remove File</button>
         </div>
       )}
 
