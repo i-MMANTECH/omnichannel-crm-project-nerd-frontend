@@ -641,7 +641,7 @@ export const MessagesContent = () => {
 		if (chatType === "customers") {
 			url += "send-to-customer/";
 			formData.append("customer_id", activeUser.id);
-			formData.append("channel_id", 2);
+			formData.append("channel_id", messageContent.channel_id);
 		} else {
 			url += "send-to-lead/";
 			formData.append("lead_id", activeUser.id);
@@ -957,6 +957,7 @@ export const MessagesContent = () => {
 										onRemoveImage={setSelectedImage}
 										onSendImage={setSelectedImage}
 										onSendMessage={handleSendMessage}
+										chatType={chatType}
 										setOnSendFile={handleFile}
 										onRemoveFile={setFileToSend}
 									/>

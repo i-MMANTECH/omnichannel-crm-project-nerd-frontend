@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faMicrophone,
@@ -8,14 +8,51 @@ import {
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import "./messageInput.css";
+import { useApi } from "@/services/axiosConfig";
+import { useError } from "@/context/ErrorContext";
 
-const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, setOnSendFile, onRemoveFile}) => {
+const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setOnSendFile, onRemoveFile}) => {
   const [showAttachOptions, setShowAttachOptions] = useState(false);
   const [inputText, setInputText] = useState("");
   const [selectedImage, setSelectedImage] = useState("");
+  const [channelDropdownOpen, setChannelDropdownOpen] = useState(false);
+  const [selectedChannel, setSelectedChannel] = useState(null);
+  const [channels, setChannels] = useState([]);
+  const { axiosInstance } = useApi();
+  const { handleApiError } = useError();
+  const [isLoadingChannels, setIsLoadingChannels] = useState(false);
+
+
   const [selectedFile, setSelectedFile] = useState("");
 
   const imageInputRef = useRef(null);
+
+  useEffect(() => {
+    if (chatType == "customers") {
+      fetchChannels();
+    }
+  }, [chatType]);
+
+  const fetchChannels = async () => {
+    setIsLoadingChannels(true);
+
+    try {
+      const response = await axiosInstance.get("/channels/connected-channels/");
+      const mapped = response.data.connected_channels.map((channel) => ({
+        value: channel?.id,
+        label: channel?.name,
+        image: channel?.image,
+      }));
+      setChannels(mapped);
+      if (mapped.length > 0) {
+        setSelectedChannel(mapped[0]);
+      }
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setIsLoadingChannels(false);
+    }
+  };
   const fileInputRef = useRef(null);
 
   const handleAttachClick = () => {
@@ -74,6 +111,7 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, setOnSendFile,
 
     const messagePayload = {
       text: inputText.trim(),
+      channel_id: selectedChannel?.value,
       file: selectedFile || null,
     };
 
@@ -130,6 +168,41 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, setOnSendFile,
             </div>
           </div>
         )}
+        {chatType === "customers" && (
+          <div className="relative ml-2">
+            <button
+              className=" rounded-full bg-white  p-1 text-sm flex items-center gap-2"
+              onClick={() => setChannelDropdownOpen(!channelDropdownOpen)}
+            >
+              {!isLoadingChannels ? (
+                <img src={selectedChannel?.image} alt="icon" className="w-7 h-7 rounded-full" />
+              ) : (
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+              )}
+            </button>
+
+            {channelDropdownOpen && (
+              <ul className="absolute z-10 mb-5 bottom-full body-theme border rounded shadow w-48">
+                {channels.map((channel) => (
+                  <li
+                    key={channel.value}
+                    onClick={() => {
+                      setSelectedChannel(channel);
+                      setChannelDropdownOpen(false);
+                    }}
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2"
+                  >
+                    <div className=" rounded-full bg-white  p-1 text-sm flex items-center gap-2"                    >
+                      <img src={channel.image} alt={channel.label} className="w-5 h-5 rounded-full" />
+                    </div>
+                    <span className="text-sm">{channel.label}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
         <textarea
           placeholder="Type your message..."
           className="message-input body-theme"
