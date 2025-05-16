@@ -12,6 +12,7 @@ import { usePermissions } from "@/context/PermissionsContext";
 import AssignAgentModal from "./AssignAgentModal";
 import EndSessionModal from "./EndSessionModal";
 import ArchiveModal from "./ArchiveModal";
+import TaskModel from "./TaskModel";
 
 const ModalController = ({ children }) => {
   const searchParams = useSearchParams();
@@ -43,6 +44,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
   const [isAssignAgentModalOpen, setIsAssignAgentModalOpen] = useState(false);
   const [isEndSessionModalOpen, setIsEndSessionModalOpen] = useState(false);
   const [isArchivedModalOpen, setIsArchivedModalOpen] = useState(false);
+  const [isTaskCreation, setIsTaskCreation] = useState(false)
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
   const router = useRouter();
@@ -98,15 +100,20 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
       onClick: () => setIsNotesModalOpen(true),
     },
     {
-      label: "Assign to Agent",
+      label: "Assign to agent",
       onClick: () => setIsAssignAgentModalOpen(true),
     },
     {
-      label: "End Session",
+      label: "End session",
       onClick: () => setIsEndSessionModalOpen(true),
     },
+    {
+      label: "Create a task",
+      onClick: () => setIsTaskCreation(true),
+    },
   ]
-
+  
+  
   const customerMenuItems = [
     {
       label: "Edit customer",
@@ -119,11 +126,14 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
       onClick: () => setIsArchivedModalOpen(true),
     },
     {
-      label: "End Session",
+      label: "Assign to agent",
+      onClick: () => setIsAssignAgentModalOpen(true),
+    },
+    {
+      label: "End session",
       onClick: () => setIsEndSessionModalOpen(true),
     },
   ];
-
 
   const closeSuccessModal = () => {
     setIsSuccessModalOpen(false);
@@ -201,6 +211,17 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
                 </div>
               )}
             </div>
+
+            {isTaskCreation && (
+              <TaskModel
+                isOpen={isTaskCreation}
+                onClose={() => setIsTaskCreation(false)}
+                conversationId={conversationId}
+                setIsSuccessModalOpen={setIsSuccessModalOpen}
+                setSuccessModalMessage={setSuccessModalMessage}
+              />
+            )}
+
             {isModalOpen && (
               <LeadToCustomer
                 isOpen={isModalOpen}
@@ -210,11 +231,13 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
                 setSuccessModalMessage={setSuccessModalMessage}
               />
             )}
+
             {isArchivedModalOpen && (
                <ArchiveModal 
                isOpen={isArchivedModalOpen} 
                onClose={() => setIsArchivedModalOpen(false)} />
             )}
+
             {isNotesModalOpen && (
               <NotesModal
                 isOpen={isNotesModalOpen}
@@ -225,6 +248,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
                 setSuccessModalMessage={setSuccessModalMessage}
               />
             )}
+
              {isAssignAgentModalOpen && (
             <AssignAgentModal
               isOpen={isAssignAgentModalOpen}
@@ -235,6 +259,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
               setSuccessModalMessage={setSuccessModalMessage}
             />
           )}
+          
           {isEndSessionModalOpen && (
             <EndSessionModal
               isOpen={isEndSessionModalOpen}

@@ -4,7 +4,7 @@ import React, { useState, useRef } from "react";
 import { Disclosure } from "@headlessui/react";
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
-import { AlarmClock, FileText, Link, UserPlus } from "lucide-react";
+import { AlarmClock, CodeXml, FileText, Link, UserPlus } from "lucide-react";
 
 
 function SettingsSidebar({ onSidebarClick, currentSection  }) {
@@ -45,7 +45,7 @@ function SettingsSidebar({ onSidebarClick, currentSection  }) {
               >
                  <AlarmClock size={18} />
                 <h3 className={`text-sm font-medium`}>
-                Sla Policies
+                SLA Policies
                 </h3>
               </button>  
 
@@ -147,6 +147,16 @@ function SettingsSidebar({ onSidebarClick, currentSection  }) {
                 <FileText size={18} />
                 <h3 className={`text-sm font-medium`}>
                   Plans & Billing
+                </h3>
+              </button>
+
+              <button
+                  onClick={() => onSidebarClick('developer-settings')}
+                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${currentSection === 'developer-settings' ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+              >
+                <CodeXml size={18} />
+                <h3 className={`text-sm font-medium`}>
+                  Developer Settings
                 </h3>
               </button>
             </div>            

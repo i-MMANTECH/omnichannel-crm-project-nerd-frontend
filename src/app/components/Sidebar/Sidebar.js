@@ -13,7 +13,7 @@ import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import { usePermissions } from "@/context/PermissionsContext";
 import UserAvatar from "../UserAvatar";
-import { Bell, House, Mail, Settings, SquareCheck, UserPlus, Users } from 'lucide-react';
+import { Bell, House, Mail, Settings, SquareCheck, SquareKanban, UserPlus, Users } from 'lucide-react';
 
 function Sidebar() {
   const { logout } = useAuth();
@@ -171,6 +171,19 @@ function Sidebar() {
                   </h3>
                 </Link>
                 )}
+                
+                  <Link
+                onClick={() => setIsOpen(false)} // Close sidebar on navigation
+                  
+                  href="/nativecrm/reports"
+                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/reports") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                >
+                   <SquareKanban size={18} />
+                  <h3 className={`text-sm font-medium`}>
+                    Reports
+                  </h3>
+                </Link>
+                
 
               <Link
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation

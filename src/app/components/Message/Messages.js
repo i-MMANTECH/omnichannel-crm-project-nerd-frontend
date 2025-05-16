@@ -599,11 +599,32 @@ export const MessagesContent = () => {
     };
 
 	const handleSendMessage = (messageContent) => {
+		const formData = new FormData();
+		
+		const contentType = selectedImage
+			? "image"
+			: messageContent?.file
+			? "document"
+			: "text";
+
+		formData.append("content", messageContent.text || "");
+		formData.append("content_type", contentType);
+
+		if (selectedImage) {
+			formData.append("image", selectedImage);
+			console.log('there is a selected image')
+		}
+		else if (messageContent?.file) {
+			formData.append("document", messageContent?.file);
+			console.log('there is a selected file')
+		}
+
 		const tempMessage = {
-			id: `temp-${new Date().getTime()}`, // Temporary unique ID
+			id: `temp-${new Date().getTime()}`,
 			content: messageContent.text,
-			content_type: selectedImage ? "image" : "text",
+			content_type: contentType,
 			image: selectedImage,
+			document: messageContent?.file,
 			created_at: new Date().toISOString(),
 			status: "sending",
 			user_sender: userProfile?.id,
@@ -616,28 +637,24 @@ export const MessagesContent = () => {
 		setChatHistory((prevHistory) => [...prevHistory, tempMessage]);
 	
 		let url = "/communication/";
-		let dataToSend;
 	
 		const formData = new FormData();
 		if (chatType === "customers") {
 			url += "send-to-customer/";
 			formData.append("customer_id", activeUser.id);
-			formData.append("channel_id", 2);
+			formData.append("channel_id", messageContent.channel_id);
 		} else {
 			url += "send-to-lead/";
 			formData.append("lead_id", activeUser.id);
 		}
-	
-		formData.append("content", messageContent.text || "");
-		formData.append("content_type", selectedImage ? "image" : "text");
-		if (selectedImage) {
-			formData.append("image", selectedImage);
+		
+		console.log('url is ', url)
+		for (let [key, value] of formData.entries()) {
+			console.log(`${key}:`, value);
 		}
-	
-		dataToSend = formData;
-	
+		
 		axiosInstance
-			.post(url, dataToSend, {
+			.post(url, formData, {
 				headers: { "Content-Type": "multipart/form-data" },
 				showLoader: false,
 			})
@@ -927,12 +944,12 @@ export const MessagesContent = () => {
 									chatHistory={chatHistory} 
 								/>
 
-
 								{chatType != "archived" ? ( 
 									<MessageInput
 										onRemoveImage={setSelectedImage}
 										onSendImage={setSelectedImage}
 										onSendMessage={handleSendMessage}
+										chatType={chatType}
 									/>
 								): (
 									<h2 className="w-full absolute bottom-5 flex items-center justify-center fw-bold text-red-300 p-2">Chat ended</h2>

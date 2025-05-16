@@ -48,7 +48,7 @@ const SlaPolicies = () => {
     return (
         <>
             {/* Search and Button Wrapper */}
-            <div className="my-10 flex justify-end w-full">
+            <div className="mb-6 flex justify-end w-full">
                 <div className="flex flex-wrap items-center gap-4 sm:flex-nowrap">
                     <button
                         onClick={() => setShowModal(true)}
@@ -95,8 +95,8 @@ const SlaPolicies = () => {
             ) : error ? (
                 <p className="text-red-500">{error}</p>
             ) : (
-                <div className="overflow-auto">
-                    <table className="min-w-full body-theme">
+                <div className="body-theme px-10 overflow-auto">
+                    <table className="min-w-full ">
                         <thead className="bg-gray-100 dark:bg-neutral-900">
                             <tr>
                                 <th className="styled-th py-3 px-4 text-left font-semibold text-gray-600 border-b border-gray-500">SLA Name</th>
