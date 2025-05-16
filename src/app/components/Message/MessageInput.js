@@ -232,9 +232,13 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setO
 
        {selectedFile && (
   <div className="file-preview">
-    <p>{selectedFile.name}</p>
+    <p>
+      {selectedFile.name.length > 13
+        ? selectedFile.name.slice(0, 13) + '...'
+        : selectedFile.name}
+    </p>
     <button onClick={removeSelectedFile} className="remove-file-btn" title="Remove File">
-      <X size={18} />
+      <X size={18} color="red" />
     </button>
   </div>
 )}
