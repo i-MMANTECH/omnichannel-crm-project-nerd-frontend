@@ -13,10 +13,11 @@ import { useError } from "@/context/ErrorContext";
 import { X } from "lucide-react";
 
 
-const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setOnSendFile, onRemoveFile}) => {
+const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType}) => {
   const [showAttachOptions, setShowAttachOptions] = useState(false);
   const [inputText, setInputText] = useState("");
-  const [selectedImage, setSelectedImage] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [channelDropdownOpen, setChannelDropdownOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [channels, setChannels] = useState([]);
@@ -24,10 +25,8 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setO
   const { handleApiError } = useError();
   const [isLoadingChannels, setIsLoadingChannels] = useState(false);
 
-
-  const [selectedFile, setSelectedFile] = useState("");
-
   const imageInputRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (chatType == "customers") {
@@ -55,7 +54,6 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setO
       setIsLoadingChannels(false);
     }
   };
-  const fileInputRef = useRef(null);
 
   const handleAttachClick = () => {
     setShowAttachOptions((prev) => !prev);
@@ -83,56 +81,58 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setO
   const handleDocumentChange = (e) => {
     const file = e.target.files[0];
 
+    if (fileInputRef.current) fileInputRef.current.value = null;
+
     if (file) {
       const maxSizeInMB = 5;
       const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
 
       if (file.size > maxSizeInBytes) {
         alert(`File is too large. Maximum size allowed is ${maxSizeInMB}MB.`);
-        e.target.value = "";
         return;
       }
 
       setSelectedFile(file);
-      setOnSendFile(file);
+    }
+  };
+
+  const removeSelectedFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = null;
     }
   };
 
   const handleImageChange = (e) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-  const maxSizeInMB = 5;
-  const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const maxSizeInMB = 5;
+    const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
 
-  if (!validTypes.includes(file.type)) {
-    alert('Invalid file type. Please upload a JPG, PNG, or WEBP image.');
-    return;
-  }
+    if (!validTypes.includes(file.type)) {
+      alert('Invalid file type. Please upload a JPG, PNG, or WEBP image.');
+      return;
+    }
 
-  if (file.size > maxSizeInBytes) {
-    alert(`File is too large. Maximum allowed size is ${maxSizeInMB}MB.`);
-    return;
-  }
+    if (file.size > maxSizeInBytes) {
+      alert(`File is too large. Maximum allowed size is ${maxSizeInMB}MB.`);
+      return;
+    }
 
-  setSelectedImage(file);
-  onSendImage(file);
+    setSelectedImage(file);
+    onSendImage(file);
+    if (imageInputRef.current) imageInputRef.current.value = null;
   };
 
   const removeSelectedImage = () => {
-    setSelectedImage(""); 
-    onRemoveImage('')
-    imageInputRef.current.value = ""; 
-  };
-  
-  const removeSelectedFile = () => {
-    setSelectedFile("");
-    onRemoveFile("");
-    fileInputRef.current.value = "";
+    setSelectedImage(null);
+    onRemoveImage(null);
+    if (imageInputRef.current) imageInputRef.current.value = null;
   };
 
- const sendMessage = () => {
+  const sendMessage = () => {
     if (!inputText.trim() && !selectedImage && !selectedFile) return;
 
     const messagePayload = {
@@ -140,7 +140,6 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setO
       channel_id: selectedChannel?.value,
       file: selectedFile || null,
     };
-    console.log('message payload', messagePayload)
 
     onSendMessage(messagePayload);
     setInputText("");
@@ -150,7 +149,7 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setO
   };
 
   return (
-    <div className="type absolute bottom-0">
+    <div className="body-theme type absolute bottom-0">
       <div className="write-area ">
         <div className="attach-icon bg-white rounded-full" onClick={handleAttachClick}>
           <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -159,18 +158,15 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setO
         </div>
         {showAttachOptions && (
           <div className="attach-options top-[-140px] flex gap-3">
-            {/* Image Upload */}
             <div
-              onClick={handleFileSelect}
-              className="w-[60px] h-[60px] flex items-center justify-center rounded-full bg-[#0D0D12] shadow-md border border-gray-600 cursor-pointer"
+              onClick={selectedFile ? undefined : handleFileSelect}
+              className={`w-[60px] h-[60px] flex items-center justify-center rounded-full bg-[#0D0D12] shadow-md border border-gray-600 cursor-pointer ${selectedFile ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <FontAwesomeIcon icon={faImage} className="text-white text-xl" />
             </div>
-
-            {/* Document Attachment */}
             <div
-              onClick={handleDocSelect}
-              className="w-[60px] h-[60px] flex items-center justify-center rounded-full bg-[#0D0D12] shadow-md border border-gray-600 cursor-pointer"
+              onClick={selectedImage ? undefined : handleDocSelect}
+              className={`w-[60px] h-[60px] flex items-center justify-center rounded-full bg-[#0D0D12] shadow-md border border-gray-600 cursor-pointer ${selectedImage ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <FontAwesomeIcon icon={faPaperclip} className="text-white text-xl" />
             </div>
@@ -231,18 +227,17 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setO
         )}
 
        {selectedFile && (
-  <div className="file-preview">
-    <p>
-      {selectedFile.name.length > 13
-        ? selectedFile.name.slice(0, 13) + '...'
-        : selectedFile.name}
-    </p>
-    <button onClick={removeSelectedFile} className="remove-file-btn" title="Remove File">
-      <X size={18} color="red" />
-    </button>
-  </div>
-)}
-
+        <div className="file-preview">
+          <p>
+            {selectedFile.name.length > 13
+              ? selectedFile.name.slice(0, 13) + '...'
+              : selectedFile.name}
+          </p>
+          <button onClick={removeSelectedFile} className="remove-file-btn" title="Remove File">
+            <X size={18} color="red" />
+          </button>
+        </div>
+      )}
 
       </div>
       {inputText || selectedImage || selectedFile ? (
@@ -270,7 +265,6 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setO
         style={{ display: "none" }}
         onChange={handleDocumentChange}
       />
-
     </div>
   );
 };
