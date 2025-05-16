@@ -10,6 +10,7 @@ import {
 import "./messageInput.css";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
+import { X } from "lucide-react";
 
 
 const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setOnSendFile, onRemoveFile}) => {
@@ -229,12 +230,14 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType, setO
           </div>
         )}
 
-        {selectedFile && (
-        <div className="file-preview">
-          <p>{selectedFile.name}</p>
-           <button onClick={removeSelectedFile}>Remove File</button>
-        </div>
-      )}
+       {selectedFile && (
+  <div className="file-preview">
+    <p>{selectedFile.name}</p>
+    <button onClick={removeSelectedFile} className="remove-file-btn" title="Remove File">
+      <X size={18} />
+    </button>
+  </div>
+)}
 
 
       </div>
