@@ -638,7 +638,6 @@ export const MessagesContent = () => {
 	
 		let url = "/communication/";
 	
-		const formData = new FormData();
 		if (chatType === "customers") {
 			url += "send-to-customer/";
 			formData.append("customer_id", activeUser.id);

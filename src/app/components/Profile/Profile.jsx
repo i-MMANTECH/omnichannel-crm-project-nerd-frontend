@@ -70,8 +70,6 @@ export default function Profile() {
             setLoading(false);
         }
     };
-<<<<<<< HEAD
-=======
 
     const tabs = [
         { key: "general", label: "General" },
@@ -79,7 +77,6 @@ export default function Profile() {
         { key: "activity-log", label: "Activity log" },
         { key: "security-settings", label: "Security settings" }
     ];
->>>>>>> dev
     
 
     return (
@@ -87,18 +84,11 @@ export default function Profile() {
             <div className="flex flex-col items-center p-5 rounded-lg border border-gray-300 w-full md:w-1/3 lg:w-1/4 shadow-md">
             <div className='relative px-6 py-4 flex flex-col items-center gap-1 h-fit rounded-lg body-theme w-full md:w-auto'>
                 {/* Profile Image Section */}
-<<<<<<< HEAD
-                <div className="relative">
-                    {userProfile?.image ? (
-                        <Image
-                            src={userProfile?.image}
-=======
                 <div className="relative pb-8 flex flex-col items-center gap-3">
                     <div className="relative w-20 h-20">
                         {previewImage ? (
                         <Image
                             src={previewImage}
->>>>>>> dev
                             alt="User Profile"
                             width={100}
                             height={100}
@@ -123,45 +113,6 @@ export default function Profile() {
                             width="w-20"
                             height="h-20"
                         />
-<<<<<<< HEAD
-                    )}
-
-                     {/* Change Picture Icon */}
-                        <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            id="upload-photo"
-                            onChange={(e) => handleImageUpload(e)}
-                        />
-                        <button
-                            className="absolute bottom-0 right-0 bg-gray-800 text-white p-1 rounded-full hover:bg-gray-600 transition"
-                            onClick={() => document.getElementById("upload-photo").click()}
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="w-4 h-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M15.232 5.232a2.828 2.828 0 0 1 4 4L7 21H3v-4L15.232 5.232z"
-                                />
-                            </svg>
-                        </button>
-                        {selectedFile && (
-                            <button
-                                className="mt-2 bg-[#3EBF0F] text-white px-4 py-1 rounded-md hover:bg-[#3EBF0F] transition w-full"
-                                onClick={submitImage}
-                            >
-                                Submit Image
-                            </button>
-                        )}
-=======
                         )}
 
                         {/* Cancel Icon */}
@@ -233,7 +184,6 @@ export default function Profile() {
                         Upload
                         </button>
                     )}
->>>>>>> dev
                 </div>
 
                 <p className="text-center text-xl font-bold self-stretch mt-3 truncate">
@@ -326,13 +276,6 @@ export default function Profile() {
             </div>
 
             <div  className="flex flex-col  flex-1 gap-4 p-6 rounded-lg border border-gray-300 shadow-md ">
-<<<<<<< HEAD
-                <div className='flex gap-6'>
-                    <p
-                        className={`h-[30px] cursor-pointer ${selected === "general" ? "selected" : "not-selected"}`}
-                        onClick={() => setSelected("general")}
-                        aria-selected={selected === "general"}
-=======
             <div className='flex gap-6'>
                     {tabs.map(tab => (
                         <p
@@ -340,7 +283,6 @@ export default function Profile() {
                             className={`h-[30px] cursor-pointer ${selected === tab.key ? "selected" : "not-selected"}`}
                             onClick={() => setSelected(tab.key)}
                             aria-selected={selected === tab.key}
->>>>>>> dev
                         >
                             {tab.label}
                         </p>
