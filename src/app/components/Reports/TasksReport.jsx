@@ -16,7 +16,7 @@ import { MessageSquareIcon, PhoneCallIcon, UsersIcon } from 'lucide-react';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-const TasksReport = ({filters}) => {
+const TasksReport = ({filters, selectedUser}) => {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
 
@@ -36,6 +36,10 @@ const TasksReport = ({filters}) => {
         params.end_date = filters.endDate.toISOString().split("T")[0];
       }
 
+      if (selectedUser) {
+        params.user_id = selectedUser;
+      }
+
       const res = await axiosInstance.get('/analytics/tasks/', { params });
       setTasksReportData(res.data.data);
     } catch (err) {
@@ -47,7 +51,7 @@ const TasksReport = ({filters}) => {
 
     useEffect(() => {
       fetchData();
-    }, [filters]);
+    }, [filters, selectedUser]);
 
 
   if (loading) return (
@@ -128,13 +132,8 @@ const TasksReport = ({filters}) => {
             <h3 className="text-base font-medium">Tasks</h3>
             <div className="flex gap-4">
               <Dropdown
-                options={['Completed', 'Pending', 'In Progress']}
+                options={['Todo', 'In Progress', 'Done', "Overdue"]}
                 selected="Select Status"
-                width="w-30"
-              />
-              <Dropdown
-                options={['John Doe', 'Jane Smith', 'Michael Brown']}
-                selected="Select User"
                 width="w-30"
               />
             </div>

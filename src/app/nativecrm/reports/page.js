@@ -8,12 +8,23 @@ import MessagesReport from '@/app/components/Reports/MessagesReport';
 import TasksReport from '@/app/components/Reports/TasksReport';
 import CustomersReport from '@/app/components/Reports/CustomersReport';
 import DateFilter from '@/app/components/Reports/DateFilter';
+import { useApi } from '@/services/axiosConfig';
+import { useError } from '@/context/ErrorContext';
+import { Tooltip } from "react-tooltip";
+import UserAvatar from "../../components/UserAvatar";
+import Image from "next/image";
 
 const Page = () => {
+  const { axiosInstance } = useApi();
+  const { handleApiError } = useError();
   const [isRotating, setIsRotating] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [selectedSection, setSelectedSection] = useState('messages');
   const [showDateFilter, setShowDateFilter] = useState(false);
+  const [users, setUsers] = useState([])
+  const [selectedUser, setSelectedUser] = useState([])
+  const [isFilterActive, setIsFilterActive] = useState(false)
+  
   const [dateRange, setDateRange] = useState([
     {
       startDate: new Date(),
@@ -35,23 +46,49 @@ const Page = () => {
 
   useEffect(() => {
     updateLastUpdatedTime();
+    fetchUsers()
   }, [selectedSection]);
 
   const renderSection = () => {
+    const commonProps = {
+      filters: dateRange,
+      selectedUser: selectedUser,
+    };
+
     switch (selectedSection) {
       case 'users':
-        return <UsersReport filters={dateRange} />;
+        return <UsersReport {...commonProps} />;
       case 'messages':
-        return <MessagesReport filters={dateRange} />;
+        return <MessagesReport {...commonProps} />;
       case 'tasks':
-        return <TasksReport filters={dateRange} />;
+        return <TasksReport {...commonProps} />;
       case 'customers':
-        return <CustomersReport filters={dateRange} />;
+        return <CustomersReport {...commonProps} />;
       default:
         return null;
     }
   };
 
+
+  const fetchUsers = async () => {
+  try {
+      const { data } = await axiosInstance.get(`/users`);
+      setUsers(data.results || []);
+  } catch (error) {
+      handleApiError(error);
+  }
+  };
+
+  const handleAssigneeClick = (userId) => {
+  if (selectedUser === userId) {
+    setSelectedUser(null);
+    setIsFilterActive(false);
+  } else {
+    setSelectedUser(userId);
+    setIsFilterActive(true);
+  }
+  };
+  
   const toggleDateFilter = () => {
     setShowDateFilter((prev) => !prev);
   };
@@ -60,18 +97,17 @@ const Page = () => {
     setDateRange(newRange);
   };
 
-  const handleClearFilter = () => {
-  const today = new Date();
-  setDateRange([
-    {
-      startDate: today,
-      endDate: today,
-    },
-    ]);
+  const handleClearFilters = () => {
+    if (isFilterActive || (dateRange && dateRange.startDate && dateRange.endDate)) {
+      setIsFilterActive(false);
+      setDateRange(null); 
+      setSelectedUser(null); 
+    }
   };
 
+
   const isClear = () => {
-    return dateRange && dateRange.startDate && dateRange.endDate
+    return isFilterActive || (dateRange && dateRange.startDate && dateRange.endDate)
   }
   
   return (
@@ -102,6 +138,47 @@ const Page = () => {
                 <path d="M8 2.667A5.333 5.333 0 1 0 13.333 8M8 2.667 6.667 1.333M8 2.667 7 4.333M8 13.333a5.333 5.333 0 1 0-5.333-5.333M8 13.333l1.333 1.334M8 13.333l1-1.667" stroke="#3EBF0F" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
+            
+            <div className="flex items-center">
+              {users.map((assignee, index) => (
+                <div 
+                  key={index}
+                  className={`relative cursor-pointer rounded-full border-2 border-white transition-all duration-300 
+                    ${selectedUser === assignee.id ? 'z-20 ring-2 dark:ring-white ring-gray-500' : 'z-10'}
+                  `}
+                  style={{ marginLeft: index !== 0 ? '-10px' : '0px' }}
+                  onClick={() => handleAssigneeClick(assignee.id)}
+                  onMouseEnter={(e) => e.currentTarget.classList.add("z-20")}
+                  onMouseLeave={(e) => {
+                    if (selectedUser !== assignee.id) e.currentTarget.classList.remove("z-20");
+                  }}
+                  data-tooltip-id={`tooltip-${assignee.id}`}
+                >
+                  {assignee?.image ? (
+                    <Image
+                      alt="profile pic"
+                      className="w-9 h-9 rounded-full"
+                      src={assignee.image} 
+                      width={36}
+                      height={36}
+                    />
+                  ) : (
+                    <UserAvatar 
+                      name={
+                        assignee?.first_name ? 
+                        `${assignee.first_name} ${assignee?.last_name}` : 
+                        assignee?.email || '--'
+                      } 
+                      className="w-9 h-9 rounded-full flex-shrink-0"
+                    />
+                  )}
+
+                  <Tooltip className="mt-1" id={`tooltip-${assignee.id}`} place="top">
+                    {assignee?.first_name} {assignee?.last_name || ""}
+                  </Tooltip>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className='flex gap-2'>
@@ -122,7 +199,7 @@ const Page = () => {
 
             <button
               className="cursor-pointer flex h-[40px] px-3 items-center gap-2 rounded-[10px] border border-[#DFE1E6] text-[#FF4D4F] hover:bg-[#ffecec] transition-all"
-              onClick={handleClearFilter}
+              onClick={handleClearFilters}
               disabled={!isClear()}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">

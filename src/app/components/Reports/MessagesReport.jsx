@@ -17,7 +17,7 @@ import StatCard from './StatCard';
 import { MessageSquareIcon, PhoneCallIcon, UsersIcon } from 'lucide-react';
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-const MessagesReport = ({filters}) => {
+const MessagesReport = ({filters, selectedUser}) => {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
 
@@ -35,6 +35,10 @@ const MessagesReport = ({filters}) => {
         params.end_date = filters.endDate.toISOString().split("T")[0];
       }
 
+      if (selectedUser) {
+        params.user_id = selectedUser;
+      }
+
       const res = await axiosInstance.get('/analytics/messages/', { params });
       setMessagesReportData(res.data.data);
     } catch (error) {
@@ -44,9 +48,10 @@ const MessagesReport = ({filters}) => {
     }
   };
 
+
   useEffect(() => {
     fetchData();
-  }, [filters]);
+  }, [filters, selectedUser]);
 
 
   if (loading) return (
