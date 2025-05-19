@@ -10,7 +10,8 @@ import { UsersIcon, PhoneCallIcon, MessageSquareIcon } from "lucide-react";
 
 Chart.register(ArcElement);
 
-export default function UsersReport({ filters }) {
+export default function UsersReport({ filters, selectedUser }) {
+  console.log("selectedUser", selectedUser)
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
   const [usersReportData, setUsersReportData] = useState(null);
@@ -43,6 +44,10 @@ export default function UsersReport({ filters }) {
         };
       }
 
+      if (selectedUser) {
+        params.user_id = selectedUser;
+      }
+
       const response = await axiosInstance.get("/analytics/users/", { params });
       const data = response.data.data;
       setUsersReportData(data);
@@ -70,7 +75,7 @@ export default function UsersReport({ filters }) {
 
   useEffect(() => {
     fetchData();
-  }, [filters]);
+  }, [filters, selectedUser]);
 
   const getTaskCount = (status) => {
     if (!usersReportData) return 0;

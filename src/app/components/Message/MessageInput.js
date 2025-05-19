@@ -84,7 +84,7 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType}) => 
     if (fileInputRef.current) fileInputRef.current.value = null;
 
     if (file) {
-      const maxSizeInMB = 5;
+      const maxSizeInMB = 10;
       const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
 
       if (file.size > maxSizeInBytes) {
@@ -260,7 +260,7 @@ const MessageInput = ({onSendMessage, onSendImage, onRemoveImage, chatType}) => 
 
       <input
         type="file"
-        accept=".pdf,.doc,.docx,.txt"
+        accept=".pdf,.doc,.docx,.txt,.zip"
         ref={fileInputRef}
         style={{ display: "none" }}
         onChange={handleDocumentChange}
