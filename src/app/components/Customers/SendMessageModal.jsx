@@ -1,18 +1,90 @@
-import React, { useEffect, useState } from "react";
+"use client";
+import React, { useEffect, useRef, useState } from "react";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import Select from 'react-select';
 import { selectStyles } from "../selectStyles";
 import Modal from "../Modal";
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faPaperclip,
+  faImage,
+  faTimes,
+} from "@fortawesome/free-solid-svg-icons";
 
 const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessageSent }) => {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
+
   const [channels, setChannels] = useState([]);
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [message, setMessage] = useState("Hello! there!!, I'm reaching out to follow up on your recent interest.");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const imageInputRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const handleImageSelect = () => {
+    imageInputRef.current?.click();
+  };
+
+  const handleFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleDocumentChange = (e) => {
+    const file = e.target.files[0];
+
+    if (fileInputRef.current) fileInputRef.current.value = null;
+
+    if (file) {
+      const maxSizeInMB = 10;
+      const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+
+      if (file.size > maxSizeInBytes) {
+        alert(`File is too large. Maximum size allowed is ${maxSizeInMB}MB.`);
+        return;
+      }
+
+      setSelectedFile(file);
+    }
+  };
+
+  const removeSelectedFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = null;
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const maxSizeInMB = 5;
+    const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+
+    if (!validTypes.includes(file.type)) {
+      alert('Invalid file type. Please upload a JPG, PNG, or WEBP image.');
+      return;
+    }
+
+    if (file.size > maxSizeInBytes) {
+      alert(`File is too large. Maximum allowed size is ${maxSizeInMB}MB.`);
+      return;
+    }
+
+    setSelectedImage(file);
+    if (imageInputRef.current) imageInputRef.current.value = null;
+  };
+
+  const removeSelectedImage = () => {
+    setSelectedImage(null);
+    if (imageInputRef.current) imageInputRef.current.value = null;
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -47,7 +119,7 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
       if (response.status === 201) {
         setIsLoading(false);
         onMessageSent();
-        console.log('messge sent ')
+        console.log('Message sent');
       }
     } catch (error) {
       handleApiError(error);
@@ -65,7 +137,7 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
         <div className="flex gap-3 w-7/12">
           <button 
             onClick={onClose} 
-            className="w-6/12 px-4 py-2 bg-theme rounded-md border border-gray-30"
+            className="w-6/12 px-4 py-2 bg-theme rounded-md border border-gray-300"
             disabled={isLoading}
           >
             Cancel
@@ -93,7 +165,71 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
         />
       </div>
 
-      <div className="mb-4">
+      {/* Hidden Inputs */}
+      <input
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        ref={imageInputRef}
+        onChange={handleImageChange}
+      />
+
+      {/* Hidden Inputs */}
+      <input
+        type="file"
+        accept=".pdf,.doc,.docx,.txt,.zip"
+        ref={fileInputRef}
+        style={{ display: "none" }}
+        onChange={handleDocumentChange}
+      />
+
+      {/* Icon Buttons */}
+      <div className="mt-4 flex gap-3">
+        <div
+          onClick={selectedFile ? undefined : handleImageSelect}
+          className={`w-[60px] h-[60px] flex items-center justify-center rounded-full bg-[#0D0D12] shadow-md border border-gray-600 cursor-pointer ${
+            selectedFile ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          <FontAwesomeIcon icon={faImage} className="text-white text-xl" />
+        </div>
+
+        <div
+          onClick={selectedImage ? undefined : handleFileSelect}
+          className={`w-[60px] h-[60px] flex items-center justify-center rounded-full bg-[#0D0D12] shadow-md border border-gray-600 cursor-pointer ${
+            selectedImage ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          <FontAwesomeIcon icon={faPaperclip} className="text-white text-xl" />
+        </div>
+      </div>
+
+      {selectedImage && (
+          <div className="image-preview-container">
+            <img
+              src={URL.createObjectURL(selectedImage)}
+              alt="Selected"
+              className="image-preview"
+            />
+            <FontAwesomeIcon icon={faTimes} className="remove-image" onClick={removeSelectedImage} />
+          </div>
+        )}
+
+       {selectedFile && (
+        <div className="file-preview">
+          <p>
+            {selectedFile.name.length > 13
+              ? selectedFile.name.slice(0, 13) + '...'
+              : selectedFile.name}
+          </p>
+          <button onClick={removeSelectedFile} className="remove-file-btn" title="Remove File">
+            <FontAwesomeIcon icon={faTimes} className="text-red-500" />
+          </button>
+        </div>
+      )}
+
+
+      <div className="mb-4 mt-4">
         <label className="block text-sm font-medium">Select Channel</label>
         <Select
           options={channels}
