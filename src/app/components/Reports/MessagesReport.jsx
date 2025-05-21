@@ -141,21 +141,18 @@ const MessagesReport = ({filters, selectedUser}) => {
       title: 'Total Messages',
       value: messagesReportData.total_messages,
       icon: <UsersIcon className="text-white" size={20} />,
-      borderColor: '#DFE1E6',
       bgColor: '#1285FE',
     },
     {
       title: 'Total Messages Received',
       value: messagesReportData.total_received,
       icon: <PhoneCallIcon className="text-white" size={20} />,
-      borderColor: '#DFE1E6',
       bgColor: '#3EBF0F',
     },
     {
       title: 'Total Messages Sent',
       value: messagesReportData.total_sent,
       icon: <MessageSquareIcon className="text-white" size={20} />,
-      borderColor: '#DFE1E6',
       bgColor: '#FF7043',
     },
   ];

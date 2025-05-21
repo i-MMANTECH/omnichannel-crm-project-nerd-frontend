@@ -11,7 +11,6 @@ import { UsersIcon, PhoneCallIcon, MessageSquareIcon } from "lucide-react";
 Chart.register(ArcElement);
 
 export default function UsersReport({ filters, selectedUser }) {
-  console.log("selectedUser", selectedUser)
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
   const [usersReportData, setUsersReportData] = useState(null);
