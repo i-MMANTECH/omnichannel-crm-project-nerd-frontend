@@ -105,27 +105,56 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
   };
 
   const handleSendMessage = async () => {
-    if (!selectedChannel || !message.trim()) return;
-
+    if (!selectedChannel || (!message.trim() && !selectedImage && !selectedFile)) return;
+  
     setIsLoading(true);
+  
+    const formData = new FormData();
+  
+    const contentType = selectedImage
+      ? "image"
+      : selectedFile
+      ? "document"
+      : "text";
+  
+    formData.append("customer_id", customerId);
+    formData.append("channel_id", selectedChannel.value);
+    formData.append("content", message || ""); // fallback in case message is empty but a file is uploaded
+    formData.append("content_type", contentType);
+  
+    if (selectedImage) {
+      formData.append("image", selectedImage);
+    } else if (selectedFile) {
+      formData.append("document", selectedFile);
+    }
+  
     try {
-      const response = await axiosInstance.post("/communication/send-to-customer/", {
-        customer_id: customerId,
-        content: message,
-        content_type: "text",
-        channel_id: selectedChannel.value,
-      });
-
+      const response = await axiosInstance.post(
+        "/communication/send-to-customer/",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+  
       if (response.status === 201) {
         setIsLoading(false);
         onMessageSent();
-        console.log('Message sent');
+  
+        // Reset UI
+        setMessage("Hello! there!!, I'm reaching out to follow up on your recent interest.");
+        setSelectedImage(null);
+        setSelectedFile(null);
+        setSelectedChannel(null);
       }
     } catch (error) {
       handleApiError(error);
       setIsLoading(false);
     }
   };
+  
 
   return (
     <Modal
@@ -184,23 +213,23 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
       />
 
       {/* Icon Buttons */}
-      <div className="mt-4 flex gap-3">
+      <div className="flex gap-3">
         <div
           onClick={selectedFile ? undefined : handleImageSelect}
-          className={`w-[60px] h-[60px] flex items-center justify-center rounded-full bg-[#0D0D12] shadow-md border border-gray-600 cursor-pointer ${
+          className={`w-[50px] h-[50px] flex items-center justify-center rounded-full bg-[#0D0D12] shadow-md border border-gray-600 cursor-pointer ${
             selectedFile ? "opacity-50 cursor-not-allowed" : ""
           }`}
         >
-          <FontAwesomeIcon icon={faImage} className="text-white text-xl" />
+          <FontAwesomeIcon icon={faImage} className="text-white" />
         </div>
 
         <div
           onClick={selectedImage ? undefined : handleFileSelect}
-          className={`w-[60px] h-[60px] flex items-center justify-center rounded-full bg-[#0D0D12] shadow-md border border-gray-600 cursor-pointer ${
+          className={`w-[50px] h-[50px] flex items-center justify-center rounded-full bg-[#0D0D12] shadow-md border border-gray-600 cursor-pointer ${
             selectedImage ? "opacity-50 cursor-not-allowed" : ""
           }`}
         >
-          <FontAwesomeIcon icon={faPaperclip} className="text-white text-xl" />
+          <FontAwesomeIcon icon={faPaperclip} className="text-white" />
         </div>
       </div>
 
@@ -218,8 +247,8 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
        {selectedFile && (
         <div className="file-preview">
           <p>
-            {selectedFile.name.length > 13
-              ? selectedFile.name.slice(0, 13) + '...'
+            {selectedFile.name.length > 50
+              ? selectedFile.name.slice(0, 50) + '...'
               : selectedFile.name}
           </p>
           <button onClick={removeSelectedFile} className="remove-file-btn" title="Remove File">
@@ -229,8 +258,8 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
       )}
 
 
-      <div className="mb-4 mt-4">
-        <label className="block text-sm font-medium">Select Channel</label>
+      <div className="mb-4 mt-8">
+        <label className="block text-sm mb-2 font-medium">Select Channel</label>
         <Select
           options={channels}
           value={selectedChannel}
