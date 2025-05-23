@@ -17,7 +17,7 @@ import { MessageSquareIcon, PhoneCallIcon, UsersIcon } from 'lucide-react';
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 
-const CustomersReport = ({filters, selectedUser}) => {
+const CustomersReport = ({filters, selectedUser, refreshKey}) => {
   const [loading, setLoading] = useState(false)
   const [agentsData, setAgentsData] = useState([
     {

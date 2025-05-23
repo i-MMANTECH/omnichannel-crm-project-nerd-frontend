@@ -24,7 +24,8 @@ const Page = () => {
   const [users, setUsers] = useState([])
   const [selectedUser, setSelectedUser] = useState([])
   const [isFilterActive, setIsFilterActive] = useState(false)
-  
+  const [refreshKey, setRefreshKey] = useState(0);
+
   const [dateRange, setDateRange] = useState([
     {
       startDate: new Date(),
@@ -41,8 +42,10 @@ const Page = () => {
   const handleRefreshClick = () => {
     setIsRotating(true);
     updateLastUpdatedTime();
+    setRefreshKey((prev) => prev + 1);
     setTimeout(() => setIsRotating(false), 500);
   };
+  
 
   useEffect(() => {
     updateLastUpdatedTime();
@@ -53,7 +56,9 @@ const Page = () => {
     const commonProps = {
       filters: dateRange,
       selectedUser: selectedUser,
+      refreshKey: refreshKey,
     };
+    
 
     switch (selectedSection) {
       case 'users':
