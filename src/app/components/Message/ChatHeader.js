@@ -13,6 +13,10 @@ import AssignAgentModal from "./AssignAgentModal";
 import EndSessionModal from "./EndSessionModal";
 import ArchiveModal from "./ArchiveModal";
 import TaskModel from "./TaskModel";
+import { useApi } from "@/services/axiosConfig";
+import { useError } from '@/context/ErrorContext';
+
+
 
 const ModalController = ({ children }) => {
   const searchParams = useSearchParams();
@@ -50,6 +54,9 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
   const router = useRouter();
   const searchParams = useSearchParams();
   const [aiResponsesEnabled, setAiResponsesEnabled] = useState(false);
+  const { axiosInstance } = useApi();
+  const { handleApiError } = useError();
+
 
   const { checkPermission } = usePermissions();
   const addCustomer = checkPermission('add_customer');
@@ -65,10 +72,28 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
         setIsMenuOpen(false);
       }
     };
-
+  
     document.addEventListener("mousedown", handleClickOutside);
+  
+    // Fetch AI status
+    const fetchAiStatus = async () => {
+      try {
+        const res = await axiosInstance.get(`/communication/conversations/${conversationId}/ai-status/`, {
+          showLoader: false
+        });
+  
+        if (res?.data?.success) {
+          setAiResponsesEnabled(res.data.data.ai_is_active);
+        }
+      } catch (err) {
+        handleApiError(err, "Failed to fetch AI status");
+      }
+    };
+  
+    if (conversationId) fetchAiStatus();
+  
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [conversationId]);  
 
   if (!activeUser) return null;
 
@@ -90,9 +115,22 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
         <input
           type="checkbox"
           checked={aiResponsesEnabled}
-          onChange={() => setAiResponsesEnabled(!aiResponsesEnabled)}
+          onChange={async () => {
+            try {
+              const res = await axiosInstance.patch(`/communication/conversations/${conversationId}/ai-status/`, {}, {
+                showLoader: false
+              });
+
+              if (res?.data?.success) {
+                setAiResponsesEnabled(res.data.data.ai_is_active);
+              }
+            } catch (err) {
+              handleApiError(err, "Failed to toggle AI status");
+            }
+          }}
           className="sr-only peer"
         />
+
         <div
           className={`w-11 h-6 rounded-full transition-colors ${
             aiResponsesEnabled ? "bg-[#3EBF0F]" : "bg-gray-300"
