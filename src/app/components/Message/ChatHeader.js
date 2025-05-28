@@ -49,6 +49,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
   const buttonRef = useRef(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [aiResponsesEnabled, setAiResponsesEnabled] = useState(false);
 
   const { checkPermission } = usePermissions();
   const addCustomer = checkPermission('add_customer');
@@ -82,6 +83,31 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
     hour12: true,
   });
 
+  const aiToggleMenuItem = (
+    <div className="flex items-center justify-between px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
+      <span>Automated Responses (AI)</span>
+      <label className="relative inline-flex items-center cursor-pointer">
+        <input
+          type="checkbox"
+          checked={aiResponsesEnabled}
+          onChange={() => setAiResponsesEnabled(!aiResponsesEnabled)}
+          className="sr-only peer"
+        />
+        <div
+          className={`w-11 h-6 rounded-full transition-colors ${
+            aiResponsesEnabled ? "bg-[#3EBF0F]" : "bg-gray-300"
+          }`}
+        >
+          <div
+            className={`w-6 h-6 body-theme rounded-full transition-transform ${
+              aiResponsesEnabled ? "translate-x-5" : "translate-x-0"
+            }`}
+          />
+        </div>
+      </label>
+    </div>
+  );
+  
   const leadMenuItems = [
     ...(addCustomer ? [{
       label: "Add as customer",
@@ -111,6 +137,10 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
       label: "Create a task",
       onClick: () => setIsTaskCreation(true),
     },
+    {
+      label: aiToggleMenuItem,
+      isCustom: true,
+    }    
   ]
   
   
@@ -133,6 +163,10 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
       label: "End session",
       onClick: () => setIsEndSessionModalOpen(true),
     },
+    {
+      label: aiToggleMenuItem,
+      isCustom: true,
+    }    
   ];
 
   const closeSuccessModal = () => {
@@ -195,17 +229,23 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
                 >
                     <div className="py-1">
                     {(isLead ? leadMenuItems : customerMenuItems).map((item, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          item.onClick();
-                          setIsMenuOpen(false);
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                      >
-                        {item.label}
-                      </button>
+                      <div key={index}>
+                        {item.isCustom ? (
+                          item.label // direct JSX like toggle
+                        ) : (
+                          <button
+                            onClick={() => {
+                              item.onClick();
+                              setIsMenuOpen(false);
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            {item.label}
+                          </button>
+                        )}
+                      </div>
                     ))}
+
                   </div>
                   
                 </div>

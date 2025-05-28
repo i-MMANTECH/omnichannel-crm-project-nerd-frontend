@@ -111,7 +111,7 @@ const MessageList = ({ chatHistory }) => {
                 {isOutgoing ? (
                   <div className="flex items-center relative">
                     <div
-                      className="relative pointer"
+                      className="relative pointer shrink-0"
                       onMouseEnter={() => setHoveredUserId(index)}
                       onMouseLeave={() => setHoveredUserId(null)}
                     >
@@ -128,7 +128,7 @@ const MessageList = ({ chatHistory }) => {
                       />
                     ) : msg.user_sender_details?.first_name || msg.user_sender_details?.last_name || msg.user_sender_details?.email ? (
                       <UserAvatar 
-                        className="mr-3" 
+                        className="mr-3 shrink-0" 
                         name={
                           msg.user_sender_details?.first_name || msg.user_sender_details?.last_name
                             ? `${msg.user_sender_details?.first_name || ''} ${msg.user_sender_details?.last_name || ''}`.trim()
