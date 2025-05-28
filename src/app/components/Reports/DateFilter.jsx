@@ -5,8 +5,8 @@ import 'react-date-range/dist/theme/default.css';
 import './calendar-theme.css';
 
 const DateFilter = ({ onDateChange }) => {
-  const [menuOpen, setMenuOpen] = useState(true);
-  const [dateRange, setDateRange] = useState([
+  const [isOpen, setIsOpen] = useState(true);
+  const [range, setRange] = useState([
     {
       startDate: new Date(),
       endDate: new Date(),
@@ -14,34 +14,41 @@ const DateFilter = ({ onDateChange }) => {
     },
   ]);
 
-  const menuRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuOpen(false);
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
-  const handleDateChange = (item) => {
-    setDateRange([item.selection]);
-    onDateChange(item.selection);
+  const onRangeChange = ({ selection }) => {
+    setRange([selection]);
+    onDateChange(selection);
   };
 
-  if (!menuOpen) return null;
+  if (!isOpen) return null;
 
   return (
-    <div ref={menuRef} className="absolute right-0 mt-10 z-50 bg-white dark:bg-gray-800 p-4 rounded-md shadow-lg">
-      <p className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">Date Range</p>
+    <div
+      ref={containerRef}
+      className="absolute right-0 mt-10 z-50 bg-white dark:bg-gray-800 p-4 rounded-md shadow-lg"
+    >
+      <p className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
+        Date Range
+      </p>
       <DateRange
-        editableDateInputs={true}
-        onChange={handleDateChange}
+        editableDateInputs
+        onChange={onRangeChange}
         moveRangeOnFirstSelection={false}
-        ranges={dateRange}
+        ranges={range}
       />
     </div>
   );

@@ -167,7 +167,6 @@ export const MessagesContent = () => {
 
 	useEffect(() => {
 		if (!wsRef.current) {
-			console.log('message event returning');
 			return;
 		}
 	
@@ -612,11 +611,9 @@ export const MessagesContent = () => {
 
 		if (selectedImage) {
 			formData.append("image", selectedImage);
-			console.log('there is a selected image')
 		}
 		else if (messageContent?.file) {
 			formData.append("document", messageContent?.file);
-			console.log('there is a selected file')
 		}
 
 		const tempMessage = {
@@ -647,7 +644,6 @@ export const MessagesContent = () => {
 			formData.append("lead_id", activeUser.id);
 		}
 		
-		console.log('url is ', url)
 		for (let [key, value] of formData.entries()) {
 			console.log(`${key}:`, value);
 		}

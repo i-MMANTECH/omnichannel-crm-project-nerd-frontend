@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -17,7 +17,7 @@ import StatCard from './StatCard';
 import { MessageSquareIcon, PhoneCallIcon, UsersIcon } from 'lucide-react';
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-const MessagesReport = ({filters}) => {
+const MessagesReport = ({filters, selectedUser, refreshKey}) => {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
 
@@ -35,6 +35,10 @@ const MessagesReport = ({filters}) => {
         params.end_date = filters.endDate.toISOString().split("T")[0];
       }
 
+      if (selectedUser) {
+        params.user_id = selectedUser;
+      }
+
       const res = await axiosInstance.get('/analytics/messages/', { params });
       setMessagesReportData(res.data.data);
     } catch (error) {
@@ -46,31 +50,57 @@ const MessagesReport = ({filters}) => {
 
   useEffect(() => {
     fetchData();
-  }, [filters]);
+  }, [filters, selectedUser, refreshKey]);
 
+  // Create dropdown options dynamically based on available channels in the data
+  const dropdownOptions = useMemo(() => {
+    if (!messagesReportData || !messagesReportData.messages_by_period.length) {
+      return ['All Channels'];
+    }
+
+    // Get all channel names from the first period (they should be consistent)
+    const firstPeriod = messagesReportData.messages_by_period[0];
+    const channelNames = Object.keys(firstPeriod).filter(key => 
+      key !== 'period' && key !== 'period_label' && key !== 'total'
+    );
+
+    return ['All Channels', ...channelNames];
+  }, [messagesReportData]);
+
+  const monthlyChartData = useMemo(() => {
+    if (!messagesReportData) return null;
+  
+    const chartData = messagesReportData.messages_by_period.map(item => {
+      if (selectedFilter === 'All Channels') {
+        return item.total;
+      } else {
+        return item[selectedFilter] || 0;
+      }
+    });
+
+    return {
+      labels: messagesReportData.messages_by_period.map(item => item.period_label),
+      datasets: [
+        {
+          label: selectedFilter === 'All Channels' ? 'Messages' : `${selectedFilter} Messages`,
+          data: chartData,
+          backgroundColor: (ctx) => {
+            const index = ctx.dataIndex;
+            return index === (messagesReportData.messages_by_period.length - 1)
+              ? '#3EBF0F'
+              : '#EEEFF2';
+          },
+          borderRadius: 8,
+        }
+      ]
+    };
+  }, [messagesReportData, selectedFilter]);
 
   if (loading) return (
     <div className="flex items-center justify-center">
       <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-gray-400"></div>
     </div>
   );
-
-  const monthlyChartData = {
-    labels: messagesReportData.messages_by_period.map(item => item.period_label),
-    datasets: [
-      {
-        label: 'Messages',
-        data: messagesReportData.messages_by_period.map(item => item.total),
-        backgroundColor: (ctx) => {
-          const index = ctx.dataIndex;
-          return index === (messagesReportData.messages_by_period.length - 1)
-            ? '#3EBF0F'
-            : '#EEEFF2';
-        },
-        borderRadius: 8,
-      }
-    ]
-  };
 
   const monthlyChartOptions = {
     responsive: true,
@@ -86,7 +116,11 @@ const MessagesReport = ({filters}) => {
     scales: {
       y: {
         beginAtZero: true,
-        max: Math.max(...messagesReportData.messages_by_period.map(item => item.total)) + 100,
+        max: Math.max(...messagesReportData.messages_by_period.map(item =>
+          selectedFilter === 'All Channels'
+            ? item.total
+            : item[selectedFilter] || 0
+        )) + 100,
         ticks: {
           stepSize: 100
         }
@@ -136,21 +170,18 @@ const MessagesReport = ({filters}) => {
       title: 'Total Messages',
       value: messagesReportData.total_messages,
       icon: <UsersIcon className="text-white" size={20} />,
-      borderColor: '#DFE1E6',
       bgColor: '#1285FE',
     },
     {
       title: 'Total Messages Received',
       value: messagesReportData.total_received,
       icon: <PhoneCallIcon className="text-white" size={20} />,
-      borderColor: '#DFE1E6',
       bgColor: '#3EBF0F',
     },
     {
       title: 'Total Messages Sent',
       value: messagesReportData.total_sent,
       icon: <MessageSquareIcon className="text-white" size={20} />,
-      borderColor: '#DFE1E6',
       bgColor: '#FF7043',
     },
   ];
@@ -166,17 +197,23 @@ const MessagesReport = ({filters}) => {
         <div className="body-theme w-full rounded-lg border border-[#DFE1E6] shadow-lg p-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-medium">Monthly Messages</h3>
-            <Dropdown
-              options={['All Channels', 'Email', 'WhatsApp', 'Facebook']}
-              selected={selectedFilter}
-              onChange={(value) => setSelectedFilter(value)}
-              width="w-40"
-            />
+            <select 
+              value={selectedFilter}
+              onChange={(e) => setSelectedFilter(e.target.value)}
+              className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-[#0D0D12] text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+
+              {dropdownOptions.map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
           </div>
 
           <div className="flex justify-center">
             <div className="h-[300px] w-[800px]">
-              <Bar data={monthlyChartData} options={monthlyChartOptions} />
+              {monthlyChartData && (
+                <Bar data={monthlyChartData} options={monthlyChartOptions} />
+              )}
             </div>
           </div>
         </div>

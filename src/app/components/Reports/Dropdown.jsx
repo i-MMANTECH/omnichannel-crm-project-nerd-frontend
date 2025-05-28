@@ -6,36 +6,34 @@ const Dropdown = ({
   onSelect,
   width = 'w-40',
 }) => {
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(defaultSelected || options[0]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(defaultSelected || options[0]);
   const dropdownRef = useRef(null);
 
   const handleSelect = (value) => {
-    setSelected(value);
+    setSelectedOption(value);
     onSelect?.(value);
-    setOpen(false);
+    setIsOpen(false);
   };
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpen(false);
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
     <div ref={dropdownRef} className="relative inline-block text-left">
       <button
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => setIsOpen((prev) => !prev)}
         className={`body-theme border px-4 py-2 rounded-md text-sm ${width} flex justify-between items-center`}
       >
-        {selected}
+        {selectedOption}
         <svg
           className="w-4 h-4 ml-2"
           fill="none"
@@ -51,8 +49,10 @@ const Dropdown = ({
         </svg>
       </button>
 
-      {open && (
-        <div className={`body-theme absolute mt-2 z-10 ${width} border border-[#DFE1E6] rounded-lg shadow-lg p-2 space-y-2 bg-white`}>
+      {isOpen && (
+        <div
+          className={`body-theme absolute mt-2 z-10 ${width} border border-[#DFE1E6] rounded-lg shadow-lg p-2 space-y-2 bg-white`}
+        >
           {options.map((item) => (
             <div
               key={item}
