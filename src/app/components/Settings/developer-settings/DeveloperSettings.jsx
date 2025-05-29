@@ -12,6 +12,9 @@ export default function DeveloperSettings() {
   const [apiKey, setApiKey] = useState("");
   const [loadingApiKey, setLoadingApiKey] = useState(true);
   const [loadingWebhook, setLoadingWebhook] = useState(true)
+  const [documents, setDocuments] = useState([]);
+  const [loadingDocuments, setLoadingDocuments] = useState(true);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const fetchWebhook = async () => {
@@ -25,7 +28,7 @@ export default function DeveloperSettings() {
         setLoadingWebhook(false)
       }
     };
-
+  
     const fetchApiKey = async () => {
       try {
         const response = await axiosInstance.get("/companies/api-key/");
@@ -42,6 +45,52 @@ export default function DeveloperSettings() {
     fetchApiKey();
   }, []);
 
+  const fetchDocuments = async () => {
+    try {
+      setLoadingDocuments(true);
+      const res = await axiosInstance.get("/documents/");
+      const docs = res?.data?.results?.data || [];
+      setDocuments(docs);
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setLoadingDocuments(false);
+    }
+  };
+
+  const handleUploadDocument = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+  
+    const formData = new FormData();
+    formData.append("file", file);
+  
+    try {
+      setUploading(true);
+      await axiosInstance.post("/documents/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      await fetchDocuments();
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setUploading(false);
+    }
+  };
+  
+  const handleDeleteDocument = async (docId) => {
+    try {
+      await axiosInstance.delete(`/documents/${docId}/`);
+      await fetchDocuments();
+    } catch (error) {
+      handleApiError(error);
+    }
+  };    
+
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
   const handleSaveWebhook = async () => {
     try {
       await axiosInstance.patch("/companies/webhook-url/", { webhook_url: webhook });
@@ -53,7 +102,9 @@ export default function DeveloperSettings() {
   const tabs = [
     { key: "webhook", label: "Webhook" },
     { key: "apiKey", label: "API Key" },
+    { key: "aiKnowledge", label: "AI Knowledge Base" },
   ];
+
 
   return (
     <div className="ms-10">
@@ -114,6 +165,46 @@ export default function DeveloperSettings() {
               placeholder="Enter your API key"
             />
           )}
+        </div>
+      )}
+
+      {selected === "aiKnowledge" && (
+        <div className="mt-6 ms-6 rounded-lg border border-gray-300 p-6 max-w-2xl">
+          <h2 className="text-lg font-semibold mb-4">Your AI Knowledge Base</h2>
+
+          {loadingDocuments ? (
+            <p>Loading documents...</p>
+          ) : (
+            <ul className="mb-4 space-y-2">
+              {documents.length === 0 ? (
+                <p>No documents found.</p>
+              ) : (
+                documents.map((doc) => (
+                  <li key={doc.id} className="flex justify-between items-center border border-gray-200 rounded p-2">
+                    <a href={doc.file} target="_blank" rel="noopener noreferrer" className="truncate max-w-[75%] text-blue-600 underline">
+                      {doc.title || `Document #${doc.id}`}
+                    </a>
+                    <button
+                      className="text-red-500 text-sm"
+                      onClick={() => handleDeleteDocument(doc.id)}
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))
+              )}
+            </ul>
+          )}
+
+          <div>
+            <label className="block font-medium mb-2">Upload Document</label>
+            <input
+              type="file"
+              onChange={handleUploadDocument}
+              className="block w-full text-sm text-gray-500 mb-2"
+            />
+            {uploading && <p className="text-sm text-gray-400">Uploading...</p>}
+          </div>
         </div>
       )}
     </div>
