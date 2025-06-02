@@ -140,6 +140,21 @@ function Sidebar() {
                 </h3>
               </Link>
               )}
+
+              <Link
+                onClick={() => setIsOpen(false)} // Close sidebar on navigation
+                
+                href="/nativecrm/sms"
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/sms") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+
+              >
+                   <Mail 
+                    size={18}
+                   />
+                <h3 className={`text-sm font-medium`}>
+                  SMS
+                </h3>
+              </Link>
               
                 {viewTask && (
                   <Link
