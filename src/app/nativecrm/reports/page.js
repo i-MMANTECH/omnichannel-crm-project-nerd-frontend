@@ -13,6 +13,7 @@ import { useError } from '@/context/ErrorContext';
 import { Tooltip } from "react-tooltip";
 import UserAvatar from "../../components/UserAvatar";
 import Image from "next/image";
+import FollowUp from '@/app/components/Reports/FollowUp';
 
 const Page = () => {
   const { axiosInstance } = useApi();
@@ -69,6 +70,8 @@ const Page = () => {
         return <TasksReport {...commonProps} />;
       case 'customers':
         return <CustomersReport {...commonProps} />;
+      case 'Follow up':
+        return <FollowUp {...commonProps} />;
       default:
         return null;
     }
