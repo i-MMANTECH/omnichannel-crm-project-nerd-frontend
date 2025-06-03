@@ -8,6 +8,7 @@ import RoleManagement from '@/app/components/Settings/role-management/RoleManage
 import dynamic from 'next/dynamic';
 import SlaPolicies from '@/app/components/Settings/sla-policies/SlaPolicies';
 import DeveloperSettings from '@/app/components/Settings/developer-settings/DeveloperSettings';
+import NotificationSettings from '@/app/components/Settings/notification-settings/NotificationSettings';
 
 
 const PlansAndBillings = dynamic(() => import('@/app/components/Settings/plans-and-billings/PlansAndBillings'), { 
@@ -43,7 +44,7 @@ export default function Settings() {
       case 'data-backup':
         return <div>Data Backup Component</div>;
       case 'notification-settings':
-        return <div>Notification Settings Component</div>;
+        return <NotificationSettings/>;
       case 'task-management':
         return <div>Task Management Component</div>;
       case 'security-settings':

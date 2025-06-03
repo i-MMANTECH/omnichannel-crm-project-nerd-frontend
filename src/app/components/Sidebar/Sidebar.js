@@ -241,7 +241,7 @@ function Sidebar() {
                       e.preventDefault(); // Prevent navigation if already on the same page
                     }
                   }}
-                  href="/nativecrm/settings#channels-integration"
+                  href="/nativecrm/settings#role-management"
                   className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/settings") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
                 >
                     <Settings size={18} />
