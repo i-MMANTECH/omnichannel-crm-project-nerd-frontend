@@ -1,12 +1,20 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Notifications from '@/app/components/Notification/Notifications';
 
-const Page = () => {    
+const Page = () => {   
+     useEffect(() => {
+        document.body.style.overflow = 'hidden';
+
+        return () => {
+            document.body.style.overflow = 'auto';
+        };
+    }, []);
+
     return (
-        <div className="overflow-x-hidden flex flex-row px-10 m-10">      
-            <div className='relative body-theme flex-1 flex flex-col '>    
+        <div className="h-screen flex flex-row px-10 m-10">
+            <div className="flex-1 overflow-y-auto">
                 <Notifications />
             </div>
         </div>

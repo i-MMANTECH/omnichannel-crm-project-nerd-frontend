@@ -84,13 +84,14 @@ const Notifications = () => {
 
   return (
     <div className="body-theme">
-      <div className="flex p-1 gap-1">
+      <div className="flex p-1 gap-1 sticky top-0 z-10 body-theme w-[100p]">
+
         <button
           onClick={() => setActiveTab('all')}
           className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
             activeTab === 'all' 
               ? 'bg-[#3EBF0F] text-white' 
-              : 'bg-transparent text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'
+              : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
           }`}
         >
           All
@@ -108,7 +109,7 @@ const Notifications = () => {
           className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
             activeTab === 'urgent'
               ? 'bg-[#3EBF0F] text-white'
-              : 'bg-transparent text-gray-600 hover:bg-gray-100'
+              : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
           }`}
         >
           Urgent
@@ -126,7 +127,7 @@ const Notifications = () => {
           className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
             activeTab === 'escalated'
               ? 'bg-[#3EBF0F] text-white'
-              : 'bg-transparent text-gray-600 hover:bg-gray-100'
+              : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
           }`}
         >
           Escalated
@@ -140,7 +141,7 @@ const Notifications = () => {
         </button>
       </div>
 
-      <div className='mt-5'>
+      <div className=' mt-5 overflow-y-auto flex-1 space-y-4'>
         {filteredTickets.map((ticket) => (
           <div 
             key={ticket.id} 
