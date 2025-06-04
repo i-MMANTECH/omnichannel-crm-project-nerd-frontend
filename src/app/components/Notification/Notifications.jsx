@@ -90,7 +90,7 @@ const Notifications = () => {
           className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
             activeTab === 'all' 
               ? 'bg-[#3EBF0F] text-white' 
-              : 'bg-transparent text-gray-600 hover:bg-gray-100'
+              : 'bg-transparent text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'
           }`}
         >
           All
@@ -140,12 +140,12 @@ const Notifications = () => {
         </button>
       </div>
 
-      <div>
+      <div className='mt-5'>
         {filteredTickets.map((ticket) => (
           <div 
             key={ticket.id} 
             className={`p-4 ${
-              ticket.isRead ? 'body-theme' : 'bg-[#F8F9FB] rounded-lg'
+              ticket.isRead ? 'body-theme' : 'bg-[#F8F9FB] dark:bg-gray-800 rounded-lg'
             }`}
           >
             <div className="flex items-start space-x-3">
@@ -157,15 +157,15 @@ const Notifications = () => {
               
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-gray-900">
+                  <h3 className="text-sm font-medium ">
                     {ticket.user}
                   </h3>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs ">
                     {ticket.time}
                   </span>
                 </div>
                 
-                <p className="mt-1 text-sm text-gray-600">
+                <p className="mt-1 text-sm ">
                   {ticket.message}
                 </p>
                 
@@ -191,7 +191,7 @@ const Notifications = () => {
                     )}
                   </div>
                   
-                  <button className="text-xs text-gray-400 hover:text-gray-600 flex items-center">
+                  <button className="text-xs  hover:text-gray-600 flex items-center">
                     <CircleCheckBig size={14} />
                     <span className='ms-1'>Mark as read</span>
                   </button>
