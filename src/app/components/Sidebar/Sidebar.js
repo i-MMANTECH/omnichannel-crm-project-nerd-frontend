@@ -13,7 +13,7 @@ import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import { usePermissions } from "@/context/PermissionsContext";
 import UserAvatar from "../UserAvatar";
-import { Bell, House, Mail, Settings, SquareCheck, SquareKanban, UserPlus, Users } from 'lucide-react';
+import { Bell, House, Mail, Settings, SquareCheck, SquareKanban, UserPlus, Users, Phone } from 'lucide-react';
 
 function Sidebar() {
   const { logout } = useAuth();
@@ -171,8 +171,17 @@ function Sidebar() {
                   </h3>
                 </Link>
                 )}
-                
-                  <Link
+
+                <Link
+                  onClick={() => setIsOpen(false)}
+                  href="/nativecrm/call-center/admin-dashboard#call-overview"
+                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/call-center/admin-dashboard") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                >
+                  <Phone size={18} />
+                  <h3 className="text-sm font-medium">Call Center</h3>
+                </Link>
+ 
+              <Link
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation
                   
                   href="/nativecrm/reports"
@@ -182,26 +191,6 @@ function Sidebar() {
                   <h3 className={`text-sm font-medium`}>
                     Reports
                   </h3>
-                </Link>
-                
-
-              <Link
-                onClick={() => setIsOpen(false)} // Close sidebar on navigation
-              
-                href="/nativecrm/reports"
-                className={`hidden flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
-              >
-                <Image
-                    src="/assets/reports.svg"
-                    className={`${isActive("/reports") ? activeStyle : ""}`}
-                    alt="Reports"
-                    width={20}
-                    height={20}
-                  />
-                  
-                <h3 className={`text-sm font-medium ${isActive("/reports") ? activeStyle : ""}`}>
-                  Reports
-                </h3>
               </Link>
 
               <div
