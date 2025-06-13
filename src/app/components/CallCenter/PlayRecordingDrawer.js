@@ -88,7 +88,7 @@ const PlayRecordingDrawer = ({ show, onClose, cdr }) => {
             <p className="text-sm text-gray-500">{contactName}</p>
           </div>
           <div className="text-right text-sm text-gray-500">
-            <div className="font-semibold">{format(timestamp, "MMMM d, yyyy h:mmaaa")}</div>
+            <div className="font-semibold">{timestamp ? format(timestamp, "MMMM d, yyyy h:mmaaa") : "Invalid date"}</div>
             <div className="text-xs mt-1">{formatDuration(total_duration)}</div>
           </div>
         </div>
