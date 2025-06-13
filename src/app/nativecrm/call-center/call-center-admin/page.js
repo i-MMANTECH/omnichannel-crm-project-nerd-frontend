@@ -11,8 +11,10 @@ import CallCenterDashboard from '@/app/components/CallCenter/CallCenterDashboard
 import CallDetailRecords from '@/app/components/CallCenter/CallDetailRecords';
 import MissedCallReport from '@/app/components/CallCenter/MissedCallReport';
 import LiveCalls from '@/app/components/CallCenter/LiveCalls';
-import CallOverview from '@/app/components/CallCenter/CallOverview';
+import CallOverview from '@/app/components/CallCenter/RealTimeReports';
 import IVR from '@/app/components/CallCenter/IVR';
+import RealTimeReport from '@/app/components/CallCenter/RealTimeReports';
+import RealTimeReports from '@/app/components/CallCenter/RealTimeReports';
 
 
 const PlansAndBillings = dynamic(() => import('@/app/components/Settings/plans-and-billings/PlansAndBillings'), { 
@@ -39,16 +41,14 @@ export default function Settings() {
 
   const renderContent = () => {
     switch (currentSection) {
-      case 'call-center-dashboard':
-        return <CallCenterDashboard />;
-      case 'call-detail-records':
-        return <CallDetailRecords />;
+      case 'real-time-reports':
+        return <RealTimeReports />;
       case 'missed-call-report':
         return <MissedCallReport />;
       case 'live-calls':
         return <LiveCalls />;
-      case 'call-overview':
-        return <CallOverview />;
+      case 'call-detail-records':
+        return <CallDetailRecords />;
       case 'ivr':
         return <IVR />;
       default:

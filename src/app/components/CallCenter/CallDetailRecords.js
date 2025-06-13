@@ -162,11 +162,19 @@ const CallDetailRecords = () => {
                                                     }} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer">
                                                     <td className="py-3 px-4 border-b flex items-center space-x-3">
                                                         <UserAvatar 
-                                                        name={cdr.sip_user} 
+                                                        name={
+                                                            cdr.direction === "outbound"
+                                                                ? cdr.caller_id_number
+                                                                : cdr.destination_number || "--"
+                                                        } 
                                                         width="w-8" 
                                                         height="h-8" 
                                                         />
-                                                        <span>{cdr.sip_user} </span>
+                                                        <span style={{ color: "inherit", textDecoration: "none" }}>
+                                                            {cdr.direction === "outbound"
+                                                            ? cdr.caller_id_number
+                                                            : cdr.destination_number || "--"}
+                                                        </span>
                                                     </td>
                                                     <td className="py-3 px-4 border-b">
                                                         <span

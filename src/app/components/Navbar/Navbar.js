@@ -36,19 +36,19 @@ const Navbar = () => {
     const showBackButton = path.split('/').length > 3;
 
     return (
-        <div className="hidden md:flex fixed top-0 left-0 right-0 ml-[200px] body-theme pr-8 pl-10 py-7 z-10 border-b border-gray-300 dark:border-gray-600 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-                {showBackButton && (
+        <div className="hidden md:flex fixed top-[-3px] left-0 right-0 ml-[200px] body-theme pr-8 pl-10 py-7 z-10 border-b border-gray-300 dark:border-gray-600 flex items-center justify-between">
+            <div className="flex items-center gap-2 relative top-2 ">
+                {/* {showBackButton && (
                     <Image
                         src={chevronLeft}
                         className="bg-white rounded-lg border border-[#DFE1E6] p-2 cursor-pointer"
                         onClick={goBack}
-                        width={35}
-                        height={35}
+                        width={30}
+                        height={30}
                         alt="back"
                     />
-                )}
-                <h1 className="text-xl font-bold ml-2">{title}</h1>
+                )} */}
+                <h1 className="text-xl font-bold ml-2 ">{title}</h1>
             </div>
             <div className="flex items-center space-x-4">
                 <FaBell

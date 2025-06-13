@@ -83,7 +83,7 @@ function Sidebar() {
       >
         <div className="flex flex-col justify-start items-start h-full relative">
           <Link href="/nativecrm" legacyBehavior>
-            <div className="py-5 cursor-pointer">
+            <div className="pt-5 pb-5 cursor-pointer">
               <Image src="/assets/nativetalk-logo.svg" alt="Logo" width={100} height={100} />
             </div>
           </Link>
@@ -174,7 +174,7 @@ function Sidebar() {
 
                 <Link
                   onClick={() => setIsOpen(false)}
-                  href="/nativecrm/call-center/admin-dashboard#call-overview"
+                  href="/nativecrm/call-center/call-center-admin#real-time-reports"
                   className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/call-center/admin-dashboard") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
                 >
                   <Phone size={18} />

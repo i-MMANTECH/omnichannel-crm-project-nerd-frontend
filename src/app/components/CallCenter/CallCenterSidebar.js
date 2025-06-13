@@ -15,14 +15,19 @@ function CallCenterSidebar({ onSidebarClick, currentSection }) {
   const defaultStyle = "text-gray-600 hover:bg-gray-100";
 
   const menuItems = [
+    // {
+    //   key: "call-overview",
+    //   label: "Call Real Time Report",
+    //   icon: <PhoneCall size={18} />,
+    // },
+    // {
+    //   key: "call-center-dashboard",
+    //   label: "Call Centre Dashboard",
+    //   icon: <LayoutDashboard size={18} />,
+    // },
     {
-      key: "call-overview",
-      label: "Call Overview",
-      icon: <PhoneCall size={18} />,
-    },
-    {
-      key: "call-center-dashboard",
-      label: "Call Centre Dashboard",
+      key: "real-time-reports",
+      label: "Real Time Reports",
       icon: <LayoutDashboard size={18} />,
     },
     {
