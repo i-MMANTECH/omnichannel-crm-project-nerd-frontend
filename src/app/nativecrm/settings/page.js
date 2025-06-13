@@ -38,16 +38,16 @@ export default function Settings() {
         return <RoleManagement />;
       case 'channels-integration':
         return <IntegrateChannels />;
-      case 'report-settings':
-        return <div>Report Settings Component</div>;
-      case 'data-backup':
-        return <div>Data Backup Component</div>;
-      case 'notification-settings':
-        return <div>Notification Settings Component</div>;
-      case 'task-management':
-        return <div>Task Management Component</div>;
-      case 'security-settings':
-        return <div>Security Settings Component</div>;
+      // case 'report-settings':
+      //   return <div>Report Settings Component</div>;
+      // case 'data-backup':
+      //   return <div>Data Backup Component</div>;
+      // case 'notification-settings':
+      //   return <div>Notification Settings Component</div>;
+      // case 'task-management':
+      //   return <div>Task Management Component</div>;
+      // case 'security-settings':
+      //   return <div>Security Settings Component</div>;
       case 'plans-and-billings':
         return <PlansAndBillings/>;
       case 'sla-policies':

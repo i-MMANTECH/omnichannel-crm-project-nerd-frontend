@@ -24,6 +24,30 @@ const MessagesReport = ({filters, selectedUser, refreshKey}) => {
   const [loading, setLoading] = useState(true);
   const [messagesReportData, setMessagesReportData] = useState(null);
   const [selectedFilter, setSelectedFilter] = useState('All Channels');
+  const [analysisReport, setAnalysisReport] = useState(null);
+  const [loadingReport, setLoadingReport] = useState(false);
+
+  const handleGenerateReport = async () => {
+    try {
+      setLoadingReport(true);
+  
+      const now = new Date();
+      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24 hours ago
+  
+      const params = {
+        start_date: yesterday.toISOString().split("T")[0],
+        end_date: now.toISOString().split("T")[0],
+        send_email: true,
+      };
+  
+      const res = await axiosInstance.post(`/analytics/conversations/report/?start_date=${params.start_date}&end_date=${params.end_date}&send_email=${true}`);
+      setAnalysisReport(res.data);
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setLoadingReport(false);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -192,19 +216,19 @@ const MessagesReport = ({filters, selectedUser, refreshKey}) => {
           {statsData.map((stat, index) => (
         <StatCard key={index} {...stat} />
       ))}
-    </div>
-      <div className="mt-6 space-y-6">
-        <div className="body-theme w-full rounded-lg border border-[#DFE1E6] shadow-lg p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-medium">Monthly Messages</h3>
-            <select 
-              value={selectedFilter}
-              onChange={(e) => setSelectedFilter(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-[#0D0D12] text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
+      </div>
+        <div className="mt-6 space-y-6">
+          <div className="body-theme w-full rounded-lg border border-[#DFE1E6] shadow-lg p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-medium">Monthly Messages</h3>
+              <select 
+                value={selectedFilter}
+                onChange={(e) => setSelectedFilter(e.target.value)}
+                className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-[#0D0D12] text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
 
-              {dropdownOptions.map(option => (
-                <option key={option} value={option}>{option}</option>
+                {dropdownOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
               ))}
             </select>
           </div>
@@ -225,6 +249,26 @@ const MessagesReport = ({filters, selectedUser, refreshKey}) => {
               <Bar data={channelChartData} options={channelChartOptions} />
             </div>
           </div>
+        </div>
+
+        {/* AI Summary Generator */}
+        <div className="body-theme w-full rounded-lg border border-[#DFE1E6] shadow-lg p-4">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-base font-medium">AI Conversation Summary</h3>
+            <button
+              onClick={handleGenerateReport}
+              disabled={loadingReport}
+              className="px-4 py-2 rounded bg-[#3EBF0F] text-white text-sm font-medium hover:bg-green-600 disabled:opacity-50"
+            >
+              {loadingReport ? "Generating..." : "Generate Summary"}
+            </button>
+          </div>
+
+          {analysisReport && (
+            <div className="p-4 mt-4 border rounded-md bg-gray-50 dark:bg-[#111111] whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200">
+              {analysisReport}
+            </div>
+          )}
         </div>
       </div>
     </>

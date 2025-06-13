@@ -13,6 +13,10 @@ import AssignAgentModal from "./AssignAgentModal";
 import EndSessionModal from "./EndSessionModal";
 import ArchiveModal from "./ArchiveModal";
 import TaskModel from "./TaskModel";
+import { useApi } from "@/services/axiosConfig";
+import { useError } from '@/context/ErrorContext';
+
+
 
 const ModalController = ({ children }) => {
   const searchParams = useSearchParams();
@@ -49,6 +53,10 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
   const buttonRef = useRef(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [aiResponsesEnabled, setAiResponsesEnabled] = useState(false);
+  const { axiosInstance } = useApi();
+  const { handleApiError } = useError();
+
 
   const { checkPermission } = usePermissions();
   const addCustomer = checkPermission('add_customer');
@@ -64,10 +72,28 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
         setIsMenuOpen(false);
       }
     };
-
+  
     document.addEventListener("mousedown", handleClickOutside);
+  
+    // Fetch AI status
+    const fetchAiStatus = async () => {
+      try {
+        const res = await axiosInstance.get(`/communication/conversations/${conversationId}/ai-status/`, {
+          showLoader: false
+        });
+  
+        if (res?.data?.success) {
+          setAiResponsesEnabled(res.data.data.ai_is_active);
+        }
+      } catch (err) {
+        handleApiError(err, "Failed to fetch AI status");
+      }
+    };
+  
+    if (conversationId) fetchAiStatus();
+  
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [conversationId]);  
 
   if (!activeUser) return null;
 
@@ -76,12 +102,54 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
     refreshChatList()
   }
 
-  const formattedTime = new Date(activeUser.lastMessageTime || activeUser.last_message_at).toLocaleString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
+  const lastTime = new Date(activeUser.lastMessageTime || activeUser.last_message_at);
+  const now = new Date();
 
+  const isToday = lastTime.toDateString() === now.toDateString();
+
+  const formattedTime = isToday
+    ? lastTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true })
+    : lastTime.toLocaleDateString([], { month: "short", day: "numeric" });
+
+
+  const aiToggleMenuItem = (
+    <div className="flex items-center justify-between px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
+      <span>Automated Responses (AI)</span>
+      <label className="relative inline-flex items-center cursor-pointer">
+        <input
+          type="checkbox"
+          checked={aiResponsesEnabled}
+          onChange={async () => {
+            try {
+              const res = await axiosInstance.patch(`/communication/conversations/${conversationId}/ai-status/`, {}, {
+                showLoader: false
+              });
+
+              if (res?.data?.success) {
+                setAiResponsesEnabled(res.data.data.ai_is_active);
+              }
+            } catch (err) {
+              handleApiError(err, "Failed to toggle AI status");
+            }
+          }}
+          className="sr-only peer"
+        />
+
+        <div
+          className={`w-11 h-6 rounded-full transition-colors ${
+            aiResponsesEnabled ? "bg-[#3EBF0F]" : "bg-gray-300"
+          }`}
+        >
+          <div
+            className={`w-6 h-6 body-theme rounded-full transition-transform ${
+              aiResponsesEnabled ? "translate-x-5" : "translate-x-0"
+            }`}
+          />
+        </div>
+      </label>
+    </div>
+  );
+  
   const leadMenuItems = [
     ...(addCustomer ? [{
       label: "Add as customer",
@@ -111,6 +179,10 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
       label: "Create a task",
       onClick: () => setIsTaskCreation(true),
     },
+    {
+      label: aiToggleMenuItem,
+      isCustom: true,
+    }    
   ]
   
   
@@ -133,6 +205,10 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
       label: "End session",
       onClick: () => setIsEndSessionModalOpen(true),
     },
+    {
+      label: aiToggleMenuItem,
+      isCustom: true,
+    }    
   ];
 
   const closeSuccessModal = () => {
@@ -195,17 +271,23 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
                 >
                     <div className="py-1">
                     {(isLead ? leadMenuItems : customerMenuItems).map((item, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          item.onClick();
-                          setIsMenuOpen(false);
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                      >
-                        {item.label}
-                      </button>
+                      <div key={index}>
+                        {item.isCustom ? (
+                          item.label // direct JSX like toggle
+                        ) : (
+                          <button
+                            onClick={() => {
+                              item.onClick();
+                              setIsMenuOpen(false);
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            {item.label}
+                          </button>
+                        )}
+                      </div>
                     ))}
+
                   </div>
                   
                 </div>

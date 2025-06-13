@@ -23,7 +23,6 @@ const getMessageType = (message) => {
 	}
 	return null;
   };
-
   
 export const MessagesContent = () => {
 	const { axiosInstance } = useApi();
@@ -66,7 +65,8 @@ export const MessagesContent = () => {
 	const [selectedImage, setSelectedImage] = useState('')
 
 	const [isFilterActive, setIsFilterActive] = useState(false)
-
+	const isCancelError = (error) =>
+		error?.name === 'CanceledError' || error?.message === 'canceled' || error?.code === 'ERR_CANCELED';	
 
 
 	const [cachedData, setCachedData] = useState({
@@ -127,15 +127,15 @@ export const MessagesContent = () => {
 			wsRef.current = new WebSocket(wsUrl);
 	
 			wsRef.current.onopen = () => {
-				console.log("✅ WebSocket connected");
+				console.log('✅ WebSocket connected');
 			};
 	
 			wsRef.current.onerror = (error) => {
-				console.error("❌ WebSocket error:", error);
+				console.log('❌ WebSocket error:', error);
 			};
 	
 			wsRef.current.onclose = () => {
-				console.log("🔄 WebSocket disconnected, attempting to reconnect...");
+				console.log('🔄 WebSocket disconnected, attempting to reconnect...');
 				wsRef.current = null;
 				setTimeout(connectWebSocket, 2000);
 			};
@@ -145,7 +145,7 @@ export const MessagesContent = () => {
 	
 		return () => {
 			if (wsRef.current) {
-				console.log("🔌 Closing WebSocket connection...");
+				console.log('🔌 Closing WebSocket connection...');
 				wsRef.current.close();
 			}
 		};
@@ -157,9 +157,15 @@ export const MessagesContent = () => {
 			try {
 				const resp = await axiosInstance.get(`/users/me`)
 				setUserProfile(resp?.data?.user)
-			} catch(error) {
-				handleApiError(error)
-			}
+			} 
+			catch (error) {
+				if (isCancelError(error)) {
+				  console.log('cr');
+				} else {
+				  handleApiError(error);
+				}
+			  }
+			  
 		}
 	
 		fetchUserProfile()
@@ -175,7 +181,6 @@ export const MessagesContent = () => {
 	
 			if (data.type === "message_status") {
 				const updatedMessage = data.message;
-				// console.log("📦 Message status update:", updatedMessage);
 	
 				setChatHistory((prevHistory) =>
 					prevHistory.map((msg) =>
@@ -183,6 +188,8 @@ export const MessagesContent = () => {
 					)
 				);
 	
+				if (!activeUser || !activeUser.id) return;
+
 				setCachedData((prev) => {
 					const current = prev[chatType]?.histories[activeUser?.id] || [];
 					const updatedHistory = current.map((msg) =>
@@ -201,7 +208,7 @@ export const MessagesContent = () => {
 					};
 				});
 	
-				return; // ✅ Exit early – don't process further
+				return;
 			}
 	
 			// 🎯 Handle normal "message"
@@ -215,9 +222,7 @@ export const MessagesContent = () => {
 				: isCustomerMessage
 				? message.customer_sender_details
 				: null;
-	
-			// console.log("🟢 WebSocket message:", message);
-	
+		
 			const messageChatType = getMessageType(message);
 	
 			const isRelevantToActiveUser = activeUser &&
@@ -259,6 +264,8 @@ export const MessagesContent = () => {
 					return [...prevHistory, message];
 				});
 	
+				if (!activeUser || !activeUser.id) return;
+
 				setCachedData((prev) => {
 					const existing = prev[messageChatType]?.histories[activeUser.id] || [];
 					const messageExists = existing.some((msg) => msg.id === message.id);
@@ -402,9 +409,15 @@ export const MessagesContent = () => {
 					return prevCachedData;
 				})
 			}
-		} catch (error) {
-			handleApiError(error)
-		}
+		} 
+		catch (error) {
+			if (isCancelError(error)) {
+			  console.log('cr');
+			} else {
+			  handleApiError(error);
+			}
+		  }
+		  
 	}
 
 	const fetchChatList = async ({ reset = false} = {}) => {
@@ -479,11 +492,15 @@ export const MessagesContent = () => {
                     setActiveUser(foundUser);
                 }
             }
-        } catch (error) {
-            if (error.name !== 'AbortError') {
-                handleApiError(error);
-            }
-        } finally {
+        } 
+		catch (error) {
+			if (isCancelError(error)) {
+				console.log('cr');
+			} else {
+				handleApiError(error);
+			}
+			}
+		finally {
 			setIsRotating(false);
 		}
 	};
@@ -538,19 +555,27 @@ export const MessagesContent = () => {
 
 				markConversationAsRead()
             }
-        } catch (error) {
-            if (error.name !== 'AbortError') {
-                handleApiError(error);
-            }
-        }
+        } 
+		catch (error) {
+			if (isCancelError(error)) {
+			  console.log('cr');
+			} else {
+			  handleApiError(error);
+			}
+		}
 	};
 
 	const fetchAgents = async () => {
 		try {
 			const { data } = await axiosInstance.get(`/users`);
 			setAgents(data.results || []);
-		} catch (error) {
-			handleApiError(error);
+		} 
+		catch (error) {
+			if (isCancelError(error)) {
+			  console.log('cr');
+			} else {
+			  handleApiError(error);
+			}
 		}
 	};
 
@@ -665,7 +690,11 @@ export const MessagesContent = () => {
 						msg.id === tempMessage.id ? { ...msg, status: "failed" } : msg
 					)
 				);
-				handleApiError(error);
+				if (isCancelError(error)) {
+					console.log('cr');
+				} else {
+					handleApiError(error);
+				}
 			});
 	};	
 
@@ -677,9 +706,15 @@ export const MessagesContent = () => {
 	
 		  const connectedChannelsResponse = await axiosInstance.get("/channels/connected-channels/");
 		  setConnectedChannels(connectedChannelsResponse.data.connected_channels);
-		} catch (error) {
-		  handleApiError(error)
 		}
+		catch (error) {
+			if (isCancelError(error)) {
+				console.log('cr');
+			} else {
+				handleApiError(error);
+			}
+		}
+		  
 	};
 
 	const channelsMenuItems = [
@@ -752,9 +787,15 @@ export const MessagesContent = () => {
 			}));
 			
 			setPage((prevPage) => prevPage + 1);
-		} catch (error) {
-		  handleApiError(error);
-		} finally {
+		} 
+		catch (error) {
+			if (isCancelError(error)) {
+			  console.log('cr');
+			} else {
+			  handleApiError(error);
+			}
+		}
+		finally {
 		  setIsFetchingMore(false);
 		}
 	};

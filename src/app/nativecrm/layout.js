@@ -7,6 +7,7 @@ import Sidebar from "../components/Sidebar/Sidebar";
 import Navbar from "../components/Navbar/Navbar";
 import NotificationModalContainer from "../components/Notification/NotificationModalContainer";
 import NetworkStatus from "../components/NetworkStatus";
+import CallModalContainer from "../components/CallCenter/CallModalContainer";
 
 
 export default function RootLayout({ children }) {
@@ -23,6 +24,7 @@ export default function RootLayout({ children }) {
             </div>
           </div>
           <NotificationModalContainer />
+          <CallModalContainer />
         </div>
     </div>
   );
