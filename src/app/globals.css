@@ -17,7 +17,7 @@
   --input-text-rgb: 0, 0, 0;
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
@@ -28,7 +28,7 @@
     --footer-link: #3EBF0F;
     --input-text-rgb: 237, 237, 237;
   }
-}
+} */
 
 
 * {
@@ -180,7 +180,7 @@ footer a {
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   .notification-toast {
     background: #1a1a1a;
     color: white;
@@ -189,7 +189,7 @@ footer a {
   .notification-toast:hover {
     background: #2d2d2d;
   }
-}
+} */
 
 @keyframes spin {
   from {
