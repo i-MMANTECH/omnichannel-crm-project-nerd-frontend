@@ -58,7 +58,7 @@ const CustomersContent = () => {
 
     useEffect(() => {
         const page = Number(searchParams.get('page')) || 1;
-        const size = Number(searchParams.get('limit')) || 10;
+        const size = Number(searchParams.get('page_size')) || 10;
         
         setCurrentPage(page);
         setPageSize(size);
@@ -84,7 +84,7 @@ const CustomersContent = () => {
 
     const fetchCustomers = async () => {
         try {
-            const { data } = await axiosInstance.get(`/customers/?limit=${pageSize}&page=${currentPage}`);
+            const { data } = await axiosInstance.get(`/customers/?page_size=${pageSize}&page=${currentPage}`);
             setCustomers(data.results || []);
             setTotalPages(Math.ceil(data.count / pageSize));
         } catch (error) {
@@ -119,7 +119,7 @@ const CustomersContent = () => {
                 {({ isModalOpen, openModal, closeModal }) => (
                     <div className="overflow-x-hidden flex flex-row body-theme min-h-[83vh]">
                         <div className='relative body-theme flex-1 flex flex-col'>  
-                        <div className="w-[89%] max-w-[1200px] sm:max-w-full flex justify-between items-center mb-6 mx-auto">
+                        <div className="w-[100%] max-w-[1200px] sm:max-w-full flex justify-between items-center mb-6 mx-auto">
 
                                 <div className="flex items-center space-x-4">
                                     <button

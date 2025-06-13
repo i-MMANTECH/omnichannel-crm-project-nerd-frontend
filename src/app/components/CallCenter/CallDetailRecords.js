@@ -36,6 +36,7 @@ const CallDetailRecords = () => {
     const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [selectedCDR, setSelectedCDR] = useState(null);
+    const searchParams = useSearchParams();
 
 
     const formatDuration = (totalSeconds) => {
@@ -63,33 +64,22 @@ const CallDetailRecords = () => {
         getCDRs(currentPage, pageSize, debouncedSearchQuery);
     }, [currentPage, pageSize, debouncedSearchQuery]);
 
-    const getCDRs = async (page = 1, limit = 10, search = "") => {
+    useEffect(() => {
+        const page = parseInt(searchParams.get("page") || "1", 10);
+        const pageSize = parseInt(searchParams.get("page_size") || "10", 10);
+    
+        setCurrentPage(page);
+        setPageSize(pageSize);
+    }, [searchParams]);
+
+    const getCDRs = async (page = 1, page_size = 10, search = "") => {
         try {
-            const { data } = await axiosInstance.get(`/call-center/cdrs?limit=${limit}&page=${page}&search=${search}`);
+            const { data } = await axiosInstance.get(`/call-center/cdrs?page_size=${page_size}&page=${page}&search=${search}`);
             setCdrs(data.results);
-            setTotalPages(Math.ceil(data.count / limit));
+            setTotalPages(Math.ceil(data.count / page_size));
         } catch (error) {
             handleApiError(error);
         }
-    };
-
-    const toggleView = () => {
-        const newView = view === "grid" ? "table" : "grid";
-        setView(newView);
-        localStorage.setItem("view", newView);
-    };
-
-    const handlePageChange = (page) => {
-        const params = new URLSearchParams(searchParams);
-        params.set("page", page);
-        router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    };
-
-    const handlePageSizeChange = (limit) => {
-        const params = new URLSearchParams(searchParams);
-        params.set("limit", limit);
-        params.set("page", 1); // Reset to first page when limit changes
-        router.push(`${pathname}?${params.toString()}`, { scroll: false });
     };
 
     return (
@@ -229,10 +219,20 @@ const CallDetailRecords = () => {
                             <Pagination 
                                 currentPage={currentPage} 
                                 totalPages={totalPages} 
-                                onPageChange={setCurrentPage} 
-                                onPageSizeChange={setPageSize}
+                                onPageChange={(page) => {
+                                    const params = new URLSearchParams(searchParams.toString());
+                                    params.set("page", page);
+                                    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+                                }}
+                                onPageSizeChange={(size) => {
+                                    const params = new URLSearchParams(searchParams.toString());
+                                    params.set("page_size", size);
+                                    params.set("page", 1);
+                                    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+                                }}
                                 pageSize={pageSize}
                             />
+
                         </div>
                     </div>
 
