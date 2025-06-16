@@ -62,7 +62,6 @@ export const MessagesContent = () => {
 
 	const [activeAgent, setActiveAgent] = useState(null)
 	const [userProfile, setUserProfile] = useState({})
-	const [selectedImage, setSelectedImage] = useState('')
 
 	const [isFilterActive, setIsFilterActive] = useState(false)
 	const isCancelError = (error) =>
@@ -624,8 +623,7 @@ export const MessagesContent = () => {
 
 	const handleSendMessage = (messageContent) => {
 		const formData = new FormData();
-		
-		const contentType = selectedImage
+		const contentType = messageContent?.image
 			? "image"
 			: messageContent?.file
 			? "document"
@@ -634,18 +632,23 @@ export const MessagesContent = () => {
 		formData.append("content", messageContent.text || "");
 		formData.append("content_type", contentType);
 
-		if (selectedImage) {
-			formData.append("image", selectedImage);
+		if (messageContent?.image?.length > 0) {
+			messageContent.image.forEach(img => {
+				formData.append('image[]', img);
+			});
 		}
-		else if (messageContent?.file) {
-			formData.append("document", messageContent?.file);
+
+		if (messageContent?.file?.length > 0) {
+			messageContent.file.forEach(file => {
+				formData.append('document[]', file);
+			});
 		}
 
 		const tempMessage = {
 			id: `temp-${new Date().getTime()}`,
 			content: messageContent.text,
 			content_type: contentType,
-			image: selectedImage,
+			image: messageContent?.image,
 			document: messageContent?.file,
 			created_at: new Date().toISOString(),
 			status: "sending",
@@ -681,7 +684,6 @@ export const MessagesContent = () => {
 			.then(() => {
 				// No need to manually replace temp message.
 				// The WebSocket will handle the correct update.
-				setSelectedImage("");
 			})
 			.catch((error) => {
 				// Mark the temp message as failed
@@ -697,7 +699,6 @@ export const MessagesContent = () => {
 				}
 			});
 	};	
-
 
 	const fetchChannelsData = async () => {
 		try {
@@ -982,10 +983,9 @@ export const MessagesContent = () => {
 
 								{chatType != "archived" ? ( 
 									<MessageInput
-										onRemoveImage={setSelectedImage}
-										onSendImage={setSelectedImage}
 										onSendMessage={handleSendMessage}
 										chatType={chatType}
+										activeUser={activeUser}
 									/>
 								): (
 									<h2 className="w-full absolute bottom-5 flex items-center justify-center fw-bold text-red-300 p-2">Chat ended</h2>
