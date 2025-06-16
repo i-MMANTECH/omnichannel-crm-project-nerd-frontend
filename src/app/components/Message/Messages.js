@@ -64,6 +64,12 @@ export const MessagesContent = () => {
 	const [userProfile, setUserProfile] = useState({})
 	const [selectedImage, setSelectedImage] = useState('')
 
+	const [tabUnreadFlags, setTabUnreadFlags] = useState({
+		leads: false,
+		customers: false,
+		archived: false,
+	});
+
 	const [isFilterActive, setIsFilterActive] = useState(false)
 	const isCancelError = (error) =>
 		error?.name === 'CanceledError' || error?.message === 'canceled' || error?.code === 'ERR_CANCELED';	
@@ -224,6 +230,13 @@ export const MessagesContent = () => {
 				: null;
 		
 			const messageChatType = getMessageType(message);
+
+			if (currentTabRef.current !== messageChatType) {
+				setTabUnreadFlags((prev) => ({
+				  ...prev,
+				  [messageChatType]: true,
+				}));
+			}			  
 	
 			const isRelevantToActiveUser = activeUser &&
 				(
@@ -612,6 +625,11 @@ export const MessagesContent = () => {
         setChatHistory([]);
         router.push(`/nativecrm/messages?chat=${tab}`, { scroll: false });
         
+		setTabUnreadFlags((prev) => ({
+			...prev,
+			[tab]: false,
+		}));
+		 
         // Update current tab reference
         currentTabRef.current = tab;
         
@@ -937,16 +955,32 @@ export const MessagesContent = () => {
 							</svg>
 						</div>
 						<div className="flex gap-3 w-full ">
-							<div className="tab-atom">
-								<div className={`px-3 pb-1 ${chatType === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>Leads</div>
+							<div className="tab-atom relative">
+								<div className={`px-3 pb-1 ${chatType === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>
+								Leads
+								{tabUnreadFlags.leads && (
+									<span className="absolute top-0.5 right-1 w-1.5 h-1.5 bg-[#3EBF0F] rounded-full"></span>
+								)}
+								</div>
 							</div>
-							<div className="tab-atom">
-								<div className={`px-3 pb-1 ${chatType === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>Customers</div>
+							<div className="tab-atom relative">
+								<div className={`px-3 pb-1 ${chatType === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>
+								Customers
+								{tabUnreadFlags.customers && (
+									<span className="absolute top-0.5 right-1 w-1.5 h-1.5 bg-[#3EBF0F] rounded-full"></span>
+								)}
+								</div>
 							</div>
-							<div className="tab-atom">
-								<div className={`px-3 pb-1 ${chatType === 'archived' ? 'active' : ""}`} onClick={() => handleTabChange('archived')}>Archived</div>
+							<div className="tab-atom relative">
+								<div className={`px-3 pb-1 ${chatType === 'archived' ? 'active' : ""}`} onClick={() => handleTabChange('archived')}>
+								Archived
+								{tabUnreadFlags.archived && (
+									<span className="absolute top-0.5 right-1 w-1.5 h-1.5 bg-[#3EBF0F] rounded-full"></span>
+								)}
+								</div>
 							</div>
 						</div>
+
 					</div>
 
 					<ChatList 
