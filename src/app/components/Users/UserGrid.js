@@ -30,11 +30,23 @@ const UserGrid = ({ users }) => {
             
             <div className="flex justify-between items-center p-2 border-b">
               <div className="flex items-center space-x-2">
-                <UserAvatar 
-                  name={user.first_name ? `${user.first_name} ${user.last_name}` : user.email || '--'} 
-                  width="w-8" 
-                  height="h-8" 
-                />
+                {user?.image && <Image 
+                    className="user-left-image mt-2 w-10 h-10 rounded-full" 
+                    alt="bio"
+                    src={user?.image} 
+                    width={50}
+                    height={50}
+                  />}
+                  {!user?.image && 
+                    <UserAvatar 
+                      name={user.first_name ? 
+                        `${user.first_name} ${user.last_name}` : 
+                        user.email || '--'
+                      } 
+                      width="w-8" 
+                      height="h-8" 
+                    />
+                  }
                 <span>
                   {user.first_name ? `${user.first_name} ${user.last_name}` : user.email || '--'}
                 </span>

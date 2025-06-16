@@ -4,6 +4,7 @@ import "./UserTable.css";
 import { useRouter } from "next/navigation";
 import UserAvatar from "../UserAvatar";
 import { getRoleStyle } from "@/utils/getRoleStyle";
+import Image from "next/image";
 
 
 const UserTable = ({ searchQuery, users }) => {
@@ -47,14 +48,23 @@ const UserTable = ({ searchQuery, users }) => {
               {users.map((user, index) => (
                 <tr key={index} onClick={() => router.push(`users/${user.id}`)} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer">
                   <td className="py-3 px-4 border-b flex items-center space-x-3">
-                    <UserAvatar 
-                      name={user.first_name ? 
-                        `${user.first_name} ${user.last_name}` : 
-                        user.email || '--'
-                      } 
-                      width="w-8" 
-                      height="h-8" 
-                    />
+                    {user?.image && <Image
+                      className="user-left-image mt-2 w-10 h-10 rounded-full" 
+                      alt="bio"
+                      src={user?.image} 
+                      width={50}
+                      height={50}
+                    />}
+                    {!user?.image && 
+                      <UserAvatar 
+                        name={user.first_name ? 
+                          `${user.first_name} ${user.last_name}` : 
+                          user.email || '--'
+                        } 
+                        width="w-8" 
+                        height="h-8" 
+                      />
+                    }
                     <span>{user.first_name ? 
                         `${user.first_name} ${user.last_name}` : 
                         '--'

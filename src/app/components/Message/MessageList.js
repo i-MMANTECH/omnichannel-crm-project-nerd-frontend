@@ -7,6 +7,44 @@ import Image from "next/image";
 import UserAvatar from "../UserAvatar";
 import { useRouter } from "next/navigation";
 
+
+const getSmartTimestamp = (messageDate) => {
+  const now = new Date();
+  const msgDate = new Date(messageDate);
+  
+  // Get time in 12-hour format
+  const timeString = msgDate.toLocaleTimeString([], { 
+    hour: "numeric", 
+    minute: "2-digit",
+    hour12: true 
+  });
+  
+  // Check if it's today
+  const isToday = now.toDateString() === msgDate.toDateString();
+  if (isToday) {
+    return timeString; // Just "2:50 PM"
+  }
+  
+  // Check if it's yesterday
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday = yesterday.toDateString() === msgDate.toDateString();
+  if (isYesterday) {
+    return `Yesterday, ${timeString}`; // "Yesterday, 2:50 PM"
+  }
+  
+  // Check if it's this year
+  const isThisYear = now.getFullYear() === msgDate.getFullYear();
+  if (isThisYear) {
+    const shortDate = `${msgDate.getMonth() + 1}/${msgDate.getDate()}`;
+    return `${shortDate}, ${timeString}`; // "5/11, 2:50 PM"
+  }
+  
+  // Different year - include year
+  const shortDateWithYear = `${msgDate.getMonth() + 1}/${msgDate.getDate()}/${msgDate.getFullYear().toString().slice(-2)}`;
+  return `${shortDateWithYear}, ${timeString}`; // "2/11/22, 2:50 PM"
+};
+
 const MessageList = ({ chatHistory }) => {
   const messageEndRef = useRef(null);
   const router = useRouter();
@@ -261,7 +299,7 @@ const MessageList = ({ chatHistory }) => {
 
             <div className={`mt-1 flex items-center ${isOutgoing ? "justify-end" : "justify-start"}`}>
               <p className="message-time">
-                {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                {getSmartTimestamp(msg.created_at)}
               </p>
               {isOutgoing && getIconForStatus(msg.status)}
 

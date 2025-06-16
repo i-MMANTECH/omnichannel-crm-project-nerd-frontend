@@ -68,7 +68,7 @@ const Users = () => {
     const fetchUsers = async (page = 1, limit = 10, search = "") => {
         try {
             const { data } = await axiosInstance.get(`/users?limit=${limit}&page=${page}&search=${search}`);
-            setUsers(data.results.filter(u => u.id !== Number(user.user_id)));
+            setUsers(data.results);
             setTotalPages(Math.ceil(data.count / limit));
         } catch (error) {
             handleApiError(error);
