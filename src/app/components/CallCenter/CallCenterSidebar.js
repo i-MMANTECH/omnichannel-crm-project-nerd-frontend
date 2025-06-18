@@ -7,8 +7,10 @@ import {
   LayoutDashboard,
   ArrowLeft,
   FolderOpen,
-  Phone
+  Phone,
+  Settings
 } from "lucide-react";
+import Setup from "./Setup";
 
 function CallCenterSidebar({ onSidebarClick, currentSection }) {
   const activeStyle = "bg-gray-100 text-[#3EBF0F] font-medium";
@@ -16,20 +18,10 @@ function CallCenterSidebar({ onSidebarClick, currentSection }) {
 
   const menuItems = [
     // {
-    //   key: "call-overview",
-    //   label: "Call Real Time Report",
-    //   icon: <PhoneCall size={18} />,
-    // },
-    // {
-    //   key: "call-center-dashboard",
-    //   label: "Call Centre Dashboard",
+    //   key: "real-time-reports",
+    //   label: "Real Time Reports",
     //   icon: <LayoutDashboard size={18} />,
     // },
-    {
-      key: "real-time-reports",
-      label: "Real Time Reports",
-      icon: <LayoutDashboard size={18} />,
-    },
     {
       key: "call-detail-records",
       label: "Call Detail Records",
@@ -45,16 +37,20 @@ function CallCenterSidebar({ onSidebarClick, currentSection }) {
       label: "Live Calls",
       icon: <Phone size={18} />,
     },
-   
     {
       key: "ivr",
       label: "IVR",
       icon: <Phone size={18} />,
     },
+    {
+      key: "setup",
+      label: "Setup",
+      icon: <Settings size={18} />,
+    },
   ];
 
   return (
-    <div className="w-full px-4 py-3">
+    <div className="w-full pr-4 py-3 pl-0">
       {/* Menu */}
       <div className="space-y-1">
         {menuItems.map((item) => (

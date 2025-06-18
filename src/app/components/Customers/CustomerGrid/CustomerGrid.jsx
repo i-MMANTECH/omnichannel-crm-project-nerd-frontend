@@ -14,7 +14,7 @@ const CustomerGrid = ({ customers }) => {
       <Link 
         key={customer.id} 
         style={{color:"inherit", textDecoration:"none"}} 
-        href={`/nativecrm/customers/${customer.id}`}
+        href={`/admin/customers/${customer.id}`}
       >
         <div className="bg-theme border rounded-lg">
           <div className='flex justify-between items-center p-2 border-b'>

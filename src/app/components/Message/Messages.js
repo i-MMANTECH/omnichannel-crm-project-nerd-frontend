@@ -874,11 +874,6 @@ export const MessagesContent = () => {
 				</div>
 
 				<div className="flex gap-4">
-					<button 
-						onClick={() => {router.push('/nativecrm/settings#channels-integration');}}
-						className="bg-[#3EBF0F] text-white px-4 py-2 rounded-lg shadow-sm">
-						+ Connect Channel
-					</button>
 					<div className="bg-gray-500 w-0.5 hidden"></div>
 					<div 
 						className=" flex h-10 min-w-20 px-3 justify-center items-center gap-2 rounded-lg border border-[#DFE1E6] body-theme cursor-pointer shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]"

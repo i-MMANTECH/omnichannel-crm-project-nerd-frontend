@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Disclosure } from "@headlessui/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { GiHamburgerMenu } from "react-icons/gi";
@@ -30,7 +29,6 @@ function Sidebar() {
   const viewUser = checkPermission("view_user");
   const viewCustomer = checkPermission("view_customer");
   const viewTask = checkPermission("view_task");
-  const viewMessage = checkPermission("view_message");
 
   const pathname = usePathname();
   const activeStyle = "active";
@@ -108,7 +106,7 @@ function Sidebar() {
                 </h3>
               </Link>
 
-              {viewUser && (
+               {viewUser && (
                  <Link
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation
                  
@@ -124,7 +122,6 @@ function Sidebar() {
                </Link>
               )}
 
-              {viewMessage && (
                 <Link
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation
                 
@@ -139,9 +136,8 @@ function Sidebar() {
                   Messages
                 </h3>
               </Link>
-              )}
               
-                {viewTask && (
+              {viewTask && (
                   <Link
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation
                   
@@ -155,7 +151,7 @@ function Sidebar() {
                     Tasks
                   </h3>
                 </Link>
-                )}              
+                )}             
 
                 {viewCustomer && (
                   <Link
@@ -174,24 +170,12 @@ function Sidebar() {
 
                 <Link
                   onClick={() => setIsOpen(false)}
-                  href="/nativecrm/call-center/call-center-admin#real-time-reports"
-                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/call-center/admin-dashboard") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                  href="/nativecrm/call-center#call-detail-records"
+                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/call-center") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
                 >
                   <Phone size={18} />
                   <h3 className="text-sm font-medium">Call Center</h3>
                 </Link>
- 
-              <Link
-                onClick={() => setIsOpen(false)} // Close sidebar on navigation
-                  
-                  href="/nativecrm/reports"
-                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/reports") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
-                >
-                   <SquareKanban size={18} />
-                  <h3 className={`text-sm font-medium`}>
-                    Reports
-                  </h3>
-              </Link>
 
               <div
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/notifications") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
@@ -208,22 +192,6 @@ function Sidebar() {
 
             <div className="self-end mt-auto w-full">
               <div className="mb-5">
-                <Link
-                  onClick={(e) => {
-                    setIsOpen(false); // Close sidebar
-                    if (window.location.pathname === "/nativecrm/settings") {
-                      e.preventDefault(); // Prevent navigation if already on the same page
-                    }
-                  }}
-                  href="/nativecrm/settings#channels-integration"
-                  className={`flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/settings") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
-                >
-                    <Settings size={18} />
-                  <h3 className={`text-sm font-medium`}>
-                    Settings
-                  </h3>
-                </Link>
-
                 <Link
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation
                 

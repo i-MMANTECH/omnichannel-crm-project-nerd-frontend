@@ -2,24 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import CallCenterSidebar from '@/app/components/CallCenter/CallCenterSidebar';
-import IntegrateChannels from "@/app/components/Settings/channels/IntegrateChannels";
+import CallCenterSidebar from '@/app/components/admin/CallCenter/CallCenterSidebar';
 import dynamic from 'next/dynamic';
-import SlaPolicies from '@/app/components/Settings/sla-policies/SlaPolicies';
-import DeveloperSettings from '@/app/components/Settings/developer-settings/DeveloperSettings';
-import CallCenterDashboard from '@/app/components/CallCenter/CallCenterDashboard';
 import CallDetailRecords from '@/app/components/CallCenter/CallDetailRecords';
 import MissedCallReport from '@/app/components/CallCenter/MissedCallReport';
 import LiveCalls from '@/app/components/CallCenter/LiveCalls';
-import CallOverview from '@/app/components/CallCenter/RealTimeReports';
 import IVR from '@/app/components/CallCenter/IVR';
-import RealTimeReport from '@/app/components/CallCenter/RealTimeReports';
-import RealTimeReports from '@/app/components/CallCenter/RealTimeReports';
+import RealTimeReports from '@/app/components/admin/CallCenter/RealTimeReports';
+import Setup from '@/app/components/CallCenter/Setup';
 
-
-const PlansAndBillings = dynamic(() => import('@/app/components/Settings/plans-and-billings/PlansAndBillings'), { 
-  ssr: false 
-});
 
 export default function Settings() {
   const pathname = usePathname();
@@ -51,6 +42,8 @@ export default function Settings() {
         return <CallDetailRecords />;
       case 'ivr':
         return <IVR />;
+      case 'setup':
+        return <Setup />;
       default:
         return <div>Select a setting from the sidebar</div>;
     }

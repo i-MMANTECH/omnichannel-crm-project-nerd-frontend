@@ -58,16 +58,16 @@ export default function CustomerDetails() {
 
   const { id } = useParams();
 
+  const getCustomer = async () => {
+    try {
+      const { data } = await axiosInstance.get(`/customers/${id}/`);
+      setCustomer(data.customer);
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+
   useEffect(() => {
-    const getCustomer = async () => {
-      try {
-        const { data } = await axiosInstance.get(`/customers/${id}/`);
-        setCustomer(data.customer);
-      } catch (error) {
-        handleApiError(error);
-      }
-    };
-  
     getCustomer();
   }, [id]);
   
@@ -93,7 +93,7 @@ export default function CustomerDetails() {
   const closeSuccessModal = () => {
     setIsSuccessModalOpen(false);
     getCustomer()
-};
+  };
 
 const customerUsername = useMemo(() => {
   if (customer?.username) {
@@ -372,11 +372,11 @@ const customerUsername = useMemo(() => {
                   onClose={closeSuccessModal}
               />
             <ConfirmationModal
-              isOpen={isDeleteModalOpen}
-              title="Confirm Delete"
-              message="Are you sure you want to delete this customer?"
-              onConfirm={handleConfirmDelete}
-              onCancel={() => setIsDeleteModalOpen(false)}
+                isOpen={isDeleteModalOpen}
+                title="Confirm Delete"
+                message="Are you sure you want to delete this customer?"
+                onConfirm={handleConfirmDelete}
+                onCancel={() => setIsDeleteModalOpen(false)}
             />
           </div>
         )}

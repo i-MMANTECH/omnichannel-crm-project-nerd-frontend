@@ -1,0 +1,39 @@
+  .selected {
+    color: #3ebf0f;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 150%;
+    position: relative;
+  }
+  
+  .selected::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: #3ebf0f;
+    border-radius: 2px;
+  }
+  
+  .not-selected {
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 150%;
+  }
+  
+  .not-selected:hover {
+    color: #3ebf0f;
+    transition: color 0.2s ease-in-out;
+  }
+  
+  .toggle-container {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
