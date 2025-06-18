@@ -38,11 +38,6 @@ function CallCenterSidebar({ onSidebarClick, currentSection }) {
       icon: <Phone size={18} />,
     },
     {
-      key: "ivr",
-      label: "IVR",
-      icon: <Phone size={18} />,
-    },
-    {
       key: "setup",
       label: "Setup",
       icon: <Settings size={18} />,
