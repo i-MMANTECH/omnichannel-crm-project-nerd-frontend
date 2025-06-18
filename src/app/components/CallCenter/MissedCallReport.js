@@ -247,7 +247,7 @@ const MissedCallReport = () => {
                                             </td>
                                             <td className="py-3 px-4 border-b">
                                                 <span style={{ color: "inherit", textDecoration: "none" }}>
-                                                    {formatDuration(call.total_duration)}
+                                                    {formatDuration(call.actual_duration)}
                                                 </span>
                                             </td>
                                         </tr>
