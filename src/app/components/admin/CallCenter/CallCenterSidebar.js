@@ -7,10 +7,10 @@ import {
   LayoutDashboard,
   ArrowLeft,
   FolderOpen,
-  Phone
+  Phone,
+  Settings
 } from "lucide-react";
 import Setup from "../../CallCenter/Setup";
-import Settings from "@/app/admin/call-center-admin/page";
 
 function CallCenterSidebar({ onSidebarClick, currentSection }) {
   const activeStyle = "bg-gray-100 text-[#3EBF0F] font-medium";
