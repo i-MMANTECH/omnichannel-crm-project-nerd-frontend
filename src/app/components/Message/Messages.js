@@ -623,25 +623,32 @@ export const MessagesContent = () => {
 
 	const handleSendMessage = (messageContent) => {
 		const formData = new FormData();
-		const contentType = messageContent?.image
-			? "image"
-			: messageContent?.file
+		const contentType = messageContent?.file
 			? "document"
+			: messageContent?.image
+			? "image"
 			: "text";
 
 		formData.append("content", messageContent.text || "");
 		formData.append("content_type", contentType);
 
+		if (messageContent?.file?.length > 0) {
+		// Append files as 'document'
+		messageContent.file.forEach(file => {
+			formData.append('document', file);
+		});
+
+		// Also append images as 'document' when files are present
 		if (messageContent?.image?.length > 0) {
 			messageContent.image.forEach(img => {
-				formData.append('image[]', img);
+			formData.append('document', img);
 			});
 		}
-
-		if (messageContent?.file?.length > 0) {
-			messageContent.file.forEach(file => {
-				formData.append('document[]', file);
-			});
+		} else if (messageContent?.image?.length > 0) {
+		// Only images, append them as 'image'
+		messageContent.image.forEach(img => {
+			formData.append('image', img);
+		});
 		}
 
 		const tempMessage = {
