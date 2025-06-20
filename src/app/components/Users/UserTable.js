@@ -74,7 +74,7 @@ const UserTable = ({ searchQuery, users }) => {
                     {user.roles.map((role) => (
                       <span
                         key={role.id}
-                        className="px-2 py-1 rounded ml-1"
+                        className="px-2 py-1 rounded ml-1 text-sm"
                         style={getRoleStyle(role.name)}
                       >
                         {role.name}

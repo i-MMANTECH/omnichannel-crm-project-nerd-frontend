@@ -74,7 +74,7 @@ const UserGrid = ({ users }) => {
                     {user.roles.map((role) => (
                       <span
                         key={role.id || role.name} // fallback if no role.id
-                        className="px-2 py-1 ml-1 rounded"
+                        className="px-2 py-1 ml-1 rounded text-sm"
                         style={getRoleStyle(role.name)}
                       >
                         {role.name}
