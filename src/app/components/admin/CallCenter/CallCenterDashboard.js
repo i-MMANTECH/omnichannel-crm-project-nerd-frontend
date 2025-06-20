@@ -9,17 +9,10 @@ import {
   ClockIcon,
   UserCheckIcon,
   UserXIcon,
-  Timer,
-  PhoneIcon,
-  PhoneIncoming,
-  PhoneOutgoing,
-  TimerIcon,
-  TimerOffIcon,
-  TimerReset
+  Timer
 } from "lucide-react";
-import { FaStopwatch, FaStopwatch20 } from "react-icons/fa";
 
-export default function CallOverview({ filters, selectedAgent, refreshKey }) {
+export default function CallCenterDashboard({ filters, selectedAgent, refreshKey }) {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
   const [dashboardData, setDashboardData] = useState(null);
@@ -187,57 +180,33 @@ const fetchData = async () => {
 
   const statsData = [
     {
-      title: "Total Calls",
+      title: "Available Agents",
       value: `${dashboardData?.agents?.available || 0}/${dashboardData?.agents?.total || 0}`,
       subtitle: `${Math.round((dashboardData?.agents?.available / dashboardData?.agents?.total) * 100) || 0}%`,
-      icon: <PhoneIcon className="text-white" size={20} />,
-      bgColor: "#666D80",
+      icon: <UserCheckIcon className="text-white" size={20} />,
+      bgColor: "#3B82F6",
       borderColor: "#DFE1E6",
     },
     {
-      title: "Answered Calls",
+      title: "Customers in Queue",
       value: dashboardData?.queue?.total || 0,
       subtitle: `${dashboardData?.queue?.waiting || 0} waiting`,
       icon: <PhoneCallIcon className="text-white" size={20} />,
-      bgColor: "#3EBF0F",
+      bgColor: "#F59E0B",
       borderColor: "#DFE1E6",
     },
     {
-      title: "Missed Calls",
+      title: "Average Wait Time",
       value: dashboardData?.metrics?.average_wait_time || "0 mins",
       subtitle: dashboardData?.metrics?.wait_time_status || "Normal",
-      icon: <PhoneIncoming className="text-white" size={20} />,
-      bgColor: "#DF1C41",
+      icon: <ClockIcon className="text-white" size={20} />,
+      bgColor: "#8B5CF6",
       borderColor: "#DFE1E6",
     },
-    {
-        title: "Outbound Calls",
-        value: `${dashboardData?.agents?.available || 0}/${dashboardData?.agents?.total || 0}`,
-        subtitle: `${Math.round((dashboardData?.agents?.available / dashboardData?.agents?.total) * 100) || 0}%`,
-        icon: <PhoneOutgoing className="text-white" size={20} />,
-        bgColor: "#3B82F6",
-        borderColor: "#DFE1E6",
-      },
-      {
-        title: "Average Call Duration",
-        value: dashboardData?.queue?.total || 0,
-        subtitle: `${dashboardData?.queue?.waiting || 0} waiting`,
-        icon: <TimerIcon className="text-white" size={20} />,
-        bgColor: "#666D80",
-        borderColor: "#DFE1E6",
-      },
-      {
-        title: "Average Wait Time",
-        value: dashboardData?.metrics?.average_wait_time || "0 mins",
-        subtitle: dashboardData?.metrics?.wait_time_status || "Normal",
-        icon: <TimerIcon className="text-white" size={20} />,
-        bgColor: "#666D80",
-        borderColor: "#DFE1E6",
-      },
   ];
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6">
       {/* Last Updated Info */}
       <div className="flex items-center gap-2 text-sm text-gray-500">
         <div className="flex h-[40px] w-fit p-[8px_12px] justify-center items-center gap-2 rounded-[10px] border border-[#DFE1E6] body-theme shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">
@@ -269,7 +238,7 @@ const fetchData = async () => {
       </div>
 
       {/* Agent Status and Customer Queue */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 ">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Agent Status */}
         <div className="bg-white border border-[#DFE1E6] rounded-2xl shadow-sm">
           <div className="flex items-center justify-between px-6 pb-3 pt-5 border-b border-[#DFE1E6] mb-4">
@@ -376,65 +345,6 @@ const fetchData = async () => {
           </div>
         </div>
       </div>
-
-       {/* Agent Performance Table */}
-       <div className="bg-white w-full border border-[#DFE1E6] rounded-2xl shadow-sm mt-10 ">
-            <div className="flex items-center justify-between px-6 pb-3 pt-5 border-b border-[#DFE1E6] mb-4">
-                <h3 className="text-lg font-semibold">Agent Performance</h3>
-            </div>
-            <div className="overflow-auto">
-                <table className="w-full table-auto body-theme">
-                    <thead className="bg-gray-100">
-                        <tr>
-                        <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Agent</th>
-                        <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Status</th>
-                        <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Calls Answered</th>
-                        <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Calls Missed</th>
-                        <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Avg Duration</th>
-                        <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Avg Wait Time</th>
-                        <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Customer Satisfaction</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {agentList.map((agent, index) => (
-                        <tr key={index} className="hover:bg-gray-100 cursor-pointer">
-                            <td className="py-3 px-4 border-b flex items-center space-x-3">
-                            <img 
-                                src={agent.avatar || `https://ui-avatars.com/api/?name=${agent.name}&background=random`}
-                                alt={agent.name}
-                                className="w-8 h-8 rounded-full object-cover"
-                            />
-                            <span>{agent.name}</span>
-                            </td>
-                            <td className="py-3 px-4 border-b">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(agent.status)}`}>
-                                {agent.status}
-                            </span>
-                            </td>
-                            <td className="py-3 px-4 border-b">{agent.calls_answered ?? 0}</td>
-                            <td className="py-3 px-4 border-b">{agent.calls_missed ?? 0}</td>
-                            <td className="py-3 px-4 border-b">{agent.avg_duration || '0:00'}</td>
-                            <td className="py-3 px-4 border-b">{agent.avg_wait_time || '0:00'}</td>
-                            <td className="py-3 px-4 border-b">
-                            <div className="flex items-center space-x-1">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                <svg
-                                    key={star}
-                                    className={`w-4 h-4 ${agent.customer_satisfaction >= star ? 'text-yellow-400' : 'text-gray-300'}`}
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                >
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.92c.969 0 1.371 1.24.588 1.81l-3.978 2.89a1 1 0 00-.364 1.118l1.519 4.674c.3.921-.755 1.688-1.54 1.118l-3.978-2.89a1 1 0 00-1.176 0l-3.978 2.89c-.784.57-1.838-.197-1.539-1.118l1.518-4.674a1 1 0 00-.364-1.118l-3.977-2.89c-.784-.57-.38-1.81.588-1.81h4.92a1 1 0 00.95-.69l1.519-4.674z" />
-                                </svg>
-                                ))}
-                            </div>
-                            </td>
-                        </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </div>
   );
 }

@@ -63,6 +63,12 @@ export const MessagesContent = () => {
 	const [activeAgent, setActiveAgent] = useState(null)
 	const [userProfile, setUserProfile] = useState({})
 
+	const [tabUnreadFlags, setTabUnreadFlags] = useState({
+		leads: false,
+		customers: false,
+		archived: false,
+	});
+
 	const [isFilterActive, setIsFilterActive] = useState(false)
 	const isCancelError = (error) =>
 		error?.name === 'CanceledError' || error?.message === 'canceled' || error?.code === 'ERR_CANCELED';	
@@ -223,6 +229,13 @@ export const MessagesContent = () => {
 				: null;
 		
 			const messageChatType = getMessageType(message);
+
+			if (currentTabRef.current !== messageChatType) {
+				setTabUnreadFlags((prev) => ({
+				  ...prev,
+				  [messageChatType]: true,
+				}));
+			}			  
 	
 			const isRelevantToActiveUser = activeUser &&
 				(
@@ -611,6 +624,11 @@ export const MessagesContent = () => {
         setChatHistory([]);
         router.push(`/nativecrm/messages?chat=${tab}`, { scroll: false });
         
+		setTabUnreadFlags((prev) => ({
+			...prev,
+			[tab]: false,
+		}));
+		 
         // Update current tab reference
         currentTabRef.current = tab;
         
@@ -864,11 +882,6 @@ export const MessagesContent = () => {
 				</div>
 
 				<div className="flex gap-4">
-					<button 
-						onClick={() => {router.push('/nativecrm/settings#channels-integration');}}
-						className="bg-[#3EBF0F] text-white px-4 py-2 rounded-lg shadow-sm">
-						+ Connect Channel
-					</button>
 					<div className="bg-gray-500 w-0.5 hidden"></div>
 					<div 
 						className=" flex h-10 min-w-20 px-3 justify-center items-center gap-2 rounded-lg border border-[#DFE1E6] body-theme cursor-pointer shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]"
@@ -945,16 +958,32 @@ export const MessagesContent = () => {
 							</svg>
 						</div>
 						<div className="flex gap-3 w-full ">
-							<div className="tab-atom">
-								<div className={`px-3 pb-1 ${chatType === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>Leads</div>
+							<div className="tab-atom relative">
+								<div className={`px-3 pb-1 ${chatType === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>
+								Leads
+								{tabUnreadFlags.leads && (
+									<span className="absolute top-0.5 right-1 w-1.5 h-1.5 bg-[#3EBF0F] rounded-full"></span>
+								)}
+								</div>
 							</div>
-							<div className="tab-atom">
-								<div className={`px-3 pb-1 ${chatType === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>Customers</div>
+							<div className="tab-atom relative">
+								<div className={`px-3 pb-1 ${chatType === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>
+								Customers
+								{tabUnreadFlags.customers && (
+									<span className="absolute top-0.5 right-1 w-1.5 h-1.5 bg-[#3EBF0F] rounded-full"></span>
+								)}
+								</div>
 							</div>
-							<div className="tab-atom">
-								<div className={`px-3 pb-1 ${chatType === 'archived' ? 'active' : ""}`} onClick={() => handleTabChange('archived')}>Archived</div>
+							<div className="tab-atom relative">
+								<div className={`px-3 pb-1 ${chatType === 'archived' ? 'active' : ""}`} onClick={() => handleTabChange('archived')}>
+								Archived
+								{tabUnreadFlags.archived && (
+									<span className="absolute top-0.5 right-1 w-1.5 h-1.5 bg-[#3EBF0F] rounded-full"></span>
+								)}
+								</div>
 							</div>
 						</div>
+
 					</div>
 
 					<ChatList 

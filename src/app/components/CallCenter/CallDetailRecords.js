@@ -39,6 +39,37 @@ const CallDetailRecords = () => {
     const searchParams = useSearchParams();
 
 
+    const getFormattedDate = (dateString) => {
+        const date = new Date(dateString);
+        const options = {
+            year: "numeric",
+            month: "short",
+            day: "2-digit",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+        };
+        return date.toLocaleString("en-US", options).replace(',', '');
+    };
+
+    const getRelativeTime = (dateString) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHr = Math.floor(diffMin / 60);
+        const diffDay = Math.floor(diffHr / 24);
+    
+        if (diffSec < 60) return "Just now";
+        if (diffMin < 60) return `${diffMin} minute${diffMin !== 1 ? 's' : ''} ago`;
+        if (diffHr < 24) return `${diffHr} hour${diffHr !== 1 ? 's' : ''} ago`;
+        if (diffDay < 7) return `${diffDay} day${diffDay !== 1 ? 's' : ''} ago`;
+        
+        const weeks = Math.floor(diffDay / 7);
+        return `${weeks} week${weeks !== 1 ? 's' : ''} ago`;
+    };   
+    
     const formatDuration = (totalSeconds) => {
         const sec = parseInt(totalSeconds, 10);
         const hours = Math.floor(sec / 3600);
@@ -162,11 +193,19 @@ const CallDetailRecords = () => {
                                                     }} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer">
                                                     <td className="py-3 px-4 border-b flex items-center space-x-3">
                                                         <UserAvatar 
-                                                        name={cdr.sip_user} 
+                                                        name={
+                                                            cdr.direction === "outbound"
+                                                                ? cdr.caller_id_number
+                                                                : cdr.destination_number || "--"
+                                                        } 
                                                         width="w-8" 
                                                         height="h-8" 
                                                         />
-                                                        <span>{cdr.sip_user} </span>
+                                                        <span style={{ color: "inherit", textDecoration: "none" }}>
+                                                            {cdr.direction === "outbound"
+                                                            ? cdr.caller_id_number
+                                                            : cdr.destination_number || "--"}
+                                                        </span>
                                                     </td>
                                                     <td className="py-3 px-4 border-b">
                                                         <span
@@ -174,7 +213,7 @@ const CallDetailRecords = () => {
                                                             className="px-2 py-1 rounded ml-1"
                                                             style={getRoleStyle(cdr.call_status)}
                                                         >
-                                                            {cdr.call_status}
+                                                            {cdr.call_status || '-'}
                                                         </span>
 
                                                     </td>
@@ -195,11 +234,15 @@ const CallDetailRecords = () => {
                                                             : cdr.caller_id_number || "--"}
                                                         </span>
                                                     </td>
-
                                                     <td className="py-3 px-4 border-b">
-                                                        <span style={{ color: "inherit", textDecoration: "none" }}>
-                                                            {cdr.call_start_time}
-                                                        </span>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-medium">
+                                                                {getFormattedDate(cdr.converted_date)}
+                                                            </span>
+                                                            <span className="text-sm text-gray-500">
+                                                                {getRelativeTime(cdr.converted_date)}
+                                                            </span>
+                                                        </div>
                                                     </td>
                                                     <td className="py-3 px-4 border-b">
                                                         <span style={{ color: "inherit", textDecoration: "none" }}>

@@ -58,16 +58,16 @@ export default function CustomerDetails() {
 
   const { id } = useParams();
 
+  const getCustomer = async () => {
+    try {
+      const { data } = await axiosInstance.get(`/customers/${id}/`);
+      setCustomer(data.customer);
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+
   useEffect(() => {
-    const getCustomer = async () => {
-      try {
-        const { data } = await axiosInstance.get(`/customers/${id}/`);
-        setCustomer(data.customer);
-      } catch (error) {
-        handleApiError(error);
-      }
-    };
-  
     getCustomer();
   }, [id]);
   
@@ -93,7 +93,7 @@ export default function CustomerDetails() {
   const closeSuccessModal = () => {
     setIsSuccessModalOpen(false);
     getCustomer()
-};
+  };
 
 const customerUsername = useMemo(() => {
   if (customer?.username) {
@@ -156,7 +156,7 @@ const customerUsername = useMemo(() => {
                   <div className="flex gap-6 mt-5">
                     <div
                       className="flex flex-col items-center gap-2 cursor-pointer"
-                      onClick={() => startCall({ name: customerName, id: customer.id })}
+                      onClick={() => startCall({ phone: customer?.phone_number, name: customerName, id: customer.id })}
                     >
                       <div className="flex w-8 h-8 p-2 justify-center items-center gap-2 rounded-md border border-gray-100 bg-white shadow-sm text-gray-600">
                         <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 17 16" stroke="currentColor">
@@ -165,18 +165,6 @@ const customerUsername = useMemo(() => {
                       </div>
                       <span className="text-center text-sm font-normal font-['Encode_Sans'] tracking-wide leading-[150%]">
                         Call
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="flex w-8 h-8 p-2 justify-center items-center gap-2 rounded-md border border-gray-100 bg-white shadow-sm text-gray-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15.47" height="15.47" viewBox="0 0 16 16" fill="none">
-                          <path d="M1.8042 3.4873L6.26022 6.01705C7.88823 6.9413 8.61184 6.9413 10.2399 6.01705L14.6959 3.4873" stroke="#15161E" strokeWidth="1.2" strokeLinejoin="round"/>
-                          <path d="M7.28316 12.8339C6.98259 12.83 6.68165 12.8242 6.37999 12.8166C4.35052 12.7656 3.33578 12.7401 2.60668 12.0078C1.87757 11.2755 1.8565 10.287 1.81436 8.30982C1.80082 7.67407 1.80081 7.04212 1.81436 6.40639C1.8565 4.42925 1.87757 3.44069 2.60667 2.70838C3.33578 1.97608 4.35052 1.95057 6.37998 1.89956C7.63078 1.86811 8.86928 1.86812 10.1201 1.89956C12.1496 1.95058 13.1643 1.97609 13.8934 2.7084C14.6225 3.4407 14.6436 4.42926 14.6857 6.40639C14.6919 6.69908 14.6953 6.83701 14.6958 7.03264" stroke="#15161E" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M12.7621 11.2229C12.7621 11.7569 12.3292 12.1898 11.7952 12.1898C11.2612 12.1898 10.8283 11.7569 10.8283 11.2229C10.8283 10.6889 11.2612 10.256 11.7952 10.256C12.3292 10.256 12.7621 10.6889 12.7621 11.2229ZM12.7621 11.2229V11.5452C12.7621 12.0792 13.195 12.5121 13.729 12.5121C14.2629 12.5121 14.6958 12.0792 14.6958 11.5452V11.2229C14.6958 9.62091 13.3972 8.32227 11.7952 8.32227C10.1932 8.32227 8.89459 9.62091 8.89459 11.2229C8.89459 12.8249 10.1932 14.1235 11.7952 14.1235" stroke="#15161E" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                      <span className="text-center text-sm font-normal font-['Encode_Sans'] tracking-wide leading-[150%]">
-                        Email
                       </span>
                     </div>
 
@@ -372,11 +360,11 @@ const customerUsername = useMemo(() => {
                   onClose={closeSuccessModal}
               />
             <ConfirmationModal
-              isOpen={isDeleteModalOpen}
-              title="Confirm Delete"
-              message="Are you sure you want to delete this customer?"
-              onConfirm={handleConfirmDelete}
-              onCancel={() => setIsDeleteModalOpen(false)}
+                isOpen={isDeleteModalOpen}
+                title="Confirm Delete"
+                message="Are you sure you want to delete this customer?"
+                onConfirm={handleConfirmDelete}
+                onCancel={() => setIsDeleteModalOpen(false)}
             />
           </div>
         )}

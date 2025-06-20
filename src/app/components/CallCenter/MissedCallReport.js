@@ -217,10 +217,10 @@ const MissedCallReport = () => {
                                             <td className="py-3 px-4 border-b">
                                                 <div className="flex flex-col">
                                                     <span className="font-medium">
-                                                        {getFormattedDate(call.callstart)}
+                                                        {getFormattedDate(call.converted_date)}
                                                     </span>
                                                     <span className="text-sm text-gray-500">
-                                                        {getRelativeTime(call.callstart)}
+                                                        {getRelativeTime(call.converted_date)}
                                                     </span>
                                                 </div>
                                             </td>
@@ -247,7 +247,7 @@ const MissedCallReport = () => {
                                             </td>
                                             <td className="py-3 px-4 border-b">
                                                 <span style={{ color: "inherit", textDecoration: "none" }}>
-                                                    {formatDuration(call.total_duration)}
+                                                    {formatDuration(call.actual_duration)}
                                                 </span>
                                             </td>
                                         </tr>

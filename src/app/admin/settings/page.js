@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import SettingsSidebar from "@/app/components/Settings/SettingsSidebar";
+import SettingsSidebar from "@/app/components/admin/Settings/SettingsSidebar";
 import IntegrateChannels from "@/app/components/Settings/channels/IntegrateChannels";
 import RoleManagement from '@/app/components/Settings/role-management/RoleManagement';
 import dynamic from 'next/dynamic';
 import SlaPolicies from '@/app/components/Settings/sla-policies/SlaPolicies';
-import DeveloperSettings from '@/app/components/Settings/developer-settings/DeveloperSettings';
+import DeveloperSettings from '@/app/components/admin/Settings/developer-settings/DeveloperSettings';
 
 
 const PlansAndBillings = dynamic(() => import('@/app/components/Settings/plans-and-billings/PlansAndBillings'), { 
@@ -48,8 +48,8 @@ export default function Settings() {
       //   return <div>Task Management Component</div>;
       // case 'security-settings':
       //   return <div>Security Settings Component</div>;
-      case 'plans-and-billings':
-        return <PlansAndBillings/>;
+      // case 'plans-and-billings':
+      //   return <PlansAndBillings/>;
       case 'sla-policies':
         return <SlaPolicies/>;
       case 'developer-settings':
