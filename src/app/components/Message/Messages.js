@@ -71,7 +71,7 @@ export const MessagesContent = () => {
 
 	const [isFilterActive, setIsFilterActive] = useState(false)
 	const isCancelError = (error) =>
-		error?.name === 'CanceledError' || error?.message === 'canceled' || error?.code === 'ERR_CANCELED';	
+		error?.name === 'CanceledError' || error?.message === 'canceled' || error?.code === 'ERR_CANCELED';
 
 
 	const [cachedData, setCachedData] = useState({
@@ -1048,7 +1048,6 @@ export const MessagesContent = () => {
 	);
 };
 
-
 export const Messages = () => {
 	return (
 		<Suspense fallback={
@@ -1059,4 +1058,4 @@ export const Messages = () => {
 			<MessagesContent />
 		</Suspense>
 	);
-  };
+};

@@ -3,20 +3,12 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { getUserFromStorage } from '@/utils/getUserFromStorage';
 
 
 const Page = () => {
     const { isAuthenticated } = useAuth();
     const router = useRouter();
-
-    const getUserFromStorage = () => {
-        try {
-            const user = localStorage.getItem('user');
-            return user ? JSON.parse(user) : null;
-        } catch (e) {
-            return null;
-        }
-    };
 
     useEffect(() => {
         if (typeof window != 'undefined') {
