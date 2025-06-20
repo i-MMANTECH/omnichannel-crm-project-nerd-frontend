@@ -3,12 +3,13 @@ import General from './General';
 import Notification from './Notification';
 import SecuritySettings from './SecuritySettings/SecuritySettings';
 import './agentProfile.css';
-import UserAvatar from '../UserAvatar';
+import UserAvatar from '../../UserAvatar';
 import Image from 'next/image';
 import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
 import { getRoleStyle } from '@/utils/getRoleStyle';
 import { formatDateTime } from '@/utils/timeUtils';
+import ActivityLog from './ActivityLog';
 
 
 export default function Profile() {
@@ -73,6 +74,7 @@ export default function Profile() {
     const tabs = [
         { key: "general", label: "General" },
         { key: "notification", label: "Notification" },
+        { key: "activity-log", label: "Activity Log" },
         { key: "security-settings", label: "Security settings" }
     ];
     

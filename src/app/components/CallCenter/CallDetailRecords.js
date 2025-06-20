@@ -213,7 +213,7 @@ const CallDetailRecords = () => {
                                                             className="px-2 py-1 rounded ml-1"
                                                             style={getRoleStyle(cdr.call_status)}
                                                         >
-                                                            {cdr.call_status}
+                                                            {cdr.call_status || '-'}
                                                         </span>
 
                                                     </td>
@@ -234,19 +234,13 @@ const CallDetailRecords = () => {
                                                             : cdr.caller_id_number || "--"}
                                                         </span>
                                                     </td>
-
-                                                    {/* <td className="py-3 px-4 border-b">
-                                                        <span style={{ color: "inherit", textDecoration: "none" }}>
-                                                            {cdr.call_start_time}
-                                                        </span>
-                                                    </td> */}
                                                     <td className="py-3 px-4 border-b">
                                                         <div className="flex flex-col">
                                                             <span className="font-medium">
-                                                                {getFormattedDate(cdr.callstart)}
+                                                                {getFormattedDate(cdr.converted_date)}
                                                             </span>
                                                             <span className="text-sm text-gray-500">
-                                                                {getRelativeTime(cdr.callstart)}
+                                                                {getRelativeTime(cdr.converted_date)}
                                                             </span>
                                                         </div>
                                                     </td>

@@ -182,7 +182,7 @@ const CallDetailRecords = () => {
                                                             className="px-2 py-1 rounded ml-1"
                                                             style={getRoleStyle(cdr.call_status)}
                                                         >
-                                                            {cdr.call_status}
+                                                            {cdr.call_status || '-'}
                                                         </span>
 
                                                     </td>

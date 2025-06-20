@@ -34,23 +34,30 @@ const LiveCalls = () => {
         const hours = Math.floor(sec / 3600);
         const minutes = Math.floor((sec % 3600) / 60);
         const seconds = sec % 60;
-      
+    
         if (hours > 0) {
-          return [
-            hours.toString().padStart(2, '0'),
+            return [
+                hours.toString().padStart(2, '0'),
+                minutes.toString().padStart(2, '0'),
+                seconds.toString().padStart(2, '0'),
+            ].join(':');
+        }
+    
+        return [
             minutes.toString().padStart(2, '0'),
             seconds.toString().padStart(2, '0'),
-          ].join(':');
-        }
-      
-        return [
-          minutes.toString().padStart(2, '0'),
-          seconds.toString().padStart(2, '0'),
         ].join(':');
     };
     
     const getFormattedDate = (dateString) => {
-        const date = new Date(dateString);
+        // Parse manually from "YYYY-MM-DD HH:mm:ss"
+        const [datePart, timePart] = dateString.split(' ');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hour, minute, second] = timePart.split(':').map(Number);
+    
+        // Create date and add 1 hour offset
+        const date = new Date(year, month - 1, day, hour + 1, minute, second);
+    
         const options = {
             year: "numeric",
             month: "short",
@@ -59,12 +66,20 @@ const LiveCalls = () => {
             minute: "2-digit",
             hour12: true,
         };
+    
         return date.toLocaleString("en-US", options).replace(',', '');
     };
-    
+
     const getRelativeTime = (dateString) => {
-        const date = new Date(dateString);
+        // Manually parse the input "YYYY-MM-DD HH:mm:ss"
+        const [datePart, timePart] = dateString.split(' ');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hour, minute, second] = timePart.split(':').map(Number);
+    
+        // Adjust time by +1 hour
+        const date = new Date(year, month - 1, day, hour + 1, minute, second);
         const now = new Date();
+    
         const diffMs = now - date;
         const diffSec = Math.floor(diffMs / 1000);
         const diffMin = Math.floor(diffSec / 60);
@@ -75,11 +90,10 @@ const LiveCalls = () => {
         if (diffMin < 60) return `${diffMin} minute${diffMin !== 1 ? 's' : ''} ago`;
         if (diffHr < 24) return `${diffHr} hour${diffHr !== 1 ? 's' : ''} ago`;
         if (diffDay < 7) return `${diffDay} day${diffDay !== 1 ? 's' : ''} ago`;
-        
+    
         const weeks = Math.floor(diffDay / 7);
         return `${weeks} week${weeks !== 1 ? 's' : ''} ago`;
     };    
-    
 
     useEffect(() => {
         getLiveCalls(currentPage, pageSize, debouncedSearchQuery);

@@ -4,7 +4,7 @@ import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import { formatDateTime } from "@/utils/timeUtils";
 import Select from 'react-select';
-import { selectStyles } from "../selectStyles";
+import { selectStyles } from "../../selectStyles";
 import { toast } from 'react-toastify';
 
 

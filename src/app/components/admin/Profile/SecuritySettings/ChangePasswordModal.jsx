@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
-import Modal from "../../Modal";
+import Modal from "@/app/components/Modal";
 import { useAuth } from "@/context/AuthContext";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';

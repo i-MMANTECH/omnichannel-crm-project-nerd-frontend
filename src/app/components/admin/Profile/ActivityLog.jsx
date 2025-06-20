@@ -1,11 +1,13 @@
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
 import React, { useEffect, useState } from 'react';
-import UserAvatar from '../UserAvatar';
+import UserAvatar from '../../UserAvatar';
 import Image from 'next/image';
 import { timeAgo } from '@/utils/timeUtils';
 import Pagination from '@/app/components/Pagination/Pagination';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { User, ClipboardList, Contact } from "lucide-react";
+
 
 const ActivityLog = () => {
   const { axiosInstance } = useApi();
@@ -40,16 +42,32 @@ const ActivityLog = () => {
           <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3'>
             <div className="flex flex-col gap-2 w-full">
               <div className='flex items-center gap-3'>
-                {log?.user?.image ? (
-                  <Image
-                    alt="profile pic"
-                    width={32}
-                    height={32}
-                    className="w-8 h-8 rounded-full"
-                    src={log.user.image}
-                  />
+                {log?.user ? (
+                  log.user.image ? (
+                    <Image
+                      alt="profile pic"
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 rounded-full"
+                      src={log.user.image}
+                    />
+                  ) : (
+                    <UserAvatar 
+                      width="w-8" 
+                      height="h-8" 
+                      name={
+                        log.user.first_name ? 
+                        `${log.user.first_name} ${log.user.last_name}` : 
+                        log.user.email || '--'
+                      }
+                    />
+                  )
                 ) : (
-                  <UserAvatar name={log?.user?.first_name ? `${log?.user.first_name} ${log?.user.last_name}` : '--'} width="w-8" height="h-8" />
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    {log.action_type === "user" && <User className="w-4 h-4 text-gray-500" />}
+                    {log.action_type === "lead" && <Contact className="w-4 h-4 text-gray-500" />}
+                    {log.action_type === "task" && <ClipboardList className="w-4 h-4 text-gray-500" />}
+                  </div>
                 )}
                 <p className="font-medium text-sm sm:text-base">{log.description}</p>
               </div>

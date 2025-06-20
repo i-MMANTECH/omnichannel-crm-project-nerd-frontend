@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
-import Modal from "../../Modal";
+import Modal from "@/app/components/Modal";
 
 
 const VerifyOtpModal = ({ isModalOpen, closeModal, goToChangePassword }) => {
