@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import CustomerDetails from "@/app/components/Customers/CustomerDetails";
+import CustomerDetails from "@/app/components/admin/Customers/CustomerDetails";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 

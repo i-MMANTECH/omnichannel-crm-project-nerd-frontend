@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
-import SuccessModal from "../SuccessModal";
+
 import Image from "next/image";
 import Select from 'react-select';
-import { selectStyles } from "../selectStyles";
-import Modal from "../Modal";
+import { selectStyles } from "../../selectStyles";
+import Modal from "../../Modal";
 import { useSearchParams } from "next/navigation";
 
 

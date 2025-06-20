@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import UserAvatar from '../UserAvatar';
+import UserAvatar from '../../UserAvatar';
 import Image from 'next/image';
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';

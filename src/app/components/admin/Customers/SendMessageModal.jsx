@@ -3,8 +3,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import Select from 'react-select';
-import { selectStyles } from "../selectStyles";
-import Modal from "../Modal";
+import { selectStyles } from "../../selectStyles";
+import Modal from "../../Modal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPaperclip,
