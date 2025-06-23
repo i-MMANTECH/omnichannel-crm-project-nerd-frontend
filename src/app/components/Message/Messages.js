@@ -12,6 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
 import { Tooltip } from "react-tooltip";
+import Modal from "../Modal";
 
 
 const getMessageType = (message) => {
@@ -62,6 +63,10 @@ export const MessagesContent = () => {
 
 	const [activeAgent, setActiveAgent] = useState(null)
 	const [userProfile, setUserProfile] = useState({})
+
+	const [showAiTakeoverPrompt, setShowAiTakeoverPrompt] = useState(false);
+	const [refreshChatHeader, setRefreshChatHeader] = useState(false)
+
 
 	const [tabUnreadFlags, setTabUnreadFlags] = useState({
 		leads: false,
@@ -361,6 +366,26 @@ export const MessagesContent = () => {
 		fetchChannelsData();
 	  }, []);
 
+	const fetchAiStatus = async (conversationId) => {
+		if (conversationId) {
+			try {
+				const res = await axiosInstance.get(`/communication/conversations/${conversationId}/ai-status/`, {
+					showLoader: false
+				});
+
+				const aiIsActive = res?.data?.data?.ai_is_active;
+				const aiPromptKey = `ai_prompt_dismissed_${conversationId}`;
+				const dismissed = sessionStorage.getItem(aiPromptKey) === 'true';
+
+				if (aiIsActive && !dismissed) {
+					setShowAiTakeoverPrompt(true);
+				}			
+			} catch (err) {
+			handleApiError(err, "Failed to fetch AI status");
+			}
+		}
+	};
+
 	const markConversationAsRead = async () => {
 		try {
 			const resp = await axiosInstance.patch(`/communication/conversations/${chatResponse?.conversation_id}/messages/status/`, 
@@ -567,6 +592,8 @@ export const MessagesContent = () => {
 
 				markConversationAsRead()
             }
+			// console.log('response is ', response)
+			fetchAiStatus(response?.data?.results[0]?.conversation)
         } 
 		catch (error) {
 			if (isCancelError(error)) {
@@ -1011,6 +1038,7 @@ export const MessagesContent = () => {
 									fetchChatList({ reset: true })
 									setActiveUser(null)
 								}}
+								refreshChatHeader={refreshChatHeader}
 							/>
 							<div className="flex items-center ">
 								<MessageList 
@@ -1044,6 +1072,47 @@ export const MessagesContent = () => {
 					)}
 				</div>
 			</div>
+
+			<Modal
+				isOpen={showAiTakeoverPrompt}
+				onClose={() => setShowAiTakeoverPrompt(false)}
+				title="AI is handling this chat"
+				footer={
+					<>
+						<button
+							type="button"
+							className="hover:shadow-md px-4 py-2 bg-theme rounded-md border border-gray-30"
+							onClick={() => {
+								setShowAiTakeoverPrompt(false)
+								sessionStorage.setItem(`ai_prompt_dismissed_${chatResponse?.conversation_id}`, 'true');
+							}}
+						>
+							Let AI Handle
+						</button>
+						<button
+							type="submit"
+							className="hover:shadow-md px-4 py-2 bg-[#3EBF0F] text-white rounded-md "
+							onClick={async () => {
+							try {
+								console.log(chatResponse)
+								await axiosInstance.patch(`/communication/conversations/${chatResponse?.conversation_id}/ai-status/`, {}, { showLoader: false });
+								setShowAiTakeoverPrompt(false);
+								sessionStorage.setItem(`ai_prompt_dismissed_${chatResponse?.conversation_id}`, 'true');
+								setRefreshChatHeader(!refreshChatHeader)
+							} catch (err) {
+								handleApiError(err, "Failed to take over chat");
+							}
+							}}
+						>
+							Take Over Chat
+						</button>
+					</>
+				}
+				>
+				<p>
+					Automated responses are currently enabled for this chat. Would you like to take over and respond manually?
+				</p>
+			</Modal>
 		</div>
 	);
 };
