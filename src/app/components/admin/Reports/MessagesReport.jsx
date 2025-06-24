@@ -26,6 +26,8 @@ const MessagesReport = ({filters, selectedUser, refreshKey}) => {
   const [selectedFilter, setSelectedFilter] = useState('All Channels');
   const [analysisReport, setAnalysisReport] = useState(null);
   const [loadingReport, setLoadingReport] = useState(false);
+  const [showSummary, setShowSummary] = useState(true);
+
 
   const handleGenerateReport = async () => {
     try {
@@ -212,11 +214,45 @@ const MessagesReport = ({filters, selectedUser, refreshKey}) => {
 
   return (
     <>
-       <div className="gap-5 mt-5 flex flex-wrap border border-[#DFE1E6] body-theme rounded-[16px] p-5">
+       <div className="gap-5 mt-5 flex flex-wrap border border-[#DFE1E6] body-theme rounded-t-[16px] p-5">
           {statsData.map((stat, index) => (
         <StatCard key={index} {...stat} />
       ))}
       </div>
+        {/* AI Summary Generator */}
+        <div className="body-theme w-full rounded-b-lg border border-[#DFE1E6] shadow-lg p-4">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-base font-medium">NativeAi Summary</h3>
+              <button
+                onClick={handleGenerateReport}
+                disabled={loadingReport}
+                className="px-4 py-2 rounded bg-[#3EBF0F] text-white text-sm font-medium hover:bg-green-600 disabled:opacity-50"
+              >
+                {loadingReport ? "Generating..." : "Generate Summary"}
+              </button>
+            </div>
+            {analysisReport && showSummary && (
+              <div className="p-4 mt-4 border rounded-md bg-gray-50 dark:bg-[#111111] whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200 relative">
+                <button
+                  onClick={() => setShowSummary(false)}
+                  className="absolute top-2 right-2 text-xs text-black hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
+                >
+                  ✕ Hide
+                </button>
+                {analysisReport}
+              </div>
+            )}
+            {analysisReport && !showSummary && (
+              <div className="flex justify-end mt-2">
+                <button
+                  onClick={() => setShowSummary(true)}
+                  className="text-xs  hover:text-gray-700 dark:text-gray-300 dark:hover:text-white underline"
+                >
+                  Show Summary Again
+                </button>
+              </div>
+            )}
+        </div>
         <div className="mt-6 space-y-6">
           <div className="body-theme w-full rounded-lg border border-[#DFE1E6] shadow-lg p-4">
             <div className="flex items-center justify-between mb-4">
@@ -249,26 +285,6 @@ const MessagesReport = ({filters, selectedUser, refreshKey}) => {
               <Bar data={channelChartData} options={channelChartOptions} />
             </div>
           </div>
-        </div>
-
-        {/* AI Summary Generator */}
-        <div className="body-theme w-full rounded-lg border border-[#DFE1E6] shadow-lg p-4">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-base font-medium">AI Conversation Summary</h3>
-            <button
-              onClick={handleGenerateReport}
-              disabled={loadingReport}
-              className="px-4 py-2 rounded bg-[#3EBF0F] text-white text-sm font-medium hover:bg-green-600 disabled:opacity-50"
-            >
-              {loadingReport ? "Generating..." : "Generate Summary"}
-            </button>
-          </div>
-
-          {analysisReport && (
-            <div className="p-4 mt-4 border rounded-md bg-gray-50 dark:bg-[#111111] whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200">
-              {analysisReport}
-            </div>
-          )}
         </div>
       </div>
     </>

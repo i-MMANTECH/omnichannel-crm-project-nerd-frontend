@@ -8,7 +8,6 @@ import CallDetailRecords from '@/app/components/CallCenter/CallDetailRecords';
 import MissedCallReport from '@/app/components/CallCenter/MissedCallReport';
 import LiveCalls from '@/app/components/CallCenter/LiveCalls';
 import IVR from '@/app/components/CallCenter/IVR';
-import RealTimeReports from '@/app/components/CallCenter/RealTimeReports';
 import Setup from '@/app/components/CallCenter/Setup';
 
 

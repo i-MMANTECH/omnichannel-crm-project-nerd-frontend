@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import UsersReport from '@/app/components/Reports/UsersReport';
+import UsersReport from '@/app/components/admin/Reports/UsersReport';
 import { FolderDown } from 'lucide-react';
-import UserDropdown from '@/app/components/Reports/UserDropdown';
-import MessagesReport from '@/app/components/Reports/MessagesReport';
-import TasksReport from '@/app/components/Reports/TasksReport';
-import CustomersReport from '@/app/components/Reports/CustomersReport';
-import DateFilter from '@/app/components/Reports/DateFilter';
+import UserDropdown from '@/app/components/admin/Reports/UserDropdown';
+import MessagesReport from '@/app/components/admin/Reports/MessagesReport';
+import TasksReport from '@/app/components/admin/Reports/TasksReport';
+import CustomersReport from '@/app/components/admin/Reports/CustomersReport';
+import DateFilter from '@/app/components/admin/Reports/DateFilter';
 import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
 import { Tooltip } from "react-tooltip";
