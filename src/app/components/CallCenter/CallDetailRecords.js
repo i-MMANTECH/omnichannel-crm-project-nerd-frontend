@@ -117,7 +117,7 @@ const CallDetailRecords = () => {
     return (
         <Suspense fallback={<div>Loading...</div>}>
                 <div className="customers-page overflow-x-hidden flex flex-col px-10 min-h-[83vh] h-full !ml-0">
-                    <CallTester />
+                    {/* <CallTester /> */}
                     <div className="relative body-theme flex-1 flex flex-col h-full">
                         <div className="flex flex-wrap justify-between items-center mb-6 gap-4 sm:flex-nowrap">
                             <div className="flex items-center space-x-2 sm:space-x-4">

@@ -68,10 +68,10 @@ const CallTester = () => {
             
                     const audioElement = document.getElementById('audio_remote');
                     if (audioElement) {
-                    audioElement.srcObject = remoteStream;
-                    audioElement.play().catch(err => {
-                        console.warn('🔇 Auto-play failed:', err);
-                    });
+                        audioElement.srcObject = remoteStream;
+                        audioElement.play().catch(err => {
+                            console.warn('🔇 Auto-play failed:', err);
+                        });
                     }
                 }
                 });
@@ -199,12 +199,6 @@ const CallTester = () => {
 
                 stopIncomingRingtone();
                 stopRingtone();
-            },
-            peerconnection: (e) => {
-                console.log('Peer connection event:', e);
-            },
-            sdp: (e) => {
-                console.log('SDP event:', e.type, e.sdp);
             }
         };
 
@@ -229,96 +223,96 @@ const CallTester = () => {
         }
 
         setCallStatus('Initiating call...');
-        const call = uaRef.current.call(`sip:${dest}@cc2.nativetalk.com.ng`, options);
-        setSession(call);
+            const call = uaRef.current.call(`sip:${dest}@cc2.nativetalk.com.ng`, options);
+            setSession(call);
 
         } catch (error) {
-        console.error('Error making call:', error);
-        setCallStatus(`Error: ${error.message}`);
+            console.error('Error making call:', error);
+            setCallStatus(`Error: ${error.message}`);
         }
     };
 
-  const hangUp = () => {
-    if (session) {
-      session.terminate();
-      setSession(null);
-      setCallStatus('Call terminated');
-    }
+    const hangUp = () => {
+        if (session) {
+        session.terminate();
+        setSession(null);
+        setCallStatus('Call terminated');
+        }
 
-    stopRingtone();
-    playEndRingtone();
-  };
+        stopRingtone();
+        playEndRingtone();
+    };
 
-  return (
-    <div className="p-4 border rounded bg-white shadow max-w-md mx-auto">
-      <h2 className="text-lg font-bold mb-2">📞 JsSIP Call Tester</h2>
+    return (
+        <div className="p-4 border rounded bg-white shadow max-w-md mx-auto">
+            <h2 className="text-lg font-bold mb-2">📞 JsSIP Call Tester</h2>
 
-      <input
-        ref={phoneRef}
-        type="text"
-        placeholder="Enter SIP extension (e.g., agent103)"
-        className="border px-2 py-1 w-full mb-2"
-      />
+            <input
+                ref={phoneRef}
+                type="text"
+                placeholder="Enter SIP extension (e.g., agent103)"
+                className="border px-2 py-1 w-full mb-2"
+            />
 
-      <button
-        onClick={makeCall}
-        className="bg-green-500 text-white px-4 py-1 rounded mr-2"
-        disabled={!registered}
-      >
-        Call
-      </button>
-
-      <button
-        onClick={hangUp}
-        className="bg-red-500 text-white px-4 py-1 rounded"
-        disabled={!session}
-      >
-        Hang Up
-      </button>
-
-      <audio id="ringtone" src="/assets/ringtone.mp3" preload="auto" />
-      <audio id="end_ringtone" src="/assets/end-ringtone.mp3" preload="auto" />
-      <audio id="incoming_ringtone" src="/assets/incoming-ringtone.mp3" preload="auto" />
-      <audio id="audio_remote" autoPlay />
-
-      {callStatus === 'Incoming call...' && (
-        <div className="mt-4">
             <button
-                onClick={async () => {
-                    try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ 
-                        audio: {
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        autoGainControl: true
-                        }
-                    });
-
-                    session.answer({
-                        mediaStream: stream,
-                        mediaConstraints: { audio: true }
-                    });
-
-                    stopIncomingRingtone();
-                    setCallStatus("Call connected");
-
-                    } catch (err) {
-                    console.error("🎙️ Microphone access error on answer:", err);
-                    setCallStatus("Failed to access mic");
-                    }
-                }}
+                onClick={makeCall}
                 className="bg-green-500 text-white px-4 py-1 rounded mr-2"
-                >
-                Accept
-                </button>
-            <button onClick={() => session.terminate()} className="bg-red-500 text-white px-4 py-1 rounded">Reject</button>
+                disabled={!registered}
+            >
+                Call
+            </button>
+
+            <button
+                onClick={hangUp}
+                className="bg-red-500 text-white px-4 py-1 rounded"
+                disabled={!session}
+            >
+                Hang Up
+            </button>
+
+            {/* <audio id="ringtone" src="/assets/ringtone.mp3" preload="auto" />
+            <audio id="end_ringtone" src="/assets/end-ringtone.mp3" preload="auto" />
+            <audio id="incoming_ringtone" src="/assets/incoming-ringtone.mp3" preload="auto" />
+            <audio id="audio_remote" autoPlay /> */}
+
+            {callStatus === 'Incoming call...' && (
+                <div className="mt-4">
+                    <button
+                        onClick={async () => {
+                            try {
+                            const stream = await navigator.mediaDevices.getUserMedia({ 
+                                audio: {
+                                echoCancellation: true,
+                                noiseSuppression: true,
+                                autoGainControl: true
+                                }
+                            });
+
+                            session.answer({
+                                mediaStream: stream,
+                                mediaConstraints: { audio: true }
+                            });
+
+                            stopIncomingRingtone();
+                            setCallStatus("Call connected");
+
+                            } catch (err) {
+                            console.error("🎙️ Microphone access error on answer:", err);
+                            setCallStatus("Failed to access mic");
+                            }
+                        }}
+                        className="bg-green-500 text-white px-4 py-1 rounded mr-2"
+                        >
+                        Accept
+                        </button>
+                    <button onClick={() => session.terminate()} className="bg-red-500 text-white px-4 py-1 rounded">Reject</button>
+                </div>
+            )}
+
+
+            {!registered && <p className="mt-2 text-sm text-gray-600">Registering...</p>}
         </div>
-        )}
-
-
-      {!registered && <p className="mt-2 text-sm text-gray-600">Registering...</p>}
-    </div>
-  );
+    );
 };
 
 export default CallTester;

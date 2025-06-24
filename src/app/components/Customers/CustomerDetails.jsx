@@ -42,7 +42,7 @@ const ModalController = ({ children }) => {
 export default function CustomerDetails() {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
-  const { startCall } = useCall();
+  const { makeCall } = useCall();
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
@@ -156,7 +156,7 @@ const customerUsername = useMemo(() => {
                   <div className="flex gap-6 mt-5">
                     <div
                       className="flex flex-col items-center gap-2 cursor-pointer"
-                      onClick={() => startCall({ phone: customer?.phone_number, name: customerName, id: customer.id })}
+                      onClick={() => makeCall({ phone: customer?.phone_number, name: customerName, id: customer.id })}
                     >
                       <div className="flex w-8 h-8 p-2 justify-center items-center gap-2 rounded-md border border-gray-100 bg-white shadow-sm text-gray-600">
                         <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 17 16" stroke="currentColor">
