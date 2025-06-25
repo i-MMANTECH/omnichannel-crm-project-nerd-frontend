@@ -1,50 +1,17 @@
 "use client";
 
 import React, { useEffect, useState, Suspense } from "react";
-import UserGrid from "@/app/components/Users/UserGrid";
-import UserTable from "@/app/components/Users/UserTable";
-import CreateUserModal from "@/app/components/Users/CreateUserModal";
 import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import Image from "next/image";
-import table from "/public/assets/table.svg";
-import grid from "/public/assets/grid.svg";
-import sort from "/public/assets/sort.svg";
-import filter from "/public/assets/filter.svg";
-import NoDataFound from "@/app/components/NoDataFound";
-import empty from "/public/assets/empty.svg";
 import Pagination from "@/app/components/Pagination/Pagination";
 import { useDebounce } from 'use-debounce';
 import { useAuth } from "@/context/AuthContext";
 import UserAvatar from "../UserAvatar";
 import { getRoleStyle } from "@/utils/getRoleStyle";
-import { FolderUp } from "lucide-react";
+import PlayRecordingDrawer from "./PlayRecordingDrawer";
 
-
-const ModalController = ({ children }) => {
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const pathname = usePathname();
-    
-    const isModalOpen = searchParams.get("action") === "invite-user";
-
-    const openModal = () => {
-        const params = new URLSearchParams(searchParams.toString());
-        params.set("action", "invite-user");
-        router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    };
-
-    const closeModal = () => {
-        const params = new URLSearchParams(searchParams.toString());
-        params.delete("action");
-        router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    };
-
-    return children({ isModalOpen, openModal, closeModal });
-};
-
-// Main Users component
+// Main MissedCallReport component
 const MissedCallReport = () => {
     const { user } = useAuth();
     const router = useRouter();
@@ -55,182 +22,270 @@ const MissedCallReport = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
-    const [users, setUsers] = useState([]);
-    const [view, setView] = useState("table");
+    const [missedCalls, setMissedCalls] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
-    const [isCreateUser, setIsCreateUser] = useState(false)
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [selectedCall, setSelectedCall] = useState(null);
+    const searchParams = useSearchParams();
+
+    const formatDuration = (totalSeconds) => {
+        const sec = parseInt(totalSeconds, 10);
+        const hours = Math.floor(sec / 3600);
+        const minutes = Math.floor((sec % 3600) / 60);
+        const seconds = sec % 60;
+      
+        if (hours > 0) {
+          return [
+            hours.toString().padStart(2, '0'),
+            minutes.toString().padStart(2, '0'),
+            seconds.toString().padStart(2, '0'),
+          ].join(':');
+        }
+      
+        return [
+          minutes.toString().padStart(2, '0'),
+          seconds.toString().padStart(2, '0'),
+        ].join(':');
+    };
+    
+    const getFormattedDate = (dateString) => {
+        const date = new Date(dateString);
+        const options = {
+            year: "numeric",
+            month: "short",
+            day: "2-digit",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+        };
+        return date.toLocaleString("en-US", options).replace(',', '');
+    };
+    
+    const getRelativeTime = (dateString) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHr = Math.floor(diffMin / 60);
+        const diffDay = Math.floor(diffHr / 24);
+    
+        if (diffSec < 60) return "Just now";
+        if (diffMin < 60) return `${diffMin} minute${diffMin !== 1 ? 's' : ''} ago`;
+        if (diffHr < 24) return `${diffHr} hour${diffHr !== 1 ? 's' : ''} ago`;
+        if (diffDay < 7) return `${diffDay} day${diffDay !== 1 ? 's' : ''} ago`;
+        
+        const weeks = Math.floor(diffDay / 7);
+        return `${weeks} week${weeks !== 1 ? 's' : ''} ago`;
+    };    
+    
 
     useEffect(() => {
-        fetchUsers(currentPage, pageSize, debouncedSearchQuery);
-
-        const storedView = localStorage.getItem("view");
-        if (storedView) setView(storedView);
+        getMissedCalls(currentPage, pageSize, debouncedSearchQuery);
     }, [currentPage, pageSize, debouncedSearchQuery]);
 
-    const fetchUsers = async (page = 1, limit = 10, search = "") => {
+    useEffect(() => {
+        const page = parseInt(searchParams.get("page") || "1", 10);
+        const pageSize = parseInt(searchParams.get("page_size") || "10", 10);
+    
+        setCurrentPage(page);
+        setPageSize(pageSize);
+    }, [searchParams]);
+
+    const getMissedCalls = async (page = 1, page_size = 10, search = "") => {
         try {
-            const { data } = await axiosInstance.get(`/users?limit=${limit}&page=${page}&search=${search}`);
-            setUsers(data.results.filter(u => u.id !== Number(user.user_id)));
-            setTotalPages(Math.ceil(data.count / limit));
+            const { data } = await axiosInstance.get(`/call-center/missed-calls?page_size=${page_size}&page=${page}&search=${search}`);
+            setMissedCalls(data.results);
+            setTotalPages(Math.ceil(data.count / page_size));
         } catch (error) {
             handleApiError(error);
         }
     };
 
-    const toggleView = () => {
-        const newView = view === "grid" ? "table" : "grid";
-        setView(newView);
-        localStorage.setItem("view", newView);
+    const getAssignedAgent = (call) => {
+        if (!call || !call.direction) return "Unassigned";
+    
+        const agentNumber =
+            call.direction === "inbound"
+                ? call.destination_number
+                : call.caller_id_number;
+    
+        return agentNumber || "Unassigned";
     };
 
-    const handlePageChange = (page) => {
-        const params = new URLSearchParams(searchParams);
-        params.set("page", page);
-        router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    };
-
-    const handlePageSizeChange = (limit) => {
-        const params = new URLSearchParams(searchParams);
-        params.set("limit", limit);
-        params.set("page", 1); // Reset to first page when limit changes
-        router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    };
+    const getCallerInfo = (call) => {
+        const contactNumber =
+            call.direction === "outbound"
+                ? call.destination_number
+                : call.caller_id_number;
+    
+        if (call.lead_details && call.lead_details.length > 0) {
+            const lead = call.lead_details[0];
+            if (
+                lead.first_name &&
+                lead.first_name !== "Anonymous" &&
+                (lead.phone_number === contactNumber || !lead.phone_number)
+            ) {
+                return `${lead.first_name} ${lead.last_name || ""}`.trim();
+            }
+        }
+    
+        return contactNumber || call.caller_id_name || "Unknown";
+    };    
 
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <ModalController>
-                {({ isModalOpen, openModal, closeModal }) => (
-                    <div className="customers-page overflow-x-hidden flex flex-col px-10 min-h-[83vh] h-full !ml-0">
-
-                        <div className="relative body-theme flex-1 flex flex-col h-full">
-                        <div className="flex flex-wrap justify-between items-center mb-6 gap-4 sm:flex-nowrap">
-                            <div className="flex items-center space-x-2 sm:space-x-4">
-                                <div className="relative w-full sm:w-auto">
-                                    <input
-                                        className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
-                                        placeholder="Search number or name"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
-                                    <button
-                                        className="absolute top-1 right-1 flex items-center rounded py-1 px-2.5 text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 dark:active:bg-black hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
-                                        type="button"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                                            <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Search and Invite User */}
-                            <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto sm:flex-nowrap">
-                                <button 
-                                    onClick={openModal}
-                                    className="hidden bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm w-full sm:w-auto">
-                                    Export
-                                </button>
-                                <div className="flex h-[40px] p-[8px_12px_8px_14px] justify-center items-center gap-2 rounded-[10px] border border-[#DFE1E6] bg-white shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                        <path d="M13.3333 2H2.66667C2.29848 2 2 2.29848 2 2.66667V3.7468C2 4.33065 2.25513 4.88535 2.69842 5.26531L5.96825 8.06802C6.41154 8.44799 6.66667 9.00269 6.66667 9.58654V14L9.33333 12.6667V9.58654C9.33333 9.00269 9.58846 8.44799 10.0318 8.06802L13.3016 5.26531C13.7449 4.88535 14 4.33065 14 3.7468V2.66667C14 2.29848 13.7015 2 13.3333 2Z" stroke="#808897" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
+            <div className="customers-page overflow-x-hidden flex flex-col px-10 min-h-[83vh] h-full !ml-0">
+                <div className="relative body-theme flex-1 flex flex-col h-full">
+                    <div className="flex flex-wrap justify-between items-center mb-6 gap-4 sm:flex-nowrap">
+                        <div className="flex items-center space-x-2 sm:space-x-4">
+                            <div className="relative w-full sm:w-auto">
+                                <input
+                                    className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
+                                    placeholder="Search number or name"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                                <button
+                                    className="absolute top-1 right-1 flex items-center rounded py-1 px-2.5 text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 dark:active:bg-black hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
+                                    type="button"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                                        <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
                                     </svg>
-                                    
-                                    <span className=" text-[#666D80] text-center font-[500] text-[14px] font-[Encode Sans] leading-[150%] tracking-[0.2px]">
-                                        Filter
-                                    </span>
-                                </div>
+                                </button>
                             </div>
                         </div>
 
-                            <div className="h-full">
-                                <div >
-                                    <div className="overflow-auto ">
-                                    <table className="min-w-full body-theme ">
-                                        <thead className="bg-gray-100 dark:bg-neutral-900">
-                                        <tr>
-                                            <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-500">
-                                            Number/Contact
-                                            </th>
-                                            <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-500">
-                                            Time
-                                            </th>
-                                            <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-500">
-                                            Status
-                                            </th>
-                                            <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-500">
-                                            Assigned to
-                                            </th>
-                                            <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-500">
-                                            Action
-                                            </th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        {users.map((user, index) => (
-                                            <tr key={index} onClick={() => router.push(`users/${user.id}`)} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer">
-                                            <td className="py-3 px-4 border-b flex items-center space-x-3">
-                                                <UserAvatar 
-                                                name={user.first_name ? 
-                                                    `${user.first_name} ${user.last_name}` : 
-                                                    user.email || '--'
-                                                } 
-                                                width="w-8" 
-                                                height="h-8" 
-                                                />
-                                                <span>{user.first_name ? 
-                                                    `${user.first_name} ${user.last_name}` : 
-                                                    '--'
-                                                } </span>
-                                            </td>
-                                            <td className="py-3 px-4 border-b">
-                                                {user.roles.map((role) => (
-                                                <span
-                                                    key={role.id}
-                                                    className="px-2 py-1 rounded ml-1"
-                                                    style={getRoleStyle(role.name)}
-                                                >
-                                                    {role.name}
-                                                </span>
-                                                ))}
-                                            </td>
-                                            <td className="py-3 px-4 border-b">
-                                                <span style={{ color: "inherit", textDecoration: "none" }}>
-                                                    {user.email}
-                                                </span>
-                                            </td>
-                                            <td className="py-3 px-4 border-b">
-                                                <span style={{ color: "inherit", textDecoration: "none" }}>
-                                                    {user.phone_number}
-                                                </span>
-                                            </td>
-                                            <td className="py-3 px-4 border-b">
-                                                <span style={{ color: "inherit", textDecoration: "none" }}>
-                                                    {user.lastActive || "--"}
-                                                </span>
-                                            </td>
-                                            </tr>
-                                        ))}
-                                        </tbody>
-                                    </table>
-                                    </div>
-
-                                </div>                      
-                            </div>
-
-                            <div className="mt-10">
-                                <Pagination 
-                                    currentPage={currentPage} 
-                                    totalPages={totalPages} 
-                                    onPageChange={setCurrentPage} 
-                                    onPageSizeChange={setPageSize}
-                                    pageSize={pageSize}
-                                />
+                        {/* Search and Export */}
+                        <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto sm:flex-nowrap">
+                            <button 
+                                className="hidden bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm w-full sm:w-auto">
+                                Export
+                            </button>
+                            <div className="flex h-[40px] p-[8px_12px_8px_14px] justify-center items-center gap-2 rounded-[10px] border border-[#DFE1E6] bg-white shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M13.3333 2H2.66667C2.29848 2 2 2.29848 2 2.66667V3.7468C2 4.33065 2.25513 4.88535 2.69842 5.26531L5.96825 8.06802C6.41154 8.44799 6.66667 9.00269 6.66667 9.58654V14L9.33333 12.6667V9.58654C9.33333 9.00269 9.58846 8.44799 10.0318 8.06802L13.3016 5.26531C13.7449 4.88535 14 4.33065 14 3.7468V2.66667C14 2.29848 13.7015 2 13.3333 2Z" stroke="#808897" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                                <span className=" text-[#666D80] text-center font-[500] text-[14px] font-[Encode Sans] leading-[150%] tracking-[0.2px]">
+                                    Filter
+                                </span>
                             </div>
                         </div>
                     </div>
-                )}
-            </ModalController>
+
+                    <div className="h-full">
+                        <div className="overflow-auto">
+                            <table className="min-w-full body-theme">
+                                <thead className="bg-gray-100 dark:bg-neutral-900">
+                                    <tr>
+                                        <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-500">
+                                            Number/Contact
+                                        </th>
+                                        <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-500">
+                                            Time
+                                        </th>
+                                        <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-500">
+                                            Status
+                                        </th>
+                                        <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-500">
+                                            Assigned to
+                                        </th>
+                                        <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-500">
+                                            Duration
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {missedCalls.map((call, index) => (
+                                        <tr key={index} onClick={() => {
+                                                setSelectedCall(call);
+                                                setIsDrawerOpen(true);
+                                            }} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer">
+                                            <td className="py-3 px-4 border-b flex items-center space-x-3">
+                                                <UserAvatar 
+                                                    name={getCallerInfo(call)} 
+                                                    width="w-8" 
+                                                    height="h-8" 
+                                                />
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium">{call.caller_id_number}</span>
+                                                    <span className="text-sm text-gray-500">{getCallerInfo(call)}</span>
+                                                </div>
+                                            </td>
+                                            <td className="py-3 px-4 border-b">
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium">
+                                                        {getFormattedDate(call.converted_date)}
+                                                    </span>
+                                                    <span className="text-sm text-gray-500">
+                                                        {getRelativeTime(call.converted_date)}
+                                                    </span>
+                                                </div>
+                                            </td>
+
+                                            <td className="py-3 px-4 border-b">
+                                                <span
+                                                    className="px-2 py-1 rounded"
+                                                    style={getRoleStyle(call.call_status)}
+                                                >
+                                                    {call.call_status}
+                                                </span>
+                                            </td>
+                                            <td className="py-3 px-4 border-b">
+                                                <div className="flex items-center space-x-2">
+                                                    <UserAvatar 
+                                                        name={getAssignedAgent(call)} 
+                                                        width="w-6" 
+                                                        height="h-6" 
+                                                    />
+                                                    <span style={{ color: "inherit", textDecoration: "none" }}>
+                                                        {getAssignedAgent(call)}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="py-3 px-4 border-b">
+                                                <span style={{ color: "inherit", textDecoration: "none" }}>
+                                                    {formatDuration(call.actual_duration)}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div className="mt-10">
+                        <Pagination 
+                            currentPage={currentPage} 
+                            totalPages={totalPages} 
+                            onPageChange={(page) => {
+                                const params = new URLSearchParams(searchParams.toString());
+                                params.set("page", page);
+                                router.push(`${pathname}?${params.toString()}`, { scroll: false });
+                            }}
+                            onPageSizeChange={(size) => {
+                                const params = new URLSearchParams(searchParams.toString());
+                                params.set("page_size", size);
+                                params.set("page", 1);
+                                router.push(`${pathname}?${params.toString()}`, { scroll: false });
+                            }}
+                            pageSize={pageSize}
+                        />
+                    </div>
+                </div>
+
+                <PlayRecordingDrawer
+                    show={isDrawerOpen}
+                    onClose={() => {
+                        setIsDrawerOpen(false);
+                        setSelectedCall(null);
+                    }}
+                    cdr={selectedCall}
+                />
+            </div>
         </Suspense>
     );
 };

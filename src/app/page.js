@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { getUserFromStorage } from '@/utils/getUserFromStorage';
 
 
 const Page = () => {
@@ -12,10 +13,14 @@ const Page = () => {
     useEffect(() => {
         if (typeof window != 'undefined') {
             window.addEventListener('load', () => {    
-                if (!isAuthenticated && !localStorage.getItem('user')) {
+                const user = getUserFromStorage();
+
+                if (!isAuthenticated && !user) {
                     router.push('/auth/sign-in');
-                } else if (localStorage.getItem('user') && isAuthenticated) {
-                    router.push('/nativecrm');
+                } else if (user && isAuthenticated) {
+                    const isAdmin = user.roles?.includes("Admin") || user.roles?.includes("admin");
+                    router.push(isAdmin ? '/admin' : '/nativecrm');
+                    return;
                 } else {
                     router.push('/auth/sign-in');
                 }
@@ -24,12 +29,17 @@ const Page = () => {
     }, [])
 
     useEffect(() => {
-        if (isAuthenticated && localStorage.getItem('user')) {
+        const user = getUserFromStorage();
+
+        if (isAuthenticated && user) {
             const timer = setTimeout(() => {
-                router.push('/nativecrm');    
+                router.push('/nativecrm');   
+                const isAdmin = user.roles?.includes("Admin") || user.roles?.includes("admin");
+                router.push(isAdmin ? '/admin' : '/nativecrm');
+                return;
             }, 1000);
             return () => clearTimeout(timer);
-        } else if (!isAuthenticated && !localStorage.getItem('user')) {
+        } else if (!isAuthenticated && !user) {
             router.push('/auth/sign-in');
         }
     }, [isAuthenticated])

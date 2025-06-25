@@ -15,6 +15,11 @@ const nextConfig = {
           destination: '/nativecrm/dashboard',
           permanent: true,
         },
+        {
+          source: '/admin',
+          destination: '/admin/dashboard',
+          permanent: true,
+        },
       ]
     },
   };
