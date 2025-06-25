@@ -34,22 +34,25 @@ const MessagesReport = ({filters, selectedUser, refreshKey}) => {
       setLoadingReport(true);
   
       const now = new Date();
-      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24 hours ago
+      const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
   
       const params = {
-        start_date: yesterday.toISOString().split("T")[0],
+        start_date: lastWeek.toISOString().split("T")[0],
         end_date: now.toISOString().split("T")[0],
         send_email: true,
       };
   
-      const res = await axiosInstance.post(`/analytics/conversations/report/?start_date=${params.start_date}&end_date=${params.end_date}&send_email=${true}`);
+      const res = await axiosInstance.post(
+        `/analytics/conversations/report/?start_date=${params.start_date}&end_date=${params.end_date}&send_email=true`
+      );
+      
       setAnalysisReport(res.data);
     } catch (error) {
       handleApiError(error);
     } finally {
       setLoadingReport(false);
     }
-  };
+  };  
 
   const fetchData = async () => {
     setLoading(true);

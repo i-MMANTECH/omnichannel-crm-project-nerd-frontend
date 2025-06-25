@@ -155,7 +155,7 @@ const customerUsername = useMemo(() => {
                   <p className="customer-left-email text-sm mt-1">{ customer?.email }</p>
                   <div className="flex gap-6 mt-5">
                     <div
-                      className="flex flex-col items-center gap-2 cursor-pointer"
+                      className="hidden flex flex-col items-center gap-2 cursor-pointer"
                       onClick={() => makeCall({ phone: customer?.phone_number, name: customerName, id: customer.id })}
                     >
                       <div className="flex w-8 h-8 p-2 justify-center items-center gap-2 rounded-md border border-gray-100 bg-white shadow-sm text-gray-600">

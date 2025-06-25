@@ -865,7 +865,7 @@ export const MessagesContent = () => {
 						<div 
 						key={index}
 						className={`cursor-pointer rounded-full transition-all duration-300
-						${selectedAgent === assignee.id ? 'ring-2 dark:ring-white ring-gray-500 z-10' : ''}`}
+						${selectedAgent === assignee.id ? 'ring-2 dark:ring-white ring-[#3EBF0F] z-10' : ''}`}
 						style={{ marginLeft: index !== 0 ? '-7px' : '0px' }} 
 						onClick={() => handleAssigneeClick(assignee.id)}
 						onMouseEnter={(e) => e.currentTarget.classList.add("z-10")}
@@ -875,7 +875,7 @@ export const MessagesContent = () => {
 						{assignee?.image ? (
 							<Image
 							alt="profile pic"
-							className="w-9 h-9 rounded-full border-2 border-white"
+							className="w-9 h-9 rounded-full bg-gray-200"
 							src={assignee.image} 
 							width={30}
 							height={30}
@@ -886,7 +886,7 @@ export const MessagesContent = () => {
 								`${assignee.first_name} ${assignee?.last_name}` : 
 								assignee?.email || '--'
 							} 
-							className="w-10 h-10 rounded-full flex-shrink-0 border-2 border-white"
+							className="w-10 h-10 rounded-full flex-shrink-0"
 							width="w-9" 
 							height="h-9" 
 							/>

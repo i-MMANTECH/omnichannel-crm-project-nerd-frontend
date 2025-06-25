@@ -25,7 +25,6 @@ const CallModal = () => {
   const [note, setNote] = useState("");
 
   const intervalRef = useRef(null);
-  const localStreamRef = useRef(null);
 
 
   useEffect(() => {

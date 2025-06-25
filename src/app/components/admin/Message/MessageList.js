@@ -123,7 +123,7 @@ const MessageList = ({ chatHistory }) => {
         return (
           <div className={`chat ${isOutgoing ? "chat-right" : "chat-left"}`} key={index}>
             <div className={`mt-1 bubble-chat ${isOutgoing ? "bubble-chat-user" : "bubble-chat-other"}`}>
-              {msg.channel?.image && (
+              {msg?.channel?.image && (
                 <div
                   className={`absolute -top-2 ${isOutgoing ? "-right-3" : "-left-3"} mb-7 w-5 h-5 bg-white rounded-full border border-gray-300 shadow-md p-[2px]`}
                   onMouseEnter={() => setHoveredChannelId(index)}
@@ -146,6 +146,10 @@ const MessageList = ({ chatHistory }) => {
               )}
 
               <div className="relative">
+                {msg?.channel.id == 7 &&
+                  <div className="text-lg font-semibold mb-10">Subject: <span>{msg?.subject ?? "__"}</span></div>
+                }
+                
                 {isOutgoing ? (
                   <div className="flex items-center relative">
                     <div
@@ -214,7 +218,7 @@ const MessageList = ({ chatHistory }) => {
                             return (
                               <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
                                 <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
-                                <span className="text-sm truncate text-white">{fileName}</span>
+                                <span className="text-sm truncate">{fileName}</span>
                                 <button
                                   className="ml-auto text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
                                   onClick={() => downloadFile(attachment.file, fileName)}
@@ -245,45 +249,6 @@ const MessageList = ({ chatHistory }) => {
                   </div>
                 ) : (
                   <div>
-                    {msg.content_type === "image" && msg.attachments && msg.attachments.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {msg.attachments.map((attachment, i) => (
-                          <Image
-                            key={i}
-                            loader={() => attachment.file}
-                            src={attachment.file}
-                            alt="Received Image"
-                            className="image-message max-w-[500px] max-h-[500px] pointer"
-                            width={350}
-                            height={500}
-                            onClick={() => openImageModal(attachment.file)}
-                          />
-                        ))}
-                      </div>
-                    )}
-
-                    {/* If message contains documents, display them */}
-                    {msg.content_type === "document" && msg.attachments && msg.attachments.length > 0 && (
-                      <div className="flex flex-col gap-2">
-                        {msg.attachments.map((attachment, i) => {
-                          const fileType = attachment.file.split('.').pop();
-                          const fileName = attachment.file.split('/').pop();
-                          return (
-                            <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                              <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
-                              <span className="text-sm truncate text-white">{fileName}</span>
-                              <button
-                                className="ml-auto text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
-                                onClick={() => downloadFile(attachment.file, fileName)}
-                              >
-                                <FontAwesomeIcon icon={faDownload} />
-                              </button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
                     {/* Show text content below images or documents if present */}
                     {msg.content_type === "text" || msg.content_type === "image" || msg.content_type === "document" ? (
                       <p style={{ whiteSpace: "pre-wrap", marginTop: msg.attachments?.length ? "8px" : "0" }}>
@@ -292,6 +257,47 @@ const MessageList = ({ chatHistory }) => {
                     ) : msg.content_type === "html" ? (
                       <div dangerouslySetInnerHTML={{ __html: msg.content }} />
                     ) : <i>invalid content</i>}
+                    
+                    {/* If message contains documents, display them */}
+                    {msg.attachments && msg.attachments.length > 0 && (
+                      <div className="flex flex-col gap-2">
+                        <div className="mt-10 mb-2 font-semibold underline">{msg.attachments.length == 1 ? 'Attachment' : 'Attachments'}</div>
+                        {msg.attachments.map((attachment, i) => {
+                          const fileType = attachment.file.split('.').pop();
+                          const fileName = attachment.file.split('/').pop();
+
+                          if (attachment.file_type == 'image') {
+                            return (
+                              <Image
+                                key={i}
+                                loader={() => attachment.file}
+                                src={attachment.file}
+                                alt="Sent Image"
+                                className="image-message max-w-[250px] max-h-[250px] pointer mb-2"
+                                width={300}
+                                height={300}
+                                onClick={() => openImageModal(attachment.file)}
+                              />
+                            )
+                          }
+                          else {
+                            return (
+                              <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-2">
+                                <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
+                                <span className="text-sm truncate ">{fileName}</span>
+                                <button
+                                  className="ml-auto text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
+                                  onClick={() => downloadFile(attachment.file, fileName)}
+                                >
+                                  <FontAwesomeIcon icon={faDownload} />
+                                </button>
+                              </div>
+                            );
+                          }
+                        })}
+                      </div>
+                    )}
+
                   </div>
                 )}
               </div>
@@ -302,7 +308,6 @@ const MessageList = ({ chatHistory }) => {
                 {getSmartTimestamp(msg.created_at)}
               </p>
               {isOutgoing && getIconForStatus(msg.status)}
-
             </div>
           </div>
         );
