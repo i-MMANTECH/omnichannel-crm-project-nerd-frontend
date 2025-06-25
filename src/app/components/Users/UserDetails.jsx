@@ -14,15 +14,6 @@ export default function UserDetails({ user }) {
   const [selected, setSelected] = useState("work-schedule");
 
 
-
-  const name = useMemo(() => {
-    if (user?.name) {
-      return `${user?.first_name} ${user?.last_name}`
-    } else {
-      return '--'
-    }
-  })
-
   return (
     <div className="flex justify-center mt-5">
       <div className="flex mb-5 flex-col max-w-[788px] p-8 items-center gap-6 flex-1 rounded-lg border border-gray-300 body-theme">
@@ -35,11 +26,25 @@ export default function UserDetails({ user }) {
               width={50}
               height={50}
             />}
-            {!user?.image && <UserAvatar name={user?.name ? user?.name : '--'} />}
+            {!user?.image && 
+              <UserAvatar 
+                name={user.first_name ? 
+                  `${user.first_name} ${user.last_name}` : 
+                  user.email || '--'
+                } 
+                width="w-8" 
+                height="h-8" 
+              />
+            }
+            
 
-            <p className="user-left-name">{ name }</p>
+            <p className="user-left-name">
+              {user.first_name ? 
+                  `${user.first_name} ${user.last_name}` : '--'
+              }
+            </p>
             <p className="user-left-email">{ user?.email }</p>
-            <div className="flex w-full mt-4 items-center justify-between">
+            <div className="flex w-full mt-4 items-center justify-center">
               <p className="py-1 pl-2 pr-2 text-right text-[#40C4AA] -ml-1 font-medium text-[12px] font-normal rounded-sm">
                 {user?.roles.map((role) => (
                       <span
@@ -51,9 +56,11 @@ export default function UserDetails({ user }) {
                       </span>
                     ))}
               </p>
-              <p className="text-right font-medium text-sm bg-[#F8F9FB] dark:bg-gray-800 px-2 py-1 rounded">
-                Last seen: { user?.last_active || '--'}
-              </p>
+              {user?.last_active &&
+                <p className="text-right font-medium text-sm bg-[#F8F9FB] dark:bg-gray-800 px-2 py-1 rounded">
+                  Last seen: {user?.last_active}
+                </p>
+              }
             </div>
           </div>
 
@@ -67,7 +74,11 @@ export default function UserDetails({ user }) {
               <p className="font-medium text-[14px] font-normal text-left">
                 Name
               </p>
-              <p className="user-left-name">{ name }</p>
+              <p className="user-left-name">
+                {user.first_name ? 
+                  `${user.first_name} ${user.last_name}` : '--'
+                } 
+              </p>
             </div>
 
             <div className="flex items-center justify-between mt-2">
@@ -101,48 +112,53 @@ export default function UserDetails({ user }) {
               <p className="user-left-name">{ user?.phone_number || '--' }</p>
             </div>
 
-            <p className="mt-5 text-left">
-              Other Information
-            </p>
-            <hr className="w-[318px] h-[1px] bg-[#DFE1E6] mt-2" />
+            {user?.gender || user?.dob || user?.country || user?.state && 
+            <div>
+              <p className="mt-5 text-left">
+                Other Information
+              </p>
+              <hr className="w-[318px] h-[1px] bg-[#DFE1E6] mt-2" />
 
-            <div className="flex items-center justify-between mt-2">
-              {user?.gender && (
-                <>
-                  <p className="font-medium text-[14px] font-normal text-left">
-                    Gender
+              <div className="flex items-center justify-between mt-2">
+                {user?.gender && (
+                  <>
+                    <p className="font-medium text-[14px] font-normal text-left">
+                      Gender
+                    </p>
+                    <p className="user-left-name">{user.gender}</p>
+                  </>
+                )}
+              </div>
+
+              {user?.dob && (
+                <div className="flex items-center justify-between mt-2">
+                  <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
+                    DOB
                   </p>
-                  <p className="user-left-name">{user.gender}</p>
-                </>
+                  <p className="user-left-name">{user.dob}</p>
+                </div>
               )}
-            </div>
 
-            {user?.dob && (
-              <div className="flex items-center justify-between mt-2">
-                <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
-                  DOB
-                </p>
-                <p className="user-left-name">{user.dob}</p>
-              </div>
-            )}
+              {user?.country && (
+                <div className="flex items-center justify-between mt-2">
+                  <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
+                    Country
+                  </p>
+                  <p className="user-left-name">{user.country}</p>
+                </div>
+              )}
 
-            {user?.country && (
-              <div className="flex items-center justify-between mt-2">
-                <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
-                  Country
-                </p>
-                <p className="user-left-name">{user.country}</p>
+              {user?.state && (
+                <div className="flex items-center justify-between mt-2">
+                  <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
+                    State
+                  </p>
+                  <p className="user-left-name">{user.state}</p>
+                </div>
+              )}
               </div>
-            )}
+            }
 
-            {user?.state && (
-              <div className="flex items-center justify-between mt-2">
-                <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
-                  State
-                </p>
-                <p className="user-left-name">{user.state}</p>
-              </div>
-            )}
 
           </div>
         </div>

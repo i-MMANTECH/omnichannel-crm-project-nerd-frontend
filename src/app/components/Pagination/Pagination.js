@@ -8,16 +8,16 @@ const Pagination = ({
   onPageSizeChange, 
   pageSize,
   pageParam = "page",
-  limitParam = "limit"
+  pageSizeParam = "page_size"
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  const updateURL = (page, limit) => {
+  const updateURL = (page, page_size) => {
     const newParams = new URLSearchParams(searchParams.toString());
     newParams.set(pageParam, page);
-    newParams.set(limitParam, limit);
+    newParams.set(pageSizeParam, page_size);
     router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
   };
 

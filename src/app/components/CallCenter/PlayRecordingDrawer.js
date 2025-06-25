@@ -21,7 +21,14 @@ const PlayRecordingDrawer = ({ show, onClose, cdr }) => {
   const contactName = lead_details?.[0]?.first_name || "--";
   const status = call_status || "Unknown";
 
-  const timestamp = new Date(call_start_time);
+  const isValidTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    return !isNaN(date.getTime());
+  };
+
+  // Safely parse call_start_time
+  const timestamp = isValidTimestamp(call_start_time) ? new Date(call_start_time) : new Date();
+
   
   const formatDuration = (totalSeconds) => {
     const sec = parseInt(totalSeconds, 10);
@@ -88,7 +95,11 @@ const PlayRecordingDrawer = ({ show, onClose, cdr }) => {
             <p className="text-sm text-gray-500">{contactName}</p>
           </div>
           <div className="text-right text-sm text-gray-500">
-            <div className="font-semibold">{format(timestamp, "MMMM d, yyyy h:mmaaa")}</div>
+            <div className="font-semibold">
+              {isValidTimestamp(call_start_time) 
+                ? format(timestamp, "MMMM d, yyyy h:mmaaa") 
+                : "Invalid date"}
+            </div>
             <div className="text-xs mt-1">{formatDuration(total_duration)}</div>
           </div>
         </div>
