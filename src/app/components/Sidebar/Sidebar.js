@@ -171,7 +171,7 @@ function Sidebar() {
                 <Link
                   onClick={() => setIsOpen(false)}
                   href="/nativecrm/call-center#call-detail-records"
-                  className={`hidden flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/call-center") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/call-center") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
                 >
                   <Phone size={18} />
                   <h3 className="text-sm font-medium">Call Center</h3>

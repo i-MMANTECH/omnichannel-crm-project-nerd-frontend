@@ -38,7 +38,7 @@ const CallModal = () => {
       intervalRef.current = setInterval(() => {
         setCallTime((t) => t + 1);
       }, 1000);
-    } else if (callStatus === 'RINGING') {
+    } else if (callStatus === 'RINGING' || callStatus === 'INCOMING') {
       intervalRef.current = setInterval(() => {
         setWaitTime((t) => t + 1);
       }, 1000);
@@ -86,11 +86,11 @@ const CallModal = () => {
           {/* Header */}
           {incoming && (
             <div className="flex justify-between px-6">
-              <button onClick={acceptCall} className="w-12 h-12 bg-green-500 text-white rounded-full">
-                Accept
-              </button>
-              <button onClick={endCall} className="w-12 h-12 bg-red-500 text-white rounded-full">
+              <button onClick={endCall} className="bg-red-500 text-white rounded px-3 py-2">
                 Reject
+              </button>
+              <button onClick={acceptCall} className="bg-green-500 text-white rounded px-3 py-2">
+                Accept
               </button>
             </div>
           )}
@@ -136,15 +136,15 @@ const CallModal = () => {
 
           {/* Notes field (always shown when expanded, regardless of callStatus) */}
           {!isCollapsed && (
-            <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700">Comments</label>
+            <div >
+                <label className="hidden block text-sm font-medium mb-1 text-gray-700">Comments</label>
                 <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Type message..."
                 rows={3}
                 maxLength={200}
-                className="w-full p-3 border border-gray-300 rounded-lg text-sm"
+                className="hidden w-full p-3 border border-gray-300 rounded-lg text-sm"
                 />
                 <div className="flex justify-between items-center mt-2 gap-2">
                   {callStatus !== "CONNECTED" && callStatus !== "RINGING" ? (
@@ -159,13 +159,13 @@ const CallModal = () => {
                   )}
 
                   <button
-                    className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md text-sm"
+                    className="hidden bg-[#3EBF0F] text-white px-4 py-2 rounded-md text-sm"
                   >
                     Save
                   </button>
                 </div>
-                <p className="text-xs text-right text-gray-500 mt-1">
-                Word Count: {note.length}/200
+                <p className="hidden text-xs text-right text-gray-500 mt-1">
+                  Word Count: {note.length}/200
                 </p>
             </div>
           )}

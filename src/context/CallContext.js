@@ -65,6 +65,7 @@ export const CallProvider = ({ children }) => {
                         phone: rtcSession.remote_identity.uri.user,
                     });
 
+                    setIsVisible(false);
                     setIsVisible(true);
                     setIncoming(true);
                     setCallStatus('INCOMING');
@@ -273,7 +274,12 @@ export const CallProvider = ({ children }) => {
 
             session.answer({
                 mediaStream: stream,
-                mediaConstraints: { audio: true }
+                mediaConstraints: { audio: true },
+                pcConfig: {
+                    iceServers: [
+                        { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }
+                    ]
+                }
             });
 
             stopAllRingtones();

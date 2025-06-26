@@ -9,6 +9,7 @@ import MissedCallReport from '@/app/components/CallCenter/MissedCallReport';
 import LiveCalls from '@/app/components/CallCenter/LiveCalls';
 import IVR from '@/app/components/CallCenter/IVR';
 import Setup from '@/app/components/CallCenter/Setup';
+import FloatingDialer from '@/app/components/CallCenter/FloatingDialer';
 
 
 export default function CallCenter() {
@@ -50,18 +51,19 @@ export default function CallCenter() {
 
   return (
     <div> 
-    <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh] gap-5">      
-      <div className='relative w-1/5 border-e border-gray-300 dark:border-gray-600'>
-        <CallCenterSidebar 
-          onSidebarClick={handleSidebarClick}
-          currentSection={currentSection}
-        />
-        
+      <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh] gap-5">      
+        <div className='relative w-1/5 border-e border-gray-300 dark:border-gray-600'>
+          <CallCenterSidebar 
+            onSidebarClick={handleSidebarClick}
+            currentSection={currentSection}
+          />
+        </div>
+        <div className="flex-1">
+          {renderContent()}
+        </div>
       </div>
-      <div className="flex-1">
-        {renderContent()}
-      </div>
-    </div>
-    </div>
+
+      <FloatingDialer />
+  </div>
   );
 }
