@@ -6,6 +6,9 @@ import "./messageList.css";
 import Image from "next/image";
 import UserAvatar from "../UserAvatar";
 import { useRouter } from "next/navigation";
+ import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
 
 
 const getSmartTimestamp = (messageDate) => {
@@ -111,6 +114,55 @@ const MessageList = ({ chatHistory }) => {
     if (fileType === "doc" || fileType === "docx") return faFileWord;
     return faFile;
   };
+
+function renderMessageContent(msg) {
+  
+  if (msg.content_type === 'html') {
+    return <div dangerouslySetInnerHTML={{ __html: msg.content }} />;
+  }
+
+  if (msg.content_type === 'text' && msg.channel?.name === 'WhatsApp') {
+    let md = msg.content
+      .replace(/^•\s/gm, '- ')
+      .replace(
+        /^([A-Za-z0-9 \-\(\)]+):\s*(.+)$/gm,
+        (_, title, rest) => `- **${title.trim()}**: ${rest.trim()}`
+      );
+
+    return (
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          p: ({ node, ...props }) => (
+            <p
+              style={{
+                whiteSpace: 'pre-wrap',
+                marginTop: msg.attachments?.length ? '8px' : '0',
+              }}
+              {...props}
+            />
+          ),
+        }}
+      >
+        {md}
+      </ReactMarkdown>
+    );
+  }
+
+  if (msg.content_type === 'text') {
+    return (
+      <p
+        style={{
+          whiteSpace: 'pre-wrap',
+          marginTop: msg.attachments?.length ? '8px' : '0',
+        }}
+      >
+        {msg.content}
+      </p>
+    );
+  }
+  return <i>invalid content</i>;
+}
 
   if (!chatHistory || chatHistory?.length === 0) return null;
 
@@ -230,14 +282,7 @@ const MessageList = ({ chatHistory }) => {
                         </div>
                       )}
 
-                      {/* Display text content below images or documents (if available) */}
-                      {msg.content_type === "text" || msg.content_type === "image" || msg.content_type === "document" ? (
-                        <p style={{ whiteSpace: "pre-wrap", marginTop: msg.attachments?.length ? "8px" : "0" }}>
-                          {msg.content}
-                        </p>
-                      ) : msg.content_type === "html" ? (
-                        <div dangerouslySetInnerHTML={{ __html: msg.content }} />
-                      ) : null}
+                       {renderMessageContent(msg)} 
                     </div>
 
                     {hoveredUserId === index && userDisplayInfo && (
@@ -289,13 +334,7 @@ const MessageList = ({ chatHistory }) => {
                     )}
 
                     {/* Show text content below images or documents if present */}
-                    {msg.content_type === "text" || msg.content_type === "image" || msg.content_type === "document" ? (
-                      <p style={{ whiteSpace: "pre-wrap", marginTop: msg.attachments?.length ? "8px" : "0" }}>
-                        {msg.content}
-                      </p>
-                    ) : msg.content_type === "html" ? (
-                      <div dangerouslySetInnerHTML={{ __html: msg.content }} />
-                    ) : <i>invalid content</i>}
+                     {renderMessageContent(msg)} 
                   </div>
                 )}
               </div>
