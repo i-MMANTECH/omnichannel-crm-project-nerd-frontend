@@ -132,15 +132,15 @@ export const MessagesContent = () => {
 			wsRef.current = new WebSocket(wsUrl);
 	
 			wsRef.current.onopen = () => {
-				console.log('✅ WebSocket connected');
+				console.log('✅ ws connected');
 			};
 	
 			wsRef.current.onerror = (error) => {
-				console.log('❌ WebSocket error:', error);
+				console.log('❌ ws error:', error);
 			};
 	
 			wsRef.current.onclose = () => {
-				console.log('🔄 WebSocket disconnected, attempting to reconnect...');
+				console.log('🔄 ws disconnected, attempting to reconnect...');
 				wsRef.current = null;
 				setTimeout(connectWebSocket, 2000);
 			};
@@ -562,7 +562,6 @@ export const MessagesContent = () => {
                     }
                 }));
                 
-				console.log('history: ', newHistory)
                 setChatHistory(newHistory);
                 setChatResponse(response.data);
 

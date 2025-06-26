@@ -146,7 +146,7 @@ const MessageList = ({ chatHistory }) => {
               )}
 
               <div className="relative">
-                {msg?.channel.id == 7 &&
+                {msg?.channel?.id == 7 &&
                   <div className="text-lg font-semibold mb-10">Subject: <span>{msg?.subject ?? "__"}</span></div>
                 }
                 
@@ -165,7 +165,7 @@ const MessageList = ({ chatHistory }) => {
                         className="w-8 h-8 rounded-full mr-3"
                         width={30}
                         height={30}
-                        onClick={() => router.push(`/nativecrm/users/${msg.user_sender_details.id}`)}
+                        onClick={() => router.push(`/nativecrm/users/${msg.user_sender_details?.id}`)}
                         title={msg.user_sender_details.name}
                       />
                     ) : msg.user_sender_details?.first_name || msg.user_sender_details?.last_name || msg.user_sender_details?.email ? (
