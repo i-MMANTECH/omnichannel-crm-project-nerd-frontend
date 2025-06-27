@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useCall } from '@/context/CallContext';
 import { MicOff, Volume2, PhoneOff } from 'lucide-react';
+import { useError } from '@/context/ErrorContext';
+import { useApi } from '@/services/axiosConfig';
 
 const CallModal = () => {
   const {
@@ -22,7 +24,11 @@ const CallModal = () => {
 
   const [waitTime, setWaitTime] = useState(0);
   const [callTime, setCallTime] = useState(0);
+  const [comments, setComments] = useState([]);
   const [note, setNote] = useState("");
+  const { handleApiError } = useError();
+  const { axiosInstance } = useApi();
+ 
 
   const intervalRef = useRef(null);
 
@@ -51,6 +57,23 @@ const CallModal = () => {
     };
   }, [callStatus]);
   
+   const addComment = async () => {
+    if (!note.trim()) return;
+    
+    try {
+    const result =   await axiosInstance.post(`/comments/`, {
+        model: "customer", 
+        object_id: callData?.id, 
+        content: note,
+      });
+     const newComment = result.data.comment;
+     setComments(prev => [...prev, newComment]);
+      setNote("");
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+
   const formatTime = (seconds) => {
     const m = String(Math.floor(seconds / 60)).padStart(2, '0');
     const s = String(seconds % 60).padStart(2, '0');
@@ -137,14 +160,14 @@ const CallModal = () => {
           {/* Notes field (always shown when expanded, regardless of callStatus) */}
           {!isCollapsed && (
             <div >
-                <label className="hidden block text-sm font-medium mb-1 text-gray-700">Comments</label>
+                <label className={`${!callData?.id? 'hidden':''} block text-sm font-medium mb-1 text-gray-700`}>Comments</label>
                 <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Type message..."
                 rows={3}
                 maxLength={200}
-                className="hidden w-full p-3 border border-gray-300 rounded-lg text-sm"
+                className={`${!callData?.id? 'hidden':''} w-full p-3 border border-gray-300 rounded-lg text-sm`}
                 />
                 <div className="flex justify-between items-center mt-2 gap-2">
                   {callStatus !== "CONNECTED" && callStatus !== "RINGING" ? (
@@ -159,14 +182,25 @@ const CallModal = () => {
                   )}
 
                   <button
-                    className="hidden bg-[#3EBF0F] text-white px-4 py-2 rounded-md text-sm"
+                    onClick={addComment}
+                    className={`${!callData?.id? 'hidden':''} bg-[#3EBF0F] text-white px-4 py-2 rounded-md text-sm`}
                   >
                     Save
                   </button>
                 </div>
-                <p className="hidden text-xs text-right text-gray-500 mt-1">
+                <p className={`${!callData?.id? 'hidden':''} text-xs text-right text-gray-500 mt-1`}>
                   Word Count: {note.length}/200
                 </p>
+                <div className="mt-4 space-y-2 max-h-40 overflow-y-auto">
+                {comments.map(c => (
+                  <div key={c.id} className="p-2 bg-gray-50 border rounded">
+                     <p className="text-sm text-gray-800">{c.content}</p>
+                     <p className="text-xs text-gray-500 mt-1">
+                        {new Date(c.created_at).toLocaleString()}
+                    </p>
+                </div>
+            ))}
+</div>
             </div>
           )}
         </div>
