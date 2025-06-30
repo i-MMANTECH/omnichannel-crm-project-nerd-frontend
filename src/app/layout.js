@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { NotificationProvider } from "@/context/NotificationContext";
 import { PermissionsProvider } from "@/context/PermissionsContext";
 import Script from "next/script";
+import { CallProvider } from "@/context/CallContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -28,7 +29,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
 
   return (
-    <html lang="en">
+    <html lang="en" className="light">
       <head>
         <Script src="https://js.paystack.co/v1/inline.js" />
       </head>
@@ -37,6 +38,7 @@ export default function RootLayout({ children }) {
           <ErrorProvider>
             <PermissionsProvider>
                 <NotificationProvider>
+                  <CallProvider>
                   {children}
                   <ToastContainer
                       position="bottom-left"
@@ -48,6 +50,7 @@ export default function RootLayout({ children }) {
                       draggable
                       pauseOnHover
                   />
+                  </CallProvider>
                 </NotificationProvider>
             </PermissionsProvider>
           </ErrorProvider>

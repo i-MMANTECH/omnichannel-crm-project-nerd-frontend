@@ -30,11 +30,23 @@ const UserGrid = ({ users }) => {
             
             <div className="flex justify-between items-center p-2 border-b">
               <div className="flex items-center space-x-2">
-                <UserAvatar 
-                  name={user.first_name ? `${user.first_name} ${user.last_name}` : user.email || '--'} 
-                  width="w-8" 
-                  height="h-8" 
-                />
+                {user?.image && <Image 
+                    alt="bio"
+                    src={user?.image} 
+                    width={0}
+                    height={0}
+                    className="user-left-image mt-2 w-8 h-8 rounded-full" 
+                  />}
+                  {!user?.image && 
+                    <UserAvatar 
+                      name={user.first_name ? 
+                        `${user.first_name} ${user.last_name}` : 
+                        user.email || '--'
+                      } 
+                      width="w-8" 
+                      height="h-8" 
+                    />
+                  }
                 <span>
                   {user.first_name ? `${user.first_name} ${user.last_name}` : user.email || '--'}
                 </span>
@@ -48,33 +60,40 @@ const UserGrid = ({ users }) => {
                 <span className="break-all whitespace-normal">{user.email}</span>
               </div>
 
-              <div className="flex items-center gap-2 mb-2">
-                <Image src="/assets/phone.svg" alt="Phone" width={22} height={22} />
-                <span>{user.phone_number}</span>
-              </div>
+              {user.phone_number && (
+                <div className="flex items-center gap-2 mb-2">
+                  <Image src="/assets/phone.svg" alt="Phone" width={22} height={22} />
+                  <span>{user.phone_number}</span>
+                </div>
+              )}
 
-              <div className="flex items-center gap-2 mb-2">
-                <Image src="/assets/flash.svg" alt="Roles" width={22} height={22} />
-                <span className="inline-block py-1 rounded-full text-sm font-medium -ml-1">
-                  {user?.roles.map((role) => (
-                    <span
-                      key={role.id}
-                      className="px-2 py-1 ml-1 rounded"
-                      style={getRoleStyle(role.name)}
-                    >
-                      {role.name}
-                    </span>
-                  ))}
-                </span>
-              </div>
+              {user.roles.length > 0 && (
+                <div className="flex items-center gap-2 mb-2">
+                  <Image src="/assets/flash.svg" alt="Roles" width={22} height={22} />
+                  <span className="inline-block py-1 rounded-full text-sm font-medium -ml-1">
+                    {user.roles.map((role) => (
+                      <span
+                        key={role.id || role.name} // fallback if no role.id
+                        className="px-2 py-1 ml-1 rounded text-sm"
+                        style={getRoleStyle(role.name)}
+                      >
+                        {role.name}
+                      </span>
+                    ))}
+                  </span>
+                </div>
+              )}
 
               {/* Last Active Section */}
-              <div className="flex justify-between items-center mt-4 border-t pt-2">
-                <span className="ml-auto flex flex-row gap-2 text-sm">
-                  <Image src="/assets/clock.svg" alt="Last Active" width={20} height={20} />
-                  {user?.last_active ? timeAgo(user.last_active) : '--'}
-                </span>
-              </div>
+              {user?.last_active && (
+                <div className="flex justify-between items-center mt-4 border-t pt-2">
+                  <span className="ml-auto flex flex-row gap-2 text-sm">
+                    <Image src="/assets/clock.svg" alt="Last Active" width={20} height={20} />
+                    {user?.last_active ? timeAgo(user.last_active) : '--'}
+                  </span>
+                </div>
+              )}
+              
             </div>
           </div>
         </Link>

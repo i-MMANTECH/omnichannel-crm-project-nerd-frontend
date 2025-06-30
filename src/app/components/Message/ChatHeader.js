@@ -40,7 +40,7 @@ const ModalController = ({ children }) => {
   return children({ isModalOpen, openModal, closeModal });
 };
 
-const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => {
+const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refreshChatHeader }) => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successModalMessage, setSuccessModalMessage] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -93,7 +93,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
     if (conversationId) fetchAiStatus();
   
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [conversationId]);  
+  }, [conversationId, refreshChatHeader]);  
 
   if (!activeUser) return null;
 
@@ -102,11 +102,15 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
     refreshChatList()
   }
 
-  const formattedTime = new Date(activeUser.lastMessageTime || activeUser.last_message_at).toLocaleString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
+  const lastTime = new Date(activeUser.lastMessageTime || activeUser.last_message_at);
+  const now = new Date();
+
+  const isToday = lastTime.toDateString() === now.toDateString();
+
+  const formattedTime = isToday
+    ? lastTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true })
+    : lastTime.toLocaleDateString([], { month: "short", day: "numeric" });
+
 
   const aiToggleMenuItem = (
     <div className="flex items-center justify-between px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
