@@ -5,6 +5,7 @@ import JsSIP from 'jssip';
 import { toast } from 'react-toastify';
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
+import { normalizePhoneNumber } from '@/utils/normalizePhone';
 
 const CallContext = createContext();
 
@@ -187,7 +188,9 @@ export const CallProvider = ({ children }) => {
         }
 
         try {
-            setCallData({ phone, name, id });
+            const normalized = normalizePhoneNumber(phone);
+            console.log("Making call to: ",normalized)
+            setCallData({ phone: normalized, name, id });
             setIsVisible(true);
 
             setCallStatus('Requesting microphone access...');
@@ -247,7 +250,7 @@ export const CallProvider = ({ children }) => {
                 }
             };
 
-            const dest = phone;
+            const dest = normalized;
             if (!dest) {
                 return;
             }
