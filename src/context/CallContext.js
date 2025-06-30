@@ -117,7 +117,7 @@ export const CallProvider = ({ children }) => {
             ua.start();
         }
 
-        initializeSIP()
+        // initializeSIP()
     }, []);
 
 
