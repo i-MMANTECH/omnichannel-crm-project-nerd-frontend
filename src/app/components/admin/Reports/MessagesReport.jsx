@@ -32,15 +32,20 @@ const MessagesReport = ({filters, selectedUser, refreshKey}) => {
   const handleGenerateReport = async () => {
     try {
       setLoadingReport(true);
-  
-      const now = new Date();
-      const lastMonth = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 30 days ago
-  
-      const params = {
-        start_date: lastMonth.toISOString().split("T")[0],
-        end_date: now.toISOString().split("T")[0],
+      
+      let params = {
         send_email: true,
       };
+
+      if (filters?.startDate && filters?.endDate) {
+        params.start_date = filters.startDate.toISOString().split("T")[0];
+        params.end_date = filters.endDate.toISOString().split("T")[0];
+      } else {
+        const now = new Date();
+        const lastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+        params.start_date = lastMonth.toISOString().split("T")[0]
+        params.end_date = now.toISOString().split("T")[0]
+      }
   
       const res = await axiosInstance.post(
         `/analytics/conversations/report/?start_date=${params.start_date}&end_date=${params.end_date}&send_email=true`
@@ -246,6 +251,7 @@ const MessagesReport = ({filters, selectedUser, refreshKey}) => {
                 {analysisReport}
               </div>
             )}
+            
             {analysisReport && !showSummary && (
               <div className="flex justify-end mt-2">
                 <button
