@@ -9,6 +9,7 @@ import { useError } from "@/context/ErrorContext";
 const CallContext = createContext();
 
 export const CallProvider = ({ children }) => {
+    const { axiosInstance } = useApi();
     const [session, setSession] = useState(null);
     const [registered, setRegistered] = useState(false);
     const [callStatus, setCallStatus] = useState('');
@@ -60,10 +61,31 @@ export const CallProvider = ({ children }) => {
                 setSession(rtcSession);
 
                 if (data.originator === 'remote') {
-                    setCallData({
+                    const rawPhone = rtcSession.remote_identity.uri.user;
+                     (async () => {
+            try {
+              const { data: resp } = await axiosInstance.get('/customers/', {
+                params: { search: rawPhone }
+              });
+
+              if (resp.count > 0) {
+                const cust = resp.results[0];
+                const fullName = `${cust.first_name} ${cust.last_name}`.trim();
+                setCallData({ phone: rawPhone, name: fullName, id: cust.id });
+              } else {
+                  setCallData({
                         name: rtcSession.remote_identity.display_name || rtcSession.remote_identity.uri.user,
                         phone: rtcSession.remote_identity.uri.user,
                     });
+              }
+            } catch (err) {
+              console.error('Incoming lookup failed', err);
+               setCallData({
+                        name: rtcSession.remote_identity.display_name || rtcSession.remote_identity.uri.user,
+                        phone: rtcSession.remote_identity.uri.user,
+                    });
+            }
+          })();
 
                     setIsVisible(false);
                     setIsVisible(true);
