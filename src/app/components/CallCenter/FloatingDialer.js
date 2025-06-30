@@ -3,18 +3,38 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useCall } from '@/context/CallContext';
+import { useApi } from '@/services/axiosConfig';
 
 const FloatingDialer = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [number, setNumber] = useState('');
   const { makeCall } = useCall();
+  const { axiosInstance } = useApi();
 
   const handleOpenButtonClick = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
 
-  const handleCall = () => {
+  const handleCall = async() => {
     if (number) {
+    const phoneToSearch = number;
+    
+    try {
+      const { data } = await axiosInstance.get('/customers/', {
+      params: { search: phoneToSearch }
+      });
+
+   if (data.count > 0) {
+      const cust = data.results[0];
+       const name = `${cust.first_name} ${cust.last_name}`.trim();
+      makeCall({ phone: number, name, id: cust.id });
+    } else {
       makeCall({ phone: number });
+   }
+    } catch (err) {
+      console.error('Customer lookup failed', err);
+      makeCall({ phone: number });
+    }
+
       setIsOpen(false);
     }
   };
