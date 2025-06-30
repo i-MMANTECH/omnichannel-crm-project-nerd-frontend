@@ -83,7 +83,9 @@ const CallModal = () => {
   if (!isVisible) return null;
 
   const initials =
-    callData?.name?.split(' ').map((n) => n[0]).join('').toUpperCase() || 'NA';
+      (callData?.name
+      ? callData.name.split(' ').map(n => n[0]).join('').toUpperCase()
+      : callData?.phone?.slice(0, 2)) || ''
 
   const timeValue = callStatus === 'CONNECTED' ? callTime : waitTime;
   const timeLabel = callStatus === 'CONNECTED' ? 'Call time' : 'Wait time';
