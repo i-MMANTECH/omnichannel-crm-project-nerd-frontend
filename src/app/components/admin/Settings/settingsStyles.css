@@ -1,0 +1,78 @@
+:root {
+  --primary-100-base: #3EBF0F;
+  --primary-25: #E6F4E6;
+  --greyscale-25: #F8F9FB;
+  --greyscale-100: #DFE1E6;
+  --greyscale-400: #808897;
+  --greyscale-900: #0D0D12;
+}
+
+
+.main-container {
+  overflow-x: hidden;
+}
+
+.main-container .frame {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+}
+.main-container .name {
+  display: flex;
+  align-items: center; 
+  justify-content: center;
+  flex: 0 0 auto;
+  gap: 12.04px;
+}
+
+.main-container .icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--greyscale-25);
+  border-radius: 1003.06px;
+  height: 40.12px;
+  overflow: hidden;
+  width: 40.12px;
+}
+
+
+.main-container .title {
+  color: var(--greyscale-900);
+  font-family: var(--body-medium-semibold-14px-font-family);
+  font-size: var(--body-medium-semibold-14px-font-size);
+  font-style: var(--body-medium-semibold-14px-font-style);
+  font-weight: var(--body-medium-semibold-14px-font-weight);
+  letter-spacing: var(--body-medium-semibold-14px-letter-spacing);
+  line-height: var(--body-medium-semibold-14px-line-height);
+  margin-top: -1.00px;
+  position: relative;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.main-container .chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 24px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.main-container .chip.connected {
+  background-color: var(--primary-25);
+  color: var(--primary-100-base);
+}
+
+.main-container .chip:not(.connected) {
+  background-color: var(--greyscale-25);
+  color: var(--greyscale-400);
+}
+

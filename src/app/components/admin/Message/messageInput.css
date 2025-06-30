@@ -1,0 +1,83 @@
+.type {
+    display: flex;
+    align-items: center;
+    border-top: 1px solid var(--greyscale-100);
+    padding: 5px 24px;
+    gap: 10px;
+    width: 100%;
+    height: auto;
+    margin-top: 20px;
+  }
+  
+  .write-area {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    gap: 10px;
+    position: relative;
+  }
+  
+  .attach-icon {
+    cursor: pointer;
+    font-size: 18px;
+  }
+  
+  .attach-options {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    left: -17px;
+    border-radius: 8px;
+    background-color: transparent;
+    cursor: pointer;
+  }
+  
+  .message-input {
+    flex: 1;
+    border: 1px solid var(--greyscale-100);
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-family: var(--body-medium-regular-14px-font-family);
+    font-size: var(--body-medium-regular-14px-font-size);
+    outline: none;
+    resize: none;
+  }
+  
+  .send-button {
+    background-color: var(--primary100-base);
+    color: var(--greyscale-0);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+  }
+  
+  .image-preview-container {
+    max-width: 100px;
+    max-height: 100px;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .image-preview {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+  }
+  
+  .remove-image {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border-radius: 50%;
+    padding: 3px;
+  }
+  

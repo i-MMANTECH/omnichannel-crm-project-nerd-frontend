@@ -56,9 +56,9 @@ const Drawer = ({
 
               <div className="flex-1">
                 {title && (
-                  <h4 className="text-lg font-medium ">
+                  <h3 className="text-xl font-bold ">
                     {title}
-                  </h4>
+                  </h3>
                 )}
                 {subtitle && (
                   <p className="text-sm  mt-1">

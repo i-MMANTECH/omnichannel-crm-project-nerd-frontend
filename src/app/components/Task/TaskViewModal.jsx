@@ -169,6 +169,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                     </p>  
                   </>
                 )}
+                {log?.user && (
                 <div className="flex mt-1 items-center gap-1">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 17 17" fill="none">
                     <path d="M9.38208 9.87435H6.71541C4.87446 9.87435 3.38208 11.3667 3.38208 13.2077V13.8743C3.38208 14.2425 3.68056 14.541 4.04875 14.541H12.0487C12.4169 14.541 12.7154 14.2425 12.7154 13.8743V13.2077C12.7154 11.3667 11.223 9.87435 9.38208 9.87435Z" stroke="#808897" strokeWidth="1.5"/>
@@ -176,9 +177,10 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                   </svg>
   
                   <p className="text-[#808897] font-encodeSans text-sm font-medium">
-                    Agent: {log?.user.email}
+                    Agent: {log?.user?.email}
                   </p>
                 </div>
+                )}
               </div>
               <p className="text-sm font-normal text-gray-500 mt-1">{timeAgo(log.created_at)}</p>
             </div>
@@ -324,14 +326,19 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
             </div>
           ) : task ? (
             <>
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-medium">
-                  Description
-                </h2>
-              </div>
-              <p className="text-sm mb-4 mt-2">
-                {task.description || "No description"}
-              </p>
+              {task.description && (
+                <>
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-lg font-medium">
+                      Description
+                    </h2>
+                  </div>
+                  <p className="text-sm mb-4 mt-2">
+                    {task.description || "No description"}
+                  </p>
+                </>
+              )}
+
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <div className="flex justify-between items-center gap-2">
@@ -360,6 +367,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                     {task.status.label}
                   </span>
                 </div>
+                {task.due_date && (
                 <div className="flex justify-between items-center">
                   <div className="flex justify-between items-center gap-2">
                     <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -371,6 +379,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                   <span>{new Date(task.due_date).toLocaleDateString()}</span>
                   
                 </div>
+                )}
                 <div className="flex justify-between items-center">
                   <div className="flex justify-between items-center gap-2">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -408,27 +417,30 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                     })}
                   </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex justify-between items-center gap-2">
-                  <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 15.1665C11.3137 15.1665 14 12.4802 14 9.1665C14 5.8528 11.3137 3.1665 8 3.1665C4.68629 3.1665 2 5.8528 2 9.1665C2 12.4802 4.68629 15.1665 8 15.1665Z" stroke="#808897" strokeWidth="1.5" strokeLineCap="round"/>
-                        <path d="M3.33333 13.1665L2 14.4998M12.6667 13.1665L14 14.4998" stroke="#808897" strokeWidth="1.5" strokeLineCap="round" strokeLinejoin="round"/>
-                        <path d="M12.6666 2.8798L13.0636 2.6813C13.6271 2.39955 13.8388 2.43179 14.2868 2.8798C14.7348 3.3278 14.7671 3.53949 14.4853 4.103L14.2868 4.5M3.33325 2.8798L2.93625 2.6813C2.37275 2.39955 2.16105 2.43179 1.71305 2.8798C1.26505 3.3278 1.2328 3.53949 1.51455 4.103L1.71305 4.5" stroke="#808897" strokeWidth="1.5" strokeLineCap="round"/>
-                        <path d="M8 6.8335V9.50016L9.33333 10.8335" stroke="#808897" strokeWidth="1.5" strokeLineCap="round" strokeLinejoin="round"/>
-                        <path d="M8 2.8335V1.8335" stroke="#808897" strokeWidth="1.5" strokeLineCap="round" strokeLinejoin="round"/>
-                        <path d="M6.66675 1.8335H9.33341" stroke="#808897" strokeWidth="1.5" strokeLineCap="round" strokeLinejoin="round"/>
-                    </svg>
+                {task.sla && (
+                  <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center gap-2">
+                      <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 15.1665C11.3137 15.1665 14 12.4802 14 9.1665C14 5.8528 11.3137 3.1665 8 3.1665C4.68629 3.1665 2 5.8528 2 9.1665C2 12.4802 4.68629 15.1665 8 15.1665Z" stroke="#808897" strokeWidth="1.5" strokeLinecap="round" />
+                        <path d="M3.33333 13.1665L2 14.4998M12.6667 13.1665L14 14.4998" stroke="#808897" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M12.6666 2.8798L13.0636 2.6813C13.6271 2.39955 13.8388 2.43179 14.2868 2.8798C14.7348 3.3278 14.7671 3.53949 14.4853 4.103L14.2868 4.5M3.33325 2.8798L2.93625 2.6813C2.37275 2.39955 2.16105 2.43179 1.71305 2.8798C1.26505 3.3278 1.2328 3.53949 1.51455 4.103L1.71305 4.5" stroke="#808897" strokeWidth="1.5" strokeLinecap="round" />
+                        <path d="M8 6.8335V9.50016L9.33333 10.8335" stroke="#808897" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M8 2.8335V1.8335" stroke="#808897" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M6.66675 1.8335H9.33341" stroke="#808897" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
 
-
-                    <span className="font-medium">SLA</span>
-                  </div>
-                  <span  
+                      <span className="font-medium">SLA</span>
+                    </div>
+                    <span  
                       onClick={() => handlereview(task.sla?.id)}
                       className="cursor-pointer font-medium"
-                  >
+                    >
                       {task.sla?.title || "N/A"}
-                  </span>
-                </div>
+                    </span>
+                  </div>
+                )}
+
+                
 
                 {task?.conversation &&
                   <div className="flex justify-between items-center">

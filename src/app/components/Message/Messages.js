@@ -12,6 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
 import { Tooltip } from "react-tooltip";
+import Modal from "../Modal";
 
 
 const getMessageType = (message) => {
@@ -23,7 +24,6 @@ const getMessageType = (message) => {
 	}
 	return null;
   };
-
   
 export const MessagesContent = () => {
 	const { axiosInstance } = useApi();
@@ -63,10 +63,20 @@ export const MessagesContent = () => {
 
 	const [activeAgent, setActiveAgent] = useState(null)
 	const [userProfile, setUserProfile] = useState({})
-	const [selectedImage, setSelectedImage] = useState('')
+
+	const [showAiTakeoverPrompt, setShowAiTakeoverPrompt] = useState(false);
+	const [refreshChatHeader, setRefreshChatHeader] = useState(false)
+
+
+	const [tabUnreadFlags, setTabUnreadFlags] = useState({
+		leads: false,
+		customers: false,
+		archived: false,
+	});
 
 	const [isFilterActive, setIsFilterActive] = useState(false)
-
+	const isCancelError = (error) =>
+		error?.name === 'CanceledError' || error?.message === 'canceled' || error?.code === 'ERR_CANCELED';
 
 
 	const [cachedData, setCachedData] = useState({
@@ -127,15 +137,15 @@ export const MessagesContent = () => {
 			wsRef.current = new WebSocket(wsUrl);
 	
 			wsRef.current.onopen = () => {
-				console.log("✅ WebSocket connected");
+				console.log('✅ WebSocket connected');
 			};
 	
 			wsRef.current.onerror = (error) => {
-				console.error("❌ WebSocket error:", error);
+				console.log('❌ WebSocket error:', error);
 			};
 	
 			wsRef.current.onclose = () => {
-				console.log("🔄 WebSocket disconnected, attempting to reconnect...");
+				console.log('🔄 WebSocket disconnected, attempting to reconnect...');
 				wsRef.current = null;
 				setTimeout(connectWebSocket, 2000);
 			};
@@ -145,7 +155,7 @@ export const MessagesContent = () => {
 	
 		return () => {
 			if (wsRef.current) {
-				console.log("🔌 Closing WebSocket connection...");
+				console.log('🔌 Closing WebSocket connection...');
 				wsRef.current.close();
 			}
 		};
@@ -157,9 +167,15 @@ export const MessagesContent = () => {
 			try {
 				const resp = await axiosInstance.get(`/users/me`)
 				setUserProfile(resp?.data?.user)
-			} catch(error) {
-				handleApiError(error)
-			}
+			} 
+			catch (error) {
+				if (isCancelError(error)) {
+				  console.log('cr');
+				} else {
+				  handleApiError(error);
+				}
+			  }
+			  
 		}
 	
 		fetchUserProfile()
@@ -167,7 +183,6 @@ export const MessagesContent = () => {
 
 	useEffect(() => {
 		if (!wsRef.current) {
-			console.log('message event returning');
 			return;
 		}
 	
@@ -176,7 +191,6 @@ export const MessagesContent = () => {
 	
 			if (data.type === "message_status") {
 				const updatedMessage = data.message;
-				// console.log("📦 Message status update:", updatedMessage);
 	
 				setChatHistory((prevHistory) =>
 					prevHistory.map((msg) =>
@@ -184,6 +198,8 @@ export const MessagesContent = () => {
 					)
 				);
 	
+				if (!activeUser || !activeUser.id) return;
+
 				setCachedData((prev) => {
 					const current = prev[chatType]?.histories[activeUser?.id] || [];
 					const updatedHistory = current.map((msg) =>
@@ -202,7 +218,7 @@ export const MessagesContent = () => {
 					};
 				});
 	
-				return; // ✅ Exit early – don't process further
+				return;
 			}
 	
 			// 🎯 Handle normal "message"
@@ -216,10 +232,15 @@ export const MessagesContent = () => {
 				: isCustomerMessage
 				? message.customer_sender_details
 				: null;
-	
-			// console.log("🟢 WebSocket message:", message);
-	
+		
 			const messageChatType = getMessageType(message);
+
+			if (currentTabRef.current !== messageChatType) {
+				setTabUnreadFlags((prev) => ({
+				  ...prev,
+				  [messageChatType]: true,
+				}));
+			}			  
 	
 			const isRelevantToActiveUser = activeUser &&
 				(
@@ -260,6 +281,8 @@ export const MessagesContent = () => {
 					return [...prevHistory, message];
 				});
 	
+				if (!activeUser || !activeUser.id) return;
+
 				setCachedData((prev) => {
 					const existing = prev[messageChatType]?.histories[activeUser.id] || [];
 					const messageExists = existing.some((msg) => msg.id === message.id);
@@ -343,6 +366,26 @@ export const MessagesContent = () => {
 		fetchChannelsData();
 	  }, []);
 
+	const fetchAiStatus = async (conversationId) => {
+		if (conversationId) {
+			try {
+				const res = await axiosInstance.get(`/communication/conversations/${conversationId}/ai-status/`, {
+					showLoader: false
+				});
+
+				const aiIsActive = res?.data?.data?.ai_is_active;
+				const aiPromptKey = `ai_prompt_dismissed_${conversationId}`;
+				const dismissed = sessionStorage.getItem(aiPromptKey) === 'true';
+
+				if (aiIsActive && !dismissed) {
+					setShowAiTakeoverPrompt(true);
+				}			
+			} catch (err) {
+			handleApiError(err, "Failed to fetch AI status");
+			}
+		}
+	};
+
 	const markConversationAsRead = async () => {
 		try {
 			const resp = await axiosInstance.patch(`/communication/conversations/${chatResponse?.conversation_id}/messages/status/`, 
@@ -403,9 +446,15 @@ export const MessagesContent = () => {
 					return prevCachedData;
 				})
 			}
-		} catch (error) {
-			handleApiError(error)
-		}
+		} 
+		catch (error) {
+			if (isCancelError(error)) {
+			  console.log('cr');
+			} else {
+			  handleApiError(error);
+			}
+		  }
+		  
 	}
 
 	const fetchChatList = async ({ reset = false} = {}) => {
@@ -480,11 +529,15 @@ export const MessagesContent = () => {
                     setActiveUser(foundUser);
                 }
             }
-        } catch (error) {
-            if (error.name !== 'AbortError') {
-                handleApiError(error);
-            }
-        } finally {
+        } 
+		catch (error) {
+			if (isCancelError(error)) {
+				console.log('cr');
+			} else {
+				handleApiError(error);
+			}
+			}
+		finally {
 			setIsRotating(false);
 		}
 	};
@@ -539,19 +592,29 @@ export const MessagesContent = () => {
 
 				markConversationAsRead()
             }
-        } catch (error) {
-            if (error.name !== 'AbortError') {
-                handleApiError(error);
-            }
-        }
+			// console.log('response is ', response)
+			fetchAiStatus(response?.data?.results[0]?.conversation)
+        } 
+		catch (error) {
+			if (isCancelError(error)) {
+			  console.log('cr');
+			} else {
+			  handleApiError(error);
+			}
+		}
 	};
 
 	const fetchAgents = async () => {
 		try {
 			const { data } = await axiosInstance.get(`/users`);
 			setAgents(data.results || []);
-		} catch (error) {
-			handleApiError(error);
+		} 
+		catch (error) {
+			if (isCancelError(error)) {
+			  console.log('cr');
+			} else {
+			  handleApiError(error);
+			}
 		}
 	};
 
@@ -588,6 +651,11 @@ export const MessagesContent = () => {
         setChatHistory([]);
         router.push(`/nativecrm/messages?chat=${tab}`, { scroll: false });
         
+		setTabUnreadFlags((prev) => ({
+			...prev,
+			[tab]: false,
+		}));
+		 
         // Update current tab reference
         currentTabRef.current = tab;
         
@@ -600,30 +668,39 @@ export const MessagesContent = () => {
 
 	const handleSendMessage = (messageContent) => {
 		const formData = new FormData();
-		
-		const contentType = selectedImage
-			? "image"
-			: messageContent?.file
+		const contentType = messageContent?.file
 			? "document"
+			: messageContent?.image
+			? "image"
 			: "text";
 
 		formData.append("content", messageContent.text || "");
 		formData.append("content_type", contentType);
 
-		if (selectedImage) {
-			formData.append("image", selectedImage);
-			console.log('there is a selected image')
+		if (messageContent?.file?.length > 0) {
+		// Append files as 'document'
+		messageContent.file.forEach(file => {
+			formData.append('document', file);
+		});
+
+		// Also append images as 'document' when files are present
+		if (messageContent?.image?.length > 0) {
+			messageContent.image.forEach(img => {
+			formData.append('document', img);
+			});
 		}
-		else if (messageContent?.file) {
-			formData.append("document", messageContent?.file);
-			console.log('there is a selected file')
+		} else if (messageContent?.image?.length > 0) {
+		// Only images, append them as 'image'
+		messageContent.image.forEach(img => {
+			formData.append('image', img);
+		});
 		}
 
 		const tempMessage = {
 			id: `temp-${new Date().getTime()}`,
 			content: messageContent.text,
 			content_type: contentType,
-			image: selectedImage,
+			image: messageContent?.image,
 			document: messageContent?.file,
 			created_at: new Date().toISOString(),
 			status: "sending",
@@ -638,7 +715,6 @@ export const MessagesContent = () => {
 	
 		let url = "/communication/";
 	
-		const formData = new FormData();
 		if (chatType === "customers") {
 			url += "send-to-customer/";
 			formData.append("customer_id", activeUser.id);
@@ -648,7 +724,6 @@ export const MessagesContent = () => {
 			formData.append("lead_id", activeUser.id);
 		}
 		
-		console.log('url is ', url)
 		for (let [key, value] of formData.entries()) {
 			console.log(`${key}:`, value);
 		}
@@ -661,7 +736,6 @@ export const MessagesContent = () => {
 			.then(() => {
 				// No need to manually replace temp message.
 				// The WebSocket will handle the correct update.
-				setSelectedImage("");
 			})
 			.catch((error) => {
 				// Mark the temp message as failed
@@ -670,10 +744,13 @@ export const MessagesContent = () => {
 						msg.id === tempMessage.id ? { ...msg, status: "failed" } : msg
 					)
 				);
-				handleApiError(error);
+				if (isCancelError(error)) {
+					console.log('cr');
+				} else {
+					handleApiError(error);
+				}
 			});
 	};	
-
 
 	const fetchChannelsData = async () => {
 		try {
@@ -682,9 +759,15 @@ export const MessagesContent = () => {
 	
 		  const connectedChannelsResponse = await axiosInstance.get("/channels/connected-channels/");
 		  setConnectedChannels(connectedChannelsResponse.data.connected_channels);
-		} catch (error) {
-		  handleApiError(error)
 		}
+		catch (error) {
+			if (isCancelError(error)) {
+				console.log('cr');
+			} else {
+				handleApiError(error);
+			}
+		}
+		  
 	};
 
 	const channelsMenuItems = [
@@ -757,9 +840,15 @@ export const MessagesContent = () => {
 			}));
 			
 			setPage((prevPage) => prevPage + 1);
-		} catch (error) {
-		  handleApiError(error);
-		} finally {
+		} 
+		catch (error) {
+			if (isCancelError(error)) {
+			  console.log('cr');
+			} else {
+			  handleApiError(error);
+			}
+		}
+		finally {
 		  setIsFetchingMore(false);
 		}
 	};
@@ -776,7 +865,7 @@ export const MessagesContent = () => {
 						<div 
 						key={index}
 						className={`cursor-pointer rounded-full transition-all duration-300
-						${selectedAgent === assignee.id ? 'ring-2 dark:ring-white ring-gray-500 z-10' : ''}`}
+						${selectedAgent === assignee.id ? 'ring-2 dark:ring-white ring-[#3EBF0F] z-10' : ''}`}
 						style={{ marginLeft: index !== 0 ? '-7px' : '0px' }} 
 						onClick={() => handleAssigneeClick(assignee.id)}
 						onMouseEnter={(e) => e.currentTarget.classList.add("z-10")}
@@ -786,7 +875,7 @@ export const MessagesContent = () => {
 						{assignee?.image ? (
 							<Image
 							alt="profile pic"
-							className="w-9 h-9 rounded-full border-2 border-white"
+							className="w-9 h-9 rounded-full bg-gray-200"
 							src={assignee.image} 
 							width={30}
 							height={30}
@@ -797,7 +886,7 @@ export const MessagesContent = () => {
 								`${assignee.first_name} ${assignee?.last_name}` : 
 								assignee?.email || '--'
 							} 
-							className="w-10 h-10 rounded-full flex-shrink-0 border-2 border-white"
+							className="w-10 h-10 rounded-full flex-shrink-0"
 							width="w-9" 
 							height="h-9" 
 							/>
@@ -820,11 +909,6 @@ export const MessagesContent = () => {
 				</div>
 
 				<div className="flex gap-4">
-					<button 
-						onClick={() => {router.push('/nativecrm/settings#channels-integration');}}
-						className="bg-[#3EBF0F] text-white px-4 py-2 rounded-lg shadow-sm">
-						+ Connect Channel
-					</button>
 					<div className="bg-gray-500 w-0.5 hidden"></div>
 					<div 
 						className=" flex h-10 min-w-20 px-3 justify-center items-center gap-2 rounded-lg border border-[#DFE1E6] body-theme cursor-pointer shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]"
@@ -901,16 +985,32 @@ export const MessagesContent = () => {
 							</svg>
 						</div>
 						<div className="flex gap-3 w-full ">
-							<div className="tab-atom">
-								<div className={`px-3 pb-1 ${chatType === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>Leads</div>
+							<div className="tab-atom relative">
+								<div className={`px-3 pb-1 ${chatType === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>
+								Leads
+								{tabUnreadFlags.leads && (
+									<span className="absolute top-0.5 right-1 w-1.5 h-1.5 bg-[#3EBF0F] rounded-full"></span>
+								)}
+								</div>
 							</div>
-							<div className="tab-atom">
-								<div className={`px-3 pb-1 ${chatType === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>Customers</div>
+							<div className="tab-atom relative">
+								<div className={`px-3 pb-1 ${chatType === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>
+								Customers
+								{tabUnreadFlags.customers && (
+									<span className="absolute top-0.5 right-1 w-1.5 h-1.5 bg-[#3EBF0F] rounded-full"></span>
+								)}
+								</div>
 							</div>
-							<div className="tab-atom">
-								<div className={`px-3 pb-1 ${chatType === 'archived' ? 'active' : ""}`} onClick={() => handleTabChange('archived')}>Archived</div>
+							<div className="tab-atom relative">
+								<div className={`px-3 pb-1 ${chatType === 'archived' ? 'active' : ""}`} onClick={() => handleTabChange('archived')}>
+								Archived
+								{tabUnreadFlags.archived && (
+									<span className="absolute top-0.5 right-1 w-1.5 h-1.5 bg-[#3EBF0F] rounded-full"></span>
+								)}
+								</div>
 							</div>
 						</div>
+
 					</div>
 
 					<ChatList 
@@ -938,6 +1038,7 @@ export const MessagesContent = () => {
 									fetchChatList({ reset: true })
 									setActiveUser(null)
 								}}
+								refreshChatHeader={refreshChatHeader}
 							/>
 							<div className="flex items-center ">
 								<MessageList 
@@ -946,10 +1047,9 @@ export const MessagesContent = () => {
 
 								{chatType != "archived" ? ( 
 									<MessageInput
-										onRemoveImage={setSelectedImage}
-										onSendImage={setSelectedImage}
 										onSendMessage={handleSendMessage}
 										chatType={chatType}
+										activeUser={activeUser}
 									/>
 								): (
 									<h2 className="w-full absolute bottom-5 flex items-center justify-center fw-bold text-red-300 p-2">Chat ended</h2>
@@ -972,10 +1072,50 @@ export const MessagesContent = () => {
 					)}
 				</div>
 			</div>
+
+			<Modal
+				isOpen={showAiTakeoverPrompt}
+				onClose={() => setShowAiTakeoverPrompt(false)}
+				title="AI is handling this chat"
+				footer={
+					<>
+						<button
+							type="button"
+							className="hover:shadow-md px-4 py-2 bg-theme rounded-md border border-gray-30"
+							onClick={() => {
+								setShowAiTakeoverPrompt(false)
+								sessionStorage.setItem(`ai_prompt_dismissed_${chatResponse?.conversation_id}`, 'true');
+							}}
+						>
+							Let AI Handle
+						</button>
+						<button
+							type="submit"
+							className="hover:shadow-md px-4 py-2 bg-[#3EBF0F] text-white rounded-md "
+							onClick={async () => {
+							try {
+								console.log(chatResponse)
+								await axiosInstance.patch(`/communication/conversations/${chatResponse?.conversation_id}/ai-status/`, {}, { showLoader: false });
+								setShowAiTakeoverPrompt(false);
+								sessionStorage.setItem(`ai_prompt_dismissed_${chatResponse?.conversation_id}`, 'true');
+								setRefreshChatHeader(!refreshChatHeader)
+							} catch (err) {
+								handleApiError(err, "Failed to take over chat");
+							}
+							}}
+						>
+							Take Over Chat
+						</button>
+					</>
+				}
+				>
+				<p>
+					Automated responses are currently enabled for this chat. Would you like to take over and respond manually?
+				</p>
+			</Modal>
 		</div>
 	);
 };
-
 
 export const Messages = () => {
 	return (
@@ -987,4 +1127,4 @@ export const Messages = () => {
 			<MessagesContent />
 		</Suspense>
 	);
-  };
+};
