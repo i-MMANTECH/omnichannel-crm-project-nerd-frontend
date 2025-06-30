@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useCall } from '@/context/CallContext';
-import { MicOff, Volume2, PhoneOff } from 'lucide-react';
+import { MicOff, Volume2, PhoneOff, PhoneCall } from 'lucide-react';
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
 
@@ -18,7 +18,8 @@ const CallModal = () => {
     closeCall,
     incoming,
     muted,
-    toggleMute
+    toggleMute,
+    makeCall
   } = useCall();
 
 
@@ -124,13 +125,35 @@ const CallModal = () => {
               {initials}
             </div>
             <div>
-              <p className="text-lg font-semibold text-[#3EBF0F]">{callData.name}</p>
-              {callStatus === 'ENDED' && (
-                <p className="text-sm text-red-500 mt-1">Call ended</p>
-              )}
-              {callStatus === 'FAILED' && (
-                <p className="text-sm text-red-500 mt-1">Call failed</p>
-              )}
+              <p className="text-lg font-semibold text-[#3EBF0F] flex items-center gap-2">
+                {callData.name || callData.phone || "Unknown"}
+
+                {(callStatus === 'ENDED' || callStatus === 'FAILED') && callData.phone && (
+                  <button
+                    onClick={() => {
+                        makeCall({
+                        phone: callData.phone,
+                        name: callData.name,
+                        id: callData.id
+                      })
+                      }}
+                    title="Call Again"
+                    className="p-1 rounded-full hover:bg-gray-200 transition"
+                  >
+                    <PhoneCall size={27} className="text-[#3EBF0F] p-1" />
+                  </button>
+                )}
+              </p>
+
+              {/* This ensures callStatus is shown clearly */}
+              <p className={`
+                text-xs mt-1
+                ${callStatus === 'FAILED' ? 'text-red-500' :
+                  callStatus === 'ENDED' ? 'text-gray-500' :
+                  'text-[#3EBF0F]'}
+              `}>
+                {callStatus}
+              </p>
             </div>
           </div>
 
