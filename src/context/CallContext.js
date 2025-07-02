@@ -19,6 +19,9 @@ export const CallProvider = ({ children }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [incoming, setIncoming] = useState(false);
     const [muted, setMuted] = useState(false);
+    
+    const currentSessionRef = useRef(null);
+
 
     const localStreamRef = useRef(null);
 
@@ -58,7 +61,15 @@ export const CallProvider = ({ children }) => {
             });
 
             ua.on('newRTCSession', (data) => {
+              if (currentSessionRef.current) {
+               data.session.terminate({
+               status_code: 486,
+               reason_phrase: 'Busy Here'
+              });
+              return;
+          }
                 const rtcSession = data.session;
+                currentSessionRef.current = rtcSession;
                 setSession(rtcSession);
 
                 if (data.originator === 'remote') {
@@ -125,6 +136,7 @@ export const CallProvider = ({ children }) => {
                     setCallStatus('ENDED');
                     stopAllRingtones();
                     playEndRingtone();
+                    currentSessionRef.current = null;
                     setSession(null);
                     setIncoming(false);
                 });
@@ -133,6 +145,7 @@ export const CallProvider = ({ children }) => {
                     setCallStatus('FAILED');
                     stopAllRingtones();
                     playEndRingtone();
+                    currentSessionRef.current = null;
                     setSession(null);
                     setIncoming(false);
                 });
