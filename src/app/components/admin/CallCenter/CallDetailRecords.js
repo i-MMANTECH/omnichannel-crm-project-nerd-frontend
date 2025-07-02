@@ -6,16 +6,12 @@ import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
-import table from "/public/assets/table.svg";
-import grid from "/public/assets/grid.svg";
-import sort from "/public/assets/sort.svg";
-import filter from "/public/assets/filter.svg";
 import NoDataFound from "@/app/components/NoDataFound";
 import empty from "/public/assets/empty.svg";
 import Pagination from "@/app/components/Pagination/Pagination";
 import { useDebounce } from 'use-debounce';
 import { useAuth } from "@/context/AuthContext";
-import UserAvatar from "../UserAvatar";
+import UserAvatar from "@/app/components/UserAvatar";
 import { getRoleStyle } from "@/utils/getRoleStyle";
 import PlayRecordingDrawer from "./PlayRecordingDrawer";
 
@@ -108,9 +104,9 @@ const CallDetailRecords = () => {
                         </div>
 
                         {/* Search CDR */}
-                        <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto sm:flex-nowrap">
+                        <div className="hidden flex flex-wrap items-center gap-4 w-full sm:w-auto sm:flex-nowrap">
                             <button 
-                                className="hidden bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm w-full sm:w-auto">
+                                className=" bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm w-full sm:w-auto">
                                 Export
                             </button>
                             <div className="flex h-[40px] p-[8px_12px_8px_14px] justify-center items-center gap-2 rounded-[10px] border border-[#DFE1E6] bg-white shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">

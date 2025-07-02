@@ -21,7 +21,7 @@ export function NotificationProvider({ children }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
-  const { user } = useAuth();
+  const { company, user } = useAuth();
   const [socket, setSocket] = useState(null);
 
   const fetchNotifications = async () => {
@@ -40,7 +40,7 @@ export function NotificationProvider({ children }) {
     const initializeWebSocket = () => {
       if (user?.user_id) {
         const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-        const wsUrl = `${protocol}://ws-staging.nativetalkcrm.com/ws/notifications/?uuid=${user.user_id}`;
+        const wsUrl = `${protocol}://ws-staging.nativetalkcrm.com/ws/notifications/?uuid=${company?.id}`;
 
         const ws = new WebSocket(wsUrl);
 

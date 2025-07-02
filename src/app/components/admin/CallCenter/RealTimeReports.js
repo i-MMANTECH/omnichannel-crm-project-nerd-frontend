@@ -237,7 +237,7 @@ export default function RealTimeReports({ filters, selectedAgent, refreshKey }) 
       </div>
 
       {/* Agent Status and Customer Queue */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {/* Agent Status */}
         <div className="bg-white border border-[#DFE1E6] rounded-2xl shadow-sm">
           <div className="flex items-center justify-between px-6 pb-3 pt-5 border-b border-[#DFE1E6] mb-4">
@@ -310,7 +310,7 @@ export default function RealTimeReports({ filters, selectedAgent, refreshKey }) 
         </div>
 
         {/* Customer Queue */}
-        <div className="bg-white border border-[#DFE1E6] rounded-2xl shadow-sm">
+        <div className="hidden bg-white border border-[#DFE1E6] rounded-2xl shadow-sm">
           <div className="flex items-center justify-between px-6 pb-3 pt-5 border-b border-[#DFE1E6]">
             <h3 className="text-lg font-semibold">Customer Queue</h3>
             <span className="text-blue-500 font-medium bg-blue-100 py-1 px-2 rounded-lg">
@@ -366,65 +366,71 @@ export default function RealTimeReports({ filters, selectedAgent, refreshKey }) 
         <div className="flex items-center justify-between px-6 pb-3 pt-5 border-b border-[#DFE1E6] mb-4">
           <h3 className="text-lg font-semibold">Agent Performance</h3>
         </div>
-        <div className="overflow-auto">
-          <table className="w-full table-auto body-theme">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Agent</th>
-                <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Status</th>
-                <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Total Calls</th>
-                <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Campaign</th>
-                <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Login Time</th>
-                <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Extension</th>
-                <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Break Code</th>
-              </tr>
-            </thead>
-            <tbody>
-              {agentList.map((agent, index) => (
-                <tr key={index} className="hover:bg-gray-100 cursor-pointer">
-                  <td className="py-3 px-4 border-b flex items-center space-x-3">
-                    <img 
-                      src={`https://ui-avatars.com/api/?name=${agent.agent_name}&background=random`}
-                      alt={agent.agent_name}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                    <span>{agent.agent_name}</span>
-                  </td>
-                  <td className="py-3 px-4 border-b">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(agent.status)}`}>
-                      {getStatusText(agent.status)}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 border-b">{agent.total_calls || 0}</td>
-                  <td className="py-3 px-4 border-b">
-                    <div>
-                      <div className="font-medium">{agent.campaign_name}</div>
-                      <div className="text-xs text-gray-500">Type: {agent.campaign_type === '1' ? 'Inbound' : 'Outbound'}</div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 border-b">
-                    <div>
-                      <div className="text-sm">{agent.from_last_logged_in || '0:00'}</div>
-                      <div className="text-xs text-gray-500">
-                        {new Date(agent.agent_logged_in_time).toLocaleTimeString()}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 border-b">{agent.extension_name}</td>
-                  <td className="py-3 px-4 border-b">
-                    {agent.breakcode ? (
-                      <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">
-                        {agent.breakcode}
-                      </span>
-                    ) : (
-                      <span className="text-gray-400 text-xs">None</span>
-                    )}
-                  </td>
+        {agentList.length === 0 ? (
+          <div className="py-10 flex justify-center items-center">
+            <NoDataFound message="No agent performance data available" />
+          </div>
+        ) : (
+          <div className="overflow-auto">
+            <table className="w-full table-auto body-theme">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Agent</th>
+                  <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Status</th>
+                  <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Total Calls</th>
+                  <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Campaign</th>
+                  <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Login Time</th>
+                  <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Extension</th>
+                  <th className="styled-th text-left py-3 px-4 font-semibold text-gray-600 border-b border-gray-300">Break Code</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {agentList.map((agent, index) => (
+                  <tr key={index} className="hover:bg-gray-100 cursor-pointer">
+                    <td className="py-3 px-4 border-b flex items-center space-x-3">
+                      <img 
+                        src={`https://ui-avatars.com/api/?name=${agent.agent_name}&background=random`}
+                        alt={agent.agent_name}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                      <span>{agent.agent_name}</span>
+                    </td>
+                    <td className="py-3 px-4 border-b">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(agent.status)}`}>
+                        {getStatusText(agent.status)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 border-b">{agent.total_calls || 0}</td>
+                    <td className="py-3 px-4 border-b">
+                      <div>
+                        <div className="font-medium">{agent.campaign_name}</div>
+                        <div className="text-xs text-gray-500">Type: {agent.campaign_type === '1' ? 'Inbound' : 'Outbound'}</div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 border-b">
+                      <div>
+                        <div className="text-sm">{agent.from_last_logged_in || '0:00'}</div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(agent.agent_logged_in_time).toLocaleTimeString()}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 border-b">{agent.extension_name}</td>
+                    <td className="py-3 px-4 border-b">
+                      {agent.breakcode ? (
+                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">
+                          {agent.breakcode}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-xs">None</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

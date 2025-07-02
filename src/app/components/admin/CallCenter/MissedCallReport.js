@@ -7,7 +7,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Pagination from "@/app/components/Pagination/Pagination";
 import { useDebounce } from 'use-debounce';
 import { useAuth } from "@/context/AuthContext";
-import UserAvatar from "../UserAvatar";
+import UserAvatar from "@/app/components/UserAvatar";
 import { getRoleStyle } from "@/utils/getRoleStyle";
 import PlayRecordingDrawer from "./PlayRecordingDrawer";
 
@@ -159,7 +159,7 @@ const MissedCallReport = () => {
                         </div>
 
                         {/* Search and Export */}
-                        <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto sm:flex-nowrap">
+                        <div className="hidden flex flex-wrap items-center gap-4 w-full sm:w-auto sm:flex-nowrap">
                             <button 
                                 className="hidden bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm w-full sm:w-auto">
                                 Export

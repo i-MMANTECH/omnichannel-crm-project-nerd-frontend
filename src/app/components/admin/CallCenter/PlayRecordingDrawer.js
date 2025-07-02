@@ -1,5 +1,5 @@
 import React from 'react';
-import Drawer from '../Drawer';
+import Drawer from '@/app/components/Drawer';
 import { format } from 'date-fns';
 import { getRoleStyle } from '@/utils/getRoleStyle';
 

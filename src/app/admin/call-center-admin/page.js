@@ -3,11 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import CallCenterSidebar from '@/app/components/admin/CallCenter/CallCenterSidebar';
-import dynamic from 'next/dynamic';
-import CallDetailRecords from '@/app/components/CallCenter/CallDetailRecords';
-import MissedCallReport from '@/app/components/CallCenter/MissedCallReport';
-import LiveCalls from '@/app/components/CallCenter/LiveCalls';
-import IVR from '@/app/components/CallCenter/IVR';
+import CallDetailRecords from '@/app/components/admin/CallCenter/CallDetailRecords';
+import MissedCallReport from '@/app/components/admin/CallCenter/MissedCallReport';
+import LiveCalls from '@/app/components/admin/CallCenter/LiveCalls';
+import IVR from '@/app/components/admin/CallCenter/IVR';
 import RealTimeReports from '@/app/components/admin/CallCenter/RealTimeReports';
 import Setup from '@/app/components/CallCenter/Setup';
 

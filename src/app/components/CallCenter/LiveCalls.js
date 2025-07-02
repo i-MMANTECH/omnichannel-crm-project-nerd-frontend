@@ -160,9 +160,9 @@ const LiveCalls = () => {
                         </div>
 
                         {/* Search and Export */}
-                        <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto sm:flex-nowrap">
+                        <div className="hidden flex flex-wrap items-center gap-4 w-full sm:w-auto sm:flex-nowrap">
                             <button 
-                                className="hidden bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm w-full sm:w-auto">
+                                className=" bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm w-full sm:w-auto">
                                 Export
                             </button>
                             <div className="flex h-[40px] p-[8px_12px_8px_14px] justify-center items-center gap-2 rounded-[10px] border border-[#DFE1E6] bg-white shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">
