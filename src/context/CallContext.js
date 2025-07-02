@@ -27,7 +27,7 @@ export const CallProvider = ({ children }) => {
     const ringtoneInterval = useRef(null);
     const incomingRingtoneInterval = useRef(null);
 
-    const SIP_URI = 'sip:102@cc2.nativetalk.com.ng';
+    const SIP_URI = 'sip:101@cc2.nativetalk.com.ng';
     const SIP_PASSWORD = 'Test@123';
     const WSS_URL = 'wss://cc2.nativetalk.com.ng:7443';
 
