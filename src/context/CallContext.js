@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import { normalizePhoneNumber } from '@/utils/normalizePhone';
+import { useAuth } from './AuthContext';
 
 const CallContext = createContext();
 
@@ -19,6 +20,8 @@ export const CallProvider = ({ children }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [incoming, setIncoming] = useState(false);
     const [muted, setMuted] = useState(false);
+
+    const { isAuthenticated } = useAuth();
     
     const currentSessionRef = useRef(null);
 
@@ -30,7 +33,7 @@ export const CallProvider = ({ children }) => {
     const ringtoneInterval = useRef(null);
     const incomingRingtoneInterval = useRef(null);
 
-    const SIP_URI = 'sip:101@cc2.nativetalk.com.ng';
+    const SIP_URI = 'sip:102@cc2.nativetalk.com.ng';
     const SIP_PASSWORD = 'Test@123';
     const WSS_URL = 'wss://cc2.nativetalk.com.ng:7443';
 
@@ -157,6 +160,19 @@ export const CallProvider = ({ children }) => {
         initializeSIP()
     }, []);
 
+     useEffect(() => {
+    if (!isAuthenticated && uaRef.current) {
+      // stop listening / unregister
+      uaRef.current.unregister({ all: true });
+      uaRef.current.stop();
+      // clear any remaining UI state
+      currentSessionRef.current = null;
+      setSession(null);
+      setIsVisible(false);
+      setIncoming(false);
+      stopAllRingtones();
+    }
+  }, [isAuthenticated]);
 
     // ───── AUDIO ─────
     const toggleMute = () => {
