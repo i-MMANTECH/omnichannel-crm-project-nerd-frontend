@@ -33,7 +33,6 @@ const CallModal = () => {
 
   const intervalRef = useRef(null);
 
-
   useEffect(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -41,14 +40,19 @@ const CallModal = () => {
   
     if (callStatus === 'CONNECTED') {
       setWaitTime(0);
-      setCallTime(0);
+      setCallTime(0); 
       intervalRef.current = setInterval(() => {
         setCallTime((t) => t + 1);
       }, 1000);
     } else if (callStatus === 'RINGING' || callStatus === 'INCOMING') {
+      setWaitTime(0); 
+      setCallTime(0);
       intervalRef.current = setInterval(() => {
         setWaitTime((t) => t + 1);
       }, 1000);
+    } else if (callStatus === 'INITIATING') {
+      setWaitTime(0);
+      setCallTime(0);
     }
   
     return () => {
@@ -56,9 +60,9 @@ const CallModal = () => {
         clearInterval(intervalRef.current);
       }
     };
-  }, [callStatus]);
+  }, [callStatus]);  
   
-   const addComment = async () => {
+  const addComment = async () => {
     if (!note.trim()) return;
     
     try {
