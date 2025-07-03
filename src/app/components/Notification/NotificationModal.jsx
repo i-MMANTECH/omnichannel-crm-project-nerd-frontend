@@ -97,7 +97,7 @@ const NotificationModal = () => {
             <div className="rounded-full bg-gray-200 h-6 w-6"></div>
           </div>
           <div className="space-y-5">
-            {[...Array(6)].map((i) => (
+            {[...Array(6)].map((_, i) => (
               <div key={i} className="flex gap-3 py-1">
                 <div className="rounded-full bg-gray-200 h-8 w-8"></div>
                 <div className="flex-1 space-y-3">

@@ -37,9 +37,13 @@ const NotificationSettings = () => {
   });
 
   const [tempThresholdMinutes, setTempThresholdMinutes] = useState(5);
+  const [escalationLevels, setEscalationLevels] = useState([]);
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
     fetchEscalationSettings();
+    fetchEscalationLevels();
+    fetchUsers();
   }, []);
 
   const fetchEscalationSettings = async () => {
@@ -54,7 +58,27 @@ const NotificationSettings = () => {
     } finally {
       setLoading(false);
     }
-  };   
+  };
+
+  const fetchEscalationLevels = async () => {
+    try {
+      const response = await axiosInstance.get('/companies/escalation-levels/');
+      const data = response.data.data || [];
+      setEscalationLevels(data);
+    } catch (err) {
+      handleApiError(err);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await axiosInstance.get('/users/');
+      const data = response.data.data || [];
+      setUsers(data);
+    } catch (err) {
+      handleApiError(err);
+    }
+  };
 
   const updateEscalationSettings = async (updatedSettings) => {
     try {
@@ -65,6 +89,51 @@ const NotificationSettings = () => {
       return data;
     } catch (err) {
         handleApiError(err)
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createEscalationLevel = async (levelData) => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.post('/companies/escalation-levels/', levelData);
+      const newLevel = response.data.data;
+      setEscalationLevels(prev => [...prev, newLevel]);
+      return newLevel;
+    } catch (err) {
+      handleApiError(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateEscalationLevel = async (levelId, levelData) => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.patch(`/companies/escalation-levels/${levelId}/`, levelData);
+      const updatedLevel = response.data.data;
+      setEscalationLevels(prev => 
+        prev.map(level => level.id === levelId ? updatedLevel : level)
+      );
+      return updatedLevel;
+    } catch (err) {
+      handleApiError(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteEscalationLevel = async (levelId) => {
+    try {
+      setLoading(true);
+      await axiosInstance.delete(`/companies/escalation-levels/${levelId}/`);
+      setEscalationLevels(prev => prev.filter(level => level.id !== levelId));
+    } catch (err) {
+      handleApiError(err);
       throw err;
     } finally {
       setLoading(false);
@@ -183,6 +252,11 @@ const NotificationSettings = () => {
           handleThresholdMinutesChange={handleThresholdMinutesChange}
           saveThresholdMinutes={saveThresholdMinutes}
           loading={loading}
+          escalationLevels={escalationLevels}
+          users={users}
+          onCreateLevel={createEscalationLevel}
+          onUpdateLevel={updateEscalationLevel}
+          onDeleteLevel={deleteEscalationLevel}
         />
       )}
     </div>
