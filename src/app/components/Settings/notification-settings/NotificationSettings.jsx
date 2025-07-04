@@ -73,7 +73,7 @@ const NotificationSettings = () => {
   const fetchUsers = async () => {
     try {
       const response = await axiosInstance.get('/users/');
-      const data = response.data.data || [];
+      const data = response.data.results || [];
       setUsers(data);
     } catch (err) {
       handleApiError(err);
@@ -210,6 +210,7 @@ const NotificationSettings = () => {
         handleApiError(err)
     }
   };
+
 
   return (
     <div className="ms-10 mt-6">

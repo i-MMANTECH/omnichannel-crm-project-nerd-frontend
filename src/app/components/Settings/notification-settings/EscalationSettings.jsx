@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Save, X } from 'lucide-react';
+import Select from 'react-select';
 import Modal from '../../Modal';
 
 const EscalationSettings = ({ 
@@ -21,12 +22,6 @@ const EscalationSettings = ({
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-//   Users for demo 
-  const availableUsers = users.length > 0 ? users : [
-    { id: 28, first_name: 'John', last_name: 'Doe', email: 'john@example.com' },
-    { id: 29, first_name: 'Jane', last_name: 'Smith', email: 'jane@example.com' },
-    { id: 30, first_name: 'Mike', last_name: 'Johnson', email: 'mike@example.com' }
-  ];
 
   const handleAddLevel = async () => {
     if (!newLevel.level || newLevel.assigned_users.length === 0) return;
@@ -49,7 +44,7 @@ const EscalationSettings = ({
   };
 
   const getUserName = (userId) => {
-    const user = availableUsers.find(u => u.id === userId);
+    const user = users.find(u => u.id === userId);
     return user ? `${user.first_name} ${user.last_name}` : `User ${userId}`;
   };
 
@@ -68,75 +63,91 @@ const EscalationSettings = ({
     </button>
   );
 
-  const LevelForm = ({ level, onSave, onCancel }) => {
-    const [formData, setFormData] = useState(level);
+  
+const LevelForm = ({ level, onSave, onCancel }) => {
+  const [formData, setFormData] = useState(level);
 
-    useEffect(() => {
-      setFormData(level);
-    }, [level]);
+  useEffect(() => {
+    setFormData(level);
+  }, [level]);
 
-    const handleSubmit = () => {
-      if (!formData.level || !formData.assigned_users) {
-        alert('Please fill in all required fields');
-        return;
-      }
-      onSave(formData);
+  const handleSubmit = () => {
+    if (!formData.level || formData.assigned_users.length === 0) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    const formattedData = {
+      ...formData,
+      assigned_users: formData.assigned_users.map(user => user.value)
     };
 
-    return (
-      <div className="p-2">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium dark:text-white mb-2">Level <span className="text-red-500">*</span></label>
-            <input
-              type="number"
-              value={formData.level}
-              onChange={(e) => setFormData(prev => ({ ...prev, level: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white text-sm"
-              placeholder="Enter level number"
-              min="1"
-            />
-          </div>
-          <div>
-            <h3 className="font-medium text-gray-900 dark:text-white mb-2">Assigned Staff <span className="text-red-500">*</span></h3>
-            <select
-              name="assigned_users"
-              multiple
-              value={formData.assigned_users}
-              onChange={(e) => {
-                const selected = Array.from(e.target.selectedOptions, option => parseInt(option.value));
-                setFormData(prev => ({ ...prev, assigned_users: selected }));
-              }}
-              className="w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white shadow-sm dark:bg-gray-700 dark:text-white"
-            >
-              <option value="">Select Users</option>
-              {availableUsers.map(user => (
-                <option key={user.id} value={user.id}>{user.first_name} {user.last_name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div className="mt-4">
-          <label className="block text-sm font-medium dark:text-white mb-2">Description</label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+    onSave(formattedData);
+  };
+
+  const userOptions = users.map(user => ({
+    value: user.id,
+    label: `${user.first_name} ${user.last_name}`
+  }));
+
+  return (
+    <div className="p-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium dark:text-white mb-2">
+            Level <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            value={formData.level}
+            onChange={(e) => setFormData(prev => ({ ...prev, level: e.target.value }))}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white text-sm"
-            placeholder="Enter description"
-            rows="3"
+            placeholder="Enter level number"
+            min="1"
           />
         </div>
-        <div className="flex justify-end space-x-2 mt-4">
-          <button onClick={onCancel} className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
-            <X size={16} className="inline mr-1" /> Cancel
-          </button>
-          <button onClick={handleSubmit} className="px-4 py-2 bg-[#3EBF0F] text-white text-sm font-medium rounded-lg hover:bg-[#2fa00d] transition-colors" disabled={loading}>
-            <Save size={16} className="inline mr-1" /> {loading ? 'Saving...' : 'Save'}
-          </button>
+
+        <div>
+          <label className="block text-sm font-medium dark:text-white mb-2">
+            Assigned Staff <span className="text-red-500">*</span>
+          </label>
+          <Select
+        isMulti
+        name="assigned_users"
+        options={userOptions}
+        value={formData.assigned_users}
+        onChange={(selected) =>
+          setFormData(prev => ({ ...prev, assigned_users: selected || [] }))
+        }
+        className="text-sm"
+        classNamePrefix="select"
+      />
         </div>
       </div>
-    );
-  };
+
+      <div className="mt-4">
+        <label className="block text-sm font-medium dark:text-white mb-2">Description</label>
+        <textarea
+          value={formData.description}
+          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white text-sm"
+          placeholder="Enter description"
+          rows="3"
+        />
+      </div>
+
+      <div className="flex justify-end space-x-2 mt-4">
+        <button onClick={onCancel} className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
+          <X size={16} className="inline mr-1" /> Cancel
+        </button>
+        <button onClick={handleSubmit} className="px-4 py-2 bg-[#3EBF0F] text-white text-sm font-medium rounded-lg hover:bg-[#2fa00d] transition-colors" disabled={loading}>
+          <Save size={16} className="inline mr-1" /> {loading ? 'Saving...' : 'Save'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 
   return (
     <div className="mb-8">
