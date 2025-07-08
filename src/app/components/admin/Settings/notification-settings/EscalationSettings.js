@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Save, X } from 'lucide-react';
 import Select from 'react-select';
-import Modal from '../../Modal';
+import Modal from '@/app/components/Modal';
 
 const EscalationSettings = ({ 
   escalationSettings, 

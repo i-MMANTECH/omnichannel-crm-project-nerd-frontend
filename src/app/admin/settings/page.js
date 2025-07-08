@@ -3,15 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import SettingsSidebar from "@/app/components/admin/Settings/SettingsSidebar";
-import IntegrateChannels from "@/app/components/Settings/channels/IntegrateChannels";
-import RoleManagement from '@/app/components/Settings/role-management/RoleManagement';
+import IntegrateChannels from "@/app/components/admin/Settings/channels/IntegrateChannels";
+import RoleManagement from '@/app/components/admin/Settings/role-management/RoleManagement';
 import dynamic from 'next/dynamic';
-import SlaPolicies from '@/app/components/Settings/sla-policies/SlaPolicies';
+import SlaPolicies from '@/app/components/admin/Settings/sla-policies/SlaPolicies';
 import DeveloperSettings from '@/app/components/admin/Settings/developer-settings/DeveloperSettings';
-import NotificationSettings from '@/app/components/Settings/notification-settings/NotificationSettings';
+import NotificationSettings from '@/app/components/admin/Settings/notification-settings/NotificationSettings';
 
 
-const PlansAndBillings = dynamic(() => import('@/app/components/Settings/plans-and-billings/PlansAndBillings'), { 
+const PlansAndBillings = dynamic(() => import('@/app/components/admin/Settings/plans-and-billings/PlansAndBillings'), { 
   ssr: false 
 });
 
