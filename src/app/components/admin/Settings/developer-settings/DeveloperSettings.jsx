@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
+import { Eye, EyeOff } from "lucide-react";
 import "../../Profile/agentProfile.css";
 
 export default function DeveloperSettings() {
@@ -15,6 +16,12 @@ export default function DeveloperSettings() {
   const [documents, setDocuments] = useState([]);
   const [loadingDocuments, setLoadingDocuments] = useState(true);
   const [uploading, setUploading] = useState(false);
+
+  const [publicKey, setPublicKey] = useState("");
+  const [secretKey, setSecretKey] = useState("");
+  const [showPublicKey, setShowPublicKey] = useState(false);
+  const [showSecretKey, setShowSecretKey] = useState(false);
+  const [loadingPaymentKeys, setLoadingPaymentKeys] = useState(true);
 
   useEffect(() => {
     const fetchWebhook = async () => {
@@ -41,8 +48,23 @@ export default function DeveloperSettings() {
       }
     };
 
+    const fetchPaymentKeys = async () => {
+      try {
+        const {data} = await axiosInstance.get("/companies/payment-config/");
+        const paystackConfig = data?.data?.config?.paystack || {};
+
+        setPublicKey(paystackConfig.public_key || "");
+        setSecretKey(paystackConfig.secret_key || "");
+      } catch (error) {
+        handleApiError(error);
+      } finally {
+        setLoadingPaymentKeys(false);
+      }
+    };
+
     fetchWebhook();
     fetchApiKey();
+    fetchPaymentKeys();
   }, []);
 
   const fetchDocuments = async () => {
@@ -99,11 +121,28 @@ export default function DeveloperSettings() {
     }
   };
 
+  const handleSavePaymentKeys = async () => {
+    try {
+      await axiosInstance.patch("/companies/payment-config/", {
+        gateway: "paystack",
+        is_active: true,
+        config: {
+          public_key: publicKey,
+          secret_key: secretKey,
+        },
+      });
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+
   const tabs = [
     { key: "webhook", label: "Webhook" },
     { key: "apiKey", label: "API Key" },
     { key: "aiKnowledge", label: "AI Knowledge Base" },
+    { key: "paymentKeys", label: "Payment Keys" },
   ];
+
 
 
   return (
@@ -124,7 +163,7 @@ export default function DeveloperSettings() {
       </div>
 
       {selected === "webhook" && (
-        <div className="mt-6 ms-6 rounded-lg border border-gray-300 p-6">
+        <div className="mt-6 ms-6 rounded-lg border border-gray-300 p-6 max-w-2xl">
           <label htmlFor="webhook" className="block mb-2 font-medium">Webhook URL</label>
           {loadingWebhook ? (
             <p>Loading Webhook URL...</p>
@@ -151,7 +190,7 @@ export default function DeveloperSettings() {
       )}
 
       {selected === "apiKey" && (
-        <div className="mt-6 ms-6 rounded-lg border border-gray-300 p-6">
+        <div className="mt-6 ms-6 rounded-lg border border-gray-300 p-6 max-w-2xl">
           <label htmlFor="apiKey" className="block mb-2 font-medium">API Key</label>
           {loadingApiKey ? (
             <p>Loading API Key...</p>
@@ -207,6 +246,78 @@ export default function DeveloperSettings() {
           </div>
         </div>
       )}
+
+
+      {selected === "paymentKeys" && (
+        <div className="mt-6 ms-6 rounded-lg border border-gray-300 p-6 max-w-2xl">
+          <h2 className="text-small  mb-4">Please enter your Paystack payment keys to enable direct payments from customers to your Paystack account.</h2>
+
+          {loadingPaymentKeys ? (
+            <p>Loading Payment Keys...</p>
+          ) : (
+            <>
+              {/* Public Key */}
+              <label htmlFor="publicKey" className="block mb-2 font-medium">Public Key</label>
+              <div className="relative mb-4">
+                <input
+                  id="publicKey"
+                  type="text"
+                  value={publicKey}
+                  onChange={(e) => setPublicKey(e.target.value)}
+                  className="w-full border border-gray-300 p-2 rounded pr-10 font-mono"
+                  style={{
+                    WebkitTextSecurity: showPublicKey ? "none" : "disc",
+                    MozTextSecurity: showPublicKey ? "none" : "disc",
+                    textSecurity: showPublicKey ? "none" : "disc",
+                  }}
+                  placeholder="Enter public key"
+                  autoComplete="off"
+                />
+                <span
+                  onClick={() => setShowPublicKey(!showPublicKey)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500"
+                >
+                  {showPublicKey ? <EyeOff size={18} /> : <Eye size={18} />}
+                </span>
+              </div>
+
+              {/* Secret Key */}
+              <label htmlFor="secretKey" className="block mb-2 font-medium">Secret Key</label>
+              <div className="relative mb-4">
+                <input
+                  id="secretKey"
+                  type="text"
+                  value={secretKey}
+                  onChange={(e) => setSecretKey(e.target.value)}
+                  className="w-full border border-gray-300 p-2 rounded pr-10 font-mono"
+                  style={{
+                    WebkitTextSecurity: showSecretKey ? "none" : "disc",
+                    MozTextSecurity: showSecretKey ? "none" : "disc",
+                    textSecurity: showSecretKey ? "none" : "disc",
+                  }}
+                  placeholder="Enter secret key"
+                  autoComplete="off"
+                />
+                <span
+                  onClick={() => setShowSecretKey(!showSecretKey)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500"
+                >
+                  {showSecretKey ? <EyeOff size={18} /> : <Eye size={18} />}
+                </span>
+              </div>
+
+              <button
+                onClick={handleSavePaymentKeys}
+                className="mt-4 px-4 py-2 bg-[#3EBF0F] text-white rounded"
+              >
+                Save
+                  </button>
+            </>
+          )}
+        </div>
+      )}
+
+
     </div>
   );
 }
