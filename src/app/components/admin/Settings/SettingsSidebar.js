@@ -93,7 +93,7 @@ function SettingsSidebar({ onSidebarClick, currentSection  }) {
               </button>
               <button
                   onClick={() => onSidebarClick('notification-settings')}
-                  className={`hidden flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${currentSection === 'notification-settings' ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+                  className={` flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${currentSection === 'notification-settings' ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
                 <Image
                     src="/assets/bell.svg"

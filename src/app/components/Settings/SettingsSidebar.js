@@ -4,7 +4,7 @@ import React, { useState, useRef } from "react";
 import { Disclosure } from "@headlessui/react";
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
-import { AlarmClock, CodeXml, FileText, Link, UserPlus } from "lucide-react";
+import { AlarmClock, CodeXml, FileText, Link, UserPlus, Bell } from "lucide-react";
 
 
 function SettingsSidebar({ onSidebarClick, currentSection  }) {
@@ -60,6 +60,16 @@ function SettingsSidebar({ onSidebarClick, currentSection  }) {
               </button> 
               
               <button
+                  onClick={() => onSidebarClick('notification-settings')}
+                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${currentSection === 'notification-settings' ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+              >
+                <Bell size={18} />
+                <h3 className={`text-sm font-medium`}>
+                  Notification Settings
+                </h3>
+              </button>
+              
+              <button
                   onClick={() => onSidebarClick('report-settings')}
                   className={`hidden flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${currentSection === 'report-settings' ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
               >
@@ -89,21 +99,6 @@ function SettingsSidebar({ onSidebarClick, currentSection  }) {
                   />
                 <h3 className={`text-sm font-medium`}>
                   Data backup & Export
-                </h3>
-              </button>
-              <button
-                  onClick={() => onSidebarClick('notification-settings')}
-                  className={`hidden flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${currentSection === 'notification-settings' ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
-              >
-                <Image
-                    src="/assets/bell.svg"
-                    className={`${isActive("/notification-settings") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
-                    alt="Bell"
-                    width={20}
-                    height={20}
-                  />
-                <h3 className={`text-sm font-medium`}>
-                  Notification Settings
                 </h3>
               </button>
 
