@@ -250,7 +250,7 @@ export default function DeveloperSettings() {
 
       {selected === "paymentKeys" && (
         <div className="mt-6 ms-6 rounded-lg border border-gray-300 p-6 max-w-2xl">
-          <h2 className="text-small  mb-4">Please enter your Paystack payment keys to enable direct payments from customers to your Paystack account.</h2>
+          <h2 className="text-small  mb-4">Please enter your Paystack payment keys to enable direct payments from customers to your Paystack Account.</h2>
 
           {loadingPaymentKeys ? (
             <p>Loading Payment Keys...</p>
