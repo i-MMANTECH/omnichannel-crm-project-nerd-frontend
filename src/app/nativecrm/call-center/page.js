@@ -12,6 +12,7 @@ import Setup from '@/app/components/CallCenter/Setup';
 import FloatingDialer from '@/app/components/CallCenter/FloatingDialer';
 import Loader from '@/app/components/Loader';
 import { useApi } from '@/services/axiosConfig';
+import CallCenterNotActivated from '@/app/components/CallCenter/CallCenterNotActivated';
 
 
 
@@ -79,19 +80,7 @@ export default function CallCenter() {
   }
 
    if (!isConfigured) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[80vh] space-y-4 p-6 text-center">
-        <h2 className="text-2xl font-semibold">🚫 Call Center Not Activated</h2>
-        <p className="text-gray-600">{message}</p>
-        <button
-          disabled
-          className="mt-4 px-6 py-2 bg-green-500 text-white rounded opacity-50 cursor-not-allowed"
-        >
-          Subscribe to Call Center
-        </button>
-       
-      </div>
-    )
+    return <CallCenterNotActivated message={message} />;
   }
 
   return (
