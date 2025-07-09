@@ -4,7 +4,7 @@ import copy from "copy-to-clipboard";
 import './IsLiveChat.css';
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
-import Modal from "../Modal";
+import Modal from "../../Modal";
 import { toast } from "react-toastify";
 
 export const ConnectLiveChatModal = ({ onCancel }) => {

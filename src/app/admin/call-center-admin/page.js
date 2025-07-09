@@ -3,17 +3,24 @@
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import CallCenterSidebar from '@/app/components/admin/CallCenter/CallCenterSidebar';
-import CallDetailRecords from '@/app/components/admin/CallCenter/CallDetailRecords';
-import MissedCallReport from '@/app/components/admin/CallCenter/MissedCallReport';
-import LiveCalls from '@/app/components/admin/CallCenter/LiveCalls';
-import IVR from '@/app/components/admin/CallCenter/IVR';
+import dynamic from 'next/dynamic';
+import CallDetailRecords from '@/app/components/CallCenter/CallDetailRecords';
+import MissedCallReport from '@/app/components/CallCenter/MissedCallReport';
+import LiveCalls from '@/app/components/CallCenter/LiveCalls';
+import IVR from '@/app/components/CallCenter/IVR';
 import RealTimeReports from '@/app/components/admin/CallCenter/RealTimeReports';
 import Setup from '@/app/components/CallCenter/Setup';
+import Loader from '@/app/components/Loader';
+import { useApi } from '@/services/axiosConfig';
+import CallCenterNotActivated from '@/app/components/CallCenter/CallCenterNotActivated';
 
 
 export default function Settings() {
   const pathname = usePathname();
   const [currentSection, setCurrentSection] = useState(null);
+  const [isConfigured, setIsConfigured] = useState(null)
+  const [message, setMessage] = useState('')
+  const { axiosInstance, loading: apiLoading } = useApi()
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -21,6 +28,25 @@ export default function Settings() {
       setCurrentSection(hash || 'default');
     }
   }, [pathname]);
+
+    useEffect(() => {
+      let mounted = true
+      axiosInstance
+        .get('/call-center/config-status/')
+        .then(({ data }) => {
+          if (!mounted) return
+          setIsConfigured(Boolean(data.is_configured))
+          setMessage(data.message)
+        })
+        .catch(() => {
+          if (!mounted) return
+          setIsConfigured(false)
+          setMessage('Unable to fetch configuration.')
+        })
+      return () => {
+        mounted = false
+      }
+    }, [])
 
   const handleSidebarClick = (section) => {
     setCurrentSection(section);
@@ -48,6 +74,15 @@ export default function Settings() {
     }
   };
 
+  
+  if (isConfigured === null || apiLoading) {
+    return <Loader />
+  }
+
+   if (!isConfigured) {
+    return <CallCenterNotActivated message={message} />;
+  }
+
   return (
     <div> 
     <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh] gap-5">      
@@ -65,3 +100,6 @@ export default function Settings() {
     </div>
   );
 }
+
+
+

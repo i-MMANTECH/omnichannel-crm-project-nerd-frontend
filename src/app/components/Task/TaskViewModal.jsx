@@ -9,7 +9,7 @@ import { timeAgo } from "@/utils/timeUtils";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComments } from '@fortawesome/free-regular-svg-icons';
-import SlaDetail from "../Settings/sla-policies/SlaDetail";
+import SlaDetail from "../admin/Settings/sla-policies/SlaDetail";
 
 
 const TaskViewModal = ({ isOpen, taskId, onClose }) => {

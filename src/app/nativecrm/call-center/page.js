@@ -10,11 +10,18 @@ import LiveCalls from '@/app/components/CallCenter/LiveCalls';
 import IVR from '@/app/components/CallCenter/IVR';
 import Setup from '@/app/components/CallCenter/Setup';
 import FloatingDialer from '@/app/components/CallCenter/FloatingDialer';
+import Loader from '@/app/components/Loader';
+import { useApi } from '@/services/axiosConfig';
+import CallCenterNotActivated from '@/app/components/CallCenter/CallCenterNotActivated';
+
 
 
 export default function CallCenter() {
   const pathname = usePathname();
   const [currentSection, setCurrentSection] = useState(null);
+  const [isConfigured, setIsConfigured] = useState(null)
+  const [message, setMessage] = useState('')
+  const { axiosInstance, loading: apiLoading } = useApi()
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -22,6 +29,25 @@ export default function CallCenter() {
       setCurrentSection(hash || 'default');
     }
   }, [pathname]);
+
+   useEffect(() => {
+    let mounted = true
+    axiosInstance
+      .get('/call-center/config-status/')
+      .then(({ data }) => {
+        if (!mounted) return
+        setIsConfigured(Boolean(data.is_configured))
+        setMessage(data.message)
+      })
+      .catch(() => {
+        if (!mounted) return
+        setIsConfigured(false)
+        setMessage('Unable to fetch configuration.')
+      })
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   const handleSidebarClick = (section) => {
     setCurrentSection(section);
@@ -48,6 +74,14 @@ export default function CallCenter() {
         return <div>Select a setting from the sidebar</div>;
     }
   };
+
+  if (isConfigured === null || apiLoading) {
+    return <Loader />
+  }
+
+   if (!isConfigured) {
+    return <CallCenterNotActivated message={message} />;
+  }
 
   return (
     <div> 

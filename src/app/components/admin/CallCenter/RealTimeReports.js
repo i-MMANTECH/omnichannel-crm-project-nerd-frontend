@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import NoDataFound from "../NoDataFound";
+import NoDataFound from "../../NoDataFound";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import StatCard from "./StatCard";

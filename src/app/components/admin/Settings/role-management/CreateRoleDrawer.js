@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Drawer from '../../Drawer';
+import Drawer from '@/app/components/Drawer';
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
 import Pagination from '../../Pagination/Pagination';
