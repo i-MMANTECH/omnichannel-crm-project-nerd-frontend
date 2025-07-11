@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
-import Modal from "../../Modal";
+import Modal from "@/app/components/Modal";
 import { useAuth } from "@/context/AuthContext";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
@@ -41,27 +41,40 @@ const ChangePasswordModal = ({ isModalOpen, closeModal }) => {
     };
   
     const handleSubmit = async (e) => {
-      e.preventDefault();
-  
-      // Add password validation
-      if (formData.newPassword !== formData.confirmPassword) {
-        toast.error("Passwords do not match");
-        return;
-      }
-  
-      try {
-        const response = await axiosInstance.post("/auth/forgot-password/change-password/", {
-          email,
-          new_password: formData.newPassword
-        });
-  
-        if (response.data.success) {
-          toast.success("Password Updated Successfully");
-          closeModal();
+        e.preventDefault();
+    
+        if (!isPasswordValid(formData.newPassword)) {
+            toast.error("Password must be 8-24 characters, include uppercase, lowercase, number, and symbol.");
+            return;
         }
-      } catch (error) {
-        handleApiError(error);
-      }
+    
+        if (formData.newPassword !== formData.confirmPassword) {
+            toast.error("Passwords do not match.");
+            return;
+        }
+    
+        try {
+            const response = await axiosInstance.post("/auth/forgot-password/change-password/", {
+                email,
+                new_password: formData.newPassword
+            });
+    
+            if (response.data.success) {
+                toast.success("Password Updated Successfully");
+                closeModal();
+            }
+        } catch (error) {
+            handleApiError(error);
+        }
+    };
+
+    const isPasswordValid = (password) => {
+      const lengthValid = password.length >= 8 && password.length <= 24;
+      const hasUppercase = /[A-Z]/.test(password);
+      const hasLowercase = /[a-z]/.test(password);
+      const hasDigit = /\d/.test(password);
+      const hasSymbol = /[\W_]/.test(password);
+      return lengthValid && hasUppercase && hasLowercase && hasDigit && hasSymbol;
     };
   
     const togglePasswordVisibility = (field) => {
@@ -135,6 +148,10 @@ const ChangePasswordModal = ({ isModalOpen, closeModal }) => {
                   />
                 </button>
               </div>
+              <p className="text-xs text-gray-500 mt-1">
+                  Password must be 8-24 characters, including uppercase, lowercase, number, and symbol.
+              </p>
+
             </div>
   
             <div>
