@@ -21,10 +21,11 @@ export function NotificationProvider({ children }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
-  const { company, user } = useAuth();
+  const { user, company,isAuthenticated } = useAuth();
   const [socket, setSocket] = useState(null);
 
   const fetchNotifications = async () => {
+    
     try {
       const response = await axiosInstance.get('/notifications');
       if (response.data.success) {
@@ -80,6 +81,13 @@ export function NotificationProvider({ children }) {
 
     initializeWebSocket()
   }, [user?.user_id]);
+
+  useEffect(() => {
+    if (!isAuthenticated && socket) {
+      socket.close();
+      setSocket(null);
+    }
+  }, [isAuthenticated, socket]);
 
   const handleNewNotification = (data) => {
     // Play notification sound

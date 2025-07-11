@@ -5,8 +5,8 @@ import JsSIP from 'jssip';
 import { toast } from 'react-toastify';
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
-import { useAuth } from './AuthContext';
 import { normalizePhoneNumber } from '@/utils/normalizePhone';
+import { useAuth } from './AuthContext';
 
 const CallContext = createContext();
 
@@ -14,7 +14,7 @@ export const CallProvider = ({ children }) => {
     const { axiosInstance } = useApi();
     const { handleApiError } = useError();
 
-    const { user, setUser } = useAuth();
+    const { user, setUser, isAuthenticated } = useAuth();
 
     const [session, setSession] = useState(null);
     const [registered, setRegistered] = useState(false);
@@ -251,6 +251,20 @@ export const CallProvider = ({ children }) => {
             handleApiError(error)
         }
     };
+
+    useEffect(() => {
+        if (!isAuthenticated && uaRef.current) {
+        // stop listening / unregister
+        uaRef.current.unregister({ all: true });
+        uaRef.current.stop();
+        // clear any remaining UI state
+        currentSessionRef.current = null;
+        setSession(null);
+        setIsVisible(false);
+        setIncoming(false);
+        stopAllRingtones();
+        }
+    }, [isAuthenticated]);
         
     // ───── AUDIO ─────
     const toggleMute = () => {
