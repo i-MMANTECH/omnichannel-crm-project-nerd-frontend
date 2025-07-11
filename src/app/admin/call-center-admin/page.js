@@ -76,7 +76,9 @@ export default function Settings() {
 
   
   if (isConfigured === null || apiLoading) {
-    return <Loader />
+    return <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-[#3EBF0F]"></div>
+          </div>
   }
 
    if (!isConfigured) {

@@ -367,6 +367,10 @@ export const MessagesContent = () => {
 	  }, []);
 
 	const fetchAiStatus = async (conversationId) => {
+		if (chatType === "archived") {
+			return;
+		}
+		
 		if (conversationId) {
 			try {
 				const res = await axiosInstance.get(`/communication/conversations/${conversationId}/ai-status/`, {

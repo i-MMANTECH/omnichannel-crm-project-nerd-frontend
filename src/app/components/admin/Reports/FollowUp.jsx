@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Bell, MoreVertical } from "lucide-react";
-import UserAvatar from "../UserAvatar";
+import UserAvatar from "../../UserAvatar";
 import FollowUpQueue from "./FollowUpQueue";
 import ActionMenu from "./ActionMenu";
 

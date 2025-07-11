@@ -40,7 +40,7 @@ const ModalController = ({ children }) => {
   return children({ isModalOpen, openModal, closeModal });
 };
 
-const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => {
+const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refreshChatHeader }) => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successModalMessage, setSuccessModalMessage] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -93,7 +93,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
     if (conversationId) fetchAiStatus();
   
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [conversationId]);  
+  }, [conversationId, refreshChatHeader]);  
 
   if (!activeUser) return null;
 
