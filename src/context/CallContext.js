@@ -43,7 +43,7 @@ export const CallProvider = ({ children }) => {
         }
 
         initializeSIP(config)
-    }, []);
+    }, [user]);
     
     const initializeSIP = (config) => {
         const { SIP_URI, SIP_PASSWORD, WSS_URL } = config;
@@ -192,7 +192,6 @@ export const CallProvider = ({ children }) => {
             }
         }
 
-        console.log("call center config", config)
         return config;
     };
 
