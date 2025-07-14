@@ -196,6 +196,7 @@ const MessageInput = ({ onSendMessage, activeUser, chatType }) => {
         )}
       </div>
 
+       {selectedChannel?.label !== "Email" && <>
        {message || selectedImages || selectedFiles ? (
         <button className="send-button" onClick={(sendMessage)}>
           <FontAwesomeIcon icon={faPaperPlane} />
@@ -205,6 +206,7 @@ const MessageInput = ({ onSendMessage, activeUser, chatType }) => {
           <FontAwesomeIcon icon={faPaperPlane} color="grey"/>
         </button>
       )}
+       </>}
     </div>
   );
 };
