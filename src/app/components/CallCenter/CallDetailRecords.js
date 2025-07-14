@@ -5,7 +5,6 @@ import CreateUserModal from "@/app/components/Users/CreateUserModal";
 import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import Image from "next/image";
 import table from "/public/assets/table.svg";
 import grid from "/public/assets/grid.svg";
 import sort from "/public/assets/sort.svg";
@@ -106,7 +105,7 @@ const CallDetailRecords = () => {
 
     const getCDRs = async (page = 1, page_size = 10, search = "") => {
         try {
-            const { data } = await axiosInstance.get(`/call-center/cdrs?page_size=${page_size}&page=${page}&search=${search}`);
+            const { data } = await axiosInstance.get(`/call-center/cdrs/search?page_size=${page_size}&page=${page}&search=${search}`);
             setCdrs(data.results);
             setTotalPages(Math.ceil(data.count / page_size));
         } catch (error) {

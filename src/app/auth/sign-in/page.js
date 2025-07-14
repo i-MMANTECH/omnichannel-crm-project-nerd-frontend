@@ -154,7 +154,7 @@ const SignIn = () => {
                             </button>
                         </div>
                         <div className="flex items-center justify-between mb-4 mt-3">
-                            <label className="flex items-center">
+                            <label className="flex items-center hidden">
                                 <input type="checkbox" className="form-checkbox text-[#3EBF0F]" />
                                 <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Remember Me</span>
                             </label>
