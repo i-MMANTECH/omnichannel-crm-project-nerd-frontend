@@ -67,6 +67,7 @@ export const MessagesContent = () => {
 	const [showAiTakeoverPrompt, setShowAiTakeoverPrompt] = useState(false);
 	const [refreshChatHeader, setRefreshChatHeader] = useState(false)
 
+	const [inputIsEmailMode, setInputIsEmailMode] = useState(false);
 
 	const [tabUnreadFlags, setTabUnreadFlags] = useState({
 		leads: false,
@@ -1047,6 +1048,7 @@ export const MessagesContent = () => {
 							<div className="flex items-center ">
 								<MessageList 
 									chatHistory={chatHistory} 
+									inputIsEmailMode={inputIsEmailMode}
 								/>
 
 								{chatType != "archived" ? ( 
@@ -1054,6 +1056,7 @@ export const MessagesContent = () => {
 										onSendMessage={handleSendMessage}
 										chatType={chatType}
 										activeUser={activeUser}
+										setInputIsEmailMode={setInputIsEmailMode}
 									/>
 								): (
 									<h2 className="w-full absolute bottom-5 flex items-center justify-center fw-bold text-red-300 p-2">Chat ended</h2>

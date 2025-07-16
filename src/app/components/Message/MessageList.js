@@ -6,7 +6,7 @@ import "./messageList.css";
 import Image from "next/image";
 import UserAvatar from "../UserAvatar";
 import { useRouter } from "next/navigation";
- import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 
@@ -48,7 +48,7 @@ const getSmartTimestamp = (messageDate) => {
   return `${shortDateWithYear}, ${timeString}`; // "2/11/22, 2:50 PM"
 };
 
-const MessageList = ({ chatHistory }) => {
+const MessageList = ({ chatHistory, inputIsEmailMode }) => {
   const messageEndRef = useRef(null);
   const router = useRouter();
   const [hoveredUserId, setHoveredUserId] = useState(null);
@@ -115,59 +115,61 @@ const MessageList = ({ chatHistory }) => {
     return faFile;
   };
 
-function renderMessageContent(msg) {
+
+  function renderMessageContent(msg) {
+    if (msg.content_type === 'html') {
+      return <div dangerouslySetInnerHTML={{ __html: msg.content }} />;
+    }
   
-  if (msg.content_type === 'html') {
-    return <div dangerouslySetInnerHTML={{ __html: msg.content }} />;
-  }
-
-  if (msg.content_type === 'text' && msg.channel?.name === 'WhatsApp') {
-    let md = msg.content
-      .replace(/^•\s/gm, '- ')
-      .replace(
-        /^([A-Za-z0-9 \-\(\)]+):\s*(.+)$/gm,
-        (_, title, rest) => `- **${title.trim()}**: ${rest.trim()}`
+    if (msg.content_type === 'text' && msg.channel?.name === 'WhatsApp') {
+      let md = msg.content
+        .replace(/^•\s/gm, '- ')
+        .replace(
+          /^([A-Za-z0-9 \-\(\)]+):\s*(.+)$/gm,
+          (_, title, rest) => `- **${title.trim()}**: ${rest.trim()}`
+        );
+  
+      return (
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            p: ({ node, ...props }) => (
+              <p
+                style={{
+                  whiteSpace: 'pre-wrap',
+                  marginTop: msg.attachments?.length ? '8px' : '0',
+                }}
+                {...props}
+              />
+            ),
+          }}
+        >
+          {md}
+        </ReactMarkdown>
       );
+    }
 
-    return (
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          p: ({ node, ...props }) => (
-            <p
-              style={{
-                whiteSpace: 'pre-wrap',
-                marginTop: msg.attachments?.length ? '8px' : '0',
-              }}
-              {...props}
-            />
-          ),
-        }}
-      >
-        {md}
-      </ReactMarkdown>
-    );
+    if (msg.content_type === "text" || msg.content_type === "image" || msg.content_type === "document") {
+      return (
+        <div dangerouslySetInnerHTML={{ __html: msg.content }} style={{ whiteSpace: "pre-wrap", marginTop: msg.attachments?.length ? "8px" : "0" }}/>
+      );
+    }
+  
+    // For image/document/unknown types, don't show text
+    return null;
   }
-
-  if (msg.content_type === 'text') {
-    return (
-      <p
-        style={{
-          whiteSpace: 'pre-wrap',
-          marginTop: msg.attachments?.length ? '8px' : '0',
-        }}
-      >
-        {msg.content}
-      </p>
-    );
-  }
-  return <i>invalid content</i>;
-}
+  
 
   if (!chatHistory || chatHistory?.length === 0) return null;
 
   return (
-    <div className="message-list flex overflow-y-auto overflow-x-hidden h-[60vh] flex-col relative scrollbar-hide">
+
+     <div
+        className={`message-list flex overflow-y-auto overflow-x-hidden flex-col relative scrollbar-hide ${
+          inputIsEmailMode ? 'h-[50vh]' : 'h-[60vh]'
+        }`}
+      >
+
       {chatHistory.map((msg, index) => {
         const isOutgoing = msg.company_is_sender;
         const userDisplayInfo = msg.user_sender_details?.last_name || msg.user_sender_details?.first_name || msg.user_sender_details?.email;
@@ -175,7 +177,7 @@ function renderMessageContent(msg) {
         return (
           <div className={`chat ${isOutgoing ? "chat-right" : "chat-left"}`} key={index}>
             <div className={`mt-1 bubble-chat ${isOutgoing ? "bubble-chat-user" : "bubble-chat-other"}`}>
-              {msg.channel?.image && (
+              {msg?.channel?.image && (
                 <div
                   className={`absolute -top-2 ${isOutgoing ? "-right-3" : "-left-3"} mb-7 w-5 h-5 bg-white rounded-full border border-gray-300 shadow-md p-[2px]`}
                   onMouseEnter={() => setHoveredChannelId(index)}
@@ -199,8 +201,9 @@ function renderMessageContent(msg) {
 
               <div className="relative">
                 {msg?.channel?.id == 7 &&
-                  <div className="text-lg font-semibold mb-10">Subject: <span>{msg?.subject ?? "__"}</span></div>
+                  <div className="text-lg font-semibold mb-5"><span>{msg?.subject ?? "__"}</span></div>
                 }
+                
                 {isOutgoing ? (
                   <div className="flex items-center relative">
                     <div
@@ -216,7 +219,7 @@ function renderMessageContent(msg) {
                         className="w-8 h-8 rounded-full mr-3"
                         width={30}
                         height={30}
-                        onClick={() => router.push(`/nativecrm/users/${msg.user_sender_details.id}`)}
+                        // onClick={() => router.push(`/nativecrm/users/${msg.user_sender_details?.id}`)}
                         title={msg.user_sender_details.name}
                       />
                     ) : msg.user_sender_details?.first_name || msg.user_sender_details?.last_name || msg.user_sender_details?.email ? (
@@ -269,7 +272,7 @@ function renderMessageContent(msg) {
                             return (
                               <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
                                 <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
-                                <span className="text-sm truncate text-white">{fileName}</span>
+                                <span className="text-sm truncate">{fileName}</span>
                                 <button
                                   className="ml-auto text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
                                   onClick={() => downloadFile(attachment.file, fileName)}
@@ -282,7 +285,8 @@ function renderMessageContent(msg) {
                         </div>
                       )}
 
-                       {renderMessageContent(msg)} 
+                      {/* Display text content below images or documents (if available) */}
+                     { renderMessageContent(msg) }
                     </div>
 
                     {hoveredUserId === index && userDisplayInfo && (
@@ -293,6 +297,8 @@ function renderMessageContent(msg) {
                   </div>
                 ) : (
                   <div>
+                    {/* Show text content below images or documents if present */}
+                    {renderMessageContent(msg)}
                     {/* If message contains documents, display them */}
                     {msg.attachments && msg.attachments.length > 0 && (
                       <div className="flex flex-col gap-2">
@@ -333,8 +339,6 @@ function renderMessageContent(msg) {
                       </div>
                     )}
 
-                    {/* Show text content below images or documents if present */}
-                     {renderMessageContent(msg)} 
                   </div>
                 )}
               </div>
@@ -345,7 +349,6 @@ function renderMessageContent(msg) {
                 {getSmartTimestamp(msg.created_at)}
               </p>
               {isOutgoing && getIconForStatus(msg.status)}
-
             </div>
           </div>
         );
