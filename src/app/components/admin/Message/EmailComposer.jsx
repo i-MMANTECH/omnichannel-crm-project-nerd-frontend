@@ -102,9 +102,9 @@ const EmailComposer = ({ onSendMessage, selectedChannel }) => {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded">
+    <div className="bg-white  border-gray-200 rounded">
       {/* Subject */}
-      <div className="px-4 py-3 border-b border-gray-200">
+      <div className="px-4 py-3 border-gray-200">
         <input
           type="text"
           placeholder="Enter Subject"
@@ -114,23 +114,35 @@ const EmailComposer = ({ onSendMessage, selectedChannel }) => {
         />
       </div>
 
-      <div className="px-4 py-3">
-        <div className="flex items-start space-x-3">
+      <div className="pr-4 py-3 ">
+        <div className="flex items-center ">
           {/* Attachment Icon */}
-          <div className="attach-icon bg-white rounded-full" onClick={() => fileInputRef.current?.click()}>
+          <div className="attach-icon bg-white rounded-full " onClick={() => fileInputRef.current?.click()}>
             <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path fillRule="evenodd" clipRule="evenodd" d="M17 7.75C11.8914 7.75 7.75 11.8914 7.75 17C7.75 22.1086 11.8914 26.25 17 26.25C22.1086 26.25 26.25 22.1086 26.25 17C26.25 11.8914 22.1086 7.75 17 7.75ZM6.25 17C6.25 11.0629 11.0629 6.25 17 6.25C22.9371 6.25 27.75 11.0629 27.75 17C27.75 22.9371 22.9371 27.75 17 27.75C11.0629 27.75 6.25 22.9371 6.25 17ZM14.6514 12.628C16.5129 10.7783 19.5165 10.7758 21.3704 12.6297L21.372 12.6314C23.2217 14.4929 23.2242 17.4965 21.3704 19.3503L19.1503 21.5703C18.0774 22.6432 16.3325 22.6432 15.2596 21.5703C14.1867 20.4974 14.1867 18.7525 15.2596 17.6796L16.6697 16.2696C16.9626 15.9767 17.4375 15.9768 17.7303 16.2697C18.0232 16.5625 18.0232 17.0374 17.7303 17.3303L16.3203 18.7403C15.8332 19.2274 15.8332 20.0226 16.3203 20.5097C16.8074 20.9968 17.6026 20.9968 18.0897 20.5097L20.3097 18.2897C21.5756 17.0238 21.5783 14.9679 20.3088 13.6895C19.0428 12.4244 16.9876 12.422 15.7094 13.6912L13.2903 16.1103C12.2432 17.1574 12.2432 18.8525 13.2903 19.8996C13.5832 20.1925 13.5832 20.6674 13.2903 20.9603C12.9974 21.2532 12.5226 21.2532 12.2297 20.9603C10.5968 19.3274 10.5968 16.6825 12.2297 15.0496L14.6514 12.628Z" fill="#0D0D12" />
             </svg>
           </div>
 
-          <div className="flex-1">
+          <div className="flex-1 relative">
+            {message === '' && (
+              <div
+                className="absolute top-3 left-3 text-gray-400 pointer-events-none text-sm"
+                style={{
+                  fontFamily: 'system-ui, -apple-system, sans-serif',
+                  lineHeight: '1.4',
+                }}
+              >
+                Write message here...
+              </div>
+            )}
+
             <div
               ref={editorRef}
               contentEditable
               suppressContentEditableWarning
               onInput={(e) => setMessage(e.target.innerHTML)}
               onKeyDown={handleKeyDown}
-              className="min-h-[120px] max-h-[300px] overflow-y-auto p-3 border border-gray-200 rounded-lg"
+              className="min-h-[85px] max-h-[300px] overflow-y-auto p-3 rounded-lg text-sm"
               style={{
                 fontSize: '14px',
                 lineHeight: '1.4',
@@ -147,7 +159,7 @@ const EmailComposer = ({ onSendMessage, selectedChannel }) => {
           <button
             onClick={handleSend}
             disabled={!subject.trim() && !message.trim() && selectedImages.length === 0 && selectedFiles.length === 0}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+            className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
               (subject.trim() || message.trim() || selectedImages.length > 0 || selectedFiles.length > 0)
                 ? 'text-white hover:opacity-90'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -159,7 +171,7 @@ const EmailComposer = ({ onSendMessage, selectedChannel }) => {
                   : undefined
             }}
           >
-            <Send size={16} />
+            <Send size={20} />
           </button>
         </div>
       </div>

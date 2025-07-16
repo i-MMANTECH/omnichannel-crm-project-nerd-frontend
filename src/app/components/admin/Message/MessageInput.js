@@ -107,8 +107,41 @@ const MessageInput = ({ onSendMessage, activeUser, chatType }) => {
   };
 
   return (
-    <div className="body-theme type absolute bottom-0 w-full">
-      <div className="write-area">
+    <div className="body-theme type absolute bottom-0 w-full pr-6 py-4">
+      <div className="write-area ">
+        {chatType === "customers" && (
+          <div className="relative ml-2">
+            <button
+              className="rounded-full bg-white p-1 text-sm flex items-center gap-2"
+              onClick={() => setChannelDropdownOpen(!channelDropdownOpen)}
+            >
+              {!isLoadingChannels ? (
+                <img src={selectedChannel?.image} alt={selectedChannel?.label} className="w-7 h-7 rounded-full" />
+              ) : (
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+              )}
+            </button>
+
+            {channelDropdownOpen && (
+              <ul className="absolute z-10 mb-5 bottom-full body-theme border rounded shadow w-48">
+                {channels.map((channel) => (
+                  <li
+                    key={channel.value}
+                    onClick={() => {
+                      setSelectedChannel(channel);
+                      setChannelDropdownOpen(false);
+                    }}
+                    className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2 cursor-pointer"
+                  >
+                    <img src={channel.image} alt={channel.label} className="w-5 h-5 rounded-full" />
+                    <span className="text-sm">{channel.label}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
         {selectedChannel?.label !== "Email" && (
           <div className="attach-icon bg-white rounded-full" onClick={() => setIsOpen(true)}>
             <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -142,39 +175,6 @@ const MessageInput = ({ onSendMessage, activeUser, chatType }) => {
           </div>
         )}
 
-        {chatType === "customers" && (
-          <div className="relative ml-2">
-            <button
-              className="rounded-full bg-white p-1 text-sm flex items-center gap-2"
-              onClick={() => setChannelDropdownOpen(!channelDropdownOpen)}
-            >
-              {!isLoadingChannels ? (
-                <img src={selectedChannel?.image} alt="icon" className="w-7 h-7 rounded-full" />
-              ) : (
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
-              )}
-            </button>
-
-            {channelDropdownOpen && (
-              <ul className="absolute z-10 mb-5 bottom-full body-theme border rounded shadow w-48">
-                {channels.map((channel) => (
-                  <li
-                    key={channel.value}
-                    onClick={() => {
-                      setSelectedChannel(channel);
-                      setChannelDropdownOpen(false);
-                    }}
-                    className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2 cursor-pointer"
-                  >
-                    <img src={channel.image} alt={channel.label} className="w-5 h-5 rounded-full" />
-                    <span className="text-sm">{channel.label}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-
         {selectedChannel?.label === "Email" ? (
           <div style={{ width: "100%" }}>
             <EmailComposer
@@ -185,12 +185,13 @@ const MessageInput = ({ onSendMessage, activeUser, chatType }) => {
         ) : (
           !isOpen && (
             <textarea
-              placeholder="Type your message..."
+              placeholder="Write message here..."
               className="message-input body-theme"
               value={message}
               onChange={handleInputChangeInternal}
               onKeyDown={handleKeyDown}
               rows={message.split("\n").length}
+              style={{ border: 'none'}}
             />
           )
         )}
