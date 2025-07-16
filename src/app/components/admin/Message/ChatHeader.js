@@ -249,8 +249,13 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
               )}
             </div>
             <div className="info flex flex-col relative grow justify-center gap-2 bottom-1">
-              <div className="text-black dark:text-white">
+              <div className="text-black dark:text-white flex gap-3 items-center justify-between  w-full">
                 {activeUser.name || activeUser.lead_name || "Unknown User"}
+                <div>
+                  <span className="bg-purple-500 text-white text-xs px-2 py-0.5 rounded-md font-mono tracking-wider">
+                    #{conversationId}
+                  </span>
+                </div>
               </div>
               <div className="title-4">Last Seen {formattedTime}</div>
             </div>

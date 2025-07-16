@@ -197,7 +197,6 @@ export const CallProvider = ({ children }) => {
 
     const handleRegistrationFailure = async (currentConfig) => {
         try {
-            console.log('got here')
             const { data: newConfig } = await axiosInstance.get('/call-center/config/');
 
             const fieldsToCompare = ['SIP_URI', 'SIP_PASSWORD', 'WSS_URL'];

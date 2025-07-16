@@ -105,7 +105,7 @@ const CallDetailRecords = () => {
 
     const getCDRs = async (page = 1, page_size = 10, search = "") => {
         try {
-            const { data } = await axiosInstance.get(`/call-center/cdrs/search?page_size=${page_size}&page=${page}&search=${search}`);
+            const { data } = await axiosInstance.get(`/call-center/cdrs?page_size=${page_size}&page=${page}&destination_number=${search}`);
             setCdrs(data.results);
             setTotalPages(Math.ceil(data.count / page_size));
         } catch (error) {
@@ -122,10 +122,13 @@ const CallDetailRecords = () => {
                             <div className="flex items-center space-x-2 sm:space-x-4">
                                 <div className="relative w-full sm:w-auto">
                                     <input
+                                        type="tel"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
                                         className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
-                                        placeholder="Search number or name"
+                                        placeholder="Search number"
                                         value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onChange={(e) => setSearchQuery(e.target.value.replace(/\D/g, ''))}
                                     />
                                 </div>
                             </div>
