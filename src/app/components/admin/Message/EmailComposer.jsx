@@ -11,6 +11,9 @@ import {
   Redo2,
   Send
 } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
+import "./messageInput.css";
 
 const EmailComposer = ({ onSendMessage, selectedChannel }) => {
   const [subject, setSubject] = useState('');
@@ -102,9 +105,9 @@ const EmailComposer = ({ onSendMessage, selectedChannel }) => {
   };
 
   return (
-    <div className="bg-white  border-gray-200 rounded">
+    <div className=" border-gray-200 rounded ">
       {/* Subject */}
-      <div className="px-4 py-3 border-gray-200">
+      <div className="pb-3 pt-1 border-gray-200">
         <input
           type="text"
           placeholder="Enter Subject"
@@ -113,9 +116,10 @@ const EmailComposer = ({ onSendMessage, selectedChannel }) => {
           className="w-full text-base text-gray-800 placeholder-gray-400 border-none outline-none bg-transparent"
         />
       </div>
+      <hr className="mt-2 border-gray-300" />
 
       <div className="pr-4 py-3 ">
-        <div className="flex items-center ">
+        <div className="flex items-center gap-4">
           {/* Attachment Icon */}
           <div className="attach-icon bg-white rounded-full " onClick={() => fileInputRef.current?.click()}>
             <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -126,7 +130,7 @@ const EmailComposer = ({ onSendMessage, selectedChannel }) => {
           <div className="flex-1 relative">
             {message === '' && (
               <div
-                className="absolute top-3 left-3 text-gray-400 pointer-events-none text-sm"
+                className="absolute top-7 left-3 text-gray-400 pointer-events-none "
                 style={{
                   fontFamily: 'system-ui, -apple-system, sans-serif',
                   lineHeight: '1.4',
@@ -142,7 +146,7 @@ const EmailComposer = ({ onSendMessage, selectedChannel }) => {
               suppressContentEditableWarning
               onInput={(e) => setMessage(e.target.innerHTML)}
               onKeyDown={handleKeyDown}
-              className="min-h-[85px] max-h-[300px] overflow-y-auto p-3 rounded-lg text-sm"
+              className="min-h-[80px] max-h-[300px] overflow-y-auto p-3 rounded-lg "
               style={{
                 fontSize: '14px',
                 lineHeight: '1.4',
@@ -151,33 +155,24 @@ const EmailComposer = ({ onSendMessage, selectedChannel }) => {
                 boxShadow: '0 0 0 2px transparent',
                 transition: 'box-shadow 0.2s ease-in-out'
               }}
-              onFocus={(e) => (e.target.style.boxShadow = '0 0 0 2px #3EBF0F')}
-              onBlur={(e) => (e.target.style.boxShadow = 'none')}
             />
           </div>
 
-          <button
-            onClick={handleSend}
-            disabled={!subject.trim() && !message.trim() && selectedImages.length === 0 && selectedFiles.length === 0}
-            className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-              (subject.trim() || message.trim() || selectedImages.length > 0 || selectedFiles.length > 0)
-                ? 'text-white hover:opacity-90'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-            style={{
-              backgroundColor:
-                subject.trim() || message.trim() || selectedImages.length > 0 || selectedFiles.length > 0
-                  ? '#3EBF0F'
-                  : undefined
-            }}
-          >
-            <Send size={20} />
-          </button>
+          {message || selectedImages || selectedFiles ? (
+            <button className="send-button" onClick={handleSend}>
+              <FontAwesomeIcon icon={faPaperPlane} />
+            </button>
+          ) : (
+            <button className="send-button" disabled>
+              <FontAwesomeIcon icon={faPaperPlane} color="grey"/>
+            </button>
+          )}
+          
         </div>
       </div>
 
-      <div className="px-4 pb-3">
-        <div className="flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-200">
+      <div>
+        <div className="flex items-center justify-between  p-2 rounded-lg border-t  border-gray-200">
           <div className="flex items-center space-x-1">
             <ToolbarButton onClick={() => formatText('undo')} title="Undo"><Undo2 size={14} /></ToolbarButton>
             <ToolbarButton onClick={() => formatText('redo')} title="Redo"><Redo2 size={14} /></ToolbarButton>

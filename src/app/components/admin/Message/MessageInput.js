@@ -107,7 +107,9 @@ const MessageInput = ({ onSendMessage, activeUser, chatType }) => {
   };
 
   return (
-    <div className="body-theme type absolute bottom-0 w-full pr-6 py-4">
+    <div className={`body-theme type absolute bottom-0 w-full pr-6 pt-4 ${
+      selectedChannel?.label !== "Email" ? 'pb-4' : ''
+    }`}>
       <div className="write-area ">
         {chatType === "customers" && (
           <div className="relative ml-2">
@@ -186,7 +188,7 @@ const MessageInput = ({ onSendMessage, activeUser, chatType }) => {
           !isOpen && (
             <textarea
               placeholder="Write message here..."
-              className="message-input body-theme"
+              className="message-input body-theme "
               value={message}
               onChange={handleInputChangeInternal}
               onKeyDown={handleKeyDown}
