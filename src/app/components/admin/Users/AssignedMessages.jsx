@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import MessageList from "../Message/MessageList";
+import MessageList from "../../Message/MessageList";
 import UserChatList from "./UserChatList";
 import AgentChatHeader from "./AgentChatHeader";
 import AgentMessageInput from "./AgentMessageInput";

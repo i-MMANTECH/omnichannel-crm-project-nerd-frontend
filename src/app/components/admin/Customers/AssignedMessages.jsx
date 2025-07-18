@@ -1,6 +1,4 @@
 import react, {useEffect, useState} from "react";
-import MessageList from "../Message/MessageList";
-import MessageInput from "../Message/MessageInput";
 import UserChatList from "../Users/UserChatList";
 import { useParams } from "next/navigation";
 import { useError } from '@/context/ErrorContext';
