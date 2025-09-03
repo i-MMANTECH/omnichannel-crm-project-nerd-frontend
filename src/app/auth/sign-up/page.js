@@ -64,7 +64,7 @@ const SignUp = () => {
                         src="/assets/sign-up-home-screen-image.png"
                         alt="Create Password"
                         className="h-full w-full object-cover"
-                        style={{ height: 380 }}
+                        style={{ height: '100%' }}
                     />
                 </div>
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>

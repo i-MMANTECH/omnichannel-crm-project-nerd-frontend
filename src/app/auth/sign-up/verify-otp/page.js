@@ -131,7 +131,7 @@ const EmailConfirmation = () => {
                             src="/assets/sign-up-image.png"
                             alt="Sign up"
                             className="object-cover w-full h-full"
-                            style={{height: 542}}
+                            style={{height: '100%'}}
                         />
                 </div>
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
