@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import ChatHeader from "./ChatHeader";
-import MessageList from "./MessageList";
-import MessageInput from "./MessageInput";
+import MessageList from "../../Message/MessageList";
+import MessageInput from "../../Message/MessageInput";
 import ChatList from "./ChatList";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from '@/context/ErrorContext';
@@ -12,6 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import UserAvatar from "../../UserAvatar";
 import Image from "next/image";
 import { Tooltip } from "react-tooltip";
+import Modal from "../../Modal";
 
 
 const getMessageType = (message) => {
@@ -42,6 +43,8 @@ export const MessagesContent = () => {
 	const [page, setPage] = useState(1);
 	const [next, setNext] = useState(null);	
 	const [isFetchingMore, setIsFetchingMore] = useState(false);
+	const [isScrolledUp, setIsScrolledUp] = useState(false);
+
 
 	const [loading, setLoading] = useState(true);
 	const [chatResponse, setChatResponse] = useState();
@@ -62,6 +65,11 @@ export const MessagesContent = () => {
 
 	const [activeAgent, setActiveAgent] = useState(null)
 	const [userProfile, setUserProfile] = useState({})
+
+	const [showAiTakeoverPrompt, setShowAiTakeoverPrompt] = useState(false);
+	const [refreshChatHeader, setRefreshChatHeader] = useState(false)
+
+	const [inputIsEmailMode, setInputIsEmailMode] = useState(false);
 
 	const [tabUnreadFlags, setTabUnreadFlags] = useState({
 		leads: false,
@@ -109,6 +117,8 @@ export const MessagesContent = () => {
 	useEffect(() => {
 		fetchChatHistory();
 	}, [activeUser]);
+
+	useEffect(() => { setIsScrolledUp(false); }, [activeUser?.id]);
 
 	useEffect(() => {
 		if (chatId) {
@@ -359,7 +369,31 @@ export const MessagesContent = () => {
 	useEffect(() => {
 		fetchAgents()
 		fetchChannelsData();
-	  }, []);
+	}, []);
+
+	const fetchAiStatus = async (conversationId) => {
+		if (chatType === "archived") {
+			return;
+		}
+		
+		if (conversationId) {
+			try {
+				const res = await axiosInstance.get(`/communication/conversations/${conversationId}/ai-status/`, {
+					showLoader: false
+				});
+
+				const aiIsActive = res?.data?.data?.ai_is_active;
+				const aiPromptKey = `ai_prompt_dismissed_${conversationId}`;
+				const dismissed = sessionStorage.getItem(aiPromptKey) === 'true';
+
+				if (aiIsActive && !dismissed) {
+					setShowAiTakeoverPrompt(true);
+				}			
+			} catch (err) {
+			handleApiError(err, "Failed to fetch AI status");
+			}
+		}
+	};
 
 	const markConversationAsRead = async () => {
 		try {
@@ -536,17 +570,19 @@ export const MessagesContent = () => {
 
 		let endpoint;
 		if (chatType === "customers") {
-			endpoint = `/communication/customer-chat-history/${activeUser.id}`;
+			endpoint = `/communication/customer-chat-history/${activeUser.id}?page=${page}`;
 		} else if (chatType === "leads") {
-			endpoint = `/communication/history/?lead_id=${activeUser.id}`;
+			endpoint = `/communication/history/?lead_id=${activeUser.id}&page=${page}`;
 		} else if (chatType === "archived") {
-			endpoint = `/communication/conversations/${activeUser.id}/messages?status=ended`;
+			endpoint = `/communication/conversations/${activeUser.id}/messages?status=ended&page=${page}`;
 		}
 
 		try {
 			const response = await axiosInstance.get(endpoint, {
                 signal: abortControllerRef.current.signal
             });
+
+			 setNext(response.data.next);
 
             if (currentTabRef.current === requestChatType && activeUser?.id === requestUserId) {
                 const newHistory = response.data.results.reverse() || [];
@@ -567,6 +603,8 @@ export const MessagesContent = () => {
 
 				markConversationAsRead()
             }
+
+			fetchAiStatus(response?.data?.results[0]?.conversation)
         } 
 		catch (error) {
 			if (isCancelError(error)) {
@@ -611,6 +649,9 @@ export const MessagesContent = () => {
 
 	const handleChatSelect = (user) => {
 		setActiveUser(user);
+		// ensure fresh bottom-auto-scroll when entering a chat
+        setIsScrolledUp(false);
+        setPage(1);
 		router.push(`/admin/messages?chat=${chatType}&id=${user.id}`, { scroll: false });
 	};
 
@@ -622,6 +663,7 @@ export const MessagesContent = () => {
         
         setActiveUser(null);
         setChatHistory([]);
+		setIsScrolledUp(false);  // reset auto-bottom on tab switch
         router.push(`/admin/messages?chat=${tab}`, { scroll: false });
         
 		setTabUnreadFlags((prev) => ({
@@ -648,6 +690,7 @@ export const MessagesContent = () => {
 			: "text";
 
 		formData.append("content", messageContent.text || "");
+		formData.append("subject", messageContent?.subject)
 		formData.append("content_type", contentType);
 
 		if (messageContent?.file?.length > 0) {
@@ -685,6 +728,7 @@ export const MessagesContent = () => {
 	
 		// Show temp message instantly in UI
 		setChatHistory((prevHistory) => [...prevHistory, tempMessage]);
+		setIsScrolledUp(false);
 	
 		let url = "/communication/";
 	
@@ -825,6 +869,24 @@ export const MessagesContent = () => {
 		  setIsFetchingMore(false);
 		}
 	};
+
+const loadMoreMessages = async () => {
+  if (isFetchingMore || !next) return;  // Don't load if already fetching or no more pages
+  setIsFetchingMore(true);
+
+  try {
+    const response = await axiosInstance.get(next);  // Fetch next page
+    setChatHistory((prevHistory) => [...response.data.results.reverse(), ...prevHistory]); // Prepend new messages
+    setNext(response.data.next);  // Update the next page URL
+  } catch (error) {
+    handleApiError(error);
+  } finally {
+    setIsFetchingMore(false);
+  // Reset the flag after messages are loaded
+  }
+};
+
+
 
 	return (
 		<div className="body-theme flex flex-col px-5 ">
@@ -1016,10 +1078,17 @@ export const MessagesContent = () => {
 									fetchChatList({ reset: true })
 									setActiveUser(null)
 								}}
+								refreshChatHeader={refreshChatHeader}
 							/>
 							<div className="flex items-center ">
 								<MessageList 
 									chatHistory={chatHistory} 
+									inputIsEmailMode={inputIsEmailMode}
+									loadMoreMessages={loadMoreMessages}
+									isFetchingMore={isFetchingMore}
+									isScrolledUp={isScrolledUp}
+									setIsScrolledUp={setIsScrolledUp}
+									next={next}
 								/>
 
 								{chatType != "archived" ? ( 
@@ -1027,6 +1096,7 @@ export const MessagesContent = () => {
 										onSendMessage={handleSendMessage}
 										chatType={chatType}
 										activeUser={activeUser}
+										setInputIsEmailMode={setInputIsEmailMode}
 									/>
 								): (
 									<h2 className="w-full absolute bottom-5 flex items-center justify-center fw-bold text-red-300 p-2">Chat ended</h2>
@@ -1049,6 +1119,47 @@ export const MessagesContent = () => {
 					)}
 				</div>
 			</div>
+
+			<Modal
+				isOpen={showAiTakeoverPrompt}
+				onClose={() => setShowAiTakeoverPrompt(false)}
+				title="AI is handling this chat"
+				footer={
+					<>
+						<button
+							type="button"
+							className="hover:shadow-md px-4 py-2 bg-theme rounded-md border border-gray-30"
+							onClick={() => {
+								setShowAiTakeoverPrompt(false)
+								sessionStorage.setItem(`ai_prompt_dismissed_${chatResponse?.conversation_id}`, 'true');
+							}}
+						>
+							Let AI Handle
+						</button>
+						<button
+							type="submit"
+							className="hover:shadow-md px-4 py-2 bg-[#3EBF0F] text-white rounded-md "
+							onClick={async () => {
+							try {
+								console.log(chatResponse)
+								await axiosInstance.patch(`/communication/conversations/${chatResponse?.conversation_id}/ai-status/`, {}, { showLoader: false });
+								setShowAiTakeoverPrompt(false);
+								sessionStorage.setItem(`ai_prompt_dismissed_${chatResponse?.conversation_id}`, 'true');
+								setRefreshChatHeader(!refreshChatHeader)
+							} catch (err) {
+								handleApiError(err, "Failed to take over chat");
+							}
+							}}
+						>
+							Take Over Chat
+						</button>
+					</>
+				}
+				>
+				<p>
+					Automated responses are currently enabled for this chat. Would you like to take over and respond manually?
+				</p>
+			</Modal>
 		</div>
 	);
 };

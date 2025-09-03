@@ -43,6 +43,7 @@ export const MessagesContent = () => {
 	const [page, setPage] = useState(1);
 	const [next, setNext] = useState(null);	
 	const [isFetchingMore, setIsFetchingMore] = useState(false);
+	const [isScrolledUp, setIsScrolledUp] = useState(false);
 
 	const [loading, setLoading] = useState(true);
 	const [chatResponse, setChatResponse] = useState();
@@ -67,6 +68,7 @@ export const MessagesContent = () => {
 	const [showAiTakeoverPrompt, setShowAiTakeoverPrompt] = useState(false);
 	const [refreshChatHeader, setRefreshChatHeader] = useState(false)
 
+	const [inputIsEmailMode, setInputIsEmailMode] = useState(false);
 
 	const [tabUnreadFlags, setTabUnreadFlags] = useState({
 		leads: false,
@@ -114,6 +116,8 @@ export const MessagesContent = () => {
 	useEffect(() => {
 		fetchChatHistory();
 	}, [activeUser]);
+
+	useEffect(() => { setIsScrolledUp(false); }, [activeUser?.id]);
 
 	useEffect(() => {
 		if (chatId) {
@@ -367,6 +371,10 @@ export const MessagesContent = () => {
 	  }, []);
 
 	const fetchAiStatus = async (conversationId) => {
+		if (chatType === "archived") {
+			return;
+		}
+		
 		if (conversationId) {
 			try {
 				const res = await axiosInstance.get(`/communication/conversations/${conversationId}/ai-status/`, {
@@ -561,17 +569,19 @@ export const MessagesContent = () => {
 
 		let endpoint;
 		if (chatType === "customers") {
-			endpoint = `/communication/customer-chat-history/${activeUser.id}`;
+			endpoint = `/communication/customer-chat-history/${activeUser.id}?page=${page}`;
 		} else if (chatType === "leads") {
-			endpoint = `/communication/history/?lead_id=${activeUser.id}`;
+			endpoint = `/communication/history/?lead_id=${activeUser.id}&page=${page}`;
 		} else if (chatType === "archived") {
-			endpoint = `/communication/conversations/${activeUser.id}/messages?status=ended`;
+			endpoint = `/communication/conversations/${activeUser.id}/messages?status=ended&page=${page}`;
 		}
 
 		try {
 			const response = await axiosInstance.get(endpoint, {
                 signal: abortControllerRef.current.signal
             });
+
+             setNext(response.data.next);
 
             if (currentTabRef.current === requestChatType && activeUser?.id === requestUserId) {
                 const newHistory = response.data.results.reverse() || [];
@@ -638,6 +648,10 @@ export const MessagesContent = () => {
 
 	const handleChatSelect = (user) => {
 		setActiveUser(user);
+
+		// ensure fresh bottom-auto-scroll when entering a chat
+        setIsScrolledUp(false);
+        setPage(1);
 		router.push(`/nativecrm/messages?chat=${chatType}&id=${user.id}`, { scroll: false });
 	};
 
@@ -649,6 +663,7 @@ export const MessagesContent = () => {
         
         setActiveUser(null);
         setChatHistory([]);
+		setIsScrolledUp(false);  
         router.push(`/nativecrm/messages?chat=${tab}`, { scroll: false });
         
 		setTabUnreadFlags((prev) => ({
@@ -712,6 +727,7 @@ export const MessagesContent = () => {
 	
 		// Show temp message instantly in UI
 		setChatHistory((prevHistory) => [...prevHistory, tempMessage]);
+		setIsScrolledUp(false);
 	
 		let url = "/communication/";
 	
@@ -852,6 +868,22 @@ export const MessagesContent = () => {
 		  setIsFetchingMore(false);
 		}
 	};
+
+	const loadMoreMessages = async () => {
+  if (isFetchingMore || !next) return;  // Don't load if already fetching or no more pages
+  setIsFetchingMore(true);
+
+  try {
+    const response = await axiosInstance.get(next);  // Fetch next page
+    setChatHistory((prevHistory) => [...response.data.results.reverse(), ...prevHistory]); // Prepend new messages
+    setNext(response.data.next);  // Update the next page URL
+  } catch (error) {
+    handleApiError(error);
+  } finally {
+    setIsFetchingMore(false);
+  // Reset the flag after messages are loaded
+  }
+};
 
 	return (
 		<div className="body-theme flex flex-col px-5 ">
@@ -1043,6 +1075,12 @@ export const MessagesContent = () => {
 							<div className="flex items-center ">
 								<MessageList 
 									chatHistory={chatHistory} 
+									inputIsEmailMode={inputIsEmailMode}
+									loadMoreMessages={loadMoreMessages}
+									isFetchingMore={isFetchingMore}
+									isScrolledUp={isScrolledUp}
+									setIsScrolledUp={setIsScrolledUp}
+									next={next}
 								/>
 
 								{chatType != "archived" ? ( 
@@ -1050,6 +1088,7 @@ export const MessagesContent = () => {
 										onSendMessage={handleSendMessage}
 										chatType={chatType}
 										activeUser={activeUser}
+										setInputIsEmailMode={setInputIsEmailMode}
 									/>
 								): (
 									<h2 className="w-full absolute bottom-5 flex items-center justify-center fw-bold text-red-300 p-2">Chat ended</h2>
