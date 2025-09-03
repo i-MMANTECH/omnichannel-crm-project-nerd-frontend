@@ -21,10 +21,11 @@ export function NotificationProvider({ children }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
-  const { user } = useAuth();
+  const { user, company,isAuthenticated } = useAuth();
   const [socket, setSocket] = useState(null);
 
   const fetchNotifications = async () => {
+    
     try {
       const response = await axiosInstance.get('/notifications');
       if (response.data.success) {
@@ -40,7 +41,7 @@ export function NotificationProvider({ children }) {
     const initializeWebSocket = () => {
       if (user?.user_id) {
         const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-        const wsUrl = `${protocol}://ws-staging.nativetalkcrm.com/ws/notifications/?uuid=${user.user_id}`;
+        const wsUrl = `${protocol}://ws-staging.nativetalkcrm.com/ws/notifications/?uuid=${company?.id}`;
 
         const ws = new WebSocket(wsUrl);
 
@@ -80,6 +81,13 @@ export function NotificationProvider({ children }) {
 
     initializeWebSocket()
   }, [user?.user_id]);
+
+  useEffect(() => {
+    if (!isAuthenticated && socket) {
+      socket.close();
+      setSocket(null);
+    }
+  }, [isAuthenticated, socket]);
 
   const handleNewNotification = (data) => {
     // Play notification sound
