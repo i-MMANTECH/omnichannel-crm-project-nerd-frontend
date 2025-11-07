@@ -230,7 +230,7 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
                         <input
                             type="text"
                             name="username"
-                            value={formData.username}
+                            value={formData?.username}
                             onChange={handleChange}
                             className="w-full border border-gray-300 rounded-md p-2 mt-2"
                             placeholder="Johnny_22"
@@ -243,7 +243,7 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
                         <input
                             type="text"
                             name="first_name"
-                            value={formData.first_name}
+                            value={formData?.first_name}
                             onChange={handleChange}
                             className="w-full border border-gray-300 rounded-md p-2 mt-2"
                             placeholder="John"

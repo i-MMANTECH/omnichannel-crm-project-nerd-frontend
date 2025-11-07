@@ -102,7 +102,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
     refreshChatList()
   }
 
-  const lastTime = new Date(activeUser.lastMessageTime || activeUser.last_message_at);
+  const lastTime = new Date(activeUser?.lastMessageTime || activeUser?.last_message_at);
   const now = new Date();
 
   const isToday = lastTime.toDateString() === now.toDateString();
@@ -222,25 +222,25 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
           <div className="header">
             <div className="relative">
               <div>
-                {activeUser.profileImage ? (
+                {activeUser?.profileImage ? (
                   <Image
-                    loader={() => activeUser.profileImage}
-                    src={activeUser.profileImage}
+                    loader={() => activeUser?.profileImage}
+                    src={activeUser?.profileImage}
                     alt="User Profile"
                     width={70}
                     height={70}
                     className="w-9 h-9 rounded-full"
                   />
                 ) : (
-                  <UserAvatar name={activeUser.name || activeUser.lead_name || activeUser.name || activeUser.customer_name || activeUser.first_name || activeUser.username || activeUser.email || "Unknown "} width="w-9" height="h-9" />
+                  <UserAvatar name={activeUser?.name || activeUser?.lead_name || activeUser?.name || activeUser?.customer_name || activeUser?.first_name || activeUser?.username || activeUser?.email || "Unknown "} width="w-9" height="h-9" />
                 )}
               </div>
-              {activeUser.channel?.image && (
+              {activeUser?.channel?.image && (
                 <div>
                   <Image
-                    loader={() => activeUser.channel?.image}
-                    src={`${activeUser.channel?.image}`}
-                    alt={`${activeUser.channel?.name} Icon`}
+                    loader={() => activeUser?.channel?.image}
+                    src={`${activeUser?.channel?.image}`}
+                    alt={`${activeUser?.channel?.name} Icon`}
                     className="absolute -bottom-1 -right-1 rounded-full bg-white p-[3.5px]"
                     width={18}
                     height={18}
@@ -250,12 +250,12 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
             </div>
             <div className="info flex flex-col relative grow justify-center gap-2 bottom-1">
               <div className="text-black dark:text-white">
-                {activeUser.name || activeUser.lead_name || "Unknown User"}
+                {activeUser?.name || activeUser?.lead_name || "Unknown User"}
               </div>
               <div className="title-4">Last Seen {formattedTime}</div>
             </div>
             <div className="relative">
-              {!activeUser.ended_at &&
+              {!activeUser?.ended_at &&
                 <button
                   ref={buttonRef}
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -308,7 +308,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
               <LeadToCustomer
                 isOpen={isModalOpen}
                 onClose={closeModal}
-                leadId={activeUser.id}
+                leadId={activeUser?.id}
                 setIsSuccessModalOpen={setIsSuccessModalOpen}
                 setSuccessModalMessage={setSuccessModalMessage}
               />
@@ -324,7 +324,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
               <NotesModal
                 isOpen={isNotesModalOpen}
                 onClose={() => setIsNotesModalOpen(false)}
-                userId={activeUser.id}
+                userId={activeUser?.id}
                 conversationId={conversationId}
                 setIsSuccessModalOpen={setIsSuccessModalOpen}
                 setSuccessModalMessage={setSuccessModalMessage}
@@ -335,7 +335,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
             <AssignAgentModal
               isOpen={isAssignAgentModalOpen}
               onClose={() => setIsAssignAgentModalOpen(false)}
-              userId={activeUser.id}
+              userId={activeUser?.id}
               conversationId={conversationId}
               setIsSuccessModalOpen={setIsSuccessModalOpen}
               setSuccessModalMessage={setSuccessModalMessage}

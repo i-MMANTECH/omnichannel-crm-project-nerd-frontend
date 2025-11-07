@@ -918,7 +918,7 @@ const loadMoreMessages = async () => {
 						) : (
 							<UserAvatar 
 							name={assignee?.first_name ? 
-								`${assignee.first_name} ${assignee?.last_name}` : 
+								`${assignee?.first_name} ${assignee?.last_name}` : 
 								assignee?.email || '--'
 							} 
 							className="w-10 h-10 rounded-full flex-shrink-0"
