@@ -13,7 +13,7 @@ import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import { usePermissions } from "@/context/PermissionsContext";
 import UserAvatar from "../../UserAvatar";
-import { Bell, House, Mail, Settings, SquareCheck, SquareKanban, UserPlus, Users, Phone } from 'lucide-react';
+import { Bell, House, Mail, Settings, SquareCheck, SquareKanban, UserPlus, Users, Phone, Ticket } from 'lucide-react';
 
 function Sidebar() {
   const { logout } = useAuth();
@@ -142,7 +142,19 @@ function Sidebar() {
                   <h3 className={`text-sm font-medium`}>
                     Tasks
                   </h3>
-                </Link>           
+                </Link>
+
+                <Link
+                  onClick={() => setIsOpen(false)} // Close sidebar on navigation
+                  
+                  href="/admin/tickets"
+                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/tickets") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+                >
+                  <Ticket size={18} />
+                  <h3 className={`text-sm font-medium`}>
+                    Tickets
+                  </h3>
+                </Link>     
 
                   <Link
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation

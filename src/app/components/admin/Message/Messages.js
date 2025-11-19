@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense } from "react";
-import ChatHeader from "./ChatHeader";
+import ChatHeader from "../../Message/ChatHeader";
 import MessageList from "../../Message/MessageList";
 import MessageInput from "../../Message/MessageInput";
 import ChatList from "./ChatList";
@@ -13,6 +13,8 @@ import UserAvatar from "../../UserAvatar";
 import Image from "next/image";
 import { Tooltip } from "react-tooltip";
 import Modal from "../../Modal";
+import CreateTicketModal from "../../Ticket/CreateTicketModal";
+import TicketListPanel from "../../Ticket/TicketsPanel";
 
 
 const getMessageType = (message) => {
@@ -23,7 +25,7 @@ const getMessageType = (message) => {
 	  return "customers";
 	}
 	return null;
-  };
+};
   
 export const MessagesContent = () => {
 	const { axiosInstance } = useApi();
@@ -76,6 +78,11 @@ export const MessagesContent = () => {
 	});
 
 	const [isFilterActive, setIsFilterActive] = useState(false)
+	
+	// Ticketing states
+	const [showTicketPanel, setShowTicketPanel] = useState(false);
+	const [isCreateTicketModalOpen, setIsCreateTicketModalOpen] = useState(false);
+	
 	const isCancelError = (error) =>
 		error?.name === 'CanceledError' || error?.message === 'canceled' || error?.code === 'ERR_CANCELED';
 
@@ -859,6 +866,18 @@ export const MessagesContent = () => {
 		}
 	};
 
+	const handleCreateTicket = async (ticketData) => {
+		try {
+			// TODO: Replace with actual API endpoint when ready
+			// await axiosInstance.post('/tickets/', ticketData);
+			console.log("Creating ticket:", ticketData);
+			setIsCreateTicketModalOpen(false);
+			// Optionally refresh ticket panel or show success message
+		} catch (error) {
+			handleApiError(error);
+		}
+	};
+
 	return (
 		<div className="body-theme flex flex-col px-5 ">
 			<div className="flex p-4 items-center justify-between w-full ">
@@ -1050,12 +1069,23 @@ export const MessagesContent = () => {
 									setActiveUser(null)
 								}}
 								refreshChatHeader={refreshChatHeader}
+								onCreateTicket={() => setIsCreateTicketModalOpen(true)}
+								onToggleTicketPanel={() => setShowTicketPanel(!showTicketPanel)}
+								showTicketPanel={showTicketPanel}
 							/>
 							<div className="flex items-center ">
 								<MessageList 
 									chatHistory={chatHistory} 
 									inputIsEmailMode={inputIsEmailMode}
 								/>
+
+								{/* Ticket Panel */}
+								{showTicketPanel && (
+									<TicketListPanel
+										conversationId={chatResponse?.conversation_id}
+										isVisible={showTicketPanel}
+									/>
+								)}
 
 								{chatType != "archived" ? ( 
 									<MessageInput
@@ -1086,6 +1116,7 @@ export const MessagesContent = () => {
 				</div>
 			</div>
 
+			{/* AI Takeover Modal */}
 			<Modal
 				isOpen={showAiTakeoverPrompt}
 				onClose={() => setShowAiTakeoverPrompt(false)}
@@ -1126,6 +1157,15 @@ export const MessagesContent = () => {
 					Automated responses are currently enabled for this chat. Would you like to take over and respond manually?
 				</p>
 			</Modal>
+
+			{/* Create Ticket Modal */}
+			<CreateTicketModal
+				isOpen={isCreateTicketModalOpen}
+				onClose={() => setIsCreateTicketModalOpen(false)}
+				onSubmit={handleCreateTicket}
+				customerId={activeUser?.id}
+				customerName={activeUser?.name || activeUser?.email}
+			/>
 		</div>
 	);
 };
