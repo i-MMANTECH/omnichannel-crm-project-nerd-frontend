@@ -1165,6 +1165,7 @@ export const MessagesContent = () => {
 				onSubmit={handleCreateTicket}
 				customerId={activeUser?.id}
 				customerName={activeUser?.name || activeUser?.email}
+				conversationId={chatId} // This triggers the conversation endpoint
 			/>
 		</div>
 	);

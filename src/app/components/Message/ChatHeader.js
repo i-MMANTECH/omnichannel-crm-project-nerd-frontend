@@ -273,7 +273,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
               </div>
               <div className="title-4">Last Seen {formattedTime}</div>
             </div>
-            <span className="bg-purple-500 text-white text-xs px-2 py-0.5 rounded-md font-mono tracking-wider">
+            <span className="bg-purple-500 hidden text-white text-xs px-2 py-0.5 rounded-md font-mono tracking-wider">
               #{conversationId}
             </span>
             <div className="relative flex justify-between">
