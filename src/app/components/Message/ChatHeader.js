@@ -13,8 +13,12 @@ import AssignAgentModal from "./AssignAgentModal";
 import EndSessionModal from "./EndSessionModal";
 import ArchiveModal from "./ArchiveModal";
 import TaskModel from "./TaskModel";
+import TicketsPanel from "../Ticket/TicketsPanel";
+import CreateTicketModal from "../Ticket/CreateTicketModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from '@/context/ErrorContext';
+import { useAuth } from '@/context/AuthContext';
+import { Plus } from "lucide-react";
 
 
 
@@ -48,7 +52,9 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
   const [isAssignAgentModalOpen, setIsAssignAgentModalOpen] = useState(false);
   const [isEndSessionModalOpen, setIsEndSessionModalOpen] = useState(false);
   const [isArchivedModalOpen, setIsArchivedModalOpen] = useState(false);
-  const [isTaskCreation, setIsTaskCreation] = useState(false)
+  const [isTaskCreation, setIsTaskCreation] = useState(false);
+  const [isTicketsPanelOpen, setIsTicketsPanelOpen] = useState(false);
+  const [isCreateTicketModalOpen, setIsCreateTicketModalOpen] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
   const router = useRouter();
@@ -56,10 +62,15 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
   const [aiResponsesEnabled, setAiResponsesEnabled] = useState(false);
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
+  const { user } = useAuth();
 
 
   const { checkPermission } = usePermissions();
   const addCustomer = checkPermission('add_customer');
+
+  // Check if user is admin
+  const isAdmin = user?.roles?.includes("Admin") || user?.roles?.includes("admin");
+  const basePath = isAdmin ? '/admin' : '/nativecrm';
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -160,6 +171,10 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
       },
     }] : []),
     {
+      label: "View tickets",
+      onClick: () => setIsTicketsPanelOpen(true),
+    },
+    {
       label: "Archived messages", 
       onClick: () => setIsArchivedModalOpen(true),
     },
@@ -190,8 +205,12 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
     {
       label: "Edit customer",
       onClick: () => {
-        router.push(`/nativecrm/customers/${activeUser?.id}?action=edit-customer`);
+        router.push(`${basePath}/customers/${activeUser?.id}?action=edit-customer`);
       },
+    },
+    {
+      label: "View tickets",
+      onClick: () => setIsTicketsPanelOpen(true),
     },
     {
       label: "Archived messages", 
@@ -220,7 +239,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
       <ModalController>
         {({ isModalOpen, closeModal }) => (
           <div className="header">
-            <div className="relative">
+            <div className="relative self-center">
               <div>
                 {activeUser.profileImage ? (
                   <Image
@@ -251,20 +270,27 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
             <div className="info flex flex-col relative grow justify-center gap-2 bottom-1">
               <div className="text-black dark:text-white flex gap-3 items-center justify-between  w-full">
                 {activeUser.name || activeUser.lead_name || "Unknown User"}
-                <div>
-                  <span className="bg-purple-500 text-white text-xs px-2 py-0.5 rounded-md font-mono tracking-wider">
-                    #{conversationId}
-                  </span>
-                </div>
               </div>
               <div className="title-4">Last Seen {formattedTime}</div>
             </div>
-            <div className="relative">
+            <span className="bg-purple-500 hidden text-white text-xs px-2 py-0.5 rounded-md font-mono tracking-wider">
+              #{conversationId}
+            </span>
+            <div className="relative flex justify-between">
+              <div className="flex gap-2">
+                  <button
+                    onClick={() => setIsCreateTicketModalOpen(true)}
+                    className="bg-[#3EBF0F] hover:bg-green-600 text-white px-3 rounded-md transition-colors flex items-center gap-1 mr-3"
+                  >
+                    <Plus size={20} />
+                    <span>Create Ticket</span>
+                  </button>
+              </div>
               {!activeUser.ended_at &&
                 <button
                   ref={buttonRef}
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="p-2 hover:bg-gray-100 rounded-full dark:hover:bg-gray-700 transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-full h-fit dark:hover:bg-gray-700 transition-colors"
                 >
                   <FontAwesomeIcon icon={faEllipsisH} className="icon-instance-node" />
                 </button>
@@ -303,6 +329,24 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
               <TaskModel
                 isOpen={isTaskCreation}
                 onClose={() => setIsTaskCreation(false)}
+                conversationId={conversationId}
+                setIsSuccessModalOpen={setIsSuccessModalOpen}
+                setSuccessModalMessage={setSuccessModalMessage}
+              />
+            )}
+
+            {isTicketsPanelOpen && (
+              <TicketsPanel
+                isOpen={isTicketsPanelOpen}
+                onClose={() => setIsTicketsPanelOpen(false)}
+                conversationId={conversationId}
+              />
+            )}
+
+            {isCreateTicketModalOpen && (
+              <CreateTicketModal
+                isOpen={isCreateTicketModalOpen}
+                onClose={() => setIsCreateTicketModalOpen(false)}
                 conversationId={conversationId}
                 setIsSuccessModalOpen={setIsSuccessModalOpen}
                 setSuccessModalMessage={setSuccessModalMessage}
