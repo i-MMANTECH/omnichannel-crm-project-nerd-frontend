@@ -88,7 +88,7 @@ const SignIn = () => {
                         src="/assets/sign-in-image.png"
                         alt="Create Password"
                         className="object-cover w-full h-full"
-                        style={{height: 542}}
+                        style={{height: '100%'}}
                     />
                 </div>
 

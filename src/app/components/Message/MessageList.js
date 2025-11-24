@@ -174,6 +174,19 @@ const MessageList = ({ chatHistory, inputIsEmailMode }) => {
         const isOutgoing = msg.company_is_sender;
         const userDisplayInfo = msg.user_sender_details?.last_name || msg.user_sender_details?.first_name || msg.user_sender_details?.email;
 
+        // Render ticket notification messages (when ticket is created or closed)
+        if (msg.message_type === 'ticket_notification' || msg.is_ticket_notification) {
+          return (
+            <div key={index} className="flex justify-center my-3">
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg px-4 py-2 text-sm max-w-[80%]">
+                <p className="text-green-800 dark:text-green-300 text-center">
+                  {msg.content || msg.notification_text}
+                </p>
+              </div>
+            </div>
+          );
+        }
+
         return (
           <div className={`chat ${isOutgoing ? "chat-right" : "chat-left"}`} key={index}>
             <div className={`mt-1 bubble-chat ${isOutgoing ? "bubble-chat-user" : "bubble-chat-other"}`}>
