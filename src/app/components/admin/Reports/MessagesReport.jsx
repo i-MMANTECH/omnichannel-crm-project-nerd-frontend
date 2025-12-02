@@ -37,6 +37,8 @@ const MessagesReport = ({filters, selectedUser, refreshKey}) => {
         send_email: true,
       };
 
+      console.log('filters are ', filters)
+
       if (filters?.startDate && filters?.endDate) {
         params.start_date = filters.startDate.toISOString().split("T")[0];
         params.end_date = filters.endDate.toISOString().split("T")[0];

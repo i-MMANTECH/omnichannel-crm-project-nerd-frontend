@@ -8,6 +8,7 @@ import UserAvatar from "../UserAvatar";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { Dot } from "lucide-react";
 
 
 
@@ -171,6 +172,7 @@ const MessageList = ({ chatHistory, inputIsEmailMode }) => {
       >
 
       {chatHistory.map((msg, index) => {
+        const isSystemMessage = msg.is_system_message;
         const isOutgoing = msg.company_is_sender;
         const userDisplayInfo = msg.user_sender_details?.last_name || msg.user_sender_details?.first_name || msg.user_sender_details?.email;
 
@@ -188,182 +190,193 @@ const MessageList = ({ chatHistory, inputIsEmailMode }) => {
         }
 
         return (
-          <div className={`chat ${isOutgoing ? "chat-right" : "chat-left"}`} key={index}>
-            <div className={`mt-1 bubble-chat ${isOutgoing ? "bubble-chat-user" : "bubble-chat-other"}`}>
-              {msg?.channel?.image && (
-                <div
-                  className={`absolute -top-2 ${isOutgoing ? "-right-3" : "-left-3"} mb-7 w-5 h-5 bg-white rounded-full border border-gray-300 shadow-md p-[2px]`}
-                  onMouseEnter={() => setHoveredChannelId(index)}
-                  onMouseLeave={() => setHoveredChannelId(null)}
-                >
-                  <Image
-                    loader={() => msg.channel.image}
-                    src={msg.channel.image}
-                    alt="Channel Icon"
-                    className="rounded-full"
-                    width={18}
-                    height={18}
-                  />
-                  {hoveredChannelId === index && msg.channel?.name && (
-                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 dark:bg-gray-700 text-white text-xs px-2 py-1 rounded-md shadow-lg z-50">
-                      {msg.channel.name}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="relative">
-                {msg?.channel?.id == 7 &&
-                  <div className="text-lg font-semibold mb-5"><span>{msg?.subject ?? "__"}</span></div>
-                }
-                
-                {isOutgoing ? (
-                  <div className="flex items-center relative">
-                    <div
-                      className="relative pointer shrink-0"
-                      onMouseEnter={() => setHoveredUserId(index)}
-                      onMouseLeave={() => setHoveredUserId(null)}
-                    >
-                      {msg.user_sender_details?.image ? (
-                      <Image
-                        loader={() => msg.user_sender_details.image}
-                        src={msg.user_sender_details.image}
-                        alt={`${msg.user_sender_details.name} Profile`}
-                        className="w-8 h-8 rounded-full mr-3"
-                        width={30}
-                        height={30}
-                        // onClick={() => router.push(`/nativecrm/users/${msg.user_sender_details?.id}`)}
-                        title={msg.user_sender_details.name}
-                      />
-                    ) : msg.user_sender_details?.first_name || msg.user_sender_details?.last_name || msg.user_sender_details?.email ? (
-                      <UserAvatar 
-                        className="mr-3 shrink-0" 
-                        name={
-                          msg.user_sender_details?.first_name || msg.user_sender_details?.last_name
-                            ? `${msg.user_sender_details?.first_name || ''} ${msg.user_sender_details?.last_name || ''}`.trim()
-                            : msg.user_sender_details?.email
-                        }
-                        width="w-8" 
-                        height="h-8"
-                      />
-                    ) : (
-                      <div 
-                        className="w-8 h-8 flex items-center justify-center bg-green-200 text-white rounded-full border mr-3"
-                        title="AI Assistant"
-                      >
-                        <FontAwesomeIcon icon={faRobot} className="sm" color="#3EBF0F" />
-                      </div>
-                    )}
-                    </div>
-
-                    {/* Handle Different Content Types */}
-                    <div className="flex flex-col">
-                      {/* If message contains images, display them first */}
-                      {msg.content_type === "image" && msg.attachments && msg.attachments.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {msg.attachments.map((attachment, i) => (
-                            <Image
-                              key={i}
-                              loader={() => attachment.file}
-                              src={attachment.file}
-                              alt="Sent Image"
-                              className="image-message max-w-[250px] max-h-[250px] pointer"
-                              width={250}
-                              height={250}
-                              onClick={() => openImageModal(attachment.file)}
-                            />
-                          ))}
-                        </div>
-                      )}
-
-                      {/* If message contains documents, display them */}
-                      {msg.content_type === "document" && msg.attachments && msg.attachments.length > 0 && (
-                        <div className="flex flex-col gap-2">
-                          {msg.attachments.map((attachment, i) => {
-                            const fileType = attachment.file.split('.').pop(); // Extract file extension
-                            const fileName = attachment.file.split('/').pop(); // Extract file name
-                            return (
-                              <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                                <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
-                                <span className="text-sm truncate">{fileName}</span>
-                                <button
-                                  className="ml-auto text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
-                                  onClick={() => downloadFile(attachment.file, fileName)}
-                                >
-                                  <FontAwesomeIcon icon={faDownload} />
-                                </button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      {/* Display text content below images or documents (if available) */}
-                     { renderMessageContent(msg) }
-                    </div>
-
-                    {hoveredUserId === index && userDisplayInfo && (
-                      <div className="absolute -top-3 left-0 transform -translate-x-4 bg-gray-800 dark:bg-gray-700 text-white text-xs px-2 py-1 rounded-md shadow-lg z-50 w-fit truncate">
-                        {userDisplayInfo}
+          <>
+            {isSystemMessage ? (
+              <div className="flex items-center justify-center w-full mt-4">
+                <div 
+                      className="flex items-center text-sm px-2 py-1 rounded  bg-purple-200">
+                  {msg.content} <Dot></Dot> {getSmartTimestamp(msg.created_at)}
+                </div>  
+              </div>
+              
+            ):
+              <div className={`chat ${isOutgoing ? "chat-right" : "chat-left"}`} key={index}>
+              <div className={`mt-1 bubble-chat ${isOutgoing ? "bubble-chat-user" : "bubble-chat-other"}`}>
+                {msg?.channel?.image && (
+                  <div
+                    className={`absolute -top-2 ${isOutgoing ? "-right-3" : "-left-3"} mb-7 w-5 h-5 bg-white rounded-full border border-gray-300 shadow-md p-[2px]`}
+                    onMouseEnter={() => setHoveredChannelId(index)}
+                    onMouseLeave={() => setHoveredChannelId(null)}
+                  >
+                    <Image
+                      loader={() => msg.channel.image}
+                      src={msg.channel.image}
+                      alt="Channel Icon"
+                      className="rounded-full"
+                      width={18}
+                      height={18}
+                    />
+                    {hoveredChannelId === index && msg.channel?.name && (
+                      <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 dark:bg-gray-700 text-white text-xs px-2 py-1 rounded-md shadow-lg z-50">
+                        {msg.channel.name}
                       </div>
                     )}
                   </div>
-                ) : (
-                  <div>
-                    {/* Show text content below images or documents if present */}
-                    {renderMessageContent(msg)}
-                    {/* If message contains documents, display them */}
-                    {msg.attachments && msg.attachments.length > 0 && (
-                      <div className="flex flex-col gap-2">
-                        <div className="mt-10 mb-2 font-semibold underline">{msg.attachments.length == 1 ? 'Attachment' : 'Attachments'}</div>
-                        {msg.attachments.map((attachment, i) => {
-                          const fileType = attachment.file.split('.').pop();
-                          const fileName = attachment.file.split('/').pop();
+                )}
 
-                          if (attachment.file_type == 'image') {
-                            return (
+                <div className="relative">
+                  {msg?.channel?.id == 7 &&
+                    <div className="text-lg font-semibold mb-5"><span>{msg?.subject ?? "__"}</span></div>
+                  }
+                  
+                  {isOutgoing ? (
+                    <div className="flex items-center relative">
+                      <div
+                        className="relative pointer shrink-0"
+                        onMouseEnter={() => setHoveredUserId(index)}
+                        onMouseLeave={() => setHoveredUserId(null)}
+                      >
+                        {msg.user_sender_details?.image ? (
+                        <Image
+                          loader={() => msg.user_sender_details.image}
+                          src={msg.user_sender_details.image}
+                          alt={`${msg.user_sender_details.name} Profile`}
+                          className="w-8 h-8 rounded-full mr-3"
+                          width={30}
+                          height={30}
+                          // onClick={() => router.push(`/nativecrm/users/${msg.user_sender_details?.id}`)}
+                          title={msg.user_sender_details.name}
+                        />
+                      ) : msg.user_sender_details?.first_name || msg.user_sender_details?.last_name || msg.user_sender_details?.email ? (
+                        <UserAvatar 
+                          className="mr-3 shrink-0" 
+                          name={
+                            msg.user_sender_details?.first_name || msg.user_sender_details?.last_name
+                              ? `${msg.user_sender_details?.first_name || ''} ${msg.user_sender_details?.last_name || ''}`.trim()
+                              : msg.user_sender_details?.email
+                          }
+                          width="w-8" 
+                          height="h-8"
+                        />
+                      ) : (
+                        <div 
+                          className="w-8 h-8 flex items-center justify-center bg-green-200 text-white rounded-full border mr-3"
+                          title="AI Assistant"
+                        >
+                          <FontAwesomeIcon icon={faRobot} className="sm" color="#3EBF0F" />
+                        </div>
+                      )}
+                      </div>
+
+                      {/* Handle Different Content Types */}
+                      <div className="flex flex-col">
+                        {/* If message contains images, display them first */}
+                        {msg.content_type === "image" && msg.attachments && msg.attachments.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {msg.attachments.map((attachment, i) => (
                               <Image
                                 key={i}
                                 loader={() => attachment.file}
                                 src={attachment.file}
                                 alt="Sent Image"
-                                className="image-message max-w-[250px] max-h-[250px] pointer mb-2"
-                                width={300}
-                                height={300}
+                                className="image-message max-w-[250px] max-h-[250px] pointer"
+                                width={250}
+                                height={250}
                                 onClick={() => openImageModal(attachment.file)}
                               />
-                            )
-                          }
-                          else {
-                            return (
-                              <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-2">
-                                <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
-                                <span className="text-sm truncate ">{fileName}</span>
-                                <button
-                                  className="ml-auto text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
-                                  onClick={() => downloadFile(attachment.file, fileName)}
-                                >
-                                  <FontAwesomeIcon icon={faDownload} />
-                                </button>
-                              </div>
-                            );
-                          }
-                        })}
-                      </div>
-                    )}
+                            ))}
+                          </div>
+                        )}
 
-                  </div>
-                )}
+                        {/* If message contains documents, display them */}
+                        {msg.content_type === "document" && msg.attachments && msg.attachments.length > 0 && (
+                          <div className="flex flex-col gap-2">
+                            {msg.attachments.map((attachment, i) => {
+                              const fileType = attachment.file.split('.').pop(); // Extract file extension
+                              const fileName = attachment.file.split('/').pop(); // Extract file name
+                              return (
+                                <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                                  <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
+                                  <span className="text-sm truncate">{fileName}</span>
+                                  <button
+                                    className="ml-auto text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
+                                    onClick={() => downloadFile(attachment.file, fileName)}
+                                  >
+                                    <FontAwesomeIcon icon={faDownload} />
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Display text content below images or documents (if available) */}
+                      { renderMessageContent(msg) }
+                      </div>
+
+                      {hoveredUserId === index && userDisplayInfo && (
+                        <div className="absolute -top-3 left-0 transform -translate-x-4 bg-gray-800 dark:bg-gray-700 text-white text-xs px-2 py-1 rounded-md shadow-lg z-50 w-fit truncate">
+                          {userDisplayInfo}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      {/* Show text content below images or documents if present */}
+                      {renderMessageContent(msg)}
+                      {/* If message contains documents, display them */}
+                      {msg.attachments && msg.attachments.length > 0 && (
+                        <div className="flex flex-col gap-2">
+                          <div className="mt-10 mb-2 font-semibold underline">{msg.attachments.length == 1 ? 'Attachment' : 'Attachments'}</div>
+                          {msg.attachments.map((attachment, i) => {
+                            const fileType = attachment.file.split('.').pop();
+                            const fileName = attachment.file.split('/').pop();
+
+                            if (attachment.file_type == 'image') {
+                              return (
+                                <Image
+                                  key={i}
+                                  loader={() => attachment.file}
+                                  src={attachment.file}
+                                  alt="Sent Image"
+                                  className="image-message max-w-[250px] max-h-[250px] pointer mb-2"
+                                  width={300}
+                                  height={300}
+                                  onClick={() => openImageModal(attachment.file)}
+                                />
+                              )
+                            }
+                            else {
+                              return (
+                                <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-2">
+                                  <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
+                                  <span className="text-sm truncate ">{fileName}</span>
+                                  <button
+                                    className="ml-auto text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
+                                    onClick={() => downloadFile(attachment.file, fileName)}
+                                  >
+                                    <FontAwesomeIcon icon={faDownload} />
+                                  </button>
+                                </div>
+                              );
+                            }
+                          })}
+                        </div>
+                      )}
+
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className={`mt-1 flex items-center ${isOutgoing ? "justify-end" : "justify-start"}`}>
+                <p className="message-time">
+                  {getSmartTimestamp(msg.created_at)}
+                </p>
+                {isOutgoing && getIconForStatus(msg.status)}
               </div>
             </div>
-
-            <div className={`mt-1 flex items-center ${isOutgoing ? "justify-end" : "justify-start"}`}>
-              <p className="message-time">
-                {getSmartTimestamp(msg.created_at)}
-              </p>
-              {isOutgoing && getIconForStatus(msg.status)}
-            </div>
-          </div>
+            }
+          </>
         );
       })}
       <div ref={messageEndRef} />

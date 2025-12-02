@@ -5,7 +5,7 @@ import { selectStyles } from '../selectStyles';
 import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
 
-const UpdateTicketModal = ({ isOpen, onClose, ticket, onUpdate }) => {
+const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
 
@@ -27,24 +27,35 @@ const UpdateTicketModal = ({ isOpen, onClose, ticket, onUpdate }) => {
   // States
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [ticket, setTicket] = useState(null);
 
   useEffect(() => {
-    if (isOpen && ticket) {
+    if (isOpen && ticketId) {
       initializeTicket();
     }
-  }, [isOpen, ticket]);
+  }, [isOpen, ticketId]);
 
   const initializeTicket = async () => {
     try {
       setLoading(true);
 
-      // Fetch dropdown data
-      const [prioritiesRes, statusesRes, categoriesRes, agentsRes] = await Promise.all([
+      // Fetch ticket data and dropdown data
+      const [ticketRes, prioritiesRes, statusesRes, categoriesRes, agentsRes] = await Promise.all([
+        axiosInstance.get(`/tickets/${ticketId}/`),
         axiosInstance.get('/tickets/priorities/'),
         axiosInstance.get('/tickets/statuses/'),
         axiosInstance.get('/tickets/categories/'),
         axiosInstance.get('/users/'),
       ]);
+
+      // Set ticket data
+      if (ticketRes.data.success) {
+        const ticketData = ticketRes.data.ticket;
+        setTicket(ticketData);
+        setSubject(ticketData.subject || '');
+        setDescription(ticketData.description || '');
+        setCustomerName(ticketData.customer_name || '');
+      }
 
       // Map priorities
       if (prioritiesRes.data.success) {
@@ -55,10 +66,10 @@ const UpdateTicketModal = ({ isOpen, onClose, ticket, onUpdate }) => {
         setPriorities(priorityOptions);
         
         // Set current priority
-        const currentPriority = ticket.priority 
-          ? priorityOptions.find(p => p.value === ticket.priority.id) 
-          : null;
-        setPriority(currentPriority);
+        if (ticketRes.data.success && ticketRes.data.ticket.priority) {
+          const currentPriority = priorityOptions.find(p => p.value === ticketRes.data.ticket.priority.id);
+          setPriority(currentPriority);
+        }
       }
 
       // Map statuses
@@ -70,10 +81,10 @@ const UpdateTicketModal = ({ isOpen, onClose, ticket, onUpdate }) => {
         setStatuses(statusOptions);
         
         // Set current status
-        const currentStatus = ticket.status 
-          ? statusOptions.find(s => s.value === ticket.status.id)
-          : null;
-        setStatus(currentStatus);
+        if (ticketRes.data.success && ticketRes.data.ticket.status) {
+          const currentStatus = statusOptions.find(s => s.value === ticketRes.data.ticket.status.id);
+          setStatus(currentStatus);
+        }
       }
 
       // Map categories
@@ -85,10 +96,10 @@ const UpdateTicketModal = ({ isOpen, onClose, ticket, onUpdate }) => {
         setCategories(categoryOptions);
         
         // Set current category
-        const currentCategory = ticket.category 
-          ? categoryOptions.find(c => c.value === ticket.category.id)
-          : null;
-        setCategory(currentCategory);
+        if (ticketRes.data.success && ticketRes.data.ticket.category) {
+          const currentCategory = categoryOptions.find(c => c.value === ticketRes.data.ticket.category.id);
+          setCategory(currentCategory);
+        }
       }
 
       // Map agents
@@ -101,18 +112,13 @@ const UpdateTicketModal = ({ isOpen, onClose, ticket, onUpdate }) => {
         setAgents(agentOptions);
         
         // Set current assigned agents
-        const currentAgents = ticket.assignees && ticket.assignees.length > 0
-          ? ticket.assignees.map(assignee => 
-              agentOptions.find(a => a.value === assignee.id)
-            ).filter(Boolean)
-          : [];
-        setAssignedAgents(currentAgents);
+        if (ticketRes.data.success && ticketRes.data.ticket.assignees && ticketRes.data.ticket.assignees.length > 0) {
+          const currentAgents = ticketRes.data.ticket.assignees.map(assignee => 
+            agentOptions.find(a => a.value === assignee.id)
+          ).filter(Boolean);
+          setAssignedAgents(currentAgents);
+        }
       }
-
-      // Set editable fields
-      setSubject(ticket.subject || '');
-      setDescription(ticket.description || '');
-      setCustomerName(ticket.customer_name || '');
       
     } catch (error) {
       handleApiError(error);
@@ -147,7 +153,7 @@ const UpdateTicketModal = ({ isOpen, onClose, ticket, onUpdate }) => {
         assignee_ids: assignedAgents.map(a => a.value)
       };
 
-      const response = await axiosInstance.patch(`/tickets/${ticket.id}/update/`, payload);
+      const response = await axiosInstance.patch(`/tickets/${ticketId}/update/`, payload);
 
       if (response.data.success) {
         if (onUpdate) onUpdate();

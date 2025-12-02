@@ -14,22 +14,28 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
-  const [ticket, setTicket] = useState([]);
+  const [ticket, setTicket] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const fetchTicket = async () => {
     try {
+      setLoading(true);
       const response = await axiosInstance.get(`/tickets/${ticketId}/`);
       if (response.data.success) {
         setTicket(response.data.ticket);
       }
     } catch (error) {
       handleApiError(error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchTicket();
-  }, [ticketId]);
+    if (isOpen && ticketId) {
+      fetchTicket();
+    }
+  }, [ticketId, isOpen]);
 
   useEffect(() => {
     if (isOpen && ticketId && selectedTab === 'comments') {
@@ -320,7 +326,7 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
     }
   };
 
-  if (!ticket) return null;
+  if (!isOpen || !ticket) return null;
 
   const handleReopenTicket = async (ticketId, e) => {
     try {
@@ -329,12 +335,14 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
       });
 
       if (response.data.success) {
-        fetchTicket()
+        await fetchTicket();
+        if (onUpdate) onUpdate(); // Notify parent to refresh list
       }
     } catch (error) {
       handleApiError(error);
     }
   };
+
   const handleCloseTicket = async (ticketId, e) => {
     try {
       const response = await axiosInstance.patch(`/tickets/${ticketId}/update/`, {
@@ -342,7 +350,8 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
       });
 
       if (response.data.success) {
-        fetchTicket();
+        await fetchTicket();
+        if (onUpdate) onUpdate(); // Notify parent to refresh list
       }
     } catch (error) {
       handleApiError(error);
@@ -373,27 +382,33 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
       footer={footer}
       width="600px"
     >
-      <div className="max-w-full">
-        {/* Tabs */}
-        <div className="flex border-b border-gray-200 dark:border-gray-700">
-          {['details', 'comments'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setSelectedTab(tab)}
-              className={`mr-4 pb-2 capitalize ${
-                selectedTab === tab
-                  ? 'border-b-2 border-[#3EBF0F] text-[#3EBF0F] font-medium'
-                  : 'text-gray-500'
-              }`}
-            >
-              {tab === 'comments' ? `Comments (${comments.length})` : tab}
-            </button>
-          ))}
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-green-500"></div>
         </div>
+      ) : (
+        <div className="max-w-full">
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200 dark:border-gray-700">
+            {['details', 'comments'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setSelectedTab(tab)}
+                className={`mr-4 pb-2 capitalize ${
+                  selectedTab === tab
+                    ? 'border-b-2 border-[#3EBF0F] text-[#3EBF0F] font-medium'
+                    : 'text-gray-500'
+                }`}
+              >
+                {tab === 'comments' ? `Comments (${comments.length})` : tab}
+              </button>
+            ))}
+          </div>
 
-        {/* Tab Content */}
-        {renderTabContent()}
-      </div>
+          {/* Tab Content */}
+          {renderTabContent()}
+        </div>
+      )}
     </Modal>
   );
 };
