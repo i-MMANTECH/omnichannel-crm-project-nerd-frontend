@@ -196,6 +196,7 @@ export const MessagesContent = () => {
 	
 		wsRef.current.onmessage = (event) => {
 			const data = JSON.parse(event.data);
+			console.log('new evetn ', event)
 	
 			if (data.type === "message_status") {
 				const updatedMessage = data.message;

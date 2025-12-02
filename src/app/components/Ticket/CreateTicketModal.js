@@ -201,7 +201,7 @@ const CreateTicketModal = ({
         description: description.trim(),
         // Use customer_id if a customer was selected, otherwise use customer_name
         ...(selectedCustomer 
-          ? { customer_id: selectedCustomer.id }
+          ? { contact_id: selectedCustomer.id }
           : customer.trim() 
             ? { customer_name: customer.trim() }
             : {}
@@ -226,10 +226,11 @@ const CreateTicketModal = ({
 
       if (response.data.success) {
         // Show success toast
-        const message = conversationId 
-          ? 'Ticket created successfully and linked to conversation'
-          : 'Ticket created successfully';
-        toast.success(message);
+        if (!conversationId) {
+          const message = 'Ticket created successfully';
+          toast.success(message);
+        }
+        
         
         // Reset form
         setSubject('');
