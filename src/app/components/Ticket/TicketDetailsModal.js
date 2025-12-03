@@ -45,7 +45,12 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
 
   const fetchComments = async () => {
     try {
-      const response = await axiosInstance.get(`/tickets/${ticketId}/comments/`);
+      const response = await axiosInstance.get(`/comments/`, {
+        params: {
+          model: 'ticket',
+          object_id: ticketId
+        }
+      });
       if (response.data.success) {
         setComments(response.data.comments);
       }
@@ -57,11 +62,13 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
 
   const addComment = async () => {
     if (!newComment.trim()) return;
-    
+
     try {
       setSubmittingComment(true);
-      const response = await axiosInstance.post(`/tickets/${ticketId}/comments/`, {
-        comment: newComment.trim()
+      const response = await axiosInstance.post(`/comments/`, {
+        model: 'ticket',
+        object_id: ticketId,
+        content: newComment.trim()
       });
 
       if (response.data.success) {
@@ -113,16 +120,15 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
               <div className="flex justify-between items-center py-1">
                 <div className="flex items-center gap-2">
                   <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 12.0002V14.6668M5.17161 10.8286L3.286 12.7142M4 8.00016H1.33333M12 8.00016H14.6667M10.8285 10.8286L12.7141 12.7142M8 4.00016V1.3335M10.8285 5.17174L12.7141 3.28612M5.17161 5.17174L3.286 3.28612" stroke="#808897" strokeLinecap="round"/>
+                    <path d="M8 12.0002V14.6668M5.17161 10.8286L3.286 12.7142M4 8.00016H1.33333M12 8.00016H14.6667M10.8285 10.8286L12.7141 12.7142M8 4.00016V1.3335M10.8285 5.17174L12.7141 3.28612M5.17161 5.17174L3.286 3.28612" stroke="#808897" strokeLinecap="round" />
                   </svg>
                   <span className="font-medium">Status</span>
                 </div>
-                <span className={`px-2 py-1 rounded text-sm font-medium ${
-                  ticket.status?.name === 'open' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
-                  ticket.status?.name === 'in_progress' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' :
-                  ticket.status?.name === 'resolved' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
-                  'bg-gray-100 text-gray-600 dark:bg-gray-700/30 dark:text-gray-400'
-                }`}>
+                <span className={`px-2 py-1 rounded text-sm font-medium ${ticket.status?.name === 'open' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
+                    ticket.status?.name === 'in_progress' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' :
+                      ticket.status?.name === 'resolved' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
+                        'bg-gray-100 text-gray-600 dark:bg-gray-700/30 dark:text-gray-400'
+                  }`}>
                   {ticket.status?.label || 'Open'}
                 </span>
               </div>
@@ -131,20 +137,19 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
               <div className="flex justify-between items-center py-1">
                 <div className="flex items-center gap-2">
                   <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5.33333 2.5H3.33333C2.59695 2.5 2 3.09695 2 3.83333V5.83333C2 6.56971 2.59695 7.16667 3.33333 7.16667H5.33333C6.06971 7.16667 6.66667 6.56971 6.66667 5.83333V3.83333C6.66667 3.09695 6.06971 2.5 5.33333 2.5Z" stroke="#808897" strokeWidth="1.5"/>
-                    <path d="M12.6667 2.5H10.6667C9.93029 2.5 9.33333 3.09695 9.33333 3.83333V5.83333C9.33333 6.56971 9.93029 7.16667 10.6667 7.16667H12.6667C13.403 7.16667 14 6.56971 14 5.83333V3.83333C14 3.09695 13.403 2.5 12.6667 2.5Z" stroke="#808897" strokeWidth="1.5"/>
-                    <path d="M5.33333 9.83333H3.33333C2.59695 9.83333 2 10.4303 2 11.1667V13.1667C2 13.903 2.59695 14.5 3.33333 14.5H5.33333C6.06971 14.5 6.66667 13.903 6.66667 13.1667V11.1667C6.66667 10.4303 6.06971 9.83333 5.33333 9.83333Z" stroke="#808897" strokeWidth="1.5"/>
-                    <path d="M12.6667 9.83333H10.6667C9.93029 9.83333 9.33333 10.4303 9.33333 11.1667V13.1667C9.33333 13.903 9.93029 14.5 10.6667 14.5H12.6667C13.403 14.5 14 13.903 14 13.1667V11.1667C14 10.4303 13.403 9.83333 12.6667 9.83333Z" stroke="#808897" strokeWidth="1.5"/>
+                    <path d="M5.33333 2.5H3.33333C2.59695 2.5 2 3.09695 2 3.83333V5.83333C2 6.56971 2.59695 7.16667 3.33333 7.16667H5.33333C6.06971 7.16667 6.66667 6.56971 6.66667 5.83333V3.83333C6.66667 3.09695 6.06971 2.5 5.33333 2.5Z" stroke="#808897" strokeWidth="1.5" />
+                    <path d="M12.6667 2.5H10.6667C9.93029 2.5 9.33333 3.09695 9.33333 3.83333V5.83333C9.33333 6.56971 9.93029 7.16667 10.6667 7.16667H12.6667C13.403 7.16667 14 6.56971 14 5.83333V3.83333C14 3.09695 13.403 2.5 12.6667 2.5Z" stroke="#808897" strokeWidth="1.5" />
+                    <path d="M5.33333 9.83333H3.33333C2.59695 9.83333 2 10.4303 2 11.1667V13.1667C2 13.903 2.59695 14.5 3.33333 14.5H5.33333C6.06971 14.5 6.66667 13.903 6.66667 13.1667V11.1667C6.66667 10.4303 6.06971 9.83333 5.33333 9.83333Z" stroke="#808897" strokeWidth="1.5" />
+                    <path d="M12.6667 9.83333H10.6667C9.93029 9.83333 9.33333 10.4303 9.33333 11.1667V13.1667C9.33333 13.903 9.93029 14.5 10.6667 14.5H12.6667C13.403 14.5 14 13.903 14 13.1667V11.1667C14 10.4303 13.403 9.83333 12.6667 9.83333Z" stroke="#808897" strokeWidth="1.5" />
                   </svg>
                   <span className="font-medium">Priority</span>
                 </div>
-                <span className={`px-2 py-1 rounded text-sm font-medium ${
-                  ticket.priority?.name === 'low' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
-                  ticket.priority?.name === 'medium' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                  ticket.priority?.name === 'high' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' :
-                  ticket.priority?.name === 'urgent' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
-                  'bg-gray-100 text-gray-600'
-                }`}>
+                <span className={`px-2 py-1 rounded text-sm font-medium ${ticket.priority?.name === 'low' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
+                    ticket.priority?.name === 'medium' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                      ticket.priority?.name === 'high' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' :
+                        ticket.priority?.name === 'urgent' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
+                          'bg-gray-100 text-gray-600'
+                  }`}>
                   {ticket.priority?.label || 'Low'}
                 </span>
               </div>
@@ -154,10 +159,10 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
                 <div className="flex justify-between items-center py-1">
                   <div className="flex items-center gap-2">
                     <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M5.33333 2.5H3.33333C2.59695 2.5 2 3.09695 2 3.83333V5.83333C2 6.56971 2.59695 7.16667 3.33333 7.16667H5.33333C6.06971 7.16667 6.66667 6.56971 6.66667 5.83333V3.83333C6.66667 3.09695 6.06971 2.5 5.33333 2.5Z" stroke="#808897" strokeWidth="1.5"/>
-                      <path d="M12.6667 2.5H10.6667C9.93029 2.5 9.33333 3.09695 9.33333 3.83333V5.83333C9.33333 6.56971 9.93029 7.16667 10.6667 7.16667H12.6667C13.403 7.16667 14 6.56971 14 5.83333V3.83333C14 3.09695 13.403 2.5 12.6667 2.5Z" stroke="#808897" strokeWidth="1.5"/>
-                      <path d="M5.33333 9.83333H3.33333C2.59695 9.83333 2 10.4303 2 11.1667V13.1667C2 13.903 2.59695 14.5 3.33333 14.5H5.33333C6.06971 14.5 6.66667 13.903 6.66667 13.1667V11.1667C6.66667 10.4303 6.06971 9.83333 5.33333 9.83333Z" stroke="#808897" strokeWidth="1.5"/>
-                      <path d="M12.6667 9.83333H10.6667C9.93029 9.83333 9.33333 10.4303 9.33333 11.1667V13.1667C9.33333 13.903 9.93029 14.5 10.6667 14.5H12.6667C13.403 14.5 14 13.903 14 13.1667V11.1667C14 10.4303 13.403 9.83333 12.6667 9.83333Z" stroke="#808897" strokeWidth="1.5"/>
+                      <path d="M5.33333 2.5H3.33333C2.59695 2.5 2 3.09695 2 3.83333V5.83333C2 6.56971 2.59695 7.16667 3.33333 7.16667H5.33333C6.06971 7.16667 6.66667 6.56971 6.66667 5.83333V3.83333C6.66667 3.09695 6.06971 2.5 5.33333 2.5Z" stroke="#808897" strokeWidth="1.5" />
+                      <path d="M12.6667 2.5H10.6667C9.93029 2.5 9.33333 3.09695 9.33333 3.83333V5.83333C9.33333 6.56971 9.93029 7.16667 10.6667 7.16667H12.6667C13.403 7.16667 14 6.56971 14 5.83333V3.83333C14 3.09695 13.403 2.5 12.6667 2.5Z" stroke="#808897" strokeWidth="1.5" />
+                      <path d="M5.33333 9.83333H3.33333C2.59695 9.83333 2 10.4303 2 11.1667V13.1667C2 13.903 2.59695 14.5 3.33333 14.5H5.33333C6.06971 14.5 6.66667 13.903 6.66667 13.1667V11.1667C6.66667 10.4303 6.06971 9.83333 5.33333 9.83333Z" stroke="#808897" strokeWidth="1.5" />
+                      <path d="M12.6667 9.83333H10.6667C9.93029 9.83333 9.33333 10.4303 9.33333 11.1667V13.1667C9.33333 13.903 9.93029 14.5 10.6667 14.5H12.6667C13.403 14.5 14 13.903 14 13.1667V11.1667C14 10.4303 13.403 9.83333 12.6667 9.83333Z" stroke="#808897" strokeWidth="1.5" />
                     </svg>
                     <span className="font-medium">Category</span>
                   </div>
@@ -170,8 +175,8 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
                 <div className="flex flex-col items-start justify-between py-1">
                   <div className="flex items-center gap-2">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9.33325 9.33333H6.66659C4.82564 9.33333 3.33325 10.8257 3.33325 12.6667V13.3333C3.33325 13.7015 3.63173 14 3.99992 14H11.9999C12.3681 14 12.6666 13.7015 12.6666 13.3333V12.6667C12.6666 10.8257 11.1742 9.33333 9.33325 9.33333Z" stroke="#808897" strokeWidth="1.5"/>
-                      <path d="M7.99992 7.33333C9.47268 7.33333 10.6666 6.13943 10.6666 4.66667C10.6666 3.19391 9.47268 2 7.99992 2C6.52716 2 5.33325 3.19391 5.33325 4.66667C5.33325 6.13943 6.52716 7.33333 7.99992 7.33333Z" stroke="#808897" strokeWidth="1.5"/>
+                      <path d="M9.33325 9.33333H6.66659C4.82564 9.33333 3.33325 10.8257 3.33325 12.6667V13.3333C3.33325 13.7015 3.63173 14 3.99992 14H11.9999C12.3681 14 12.6666 13.7015 12.6666 13.3333V12.6667C12.6666 10.8257 11.1742 9.33333 9.33325 9.33333Z" stroke="#808897" strokeWidth="1.5" />
+                      <path d="M7.99992 7.33333C9.47268 7.33333 10.6666 6.13943 10.6666 4.66667C10.6666 3.19391 9.47268 2 7.99992 2C6.52716 2 5.33325 3.19391 5.33325 4.66667C5.33325 6.13943 6.52716 7.33333 7.99992 7.33333Z" stroke="#808897" strokeWidth="1.5" />
                     </svg>
                     <span className="font-medium">Assigned Agents</span>
                   </div>
@@ -214,8 +219,8 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
                 <div className="flex justify-between items-center py-1">
                   <div className="flex items-center gap-2">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9.33325 9.33333H6.66659C4.82564 9.33333 3.33325 10.8257 3.33325 12.6667V13.3333C3.33325 13.7015 3.63173 14 3.99992 14H11.9999C12.3681 14 12.6666 13.7015 12.6666 13.3333V12.6667C12.6666 10.8257 11.1742 9.33333 9.33325 9.33333Z" stroke="#808897" strokeWidth="1.5"/>
-                      <path d="M7.99992 7.33333C9.47268 7.33333 10.6666 6.13943 10.6666 4.66667C10.6666 3.19391 9.47268 2 7.99992 2C6.52716 2 5.33325 3.19391 5.33325 4.66667C5.33325 6.13943 6.52716 7.33333 7.99992 7.33333Z" stroke="#808897" strokeWidth="1.5"/>
+                      <path d="M9.33325 9.33333H6.66659C4.82564 9.33333 3.33325 10.8257 3.33325 12.6667V13.3333C3.33325 13.7015 3.63173 14 3.99992 14H11.9999C12.3681 14 12.6666 13.7015 12.6666 13.3333V12.6667C12.6666 10.8257 11.1742 9.33333 9.33325 9.33333Z" stroke="#808897" strokeWidth="1.5" />
+                      <path d="M7.99992 7.33333C9.47268 7.33333 10.6666 6.13943 10.6666 4.66667C10.6666 3.19391 9.47268 2 7.99992 2C6.52716 2 5.33325 3.19391 5.33325 4.66667C5.33325 6.13943 6.52716 7.33333 7.99992 7.33333Z" stroke="#808897" strokeWidth="1.5" />
                     </svg>
                     <span className="font-medium">Customer</span>
                   </div>
@@ -227,7 +232,7 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
               <div className="flex justify-between items-center py-1">
                 <div className="flex items-center gap-2">
                   <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5.33333 2.50016H4C2.89543 2.50016 2 3.39559 2 4.50016V6.50016M5.33333 2.50016V1.8335M5.33333 2.50016H10.6667M5.33333 2.50016V3.16683M10.6667 2.50016H12C13.1046 2.50016 14 3.39559 14 4.50016V6.50016M10.6667 2.50016V1.8335M10.6667 2.50016V3.16683M2 6.50016V13.1668C2 14.2714 2.89543 15.1668 4 15.1668H12C13.1046 15.1668 14 14.2714 14 13.1668V6.50016M2 6.50016H14" stroke="#808897" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M5.33333 2.50016H4C2.89543 2.50016 2 3.39559 2 4.50016V6.50016M5.33333 2.50016V1.8335M5.33333 2.50016H10.6667M5.33333 2.50016V3.16683M10.6667 2.50016H12C13.1046 2.50016 14 3.39559 14 4.50016V6.50016M10.6667 2.50016V1.8335M10.6667 2.50016V3.16683M2 6.50016V13.1668C2 14.2714 2.89543 15.1668 4 15.1668H12C13.1046 15.1668 14 14.2714 14 13.1668V6.50016M2 6.50016H14" stroke="#808897" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   <span className="font-medium">Created</span>
                 </div>
@@ -238,8 +243,8 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
               <div className="flex justify-between items-center py-1">
                 <div className="flex items-center gap-2">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 13.3332C10.9455 13.3332 13.3333 10.9454 13.3333 7.99984C13.3333 5.05432 10.9455 2.6665 8 2.6665C5.05448 2.6665 2.66666 5.05432 2.66666 7.99984C2.66666 10.9454 5.05448 13.3332 8 13.3332Z" stroke="#808897" strokeWidth="1.5"/>
-                    <path d="M8 5.33317V7.99984L9.33333 9.33317" stroke="#808897" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M8 13.3332C10.9455 13.3332 13.3333 10.9454 13.3333 7.99984C13.3333 5.05432 10.9455 2.6665 8 2.6665C5.05448 2.6665 2.66666 5.05432 2.66666 7.99984C2.66666 10.9454 5.05448 13.3332 8 13.3332Z" stroke="#808897" strokeWidth="1.5" />
+                    <path d="M8 5.33317V7.99984L9.33333 9.33317" stroke="#808897" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   <span className="font-medium">Last Updated</span>
                 </div>
@@ -300,7 +305,7 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
                         height="h-8"
                       />
                     )}
-                    
+
                     <div className="flex-1">
                       <p className="text-sm">
                         <strong>
@@ -393,11 +398,10 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
               <button
                 key={tab}
                 onClick={() => setSelectedTab(tab)}
-                className={`mr-4 pb-2 capitalize ${
-                  selectedTab === tab
+                className={`mr-4 pb-2 capitalize ${selectedTab === tab
                     ? 'border-b-2 border-[#3EBF0F] text-[#3EBF0F] font-medium'
                     : 'text-gray-500'
-                }`}
+                  }`}
               >
                 {tab === 'comments' ? `Comments (${comments.length})` : tab}
               </button>
