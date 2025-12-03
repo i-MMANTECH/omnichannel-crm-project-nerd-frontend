@@ -24,7 +24,7 @@ export const CallProvider = ({ children }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [incoming, setIncoming] = useState(false);
     const [muted, setMuted] = useState(false);
-    
+
     const currentSessionRef = useRef(null);
 
 
@@ -32,8 +32,8 @@ export const CallProvider = ({ children }) => {
 
     const uaRef = useRef(null);
     const ringtoneInterval = useRef(null);
-    const incomingRingtoneInterval = useRef(null);    
-    
+    const incomingRingtoneInterval = useRef(null);
+
     // ───── SIP INIT ─────
     useEffect(() => {
         const config = getSIPConfig();
@@ -44,7 +44,7 @@ export const CallProvider = ({ children }) => {
 
         initializeSIP(config)
     }, [user]);
-    
+
     const initializeSIP = (config) => {
         const { SIP_URI, SIP_PASSWORD, WSS_URL } = config;
         // console.log('sip details ', SIP_URI, SIP_PASSWORD, WSS_URL)
@@ -74,47 +74,47 @@ export const CallProvider = ({ children }) => {
                 toast.error("Call center registration failed. Attempting to refresh configuration...", {
                     toastId: 'sip-reg-failure'
                 });
-            }            
+            }
 
             handleRegistrationFailure(config);
         });
 
         ua.on('newRTCSession', (data) => {
-              if (currentSessionRef.current) {
-               data.session.terminate({
-               status_code: 486,
-               reason_phrase: 'Busy Here'
-              });
-              return;
-          }
+            if (currentSessionRef.current) {
+                data.session.terminate({
+                    status_code: 486,
+                    reason_phrase: 'Busy Here'
+                });
+                return;
+            }
             const rtcSession = data.session;
-                currentSessionRef.current = rtcSession;
+            currentSessionRef.current = rtcSession;
             setSession(rtcSession);
 
             if (data.originator === 'remote') {
                 const rawPhone = rtcSession.remote_identity.uri.user;
-                 (async () => {
+                (async () => {
                     try {
-                    const { data: resp } = await axiosInstance.get('/customers/', {
-                        params: { search: rawPhone }
-                    });
+                        const { data: resp } = await axiosInstance.get('/customers/', {
+                            params: { search: rawPhone }
+                        });
 
-                    if (resp.count > 0) {
-                        const cust = resp.results[0];
-                        const fullName = `${cust.first_name} ${cust.last_name}`.trim();
-                        setCallData({ phone: rawPhone, name: fullName, id: cust.id });
-                    } else {
-                        setCallData({
+                        if (resp.count > 0) {
+                            const cust = resp.results[0];
+                            const fullName = `${cust.first_name} ${cust.last_name}`.trim();
+                            setCallData({ phone: rawPhone, name: fullName, id: cust.id });
+                        } else {
+                            setCallData({
                                 name: rtcSession.remote_identity.display_name || rtcSession.remote_identity.uri.user,
                                 phone: rtcSession.remote_identity.uri.user,
                             });
-                    }
+                        }
                     } catch (err) {
-                    console.error('Incoming lookup failed', err);
-                    setCallData({
-                                name: rtcSession.remote_identity.display_name || rtcSession.remote_identity.uri.user,
-                                phone: rtcSession.remote_identity.uri.user,
-                            });
+                        console.error('Incoming lookup failed', err);
+                        setCallData({
+                            name: rtcSession.remote_identity.display_name || rtcSession.remote_identity.uri.user,
+                            phone: rtcSession.remote_identity.uri.user,
+                        });
                     }
                 })();
 
@@ -133,13 +133,13 @@ export const CallProvider = ({ children }) => {
                 const pc = rtcSession.connection;
                 if (pc) {
                     const remoteStream = new MediaStream();
-            
+
                     pc.getReceivers().forEach(receiver => {
                         if (receiver.track && receiver.track.kind === 'audio') {
                             remoteStream.addTrack(receiver.track);
                         }
                     });
-            
+
                     const audioElement = document.getElementById('audio_remote');
 
                     if (audioElement) {
@@ -200,7 +200,7 @@ export const CallProvider = ({ children }) => {
             const { data: newConfig } = await axiosInstance.get('/call-center/config/');
 
             const fieldsToCompare = ['SIP_URI', 'SIP_PASSWORD', 'WSS_URL'];
-            const isSameConfig = fieldsToCompare.every(field => 
+            const isSameConfig = fieldsToCompare.every(field =>
                 newConfig[field] === currentConfig[field]
             );
 
@@ -208,42 +208,44 @@ export const CallProvider = ({ children }) => {
                 if (!toast.isActive('invalid-call-config')) {
                     toast.error("Call failed: Invalid call center configuration. Please contact your admin.", {
                         toastId: 'invalid-call-config'
-                    });                    
+                    });
                 }
-                
+
                 return;
             }
-    
+
             // Update user in AuthContext and localStorage
-            const updatedUser = { ...user, call_center_configured: {
-                status: newConfig.is_configured,
-                SIP_URI: newConfig.SIP_URI,
-                SIP_PASSWORD: newConfig.SIP_PASSWORD,
-                WSS_URL: newConfig.WSS_URL
-            } };
-    
+            const updatedUser = {
+                ...user, call_center_configured: {
+                    status: newConfig.is_configured,
+                    SIP_URI: newConfig.SIP_URI,
+                    SIP_PASSWORD: newConfig.SIP_PASSWORD,
+                    WSS_URL: newConfig.WSS_URL
+                }
+            };
+
             setUser(updatedUser)
             localStorage.setItem('user', JSON.stringify(updatedUser));
-    
+
             if (typeof window !== 'undefined') {
                 // Update memory
                 const event = new Event('storage'); // Trigger storage event for other tabs
                 window.dispatchEvent(event);
             }
-    
+
             if (!toast.isActive('call-center-connected')) {
                 toast.success("Call center configuration updated. Retry action", {
                     toastId: 'call-center-connected'
-                });                    
+                });
             }
-    
+
             // Re-initialize SIP with updated config
             initializeSIP({
                 SIP_URI: newConfig.SIP_URI,
                 SIP_PASSWORD: newConfig.SIP_PASSWORD,
                 WSS_URL: newConfig.WSS_URL
             });
-    
+
         } catch (error) {
             console.error("Error fetching call center config:", error);
             handleApiError(error)
@@ -252,35 +254,35 @@ export const CallProvider = ({ children }) => {
 
     useEffect(() => {
         if (!isAuthenticated && uaRef.current) {
-        // stop listening / unregister
-        uaRef.current.unregister({ all: true });
-        uaRef.current.stop();
-        // clear any remaining UI state
-        currentSessionRef.current = null;
-        setSession(null);
-        setIsVisible(false);
-        setIncoming(false);
-        stopAllRingtones();
+            // stop listening / unregister
+            uaRef.current.unregister({ all: true });
+            uaRef.current.stop();
+            // clear any remaining UI state
+            currentSessionRef.current = null;
+            setSession(null);
+            setIsVisible(false);
+            setIncoming(false);
+            stopAllRingtones();
         }
     }, [isAuthenticated]);
-        
+
     // ───── AUDIO ─────
     const toggleMute = () => {
         if (localStreamRef.current) {
-          localStreamRef.current.getAudioTracks().forEach(track => {
-            track.enabled = !track.enabled;
-          });
-          setMuted(prev => !prev);
+            localStreamRef.current.getAudioTracks().forEach(track => {
+                track.enabled = !track.enabled;
+            });
+            setMuted(prev => !prev);
         }
     };
 
     const stopAllRingtones = () => {
         ['ringtone', 'incoming_ringtone'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.pause();
-            el.currentTime = 0;
-        }
+            const el = document.getElementById(id);
+            if (el) {
+                el.pause();
+                el.currentTime = 0;
+            }
         });
         clearInterval(ringtoneInterval.current);
         clearInterval(incomingRingtoneInterval.current);
@@ -327,9 +329,9 @@ export const CallProvider = ({ children }) => {
             if (!toast.isActive('invalid-call-config')) {
                 toast.error("Call failed: Not connected to the call center. Please retry.", {
                     toastId: 'invalid-call-config'
-                });                    
+                });
             }
-            
+
             handleRegistrationFailure(getSIPConfig());
             setCallStatus('FAILED');
             return;
@@ -337,19 +339,19 @@ export const CallProvider = ({ children }) => {
 
         try {
             const normalized = normalizePhoneNumber(phone);
-            console.log("Making call to: ",normalized)
+            console.log("Making call to: ", normalized)
             setCallData({ phone: normalized, name, id });
             setIsVisible(true);
 
             setCallStatus('Requesting microphone access...');
-            
+
             // Get user media first
-            const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+            const mediaStream = await navigator.mediaDevices.getUserMedia({
                 audio: {
-                echoCancellation: true,
-                noiseSuppression: true,
-                autoGainControl: true
-                } 
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                }
             });
             localStreamRef.current = mediaStream;
 
@@ -392,7 +394,7 @@ export const CallProvider = ({ children }) => {
                 'pcConfig': {
                     'iceServers': [
                         {
-                            'urls': ['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']
+                            'urls': ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302']
                         }
                     ]
                 }
@@ -404,8 +406,8 @@ export const CallProvider = ({ children }) => {
             }
 
             setCallStatus('INITIATING');
-                const call = uaRef.current.call(`sip:${dest}@cc2.nativetalk.com.ng`, options);
-                setSession(call);
+            const call = uaRef.current.call(`sip:${dest}@cc2.nativetalk.com.ng`, options);
+            setSession(call);
         } catch (error) {
             console.error('Error making call:', error);
             setCallStatus(`FAILED`);
@@ -414,11 +416,11 @@ export const CallProvider = ({ children }) => {
 
     const acceptCall = async () => {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
+            const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
-                echoCancellation: true,
-                noiseSuppression: true,
-                autoGainControl: true
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
                 }
             });
             localStreamRef.current = stream;

@@ -14,7 +14,7 @@ const PlayRecordingDrawer = ({ show, onClose, cdr }) => {
     call_start_time,
     total_duration,
     lead_details,
-    recording_url,
+    recording_path,
   } = cdr;
 
   const phoneNumber = direction === 'outbound' ? destination_number : caller_id_number;
@@ -42,13 +42,13 @@ const PlayRecordingDrawer = ({ show, onClose, cdr }) => {
 
   const handleDelete = () => {
     // TODO: Add delete logic
-    console.log("Delete recording:", recording_url);
+    console.log("Delete recording:", recording_path);
   };
 
   const handleDownload = () => {
-    if (!recording_url) return;
+    if (!recording_path) return;
     const link = document.createElement('a');
-    link.href = recording_url;
+    link.href = recording_path;
     link.download = "call-recording.mp3";
     link.click();
   };
@@ -66,7 +66,7 @@ const PlayRecordingDrawer = ({ show, onClose, cdr }) => {
         type="button"
         onClick={handleDownload}
         className="px-4 py-2 bg-[#3EBF0F] text-white rounded-lg hover:bg-green-600"
-        disabled={!recording_url}
+        disabled={!recording_path}
       >
         Download
       </button>
@@ -106,8 +106,8 @@ const PlayRecordingDrawer = ({ show, onClose, cdr }) => {
 
         {/* Audio */}
         <div className="w-full bg-[#F9FAFB] border rounded-lg p-4 shadow-sm">
-          {recording_url ? (
-            <audio controls src={recording_url} className="w-full">
+          {recording_path ? (
+            <audio controls src={recording_path} className="w-full">
               Your browser does not support the audio element.
             </audio>
           ) : (
