@@ -63,7 +63,7 @@ const CustomUrlForm = () => {
                             src="/assets/sign-up-image.png"
                             alt="Sign up"
                             className="object-cover w-full h-full"
-                            style={{height: 542}}
+                            style={{height: '100%'}}
                         />
                 </div>
 

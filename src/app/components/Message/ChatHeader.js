@@ -26,7 +26,7 @@ const ModalController = ({ children }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  
+
   const isModalOpen = searchParams.get('action') === 'lead-to-customer';
 
   const openModal = () => {
@@ -83,16 +83,16 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
         setIsMenuOpen(false);
       }
     };
-  
+
     document.addEventListener("mousedown", handleClickOutside);
-  
+
     // Fetch AI status
     const fetchAiStatus = async () => {
       try {
         const res = await axiosInstance.get(`/communication/conversations/${conversationId}/ai-status/`, {
           showLoader: false
         });
-  
+
         if (res?.data?.success) {
           setAiResponsesEnabled(res.data.data.ai_is_active);
         }
@@ -100,11 +100,11 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
         handleApiError(err, "Failed to fetch AI status");
       }
     };
-  
+
     if (conversationId) fetchAiStatus();
-  
+
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [conversationId, refreshChatHeader]);  
+  }, [conversationId, refreshChatHeader]);
 
   if (!activeUser) return null;
 
@@ -113,7 +113,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
     refreshChatList()
   }
 
-  const lastTime = new Date(activeUser.lastMessageTime || activeUser.last_message_at);
+  const lastTime = new Date(activeUser?.lastMessageTime || activeUser?.last_message_at);
   const now = new Date();
 
   const isToday = lastTime.toDateString() === now.toDateString();
@@ -147,20 +147,18 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
         />
 
         <div
-          className={`w-11 h-6 rounded-full transition-colors ${
-            aiResponsesEnabled ? "bg-[#3EBF0F]" : "bg-gray-300"
-          }`}
+          className={`w-11 h-6 rounded-full transition-colors ${aiResponsesEnabled ? "bg-[#3EBF0F]" : "bg-gray-300"
+            }`}
         >
           <div
-            className={`w-6 h-6 body-theme rounded-full transition-transform ${
-              aiResponsesEnabled ? "translate-x-5" : "translate-x-0"
-            }`}
+            className={`w-6 h-6 body-theme rounded-full transition-transform ${aiResponsesEnabled ? "translate-x-5" : "translate-x-0"
+              }`}
           />
         </div>
       </label>
     </div>
   );
-  
+
   const leadMenuItems = [
     ...(addCustomer ? [{
       label: "Add as customer",
@@ -175,11 +173,11 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
       onClick: () => setIsTicketsPanelOpen(true),
     },
     {
-      label: "Archived messages", 
+      label: "Archived messages",
       onClick: () => setIsArchivedModalOpen(true),
     },
     {
-      label: "Notes", 
+      label: "Notes",
       onClick: () => setIsNotesModalOpen(true),
     },
     {
@@ -197,10 +195,10 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
     {
       label: aiToggleMenuItem,
       isCustom: true,
-    }    
+    }
   ]
-  
-  
+
+
   const customerMenuItems = [
     {
       label: "Edit customer",
@@ -213,7 +211,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
       onClick: () => setIsTicketsPanelOpen(true),
     },
     {
-      label: "Archived messages", 
+      label: "Archived messages",
       onClick: () => setIsArchivedModalOpen(true),
     },
     {
@@ -227,7 +225,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
     {
       label: aiToggleMenuItem,
       isCustom: true,
-    }    
+    }
   ];
 
   const closeSuccessModal = () => {
@@ -241,25 +239,25 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
           <div className="header">
             <div className="relative self-center">
               <div>
-                {activeUser.profileImage ? (
+                {activeUser?.profileImage ? (
                   <Image
-                    loader={() => activeUser.profileImage}
-                    src={activeUser.profileImage}
+                    loader={() => activeUser?.profileImage}
+                    src={activeUser?.profileImage}
                     alt="User Profile"
                     width={70}
                     height={70}
                     className="w-9 h-9 rounded-full"
                   />
                 ) : (
-                  <UserAvatar name={activeUser.name || activeUser.lead_name || activeUser.name || activeUser.customer_name || activeUser.first_name || activeUser.username || activeUser.email || "Unknown "} width="w-9" height="h-9" />
+                  <UserAvatar name={activeUser?.name || activeUser?.lead_name || activeUser?.name || activeUser?.customer_name || activeUser?.first_name || activeUser?.username || activeUser?.email || "Unknown "} width="w-9" height="h-9" />
                 )}
               </div>
-              {activeUser.channel?.image && (
+              {activeUser?.channel?.image && (
                 <div>
                   <Image
-                    loader={() => activeUser.channel?.image}
-                    src={`${activeUser.channel?.image}`}
-                    alt={`${activeUser.channel?.name} Icon`}
+                    loader={() => activeUser?.channel?.image}
+                    src={`${activeUser?.channel?.image}`}
+                    alt={`${activeUser?.channel?.name} Icon`}
                     className="absolute -bottom-1 -right-1 rounded-full bg-white p-[3.5px]"
                     width={18}
                     height={18}
@@ -278,13 +276,13 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
             </span>
             <div className="relative flex justify-between">
               <div className="flex gap-2">
-                  <button
-                    onClick={() => setIsCreateTicketModalOpen(true)}
-                    className="bg-[#3EBF0F] hover:bg-green-600 text-white px-3 rounded-md transition-colors flex items-center gap-1 mr-3"
-                  >
-                    <Plus size={20} />
-                    <span>Create Ticket</span>
-                  </button>
+                <button
+                  onClick={() => setIsCreateTicketModalOpen(true)}
+                  className="bg-[#3EBF0F] hover:bg-green-600 text-white px-3 rounded-md transition-colors flex items-center gap-1 mr-3"
+                >
+                  <Plus size={20} />
+                  <span>Create Ticket</span>
+                </button>
               </div>
               {!activeUser.ended_at &&
                 <button
@@ -300,7 +298,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
                   ref={menuRef}
                   className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
                 >
-                    <div className="py-1">
+                  <div className="py-1">
                     {(isLead ? leadMenuItems : customerMenuItems).map((item, index) => (
                       <div key={index}>
                         {item.isCustom ? (
@@ -320,7 +318,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
                     ))}
 
                   </div>
-                  
+
                 </div>
               )}
             </div>
@@ -357,49 +355,49 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
               <LeadToCustomer
                 isOpen={isModalOpen}
                 onClose={closeModal}
-                leadId={activeUser.id}
+                leadId={activeUser?.id}
                 setIsSuccessModalOpen={setIsSuccessModalOpen}
                 setSuccessModalMessage={setSuccessModalMessage}
               />
             )}
 
             {isArchivedModalOpen && (
-               <ArchiveModal 
-               isOpen={isArchivedModalOpen} 
-               onClose={() => setIsArchivedModalOpen(false)} />
+              <ArchiveModal
+                isOpen={isArchivedModalOpen}
+                onClose={() => setIsArchivedModalOpen(false)} />
             )}
 
             {isNotesModalOpen && (
               <NotesModal
                 isOpen={isNotesModalOpen}
                 onClose={() => setIsNotesModalOpen(false)}
-                userId={activeUser.id}
+                userId={activeUser?.id}
                 conversationId={conversationId}
                 setIsSuccessModalOpen={setIsSuccessModalOpen}
                 setSuccessModalMessage={setSuccessModalMessage}
               />
             )}
 
-             {isAssignAgentModalOpen && (
-            <AssignAgentModal
-              isOpen={isAssignAgentModalOpen}
-              onClose={() => setIsAssignAgentModalOpen(false)}
-              userId={activeUser.id}
-              conversationId={conversationId}
-              setIsSuccessModalOpen={setIsSuccessModalOpen}
-              setSuccessModalMessage={setSuccessModalMessage}
-            />
-          )}
-          
-          {isEndSessionModalOpen && (
-            <EndSessionModal
-              isOpen={isEndSessionModalOpen}
-              onClose={closeSessionModal}
-              conversationId={conversationId}
-              setIsSuccessModalOpen={setIsSuccessModalOpen}
-              setSuccessModalMessage={setSuccessModalMessage}
-            />
-          )}
+            {isAssignAgentModalOpen && (
+              <AssignAgentModal
+                isOpen={isAssignAgentModalOpen}
+                onClose={() => setIsAssignAgentModalOpen(false)}
+                userId={activeUser?.id}
+                conversationId={conversationId}
+                setIsSuccessModalOpen={setIsSuccessModalOpen}
+                setSuccessModalMessage={setSuccessModalMessage}
+              />
+            )}
+
+            {isEndSessionModalOpen && (
+              <EndSessionModal
+                isOpen={isEndSessionModalOpen}
+                onClose={closeSessionModal}
+                conversationId={conversationId}
+                setIsSuccessModalOpen={setIsSuccessModalOpen}
+                setSuccessModalMessage={setSuccessModalMessage}
+              />
+            )}
           </div>
         )}
       </ModalController>

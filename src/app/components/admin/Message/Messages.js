@@ -45,6 +45,8 @@ export const MessagesContent = () => {
 	const [page, setPage] = useState(1);
 	const [next, setNext] = useState(null);
 	const [isFetchingMore, setIsFetchingMore] = useState(false);
+	const [isScrolledUp, setIsScrolledUp] = useState(false);
+
 
 	const [loading, setLoading] = useState(true);
 	const [chatResponse, setChatResponse] = useState();
@@ -122,6 +124,8 @@ export const MessagesContent = () => {
 	useEffect(() => {
 		fetchChatHistory();
 	}, [activeUser]);
+
+	useEffect(() => { setIsScrolledUp(false); }, [activeUser?.id]);
 
 	useEffect(() => {
 		if (chatId) {
@@ -406,7 +410,6 @@ export const MessagesContent = () => {
 		};
 	}, [activeUser, chatHistory, chatType]);
 
-
 	useEffect(() => {
 		return () => {
 			if (abortControllerRef.current) {
@@ -619,17 +622,19 @@ export const MessagesContent = () => {
 
 		let endpoint;
 		if (chatType === "customers") {
-			endpoint = `/communication/customer-chat-history/${activeUser.id}`;
+			endpoint = `/communication/customer-chat-history/${activeUser.id}?page=${page}`;
 		} else if (chatType === "leads") {
-			endpoint = `/communication/history/?lead_id=${activeUser.id}`;
+			endpoint = `/communication/history/?lead_id=${activeUser.id}&page=${page}`;
 		} else if (chatType === "archived") {
-			endpoint = `/communication/conversations/${activeUser.id}/messages?status=ended`;
+			endpoint = `/communication/conversations/${activeUser.id}/messages?status=ended&page=${page}`;
 		}
 
 		try {
 			const response = await axiosInstance.get(endpoint, {
 				signal: abortControllerRef.current.signal
 			});
+
+			setNext(response.data.next);
 
 			if (currentTabRef.current === requestChatType && activeUser?.id === requestUserId) {
 				const newHistory = response.data.results.reverse() || [];
@@ -696,6 +701,9 @@ export const MessagesContent = () => {
 
 	const handleChatSelect = (user) => {
 		setActiveUser(user);
+		// ensure fresh bottom-auto-scroll when entering a chat
+		setIsScrolledUp(false);
+		setPage(1);
 		router.push(`/admin/messages?chat=${chatType}&id=${user.id}`, { scroll: false });
 	};
 
@@ -707,6 +715,7 @@ export const MessagesContent = () => {
 
 		setActiveUser(null);
 		setChatHistory([]);
+		setIsScrolledUp(false);  // reset auto-bottom on tab switch
 		router.push(`/admin/messages?chat=${tab}`, { scroll: false });
 
 		setTabUnreadFlags((prev) => ({
@@ -771,6 +780,7 @@ export const MessagesContent = () => {
 
 		// Show temp message instantly in UI
 		setChatHistory((prevHistory) => [...prevHistory, tempMessage]);
+		setIsScrolledUp(false);
 
 		let url = "/communication/";
 
@@ -924,6 +934,24 @@ export const MessagesContent = () => {
 		}
 	};
 
+	const loadMoreMessages = async () => {
+		if (isFetchingMore || !next) return;  // Don't load if already fetching or no more pages
+		setIsFetchingMore(true);
+
+		try {
+			const response = await axiosInstance.get(next);  // Fetch next page
+			setChatHistory((prevHistory) => [...response.data.results.reverse(), ...prevHistory]); // Prepend new messages
+			setNext(response.data.next);  // Update the next page URL
+		} catch (error) {
+			handleApiError(error);
+		} finally {
+			setIsFetchingMore(false);
+			// Reset the flag after messages are loaded
+		}
+	};
+
+
+
 	return (
 		<div className="body-theme flex flex-col px-5 ">
 			<div className="flex p-4 items-center justify-between w-full ">
@@ -936,7 +964,7 @@ export const MessagesContent = () => {
 							<div
 								key={index}
 								className={`cursor-pointer rounded-full transition-all duration-300
-						${selectedAgent === assignee.id ? 'ring-2 dark:ring-white ring-[#3EBF0F] z-10' : ''}`}
+							${selectedAgent === assignee.id ? 'ring-2 dark:ring-white ring-[#3EBF0F] z-10' : ''}`}
 								style={{ marginLeft: index !== 0 ? '-7px' : '0px' }}
 								onClick={() => handleAssigneeClick(assignee.id)}
 								onMouseEnter={(e) => e.currentTarget.classList.add("z-10")}
@@ -1123,6 +1151,11 @@ export const MessagesContent = () => {
 								<MessageList
 									chatHistory={chatHistory}
 									inputIsEmailMode={inputIsEmailMode}
+									loadMoreMessages={loadMoreMessages}
+									isFetchingMore={isFetchingMore}
+									isScrolledUp={isScrolledUp}
+									setIsScrolledUp={setIsScrolledUp}
+									next={next}
 								/>
 
 								{/* Ticket Panel */}
