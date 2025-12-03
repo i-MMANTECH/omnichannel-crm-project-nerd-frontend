@@ -238,13 +238,8 @@ export const MessagesContent = () => {
 
 			// 🔔 Handle system messages separately
 			if (message.is_system_message) {
-				console.log('System message received:', message);
-				console.log('Conversation match:', message.conversation === chatResponse?.conversation_id);
-
 				// Check if this system message belongs to the current active conversation
 				if (activeUser && message.conversation === chatResponse?.conversation_id) {
-					console.log('Adding system message to chat history');
-
 					// Add to chat history
 					setChatHistory((prevHistory) => {
 						const alreadyExists = prevHistory.some((msg) => msg.id === message.id);
@@ -924,9 +919,6 @@ export const MessagesContent = () => {
 
 	const handleCreateTicket = async (ticketData) => {
 		try {
-			// TODO: Replace with actual API endpoint when ready
-			// await axiosInstance.post('/tickets/', ticketData);
-			console.log("Creating ticket:", ticketData);
 			setIsCreateTicketModalOpen(false);
 			// Optionally refresh ticket panel or show success message
 		} catch (error) {
@@ -935,6 +927,7 @@ export const MessagesContent = () => {
 	};
 
 	const loadMoreMessages = async () => {
+		console.log("Loading more messages...");
 		if (isFetchingMore || !next) return;  // Don't load if already fetching or no more pages
 		setIsFetchingMore(true);
 
@@ -1217,7 +1210,6 @@ export const MessagesContent = () => {
 							className="hover:shadow-md px-4 py-2 bg-[#3EBF0F] text-white rounded-md "
 							onClick={async () => {
 								try {
-									console.log(chatResponse)
 									await axiosInstance.patch(`/communication/conversations/${chatResponse?.conversation_id}/ai-status/`, {}, { showLoader: false });
 									setShowAiTakeoverPrompt(false);
 									sessionStorage.setItem(`ai_prompt_dismissed_${chatResponse?.conversation_id}`, 'true');
