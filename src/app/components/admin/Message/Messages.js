@@ -15,7 +15,8 @@ import { Tooltip } from "react-tooltip";
 import Modal from "../../Modal";
 import CreateTicketModal from "../../Ticket/CreateTicketModal";
 import TicketListPanel from "../../Ticket/TicketsPanel";
-
+import ExportModal from "@/app/components/ExportModal";
+import { Download } from "lucide-react";
 
 const getMessageType = (message) => {
 	if (message.lead_sender != null || message.lead_receiver != null) {
@@ -98,6 +99,8 @@ export const MessagesContent = () => {
 	const wsRef = useRef(null);
 	const currentTabRef = useRef(chatType);
 	const abortControllerRef = useRef(null);
+	const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
 
 	useEffect(() => {
 		const newChatType = searchParams.get("chat") || "leads";
@@ -417,6 +420,38 @@ export const MessagesContent = () => {
 		fetchAgents()
 		fetchChannelsData();
 	}, []);
+
+	const handleExport = async (startDate, endDate) => {
+		try {
+			const params = new URLSearchParams();
+			params.append('start_date', startDate);
+			params.append('end_date', endDate);
+
+			const response = await axiosInstance.get(`/tickets/export/?${params.toString()}`, {
+				responseType: 'blob',
+			});
+
+			// Create a blob from the CSV data
+			const blob = new Blob([response.data], { type: 'text/csv' });
+
+			// Create a download link and trigger it
+			const url = window.URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			link.setAttribute('download', `messages_export_${startDate}_to_${endDate}.csv`);
+			document.body.appendChild(link);
+			link.click();
+
+			// Clean up
+			link.parentNode.removeChild(link);
+			window.URL.revokeObjectURL(url);
+
+		} catch (err) {
+			handleApiError(err);
+			throw err;
+		}
+	};
+
 
 	const fetchAiStatus = async (conversationId) => {
 		if (chatType === "archived") {
@@ -1002,6 +1037,13 @@ export const MessagesContent = () => {
 
 				<div className="flex gap-4">
 					<button
+						onClick={() => setIsExportModalOpen(true)}
+						className="bg-white dark:bg-gray-800 text-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-2"
+					>
+						<Download className="w-4 h-4" />
+						Export
+					</button>
+					<button
 						onClick={() => { router.push('/admin/settings#channels-integration'); }}
 						className="bg-[#3EBF0F] text-white px-4 py-2 rounded-lg shadow-sm">
 						+ Connect Channel
@@ -1237,6 +1279,12 @@ export const MessagesContent = () => {
 				customerId={activeUser?.id}
 				customerName={activeUser?.name || activeUser?.email}
 				conversationId={chatId} // This triggers the conversation endpoint
+			/>
+			<ExportModal
+				isOpen={isExportModalOpen}
+				onClose={() => setIsExportModalOpen(false)}
+				onExport={handleExport}
+				title="Export Messages"
 			/>
 		</div>
 	);

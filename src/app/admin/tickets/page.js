@@ -10,12 +10,15 @@ import StatCard from "@/app/components/StatCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import ExportModal from "@/app/components/ExportModal";
+import { Download } from "lucide-react";
+
 
 const ModalController = ({ children }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  
+
   const isCreateModalOpen = searchParams.get('action') === 'new-ticket';
   const isViewModalOpen = searchParams.get('action') === 'view-ticket';
   const isUpdateModalOpen = searchParams.get('action') === 'update-ticket';
@@ -69,7 +72,7 @@ const ModalController = ({ children }) => {
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
-  return children({ 
+  return children({
     isCreateModalOpen,
     isViewModalOpen,
     isUpdateModalOpen,
@@ -106,11 +109,13 @@ const TicketsContent = () => {
   });
   const [pageSize, setPageSize] = useState(8);
   const [lastUpdated, setLastUpdated] = useState(null);
-  
+
   // Dropdowns data
   const [allStatuses, setAllStatuses] = useState([]);
   const [allPriorities, setAllPriorities] = useState([]);
   const [allCategories, setAllCategories] = useState([]);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
 
   useEffect(() => {
     fetchDropdownData();
@@ -123,7 +128,7 @@ const TicketsContent = () => {
   const fetchTickets = async () => {
     try {
       setLoading(true);
-      
+
       const response = await axiosInstance.get('/tickets/list/', {
         params: {
           page: currentPage,
@@ -136,14 +141,14 @@ const TicketsContent = () => {
         setTickets(response.data.tickets);
         setPagination(response.data.pagination);
         setLastUpdated(new Date());
-        
+
         // Calculate status counts from API data
         const counts = response.data.tickets.reduce((acc, ticket) => {
           const statusName = ticket.status?.name || 'open';
           acc[statusName] = (acc[statusName] || 0) + 1;
           return acc;
         }, { open: 0, in_progress: 0, resolved: 0, closed: 0 });
-        
+
         setStatusCounts(counts);
       }
     } catch (error) {
@@ -254,8 +259,8 @@ const TicketsContent = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
       day: 'numeric',
       year: 'numeric'
     });
@@ -268,7 +273,7 @@ const TicketsContent = () => {
     const seconds = Math.floor(diff / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
-    
+
     if (seconds < 60) return 'Just now';
     if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
     if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
@@ -277,6 +282,37 @@ const TicketsContent = () => {
 
   const handleRefreshClick = () => {
     fetchTickets();
+  };
+
+  const handleExport = async (startDate, endDate) => {
+    try {
+      const params = new URLSearchParams();
+      params.append('start_date', startDate);
+      params.append('end_date', endDate);
+
+      const response = await axiosInstance.get(`/tickets/export/?${params.toString()}`, {
+        responseType: 'blob',
+      });
+
+      // Create a blob from the CSV data
+      const blob = new Blob([response.data], { type: 'text/csv' });
+
+      // Create a download link and trigger it
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `tickets_export_${startDate}_to_${endDate}.csv`);
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+    } catch (err) {
+      handleApiError(err);
+      throw err;
+    }
   };
 
   // Stats data using real counts
@@ -316,7 +352,7 @@ const TicketsContent = () => {
 
   return (
     <ModalController>
-      {({ 
+      {({
         isCreateModalOpen,
         isViewModalOpen,
         isUpdateModalOpen,
@@ -333,7 +369,7 @@ const TicketsContent = () => {
             <div className="flex mb-7 mt-3 items-center justify-between gap-2 text-sm text-gray-500">
               <div className="flex h-[40px] w-fit p-[8px_12px] justify-center items-center gap-2 rounded-[10px] border border-[#DFE1E6] body-theme shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
-                  <path d="M5.333 2H4A2 2 0 0 0 2 4v2M5.333 2v-.667M5.333 2h5.334M5.333 2v.667M10.667 2H12A2 2 0 0 1 14 4v2M10.667 2v-.667M10.667 2v.667M2 6v6.667A2 2 0 0 0 4 14.667h8A2 2 0 0 0 14 12.667V6H2Z" stroke="#808897" strokeWidth="1.333" strokeLinecap="round"/>
+                  <path d="M5.333 2H4A2 2 0 0 0 2 4v2M5.333 2v-.667M5.333 2h5.334M5.333 2v.667M10.667 2H12A2 2 0 0 1 14 4v2M10.667 2v-.667M10.667 2v.667M2 6v6.667A2 2 0 0 0 4 14.667h8A2 2 0 0 0 14 12.667V6H2Z" stroke="#808897" strokeWidth="1.333" strokeLinecap="round" />
                 </svg>
                 <span className="text-[14px] font-medium leading-[150%] tracking-[0.2px]">
                   Last updated: {formatLastUpdated(lastUpdated)}
@@ -347,18 +383,27 @@ const TicketsContent = () => {
                   fill="none"
                   onClick={handleRefreshClick}
                 >
-                  <path d="M8 2.667A5.333 5.333 0 1 0 13.333 8M8 2.667 6.667 1.333M8 2.667 7 4.333M8 13.333a5.333 5.333 0 1 0-5.333-5.333M8 13.333l1.333 1.334M8 13.333l1-1.667" stroke="#3EBF0F" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M8 2.667A5.333 5.333 0 1 0 13.333 8M8 2.667 6.667 1.333M8 2.667 7 4.333M8 13.333a5.333 5.333 0 1 0-5.333-5.333M8 13.333l1.333 1.334M8 13.333l1-1.667" stroke="#3EBF0F" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <button
-                onClick={openCreateModal}
-                className="px-4 py-2 bg-[#3EBF0F] text-white rounded-lg hover:bg-[#35a50d] flex items-center gap-2"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M8 3V13M3 8H13" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-                New Ticket
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsExportModalOpen(true)}
+                  className="bg-white dark:bg-gray-800 text-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-2 whitespace-nowrap"
+                >
+                  <Download className="w-4 h-4" />
+                  Export
+                </button>
+                <button
+                  onClick={openCreateModal}
+                  className="px-4 py-2 bg-[#3EBF0F] text-white rounded-lg hover:bg-[#35a50d] flex items-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 3V13M3 8H13" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                  New Ticket
+                </button>
+              </div>
             </div>
 
             {/* Status Cards */}
@@ -471,17 +516,16 @@ const TicketsContent = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <select
-                              className={`px-2 py-1 text-sm rounded font-medium cursor-pointer ${
-                                ticket.status?.name === "open"
-                                  ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
-                                  : ticket.status?.name === "in_progress"
+                              className={`px-2 py-1 text-sm rounded font-medium cursor-pointer ${ticket.status?.name === "open"
+                                ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+                                : ticket.status?.name === "in_progress"
                                   ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
                                   : ticket.status?.name === "resolved"
-                                  ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
-                                  : ticket.status?.name === "closed"
-                                  ? "bg-gray-100 text-gray-600 dark:bg-gray-700/30 dark:text-gray-400"
-                                  : "bg-gray-100 text-gray-600"
-                              }`}
+                                    ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+                                    : ticket.status?.name === "closed"
+                                      ? "bg-gray-100 text-gray-600 dark:bg-gray-700/30 dark:text-gray-400"
+                                      : "bg-gray-100 text-gray-600"
+                                }`}
                               value={ticket.status?.id || ''}
                               onChange={(e) => handleStatusChange(ticket.id, e.target.value, e)}
                               onClick={(e) => e.stopPropagation()}
@@ -495,17 +539,16 @@ const TicketsContent = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <select
-                              className={`px-2 py-1 text-sm rounded font-medium cursor-pointer ${
-                                ticket.priority?.name === "low"
-                                  ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
-                                  : ticket.priority?.name === "medium"
+                              className={`px-2 py-1 text-sm rounded font-medium cursor-pointer ${ticket.priority?.name === "low"
+                                ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+                                : ticket.priority?.name === "medium"
                                   ? "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400"
                                   : ticket.priority?.name === "high"
-                                  ? "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
-                                  : ticket.priority?.name === "urgent"
-                                  ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
-                                  : "bg-gray-100 text-gray-600"
-                              }`}
+                                    ? "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+                                    : ticket.priority?.name === "urgent"
+                                      ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+                                      : "bg-gray-100 text-gray-600"
+                                }`}
                               value={ticket.priority?.id || ''}
                               onChange={(e) => handlePriorityChange(ticket.id, e.target.value, e)}
                               onClick={(e) => e.stopPropagation()}
@@ -579,10 +622,10 @@ const TicketsContent = () => {
                       className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </button>
-                    
+
                     {/* Show page numbers dynamically */}
                     {Array.from({ length: Math.min(5, pagination.total_pages) }, (_, i) => {
                       let pageNum;
@@ -595,16 +638,15 @@ const TicketsContent = () => {
                       } else {
                         pageNum = currentPage - 2 + i;
                       }
-                      
+
                       return (
                         <button
                           key={i}
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`px-3 py-1 rounded-md ${
-                            currentPage === pageNum
-                              ? "bg-[#3EBF0F] text-white"
-                              : "border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          }`}
+                          className={`px-3 py-1 rounded-md ${currentPage === pageNum
+                            ? "bg-[#3EBF0F] text-white"
+                            : "border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            }`}
                         >
                           {pageNum}
                         </button>
@@ -627,7 +669,7 @@ const TicketsContent = () => {
                       className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </button>
                     <select
@@ -675,6 +717,13 @@ const TicketsContent = () => {
               onUpdate={handleUpdateTicket}
             />
           )}
+
+          <ExportModal
+            isOpen={isExportModalOpen}
+            onClose={() => setIsExportModalOpen(false)}
+            onExport={handleExport}
+            title="Export Tickets"
+          />
         </div>
       )}
     </ModalController>

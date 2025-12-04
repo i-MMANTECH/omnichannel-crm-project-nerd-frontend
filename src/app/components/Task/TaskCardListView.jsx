@@ -5,10 +5,11 @@ import getStatusSvg from "./getStatusSvg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import { usePermissions } from "@/context/PermissionsContext";
+import { getSmartTimestamp } from "@/utils/timeUtils"; // Add this import
 
 const STATUS_ORDER = ["todo", "overdue", "in_progress", "done"];
 const columns = [
-  { title: "To Do", status: "todo" },
+  { title: "Not Started", status: "todo" },
   { title: "Overdue", status: "overdue" },
   { title: "In Progress", status: "in_progress" },
   { title: "Done", status: "done" },
@@ -49,7 +50,7 @@ const TaskCardListView = ({ tasks, handleDelete, openViewModal, openUpdateModal 
                 <TaskCard
                   key={task.id}
                   title={task.title}
-                  date={task.updated_at}
+                  date={task.created_at}
                   priority={task.priority.label}
                   assignees={task.assignees}
                   status={task.status.label}
@@ -91,7 +92,7 @@ const TaskCard = ({
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target) &&
-          buttonRef.current && !buttonRef.current.contains(event.target)) {
+        buttonRef.current && !buttonRef.current.contains(event.target)) {
         setMenuOpen(null);
       }
     };
@@ -164,7 +165,7 @@ const TaskCard = ({
               strokeLinejoin="round"
             />
           </svg>
-          <span className="text-sm mr-4">{new Date(date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+          <span className="text-sm mr-4">{getSmartTimestamp(date)}</span>
           <span className={`text-xs px-2 py-1 mr-32 rounded ${getPriorityColor(priority)}`}>{priority}</span>
         </div>
 
@@ -185,12 +186,12 @@ const TaskCard = ({
                 );
               } else {
                 return (
-                  <UserAvatar 
-                    className="border-white border-2" 
-                    key={index} 
-                    name={assigneeName} 
-                    width="w-7" 
-                    height="h-7" 
+                  <UserAvatar
+                    className="border-white border-2"
+                    key={index}
+                    name={assigneeName}
+                    width="w-7"
+                    height="h-7"
                   />
                 );
               }
@@ -227,27 +228,27 @@ const TaskCard = ({
                   </button>
                   {changeTask && (
                     <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleTaskClick(thisTaskId, "update");
-                      setMenuOpen(null);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    Update task
-                  </button>
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTaskClick(thisTaskId, "update");
+                        setMenuOpen(null);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      Update task
+                    </button>
                   )}
                   {deleteTask && (
                     <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(thisTaskId);
-                      setMenuOpen(null);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    Delete task
-                  </button>
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(thisTaskId);
+                        setMenuOpen(null);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      Delete task
+                    </button>
                   )}
                 </div>
               </div>
