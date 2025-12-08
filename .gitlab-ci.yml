@@ -11,7 +11,8 @@ cache:
 before_script:
   - echo "Preparing for deployment..."
 
-deploy:
+# ==================== PRODUCTION DEPLOYMENT ====================
+deploy_production:
   stage: deploy
   image: alpine:latest
   before_script:
@@ -21,19 +22,53 @@ deploy:
     - chmod 600 ~/.ssh/id_rsa
     - ssh-keyscan -H "$OMNICRM_SERVER_IP" >> ~/.ssh/known_hosts
   script:
-    - echo "Connecting to server and deploying..."
+    - echo "Connecting to production server and deploying..."
     - |
       ssh "$OMNICRM_SERVER_USER@$OMNICRM_SERVER_IP" "
         set -e
-        echo 'Pulling latest code...'
-        cd /root/omnichannel-crm/staging/newnativetalkcrm_frontend &&
-        git pull https://$GITLAB_USERNAME:$GITLAB_TOKEN@gitlab.com/techf4mation/newnativetalkcrm_frontend.git dev &&
+        echo 'Pulling latest code from main branch...'
+        cd /root/omnichannel-crm/production/newnativetalkcrm_frontend &&
+        git pull https://Jtobyy:glpat-90Swc4DOE0G_hqgOY3GqDW86MQp1OmJqaDU3Cw.01.120tcuu0f@gitlab.com/techf4mation/newnativetalkcrm_frontend.git main &&
         echo 'Installing dependencies...' &&
         npm install --force &&
         echo 'Building project...' &&
         npm run build &&
-        echo 'Restarting service...' &&
-        sudo systemctl restart omnichannel-crm-frontend-staging.service
+        echo 'Restarting production service...' &&
+        sudo systemctl restart omnichannel-crm-frontend-production.service &&
+        echo 'Production deployment completed successfully!'
+      "
+  only:
+    - main
+  environment:
+    name: production
+
+# ==================== STAGING DEPLOYMENT ====================
+deploy_staging:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh
+    - mkdir -p ~/.ssh
+    - echo "$STAGING_SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H "$STAGING_SERVER_IP" >> ~/.ssh/known_hosts
+  script:
+    - echo "Connecting to staging server and deploying..."
+    - |
+      ssh "$STAGING_SERVER_USER@$STAGING_SERVER_IP" "
+        set -e
+        echo 'Pulling latest code from dev branch...'
+        cd /var/www/omnichannel-crm/staging/newnativetalkcrm_frontend &&
+        git pull https://Jtobyy:glpat-90Swc4DOE0G_hqgOY3GqDW86MQp1OmJqaDU3Cw.01.120tcuu0f@gitlab.com/techf4mation/newnativetalkcrm_frontend.git dev &&
+        echo 'Installing dependencies...' &&
+        npm install --force &&
+        echo 'Building project...' &&
+        npm run build &&
+        echo 'Restarting staging service...' &&
+        sudo systemctl restart omnichannel-crm-frontend-staging.service &&
+        echo 'Staging deployment completed successfully!'
       "
   only:
     - dev
+  environment:
+    name: staging
