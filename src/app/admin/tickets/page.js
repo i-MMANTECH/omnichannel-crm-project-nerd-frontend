@@ -115,6 +115,8 @@ const TicketsContent = () => {
   const [allPriorities, setAllPriorities] = useState([]);
   const [allCategories, setAllCategories] = useState([]);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [statusFilterId, setStatusFilterId] = useState(null);
+  const activeStatusName = allStatuses.find(s => s.id === statusFilterId)?.name || null;
 
 
   useEffect(() => {
@@ -123,32 +125,33 @@ const TicketsContent = () => {
 
   useEffect(() => {
     fetchTickets();
-  }, [currentPage, searchQuery, pageSize]);
+  }, [currentPage, searchQuery, pageSize, statusFilterId]); 
 
   const fetchTickets = async () => {
     try {
       setLoading(true);
-
+  
       const response = await axiosInstance.get('/tickets/list/', {
         params: {
           page: currentPage,
           page_size: pageSize,
-          search: searchQuery || undefined
-        }
+          search: searchQuery || undefined,
+          status: statusFilterId || undefined,   // 👈 NEW
+          // priority: priorityFilterId || undefined, // (optional)
+        },
       });
-
+  
       if (response.data.success) {
         setTickets(response.data.tickets);
         setPagination(response.data.pagination);
         setLastUpdated(new Date());
-
-        // Calculate status counts from API data
+  
         const counts = response.data.tickets.reduce((acc, ticket) => {
           const statusName = ticket.status?.name || 'open';
           acc[statusName] = (acc[statusName] || 0) + 1;
           return acc;
         }, { open: 0, in_progress: 0, resolved: 0, closed: 0 });
-
+  
         setStatusCounts(counts);
       }
     } catch (error) {
@@ -156,7 +159,7 @@ const TicketsContent = () => {
     } finally {
       setLoading(false);
     }
-  };
+  };  
 
   const fetchDropdownData = async () => {
     try {
@@ -315,9 +318,28 @@ const TicketsContent = () => {
     }
   };
 
+  const handleStatusCardClick = (statusName) => {
+    if (!allStatuses.length) return;
+  
+    // If the same status is already active, clicking again clears the filter
+    const current = allStatuses.find(s => s.id === statusFilterId);
+    if (current && current.name === statusName) {
+      setStatusFilterId(null);
+      setCurrentPage(1);
+      return;
+    }
+  
+    const match = allStatuses.find(s => s.name === statusName);
+    if (!match) return;
+  
+    setStatusFilterId(match.id);
+    setCurrentPage(1);
+  };  
+
   // Stats data using real counts
   const statsData = [
     {
+      key: "open",
       title: "Open",
       value: statusCounts.open,
       icon: <TicketIcon className="text-white" size={20} />,
@@ -325,6 +347,7 @@ const TicketsContent = () => {
       borderColor: "black",
     },
     {
+      key: "in_progress",
       title: "In Progress",
       value: statusCounts.in_progress,
       icon: <TicketIcon className="text-white" size={20} />,
@@ -332,6 +355,7 @@ const TicketsContent = () => {
       borderColor: "black",
     },
     {
+      key: "resolved",
       title: "Resolved",
       value: statusCounts.resolved,
       icon: <TicketIcon className="text-white" size={20} />,
@@ -339,6 +363,7 @@ const TicketsContent = () => {
       borderColor: "black",
     },
     {
+      key: "closed",
       title: "Closed",
       value: statusCounts.closed,
       icon: <TicketIcon className="text-white" size={20} />,
@@ -346,6 +371,7 @@ const TicketsContent = () => {
       borderColor: "black",
     }
   ];
+  
 
   const startIndex = (currentPage - 1) * pageSize + 1;
   const endIndex = Math.min(currentPage * pageSize, pagination.count);
@@ -408,8 +434,15 @@ const TicketsContent = () => {
 
             {/* Status Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-              {statsData.map((stat, index) => (
-                <StatCard key={index} {...stat} />
+              {statsData.map((stat) => (
+                <div
+                  key={stat.key}
+                  onClick={() => handleStatusCardClick(stat.key)}
+                  className={`rounded-xl cursor-pointer transition 
+                    ${activeStatusName === stat.key ? "ring-2 ring-[#3EBF0F]" : ""}`}
+                >
+                  <StatCard {...stat} />
+                </div>
               ))}
             </div>
 

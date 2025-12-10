@@ -19,7 +19,7 @@ export default function TableView({
 
   const handleStatusChange = (taskId, newStatusId) => {
     // Send the status ID to the backend
-    updateTask(taskId, { status_id: parseInt(newStatusId) });
+    updateTask(taskId, { status: parseInt(newStatusId) });
   };
 
   const getAssigneeName = (assignee) => {

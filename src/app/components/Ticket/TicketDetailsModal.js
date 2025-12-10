@@ -5,6 +5,10 @@ import Image from 'next/image';
 import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
 import { timeAgo } from '@/utils/timeUtils';
+import { Calendar, Grid, User, CheckCircle, Circle } from 'lucide-react';
+import { selectStyles } from '../selectStyles';
+import Select from "react-select";
+
 
 const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const { axiosInstance } = useApi();
@@ -16,6 +20,23 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Tasks state
+  const [tasks, setTasks] = useState([]);
+  const [loadingTasks, setLoadingTasks] = useState(false);
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [newTask, setNewTask] = useState({
+    title: '',
+    description: '',
+    assignees: [],
+    status: 1,
+    priority: null,
+    due_date: null
+  });
+  const [submittingTask, setSubmittingTask] = useState(false);
+  const [allUsers, setAllUsers] = useState([]);
+  const [newAssignees, setNewAssignees] = useState([]);
+
 
   const fetchTicket = async () => {
     try {
@@ -31,17 +52,44 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
     }
   };
 
+  const fetchTasks = async () => {
+    try {
+      setLoadingTasks(true);
+      const response = await axiosInstance.get(`/tickets/${ticketId}/tasks/`, {
+        params: { page: 1 }
+      });
+      if (response.data.success) {
+        setTasks(response.data.tasks);
+      }
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setLoadingTasks(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await axiosInstance.get('/users/');
+      
+      console.log('response is ', response)
+      setAllUsers(response.data.results.map((user) => ({
+        value: user.id,
+        label: user.email,
+      })) || []);
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+
   useEffect(() => {
     if (isOpen && ticketId) {
       fetchTicket();
-    }
-  }, [ticketId, isOpen]);
-
-  useEffect(() => {
-    if (isOpen && ticketId && selectedTab === 'comments') {
+      fetchUsers();
+      fetchTasks();
       fetchComments();
     }
-  }, [isOpen, ticketId, selectedTab]);
+  }, [ticketId, isOpen]);
 
   const fetchComments = async () => {
     try {
@@ -55,7 +103,6 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
         setComments(response.data.comments);
       }
     } catch (error) {
-      // Comments endpoint might not be implemented yet
       setComments([]);
     }
   };
@@ -82,6 +129,48 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
     }
   };
 
+  const createTask = async () => {
+    if (!newTask.title.trim()) return;
+
+    try {
+      setSubmittingTask(true);
+      const taskData = {
+        title: newTask.title.trim(),
+        description: newTask.description.trim(),
+        assignees: newAssignees.map((agent) => agent.value),
+        status: newTask.status || 1,
+      };
+
+      if (newTask.priority) taskData.priority = newTask.priority;
+      if (newTask.due_date) taskData.due_date = newTask.due_date;
+
+      const response = await axiosInstance.post(`/tickets/${ticketId}/tasks/`, taskData);
+
+      if (response.data.success) {
+        setTasks([response.data.task, ...tasks]);
+        setNewTask({
+          title: '',
+          description: '',
+          assignees: [],
+          status: 1,
+          priority: null,
+          due_date: null
+        });
+        setShowTaskForm(false);
+        fetchTicket(); // Refresh to update task count
+        if (onUpdate) onUpdate();
+      }
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setSubmittingTask(false);
+    }
+  };
+
+  const handleAgentChange = (selectedOptions) => {
+    setNewAssignees(selectedOptions || []);
+  };
+
   const getAssigneeName = (assignee) => {
     if (assignee?.username) return assignee?.username;
     if (assignee?.name) return assignee?.name;
@@ -102,155 +191,278 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
     });
   };
 
+  const getStatusColor = (statusName) => {
+    switch (statusName) {
+      case 'open':
+        return 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400';
+      case 'in_progress':
+        return 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'resolved':
+        return 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400';
+      case 'closed':
+        return 'bg-gray-100 text-gray-600 dark:bg-gray-700/30 dark:text-gray-400';
+      default:
+        return 'bg-gray-100 text-gray-600';
+    }
+  };
+
+  const getPriorityColor = (priorityName) => {
+    switch (priorityName) {
+      case 'low':
+        return 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case 'high':
+        return 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400';
+      case 'urgent':
+        return 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400';
+      default:
+        return 'bg-gray-100 text-gray-600';
+    }
+  };
+
+  const renderAssignedAgents = () => {
+    if (!ticket.assignees || ticket.assignees.length === 0) return null;
+
+    return (
+      <div className="rounded-lg mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            <span className="font-medium">Assigned Agent(s)</span>
+          </div>
+        </div>
+        <div className="space-y-2">
+          {ticket.assignees.map((assignee, index) => {
+            const assigneeName = getAssigneeName(assignee);
+            return (
+              <div key={index} className="flex items-center gap-3">
+                {assignee?.image ? (
+                  <Image
+                    alt={assigneeName}
+                    className="w-8 h-8 rounded-full"
+                    src={assignee.image}
+                    width={32}
+                    height={32}
+                  />
+                ) : (
+                  <UserAvatar
+                    name={assigneeName}
+                    width="w-8"
+                    height="h-8"
+                  />
+                )}
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{assigneeName}</p>
+                  {assignee?.email && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{assignee.email}</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderTicketInfo = () => {
+    return (
+      <div>
+        <div className="flex flex-col gap-3">
+          <div className='flex justify-between items-center w-full'>
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Date Created</span>
+            </div>
+            <p className="text-sm">{formatDate(ticket.created_at)}</p>
+          </div>
+          <div className='flex justify-between items-center w-full'>
+            <div className="flex items-center gap-2 mb-2">
+              <Calendar className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Due Date</span>
+            </div>
+            <p className="text-sm">{ticket.due_date ? formatDate(ticket.due_date) : 'Dec 24, 2025'}</p>
+          </div>
+          <div className='flex justify-between items-center w-full'>
+            <div className="flex items-center gap-2 mb-2">  
+              <Grid className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Category</span>
+            </div>
+            <p className="text-sm">{ticket.category?.label || 'Billing'}</p>
+          </div>
+        </div>
+        
+      </div>
+    );
+  };
+
   const renderTabContent = () => {
     switch (selectedTab) {
       case 'details':
         return (
           <div className="space-y-4 mt-6">
-            {/* Description */}
-            {ticket.description && (
-              <div>
-                <h3 className="text-lg font-medium mb-2">Description</h3>
-                <p className="text-sm whitespace-pre-wrap">{ticket.description}</p>
+            {ticket.subject && (
+              <div className="mt-6">
+                <h3 className="text-md font-medium mb-2">Subject</h3>
+                <p className="text-sm whitespace-pre-wrap text-gray-600 dark:text-gray-400">
+                  {ticket.subject}
+                </p>
               </div>
             )}
 
-            <div className="space-y-3 mt-6">
-              {/* Status */}
-              <div className="flex justify-between items-center py-1">
-                <div className="flex items-center gap-2">
-                  <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 12.0002V14.6668M5.17161 10.8286L3.286 12.7142M4 8.00016H1.33333M12 8.00016H14.6667M10.8285 10.8286L12.7141 12.7142M8 4.00016V1.3335M10.8285 5.17174L12.7141 3.28612M5.17161 5.17174L3.286 3.28612" stroke="#808897" strokeLinecap="round" />
-                  </svg>
-                  <span className="font-medium">Status</span>
-                </div>
-                <span className={`px-2 py-1 rounded text-sm font-medium ${ticket.status?.name === 'open' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
-                    ticket.status?.name === 'in_progress' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' :
-                      ticket.status?.name === 'resolved' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
-                        'bg-gray-100 text-gray-600 dark:bg-gray-700/30 dark:text-gray-400'
-                  }`}>
-                  {ticket.status?.label || 'Open'}
-                </span>
+            {/* Description */}
+            {ticket.description && (
+              <div className="mt-6">
+                <h3 className="text-md font-medium mb-2">Description</h3>
+                <p className="text-sm whitespace-pre-wrap text-gray-600 dark:text-gray-400">
+                  {ticket.description}
+                </p>
               </div>
+            )}
 
-              {/* Priority */}
-              <div className="flex justify-between items-center py-1">
-                <div className="flex items-center gap-2">
-                  <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5.33333 2.5H3.33333C2.59695 2.5 2 3.09695 2 3.83333V5.83333C2 6.56971 2.59695 7.16667 3.33333 7.16667H5.33333C6.06971 7.16667 6.66667 6.56971 6.66667 5.83333V3.83333C6.66667 3.09695 6.06971 2.5 5.33333 2.5Z" stroke="#808897" strokeWidth="1.5" />
-                    <path d="M12.6667 2.5H10.6667C9.93029 2.5 9.33333 3.09695 9.33333 3.83333V5.83333C9.33333 6.56971 9.93029 7.16667 10.6667 7.16667H12.6667C13.403 7.16667 14 6.56971 14 5.83333V3.83333C14 3.09695 13.403 2.5 12.6667 2.5Z" stroke="#808897" strokeWidth="1.5" />
-                    <path d="M5.33333 9.83333H3.33333C2.59695 9.83333 2 10.4303 2 11.1667V13.1667C2 13.903 2.59695 14.5 3.33333 14.5H5.33333C6.06971 14.5 6.66667 13.903 6.66667 13.1667V11.1667C6.66667 10.4303 6.06971 9.83333 5.33333 9.83333Z" stroke="#808897" strokeWidth="1.5" />
-                    <path d="M12.6667 9.83333H10.6667C9.93029 9.83333 9.33333 10.4303 9.33333 11.1667V13.1667C9.33333 13.903 9.93029 14.5 10.6667 14.5H12.6667C13.403 14.5 14 13.903 14 13.1667V11.1667C14 10.4303 13.403 9.83333 12.6667 9.83333Z" stroke="#808897" strokeWidth="1.5" />
-                  </svg>
-                  <span className="font-medium">Priority</span>
+            {renderAssignedAgents()}
+            <div className='pt-0.5'></div>
+            {renderTicketInfo()}
+            
+          </div>
+        );
+
+      case 'tasks':
+        return (
+          <div className="mt-4 space-y-4">
+            {/* Add Task Button */}
+            {!showTaskForm && (
+              <button
+                onClick={() => setShowTaskForm(true)}
+                className="w-full px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-[#3EBF0F] hover:text-[#3EBF0F] transition-colors flex items-center justify-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                Add Task
+              </button>
+            )}
+
+            {/* Task Form */}
+            {showTaskForm && (
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
+                <input
+                  type="text"
+                  placeholder="Task title"
+                  className="w-full border rounded-md p-2 text-sm body-theme"
+                  value={newTask.title}
+                  onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                />
+                <textarea
+                  placeholder="Task description (optional)"
+                  className="w-full border rounded-md p-2 text-sm body-theme"
+                  rows={2}
+                  value={newTask.description}
+                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                />
+
+                <div className="mb-7">
+                  <label className="block text-sm font-medium mb-1">Select Agents</label>
+                  <Select
+                    isMulti
+                    options={allUsers}
+                    value={newAssignees}
+                    onChange={handleAgentChange}
+                    styles={selectStyles}
+                  />
                 </div>
-                <span className={`px-2 py-1 rounded text-sm font-medium ${ticket.priority?.name === 'low' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
-                    ticket.priority?.name === 'medium' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                      ticket.priority?.name === 'high' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' :
-                        ticket.priority?.name === 'urgent' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
-                          'bg-gray-100 text-gray-600'
-                  }`}>
-                  {ticket.priority?.label || 'Low'}
-                </span>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={createTask}
+                    disabled={!newTask.title.trim() || submittingTask}
+                    className="px-4 py-2 bg-[#3EBF0F] text-white rounded-md hover:bg-[#35a50d] disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    {submittingTask ? 'Adding...' : 'Add Task'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowTaskForm(false);
+                      setNewTask({
+                        title: '',
+                        description: '',
+                        assignees: [],
+                        status: 1,
+                        priority: null,
+                        due_date: null
+                      });
+                    }}
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
+            )}
 
-              {/* Category */}
-              {ticket.category && (
-                <div className="flex justify-between items-center py-1">
-                  <div className="flex items-center gap-2">
-                    <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M5.33333 2.5H3.33333C2.59695 2.5 2 3.09695 2 3.83333V5.83333C2 6.56971 2.59695 7.16667 3.33333 7.16667H5.33333C6.06971 7.16667 6.66667 6.56971 6.66667 5.83333V3.83333C6.66667 3.09695 6.06971 2.5 5.33333 2.5Z" stroke="#808897" strokeWidth="1.5" />
-                      <path d="M12.6667 2.5H10.6667C9.93029 2.5 9.33333 3.09695 9.33333 3.83333V5.83333C9.33333 6.56971 9.93029 7.16667 10.6667 7.16667H12.6667C13.403 7.16667 14 6.56971 14 5.83333V3.83333C14 3.09695 13.403 2.5 12.6667 2.5Z" stroke="#808897" strokeWidth="1.5" />
-                      <path d="M5.33333 9.83333H3.33333C2.59695 9.83333 2 10.4303 2 11.1667V13.1667C2 13.903 2.59695 14.5 3.33333 14.5H5.33333C6.06971 14.5 6.66667 13.903 6.66667 13.1667V11.1667C6.66667 10.4303 6.06971 9.83333 5.33333 9.83333Z" stroke="#808897" strokeWidth="1.5" />
-                      <path d="M12.6667 9.83333H10.6667C9.93029 9.83333 9.33333 10.4303 9.33333 11.1667V13.1667C9.33333 13.903 9.93029 14.5 10.6667 14.5H12.6667C13.403 14.5 14 13.903 14 13.1667V11.1667C14 10.4303 13.403 9.83333 12.6667 9.83333Z" stroke="#808897" strokeWidth="1.5" />
-                    </svg>
-                    <span className="font-medium">Category</span>
-                  </div>
-                  <span>{ticket.category.label}</span>
-                </div>
-              )}
-
-              {/* Assigned Agents */}
-              {ticket.assignees && ticket.assignees.length > 0 && (
-                <div className="flex flex-col items-start justify-between py-1">
-                  <div className="flex items-center gap-2">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9.33325 9.33333H6.66659C4.82564 9.33333 3.33325 10.8257 3.33325 12.6667V13.3333C3.33325 13.7015 3.63173 14 3.99992 14H11.9999C12.3681 14 12.6666 13.7015 12.6666 13.3333V12.6667C12.6666 10.8257 11.1742 9.33333 9.33325 9.33333Z" stroke="#808897" strokeWidth="1.5" />
-                      <path d="M7.99992 7.33333C9.47268 7.33333 10.6666 6.13943 10.6666 4.66667C10.6666 3.19391 9.47268 2 7.99992 2C6.52716 2 5.33325 3.19391 5.33325 4.66667C5.33325 6.13943 6.52716 7.33333 7.99992 7.33333Z" stroke="#808897" strokeWidth="1.5" />
-                    </svg>
-                    <span className="font-medium">Assigned Agents</span>
-                  </div>
-                  <div className="flex -space-x-2">
-                    {ticket.assignees.map((assignee, index) => {
-                      const assigneeName = getAssigneeName(assignee);
-                      if (assignee?.image) {
-                        return (
-                          <div key={index} className='flex items-center py-1'>
-                            <Image
-                              alt={assigneeName}
-                              className="w-7 h-7 rounded-full border-2 border-white dark:border-gray-800"
-                              src={assignee.image}
-                              width={28}
-                              height={28}
-                            />
-                            <span className="ml-2">{assigneeName}</span>
-                          </div>
-                        );
-                      } else {
-                        return (
-                          <div key={index} className='flex items-center py-1'>
-                            <UserAvatar
-                              className="border-white dark:border-gray-800 border-2"
-                              name={assigneeName}
-                              width="w-7"
-                              height="h-7"
-                            />
-                            <span className="ml-2">{assigneeName}</span>
-                          </div>
-                        );
-                      }
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Customer */}
-              {ticket.customer_name && (
-                <div className="flex justify-between items-center py-1">
-                  <div className="flex items-center gap-2">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9.33325 9.33333H6.66659C4.82564 9.33333 3.33325 10.8257 3.33325 12.6667V13.3333C3.33325 13.7015 3.63173 14 3.99992 14H11.9999C12.3681 14 12.6666 13.7015 12.6666 13.3333V12.6667C12.6666 10.8257 11.1742 9.33333 9.33325 9.33333Z" stroke="#808897" strokeWidth="1.5" />
-                      <path d="M7.99992 7.33333C9.47268 7.33333 10.6666 6.13943 10.6666 4.66667C10.6666 3.19391 9.47268 2 7.99992 2C6.52716 2 5.33325 3.19391 5.33325 4.66667C5.33325 6.13943 6.52716 7.33333 7.99992 7.33333Z" stroke="#808897" strokeWidth="1.5" />
-                    </svg>
-                    <span className="font-medium">Customer</span>
-                  </div>
-                  <span>{ticket.customer_name}</span>
-                </div>
-              )}
-
-              {/* Created Date */}
-              <div className="flex justify-between items-center py-1">
-                <div className="flex items-center gap-2">
-                  <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5.33333 2.50016H4C2.89543 2.50016 2 3.39559 2 4.50016V6.50016M5.33333 2.50016V1.8335M5.33333 2.50016H10.6667M5.33333 2.50016V3.16683M10.6667 2.50016H12C13.1046 2.50016 14 3.39559 14 4.50016V6.50016M10.6667 2.50016V1.8335M10.6667 2.50016V3.16683M2 6.50016V13.1668C2 14.2714 2.89543 15.1668 4 15.1668H12C13.1046 15.1668 14 14.2714 14 13.1668V6.50016M2 6.50016H14" stroke="#808897" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <span className="font-medium">Created</span>
-                </div>
-                <span className="text-sm">{formatDate(ticket.created_at)}</span>
+            {/* Tasks List */}
+            {loadingTasks ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-green-500"></div>
               </div>
-
-              {/* Updated Date */}
-              <div className="flex justify-between items-center py-1">
-                <div className="flex items-center gap-2">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 13.3332C10.9455 13.3332 13.3333 10.9454 13.3333 7.99984C13.3333 5.05432 10.9455 2.6665 8 2.6665C5.05448 2.6665 2.66666 5.05432 2.66666 7.99984C2.66666 10.9454 5.05448 13.3332 8 13.3332Z" stroke="#808897" strokeWidth="1.5" />
-                    <path d="M8 5.33317V7.99984L9.33333 9.33317" stroke="#808897" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <span className="font-medium">Last Updated</span>
-                </div>
-                <span className="text-sm">{formatDate(ticket.updated_at)}</span>
+            ) : tasks.length === 0 ? (
+              <p className="text-center text-gray-500 py-8">No tasks yet</p>
+            ) : (
+              <div className="space-y-3">
+                {tasks.map((task) => {
+                return (
+                  <div
+                    key={task.id}
+                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      {task?.status?.name == 'done' && (
+                        <CheckCircle className="mt-1 self-center w-4 h-4 text-green-600" />
+                      )}
+                      {task?.status?.name !== 'done' && (
+                        <Circle className="mt-1 self-center w-4 h-4 text-grey-600" />
+                      )}
+                      
+                      <div className="flex-1">
+                        <h4 className={`text-sm font-medium ${task.status?.name === 'done' ? 'line-through text-gray-500' : ''}`}>
+                          {task.title}
+                        </h4>
+                        {task.description && (
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                            {task.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-3 mt-2">
+                          {task.assignees?.length > 0 && (
+                            <div className="flex items-center gap-1">
+                              <User className="w-3 h-3 text-gray-500" />
+                              <span className="text-xs text-gray-600 dark:text-gray-400">
+                                {getAssigneeName(task.assignees[0])}
+                              </span>
+                            </div>
+                          )}
+                          {task.created_at && (
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3 text-gray-500" />
+                              <span className="text-xs text-gray-600 dark:text-gray-400">
+                                {formatDate(task.created_at)}
+                              </span>
+                            </div>
+                          )}
+                          <span className={`text-xs px-2 py-0.5 rounded ${getPriorityColor(task.priority?.name)}`}>
+                            {task.priority?.label || 'Low'}
+                          </span>
+                        </div>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded font-medium ${task.status?.name === 'todo' ? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400' : task.status?.name === 'in_progress' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'}`}>
+                        {task.status?.label}
+                      </span>
+                    </div>
+                  </div>
+                )})}
               </div>
-            </div>
+            )}
           </div>
         );
 
@@ -341,12 +553,13 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
 
       if (response.data.success) {
         await fetchTicket();
-        if (onUpdate) onUpdate(); // Notify parent to refresh list
+        if (onUpdate) onUpdate();
       }
     } catch (error) {
       handleApiError(error);
     }
   };
+
   const handleCloseTicket = async (ticketId, e) => {
     try {
       const response = await axiosInstance.patch(`/tickets/${ticketId}/update/`, {
@@ -355,7 +568,7 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
 
       if (response.data.success) {
         await fetchTicket();
-        if (onUpdate) onUpdate(); // Notify parent to refresh list
+        if (onUpdate) onUpdate();
       }
     } catch (error) {
       handleApiError(error);
@@ -382,9 +595,18 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Ticket ${ticket.ticket_number}`}
+      title={
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-semibold">#{ticket.ticket_number}</span>
+            <span className={`px-2 py-1 rounded text-xs font-medium ${getPriorityColor(ticket.priority?.name)}`}>
+              {ticket.priority?.label || 'Low'}
+            </span>
+          </div>
+        </div>
+      }
       footer={footer}
-      width="600px"
+      width="700px"
     >
       {loading ? (
         <div className="flex justify-center items-center py-12">
@@ -394,16 +616,21 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
         <div className="max-w-full">
           {/* Tabs */}
           <div className="flex border-b border-gray-200 dark:border-gray-700">
-            {['details', 'comments'].map((tab) => (
+            {['details', 'tasks', 'comments'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setSelectedTab(tab)}
-                className={`mr-4 pb-2 capitalize ${selectedTab === tab
+                className={`mr-4 pb-2 capitalize ${
+                  selectedTab === tab
                     ? 'border-b-2 border-[#3EBF0F] text-[#3EBF0F] font-medium'
                     : 'text-gray-500'
-                  }`}
+                }`}
               >
-                {tab === 'comments' ? `Comments (${comments.length})` : tab}
+                {tab === 'tasks' 
+                  ? `Tasks (${tasks.length})` 
+                  : tab === 'comments' 
+                  ? `Comments (${comments.length})` 
+                  : tab}
               </button>
             ))}
           </div>
@@ -417,3 +644,8 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
 };
 
 export default TicketDetailsModal;
+
+
+
+
+
