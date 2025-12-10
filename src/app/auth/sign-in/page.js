@@ -154,7 +154,7 @@ const SignIn = () => {
                             </button>
                         </div>
                         <div className="flex items-center justify-between mb-4 mt-3">
-                            <label className="flex items-center">
+                            <label className="flex items-center hidden">
                                 <input type="checkbox" className="form-checkbox text-[#3EBF0F]" />
                                 <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Remember Me</span>
                             </label>
@@ -168,14 +168,14 @@ const SignIn = () => {
                         >
                             Login
                         </button>
-                        <div className="flex items-center my-4">
+                        <div className="hidden flex items-center my-4">
                             <hr className="flex-grow border-gray-300" />
                             <span className="mx-4 text-gray-400">OR</span>
                             <hr className="flex-grow border-gray-300" />
                         </div>
                         <button
                             type="button"
-                            className="w-full bg-white border border-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-100 focus:outline-none flex items-center justify-center"
+                            className="hidden w-full bg-white border border-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-100 focus:outline-none flex items-center justify-center"
                             onClick={handleCreateAccountRedirect}
                         >
                             <Image src="/assets/google.svg"

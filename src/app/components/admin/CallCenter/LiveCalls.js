@@ -7,13 +7,14 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Pagination from "@/app/components/Pagination/Pagination";
 import { useDebounce } from 'use-debounce';
 import { useAuth } from "@/context/AuthContext";
-import UserAvatar from "../UserAvatar";
+import UserAvatar from "@/app/components/UserAvatar";
 import { getRoleStyle } from "@/utils/getRoleStyle";
 import PlayRecordingDrawer from "./PlayRecordingDrawer";
+import useWebSocket from "@/services/useWebsocket";
 
 // Main LiveCalls component
 const LiveCalls = () => {
-    const { user } = useAuth();
+    const { company, user } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const { handleApiError } = useError();
@@ -28,6 +29,54 @@ const LiveCalls = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [selectedCall, setSelectedCall] = useState(null);
     const searchParams = useSearchParams();
+
+    // Create WebSocket URL based on company ID
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+	const wsUrl = company?.id ? `${protocol}://ws-staging.nativetalkcrm.com/ws/call/${company?.id}/` : null;
+
+    // Only call useWebSocket when we have a valid URL
+    const handleWebSocketMessage = (data) => {
+        console.log('handleWebSocketMessage', data);
+        // Validate if the data is relevant and correctly structured
+        if (data.caller_id_number && data.date) {
+            setLiveCalls(prev => [data, ...prev].slice(0, pageSize));
+        }
+        // Note: You'll need to import toast or handle notifications differently
+        // toast.success(`New ${data.call_status} call from ${data.caller_id_number}`);
+        console.log(`New ${data.call_status} call from ${data.caller_id_number}`);
+    };
+
+    // Use WebSocket hook conditionally
+    const wsRef = useWebSocket(
+        wsUrl, 
+        handleWebSocketMessage,
+        () => console.log('WebSocket opened successfully'),
+        () => console.log('WebSocket closed'),
+        (error) => console.error('WebSocket error:', error)
+    )
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (wsRef.current) {
+                // console.log('WebSocket readyState:', wsRef.current.readyState);
+                // 0 = CONNECTING, 1 = OPEN, 2 = CLOSING, 3 = CLOSED
+            }
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [wsRef]);
+
+    useEffect(() => {
+        getLiveCalls(currentPage, pageSize, debouncedSearchQuery);
+    }, [currentPage, pageSize, debouncedSearchQuery]);
+
+    useEffect(() => {
+        const page = parseInt(searchParams.get("page") || "1", 10);
+        const pageSize = parseInt(searchParams.get("page_size") || "10", 10);
+    
+        setCurrentPage(page);
+        setPageSize(pageSize);
+    }, [searchParams]);
 
     const formatDuration = (totalSeconds) => {
         const sec = parseInt(totalSeconds, 10);
@@ -48,9 +97,11 @@ const LiveCalls = () => {
           seconds.toString().padStart(2, '0'),
         ].join(':');
     };
-    
+
     const getFormattedDate = (dateString) => {
         const date = new Date(dateString);
+        date.setHours(date.getHours() + 1);
+
         const options = {
             year: "numeric",
             month: "short",
@@ -60,10 +111,12 @@ const LiveCalls = () => {
             hour12: true,
         };
         return date.toLocaleString("en-US", options).replace(',', '');
-    };
+    };    
     
     const getRelativeTime = (dateString) => {
         const date = new Date(dateString);
+        date.setHours(date.getHours() + 1);
+    
         const now = new Date();
         const diffMs = now - date;
         const diffSec = Math.floor(diffMs / 1000);
@@ -75,23 +128,10 @@ const LiveCalls = () => {
         if (diffMin < 60) return `${diffMin} minute${diffMin !== 1 ? 's' : ''} ago`;
         if (diffHr < 24) return `${diffHr} hour${diffHr !== 1 ? 's' : ''} ago`;
         if (diffDay < 7) return `${diffDay} day${diffDay !== 1 ? 's' : ''} ago`;
-        
+    
         const weeks = Math.floor(diffDay / 7);
         return `${weeks} week${weeks !== 1 ? 's' : ''} ago`;
-    };    
-    
-
-    useEffect(() => {
-        getLiveCalls(currentPage, pageSize, debouncedSearchQuery);
-    }, [currentPage, pageSize, debouncedSearchQuery]);
-
-    useEffect(() => {
-        const page = parseInt(searchParams.get("page") || "1", 10);
-        const pageSize = parseInt(searchParams.get("page_size") || "10", 10);
-    
-        setCurrentPage(page);
-        setPageSize(pageSize);
-    }, [searchParams]);
+    };
 
     const getLiveCalls = async (page = 1, page_size = 10, search = "") => {
         try {
@@ -142,22 +182,6 @@ const LiveCalls = () => {
                                         <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
                                     </svg>
                                 </button>
-                            </div>
-                        </div>
-
-                        {/* Search and Export */}
-                        <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto sm:flex-nowrap">
-                            <button 
-                                className="hidden bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm w-full sm:w-auto">
-                                Export
-                            </button>
-                            <div className="flex h-[40px] p-[8px_12px_8px_14px] justify-center items-center gap-2 rounded-[10px] border border-[#DFE1E6] bg-white shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                    <path d="M13.3333 2H2.66667C2.29848 2 2 2.29848 2 2.66667V3.7468C2 4.33065 2.25513 4.88535 2.69842 5.26531L5.96825 8.06802C6.41154 8.44799 6.66667 9.00269 6.66667 9.58654V14L9.33333 12.6667V9.58654C9.33333 9.00269 9.58846 8.44799 10.0318 8.06802L13.3016 5.26531C13.7449 4.88535 14 4.33065 14 3.7468V2.66667C14 2.29848 13.7015 2 13.3333 2Z" stroke="#808897" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                                <span className=" text-[#666D80] text-center font-[500] text-[14px] font-[Encode Sans] leading-[150%] tracking-[0.2px]">
-                                    Filter
-                                </span>
                             </div>
                         </div>
                     </div>
@@ -215,9 +239,9 @@ const LiveCalls = () => {
                                             <td className="py-3 px-4 border-b">
                                                 <span
                                                     className="px-2 py-1 rounded"
-                                                    style={getRoleStyle(call.status)}
+                                                    style={getRoleStyle(call.status || call.call_status)}
                                                 >
-                                                    {call.status}
+                                                    {call.status || call.call_status}
                                                 </span>
                                             </td>
                                             <td className="py-3 px-4 border-b">

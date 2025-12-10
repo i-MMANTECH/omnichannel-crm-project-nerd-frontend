@@ -8,7 +8,7 @@ const Modal = ({
   title, 
   children, 
   showFooter = true,
-  width = "500px",
+  width = "650px",
   showBorder = true,
   footer
 }) => {
@@ -17,10 +17,11 @@ const Modal = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30 p-4">
       <div 
-        className="body-theme dark:border rounded-lg shadow-lg w-full flex flex-col"
+        className="body-theme dark:border rounded-lg shadow-lg flex flex-col"
         style={{ 
-          maxWidth: width,
-          maxHeight: 'calc(100vh - 2rem)' // Leave some padding at top and bottom
+          width: '660px',
+          maxWidth: '100%',
+          maxHeight: 'calc(100vh - 2rem)'
         }}
       >
         {/* Header - fixed at top */}

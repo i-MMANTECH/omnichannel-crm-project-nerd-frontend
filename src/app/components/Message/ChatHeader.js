@@ -13,8 +13,12 @@ import AssignAgentModal from "./AssignAgentModal";
 import EndSessionModal from "./EndSessionModal";
 import ArchiveModal from "./ArchiveModal";
 import TaskModel from "./TaskModel";
+import TicketsPanel from "../Ticket/TicketsPanel";
+import CreateTicketModal from "../Ticket/CreateTicketModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from '@/context/ErrorContext';
+import { useAuth } from '@/context/AuthContext';
+import { Plus } from "lucide-react";
 
 
 
@@ -22,7 +26,7 @@ const ModalController = ({ children }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  
+
   const isModalOpen = searchParams.get('action') === 'lead-to-customer';
 
   const openModal = () => {
@@ -48,7 +52,9 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
   const [isAssignAgentModalOpen, setIsAssignAgentModalOpen] = useState(false);
   const [isEndSessionModalOpen, setIsEndSessionModalOpen] = useState(false);
   const [isArchivedModalOpen, setIsArchivedModalOpen] = useState(false);
-  const [isTaskCreation, setIsTaskCreation] = useState(false)
+  const [isTaskCreation, setIsTaskCreation] = useState(false);
+  const [isTicketsPanelOpen, setIsTicketsPanelOpen] = useState(false);
+  const [isCreateTicketModalOpen, setIsCreateTicketModalOpen] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
   const router = useRouter();
@@ -56,10 +62,15 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
   const [aiResponsesEnabled, setAiResponsesEnabled] = useState(false);
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
+  const { user } = useAuth();
 
 
   const { checkPermission } = usePermissions();
   const addCustomer = checkPermission('add_customer');
+
+  // Check if user is admin
+  const isAdmin = user?.roles?.includes("Admin") || user?.roles?.includes("admin");
+  const basePath = isAdmin ? '/admin' : '/nativecrm';
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -72,16 +83,16 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
         setIsMenuOpen(false);
       }
     };
-  
+
     document.addEventListener("mousedown", handleClickOutside);
-  
+
     // Fetch AI status
     const fetchAiStatus = async () => {
       try {
         const res = await axiosInstance.get(`/communication/conversations/${conversationId}/ai-status/`, {
           showLoader: false
         });
-  
+
         if (res?.data?.success) {
           setAiResponsesEnabled(res.data.data.ai_is_active);
         }
@@ -89,11 +100,11 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
         handleApiError(err, "Failed to fetch AI status");
       }
     };
-  
+
     if (conversationId) fetchAiStatus();
-  
+
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [conversationId, refreshChatHeader]);  
+  }, [conversationId, refreshChatHeader]);
 
   if (!activeUser) return null;
 
@@ -136,20 +147,18 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
         />
 
         <div
-          className={`w-11 h-6 rounded-full transition-colors ${
-            aiResponsesEnabled ? "bg-[#3EBF0F]" : "bg-gray-300"
-          }`}
+          className={`w-11 h-6 rounded-full transition-colors ${aiResponsesEnabled ? "bg-[#3EBF0F]" : "bg-gray-300"
+            }`}
         >
           <div
-            className={`w-6 h-6 body-theme rounded-full transition-transform ${
-              aiResponsesEnabled ? "translate-x-5" : "translate-x-0"
-            }`}
+            className={`w-6 h-6 body-theme rounded-full transition-transform ${aiResponsesEnabled ? "translate-x-5" : "translate-x-0"
+              }`}
           />
         </div>
       </label>
     </div>
   );
-  
+
   const leadMenuItems = [
     ...(addCustomer ? [{
       label: "Add as customer",
@@ -160,11 +169,15 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
       },
     }] : []),
     {
-      label: "Archived messages", 
+      label: "View tickets",
+      onClick: () => setIsTicketsPanelOpen(true),
+    },
+    {
+      label: "Archived messages",
       onClick: () => setIsArchivedModalOpen(true),
     },
     {
-      label: "Notes", 
+      label: "Notes",
       onClick: () => setIsNotesModalOpen(true),
     },
     {
@@ -182,19 +195,23 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
     {
       label: aiToggleMenuItem,
       isCustom: true,
-    }    
+    }
   ]
-  
-  
+
+
   const customerMenuItems = [
     {
       label: "Edit customer",
       onClick: () => {
-        router.push(`/nativecrm/customers/${activeUser?.id}?action=edit-customer`);
+        router.push(`${basePath}/customers/${activeUser?.id}?action=edit-customer`);
       },
     },
     {
-      label: "Archived messages", 
+      label: "View tickets",
+      onClick: () => setIsTicketsPanelOpen(true),
+    },
+    {
+      label: "Archived messages",
       onClick: () => setIsArchivedModalOpen(true),
     },
     {
@@ -208,7 +225,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
     {
       label: aiToggleMenuItem,
       isCustom: true,
-    }    
+    }
   ];
 
   const closeSuccessModal = () => {
@@ -220,7 +237,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
       <ModalController>
         {({ isModalOpen, closeModal }) => (
           <div className="header">
-            <div className="relative">
+            <div className="relative self-center">
               <div>
                 {activeUser?.profileImage ? (
                   <Image
@@ -249,17 +266,29 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
               )}
             </div>
             <div className="info flex flex-col relative grow justify-center gap-2 bottom-1">
-              <div className="text-black dark:text-white">
-                {activeUser?.name || activeUser?.lead_name || "Unknown User"}
+              <div className="text-black dark:text-white flex gap-3 items-center justify-between  w-full">
+                {activeUser.name || activeUser.lead_name || "Unknown User"}
               </div>
               <div className="title-4">Last Seen {formattedTime}</div>
             </div>
-            <div className="relative">
-              {!activeUser?.ended_at &&
+            <span className="bg-purple-500 hidden text-white text-xs px-2 py-0.5 rounded-md font-mono tracking-wider">
+              #{conversationId}
+            </span>
+            <div className="relative flex justify-between">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIsCreateTicketModalOpen(true)}
+                  className="bg-[#3EBF0F] hover:bg-green-600 text-white px-3 rounded-md transition-colors flex items-center gap-1 mr-3"
+                >
+                  <Plus size={20} />
+                  <span>Create Ticket</span>
+                </button>
+              </div>
+              {!activeUser.ended_at &&
                 <button
                   ref={buttonRef}
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="p-2 hover:bg-gray-100 rounded-full dark:hover:bg-gray-700 transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-full h-fit dark:hover:bg-gray-700 transition-colors"
                 >
                   <FontAwesomeIcon icon={faEllipsisH} className="icon-instance-node" />
                 </button>
@@ -269,7 +298,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
                   ref={menuRef}
                   className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
                 >
-                    <div className="py-1">
+                  <div className="py-1">
                     {(isLead ? leadMenuItems : customerMenuItems).map((item, index) => (
                       <div key={index}>
                         {item.isCustom ? (
@@ -289,7 +318,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
                     ))}
 
                   </div>
-                  
+
                 </div>
               )}
             </div>
@@ -298,6 +327,24 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
               <TaskModel
                 isOpen={isTaskCreation}
                 onClose={() => setIsTaskCreation(false)}
+                conversationId={conversationId}
+                setIsSuccessModalOpen={setIsSuccessModalOpen}
+                setSuccessModalMessage={setSuccessModalMessage}
+              />
+            )}
+
+            {isTicketsPanelOpen && (
+              <TicketsPanel
+                isOpen={isTicketsPanelOpen}
+                onClose={() => setIsTicketsPanelOpen(false)}
+                conversationId={conversationId}
+              />
+            )}
+
+            {isCreateTicketModalOpen && (
+              <CreateTicketModal
+                isOpen={isCreateTicketModalOpen}
+                onClose={() => setIsCreateTicketModalOpen(false)}
                 conversationId={conversationId}
                 setIsSuccessModalOpen={setIsSuccessModalOpen}
                 setSuccessModalMessage={setSuccessModalMessage}
@@ -315,9 +362,9 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
             )}
 
             {isArchivedModalOpen && (
-               <ArchiveModal 
-               isOpen={isArchivedModalOpen} 
-               onClose={() => setIsArchivedModalOpen(false)} />
+              <ArchiveModal
+                isOpen={isArchivedModalOpen}
+                onClose={() => setIsArchivedModalOpen(false)} />
             )}
 
             {isNotesModalOpen && (
@@ -331,26 +378,26 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
               />
             )}
 
-             {isAssignAgentModalOpen && (
-            <AssignAgentModal
-              isOpen={isAssignAgentModalOpen}
-              onClose={() => setIsAssignAgentModalOpen(false)}
-              userId={activeUser?.id}
-              conversationId={conversationId}
-              setIsSuccessModalOpen={setIsSuccessModalOpen}
-              setSuccessModalMessage={setSuccessModalMessage}
-            />
-          )}
-          
-          {isEndSessionModalOpen && (
-            <EndSessionModal
-              isOpen={isEndSessionModalOpen}
-              onClose={closeSessionModal}
-              conversationId={conversationId}
-              setIsSuccessModalOpen={setIsSuccessModalOpen}
-              setSuccessModalMessage={setSuccessModalMessage}
-            />
-          )}
+            {isAssignAgentModalOpen && (
+              <AssignAgentModal
+                isOpen={isAssignAgentModalOpen}
+                onClose={() => setIsAssignAgentModalOpen(false)}
+                userId={activeUser?.id}
+                conversationId={conversationId}
+                setIsSuccessModalOpen={setIsSuccessModalOpen}
+                setSuccessModalMessage={setSuccessModalMessage}
+              />
+            )}
+
+            {isEndSessionModalOpen && (
+              <EndSessionModal
+                isOpen={isEndSessionModalOpen}
+                onClose={closeSessionModal}
+                conversationId={conversationId}
+                setIsSuccessModalOpen={setIsSuccessModalOpen}
+                setSuccessModalMessage={setSuccessModalMessage}
+              />
+            )}
           </div>
         )}
       </ModalController>

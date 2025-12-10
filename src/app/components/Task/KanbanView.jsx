@@ -4,7 +4,7 @@ import KanbanViewColumn from "./KanbanViewColumn";
 export default function KanbanView({ tasks, handleDelete, openViewModal, openUpdateModal }) {
   const columns = [
     {
-      title: "To Do",
+      title: "Not Started",
       status: "todo",
     },
     {
@@ -23,15 +23,15 @@ export default function KanbanView({ tasks, handleDelete, openViewModal, openUpd
 
   return (
     <>
-    
+
       <div className="overflow-x-auto sm:flex justify-between">
         {columns.map((column, index) => (
-          <KanbanViewColumn key={index} 
-            column={column} 
-            tasks={tasks} 
-            handleDelete={handleDelete} 
-            openViewModal={openViewModal} 
-            openUpdateModal={openUpdateModal} 
+          <KanbanViewColumn key={index}
+            column={column}
+            tasks={tasks}
+            handleDelete={handleDelete}
+            openViewModal={openViewModal}
+            openUpdateModal={openUpdateModal}
           />
         ))}
       </div>

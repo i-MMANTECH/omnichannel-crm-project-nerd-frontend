@@ -12,7 +12,7 @@ import {
 import { Loader2 } from 'lucide-react';
 import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
-import NoDataFound from "../NoDataFound";
+import NoDataFound from "../../NoDataFound";
 
 ChartJS.register(
   CategoryScale,

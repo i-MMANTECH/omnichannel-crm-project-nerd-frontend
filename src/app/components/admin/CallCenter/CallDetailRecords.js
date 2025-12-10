@@ -6,16 +6,12 @@ import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
-import table from "/public/assets/table.svg";
-import grid from "/public/assets/grid.svg";
-import sort from "/public/assets/sort.svg";
-import filter from "/public/assets/filter.svg";
 import NoDataFound from "@/app/components/NoDataFound";
 import empty from "/public/assets/empty.svg";
 import Pagination from "@/app/components/Pagination/Pagination";
 import { useDebounce } from 'use-debounce';
 import { useAuth } from "@/context/AuthContext";
-import UserAvatar from "../UserAvatar";
+import UserAvatar from "@/app/components/UserAvatar";
 import { getRoleStyle } from "@/utils/getRoleStyle";
 import PlayRecordingDrawer from "./PlayRecordingDrawer";
 
@@ -74,7 +70,7 @@ const CallDetailRecords = () => {
 
     const getCDRs = async (page = 1, page_size = 10, search = "") => {
         try {
-            const { data } = await axiosInstance.get(`/call-center/cdrs?page_size=${page_size}&page=${page}&search=${search}`);
+            const { data } = await axiosInstance.get(`/call-center/cdrs?page_size=${page_size}&page=${page}&destination_number=${search}`);
             setCdrs(data.results);
             setTotalPages(Math.ceil(data.count / page_size));
         } catch (error) {
@@ -85,16 +81,18 @@ const CallDetailRecords = () => {
     return (
         <Suspense fallback={<div>Loading...</div>}>
                 <div className="customers-page overflow-x-hidden flex flex-col px-10 min-h-[83vh] h-full !ml-0">
-
                     <div className="relative body-theme flex-1 flex flex-col h-full">
                     <div className="flex flex-wrap justify-between items-center mb-6 gap-4 sm:flex-nowrap">
                         <div className="flex items-center space-x-2 sm:space-x-4">
                             <div className="relative w-full sm:w-auto">
                                 <input
+                                    type="tel"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
                                     className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
-                                    placeholder="Search number or name"
+                                    placeholder="Search number"
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onChange={(e) => setSearchQuery(e.target.value.replace(/\D/g, ''))}
                                 />
                                 <button
                                     className="absolute top-1 right-1 flex items-center rounded py-1 px-2.5 text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 dark:active:bg-black hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
@@ -108,9 +106,9 @@ const CallDetailRecords = () => {
                         </div>
 
                         {/* Search CDR */}
-                        <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto sm:flex-nowrap">
+                        <div className="hidden flex flex-wrap items-center gap-4 w-full sm:w-auto sm:flex-nowrap">
                             <button 
-                                className="hidden bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm w-full sm:w-auto">
+                                className=" bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm w-full sm:w-auto">
                                 Export
                             </button>
                             <div className="flex h-[40px] p-[8px_12px_8px_14px] justify-center items-center gap-2 rounded-[10px] border border-[#DFE1E6] bg-white shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">

@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useCall } from '@/context/CallContext';
-import { MicOff, Volume2, PhoneOff } from 'lucide-react';
+import { MicOff, Volume2, PhoneOff, PhoneCall } from 'lucide-react';
+import { useError } from '@/context/ErrorContext';
+import { useApi } from '@/services/axiosConfig';
 
 const CallModal = () => {
   const {
@@ -16,16 +18,20 @@ const CallModal = () => {
     closeCall,
     incoming,
     muted,
-    toggleMute
+    toggleMute,
+    makeCall
   } = useCall();
 
 
   const [waitTime, setWaitTime] = useState(0);
   const [callTime, setCallTime] = useState(0);
+  const [comments, setComments] = useState([]);
   const [note, setNote] = useState("");
+  const { handleApiError } = useError();
+  const { axiosInstance } = useApi();
+ 
 
   const intervalRef = useRef(null);
-
 
   useEffect(() => {
     if (intervalRef.current) {
@@ -34,14 +40,19 @@ const CallModal = () => {
   
     if (callStatus === 'CONNECTED') {
       setWaitTime(0);
-      setCallTime(0);
+      setCallTime(0); 
       intervalRef.current = setInterval(() => {
         setCallTime((t) => t + 1);
       }, 1000);
-    } else if (callStatus === 'RINGING') {
+    } else if (callStatus === 'RINGING' || callStatus === 'INCOMING') {
+      setWaitTime(0); 
+      setCallTime(0);
       intervalRef.current = setInterval(() => {
         setWaitTime((t) => t + 1);
       }, 1000);
+    } else if (callStatus === 'INITIATING') {
+      setWaitTime(0);
+      setCallTime(0);
     }
   
     return () => {
@@ -49,8 +60,25 @@ const CallModal = () => {
         clearInterval(intervalRef.current);
       }
     };
-  }, [callStatus]);
+  }, [callStatus]);  
   
+  const addComment = async () => {
+    if (!note.trim()) return;
+    
+    try {
+    const result =   await axiosInstance.post(`/comments/`, {
+        model: "customer", 
+        object_id: callData?.id, 
+        content: note,
+      });
+     const newComment = result.data.comment;
+     setComments(prev => [...prev, newComment]);
+      setNote("");
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+
   const formatTime = (seconds) => {
     const m = String(Math.floor(seconds / 60)).padStart(2, '0');
     const s = String(seconds % 60).padStart(2, '0');
@@ -60,7 +88,9 @@ const CallModal = () => {
   if (!isVisible) return null;
 
   const initials =
-    callData?.name?.split(' ').map((n) => n[0]).join('').toUpperCase() || 'NA';
+      (callData?.name
+      ? callData.name.split(' ').map(n => n[0]).join('').toUpperCase()
+      : callData?.phone?.slice(0, 2)) || ''
 
   const timeValue = callStatus === 'CONNECTED' ? callTime : waitTime;
   const timeLabel = callStatus === 'CONNECTED' ? 'Call time' : 'Wait time';
@@ -86,11 +116,11 @@ const CallModal = () => {
           {/* Header */}
           {incoming && (
             <div className="flex justify-between px-6">
-              <button onClick={acceptCall} className="w-12 h-12 bg-green-500 text-white rounded-full">
-                Accept
-              </button>
-              <button onClick={endCall} className="w-12 h-12 bg-red-500 text-white rounded-full">
+              <button onClick={endCall} className="bg-red-500 text-white rounded px-3 py-2">
                 Reject
+              </button>
+              <button onClick={acceptCall} className="bg-green-500 text-white rounded px-3 py-2">
+                Accept
               </button>
             </div>
           )}
@@ -99,13 +129,35 @@ const CallModal = () => {
               {initials}
             </div>
             <div>
-              <p className="text-lg font-semibold text-[#3EBF0F]">{callData.name}</p>
-              {callStatus === 'ENDED' && (
-                <p className="text-sm text-red-500 mt-1">Call ended</p>
-              )}
-              {callStatus === 'FAILED' && (
-                <p className="text-sm text-red-500 mt-1">Call failed</p>
-              )}
+              <p className="text-lg font-semibold text-[#3EBF0F] flex items-center gap-2">
+                {callData.name || callData.phone || "Unknown"}
+
+                {(callStatus === 'ENDED' || callStatus === 'FAILED') && callData.phone && (
+                  <button
+                    onClick={() => {
+                        makeCall({
+                        phone: callData.phone,
+                        name: callData.name,
+                        id: callData.id
+                      })
+                      }}
+                    title="Call Again"
+                    className="p-1 rounded-full hover:bg-gray-200 transition"
+                  >
+                    <PhoneCall size={27} className="text-[#3EBF0F] p-1" />
+                  </button>
+                )}
+              </p>
+
+              {/* This ensures callStatus is shown clearly */}
+              <p className={`
+                text-xs mt-1
+                ${callStatus === 'FAILED' ? 'text-red-500' :
+                  callStatus === 'ENDED' ? 'text-gray-500' :
+                  'text-[#3EBF0F]'}
+              `}>
+                {callStatus}
+              </p>
             </div>
           </div>
 
@@ -136,15 +188,15 @@ const CallModal = () => {
 
           {/* Notes field (always shown when expanded, regardless of callStatus) */}
           {!isCollapsed && (
-            <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700">Comments</label>
+            <div >
+                <label className={`${!callData?.id? 'hidden':''} block text-sm font-medium mb-1 text-gray-700`}>Comments</label>
                 <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Type message..."
                 rows={3}
                 maxLength={200}
-                className="w-full p-3 border border-gray-300 rounded-lg text-sm"
+                className={`${!callData?.id? 'hidden':''} w-full p-3 border border-gray-300 rounded-lg text-sm`}
                 />
                 <div className="flex justify-between items-center mt-2 gap-2">
                   {callStatus !== "CONNECTED" && callStatus !== "RINGING" ? (
@@ -159,14 +211,25 @@ const CallModal = () => {
                   )}
 
                   <button
-                    className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md text-sm"
+                    onClick={addComment}
+                    className={`${!callData?.id? 'hidden':''} bg-[#3EBF0F] text-white px-4 py-2 rounded-md text-sm`}
                   >
                     Save
                   </button>
                 </div>
-                <p className="text-xs text-right text-gray-500 mt-1">
-                Word Count: {note.length}/200
+                <p className={`${!callData?.id? 'hidden':''} text-xs text-right text-gray-500 mt-1`}>
+                  Word Count: {note.length}/200
                 </p>
+                <div className="mt-4 space-y-2 max-h-40 overflow-y-auto">
+                {comments.map(c => (
+                  <div key={c.id} className="p-2 bg-gray-50 border rounded">
+                     <p className="text-sm text-gray-800">{c.content}</p>
+                     <p className="text-xs text-gray-500 mt-1">
+                        {new Date(c.created_at).toLocaleString()}
+                    </p>
+                </div>
+            ))}
+</div>
             </div>
           )}
         </div>

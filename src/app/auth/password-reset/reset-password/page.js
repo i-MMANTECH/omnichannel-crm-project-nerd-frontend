@@ -55,12 +55,26 @@ const ForgotPassword = () => {
         setPasswordError('');
     };
 
+    const isPasswordValid = (password) => {
+        const lengthValid = password.length >= 8 && password.length <= 24;
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasLowercase = /[a-z]/.test(password);
+        const hasDigit = /\d/.test(password);
+        const hasSymbol = /[\W_]/.test(password);
+        return lengthValid && hasUppercase && hasLowercase && hasDigit && hasSymbol;
+    };
+
     const handleSubmit = async () => {
-        if (password !== confirmPassword) {
-            setPasswordError("Passwords do not match");
+        if (!isPasswordValid(password)) {
+            setPasswordError("Password must be 8-24 characters, with uppercase, lowercase, number, and symbol.");
             return;
         }
-
+    
+        if (password !== confirmPassword) {
+            setPasswordError("Passwords do not match.");
+            return;
+        }
+    
         try {
             await axiosInstance.post('/auth/forgot-password/change-password/', {
                 email: userData.email,
@@ -102,7 +116,7 @@ const ForgotPassword = () => {
         }
     };
 
-    const isFormValid = password.length >= 8 && password.length <= 24 && confirmPassword.length >= 8;
+    const isFormValid = isPasswordValid(password) && password === confirmPassword;
 
     const togglePasswordVisibility = () => {
         setShowPassword((prevShowPassword) => !prevShowPassword);
@@ -126,7 +140,7 @@ const ForgotPassword = () => {
                     Reset your password
                 </h2>
                 <p className="text-gray-500 dark:text-gray-400 text-center mb-8">
-                    Set your new password with minimum 8 characters with a combination of letters and numbers
+                    Set your new password (8-24 characters) with uppercase, lowercase, numbers, and symbols.
                 </p>
 
                 <div className="mb-4">
@@ -150,6 +164,10 @@ const ForgotPassword = () => {
                                 />
                         </button>
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                        Must include uppercase, lowercase, number, and symbol.
+                    </p>
+
                     <div className="flex items-center mt-2 space-x-1">
                         {Array.from({ length: 5 }).map((_, index) => (
                             <div
