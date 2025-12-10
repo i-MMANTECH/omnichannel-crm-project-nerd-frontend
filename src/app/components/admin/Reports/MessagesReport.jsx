@@ -253,6 +253,7 @@ const MessagesReport = ({filters, selectedUser, refreshKey}) => {
                 {analysisReport}
               </div>
             )}
+            
             {analysisReport && !showSummary && (
               <div className="flex justify-end mt-2">
                 <button

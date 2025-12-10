@@ -13,7 +13,6 @@ import SuccessModal from '@/app/components/SuccessModal';
 import SendMessageModal from "./SendMessageModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
-import { useCall } from "@/context/CallContext";
 import ConfirmationModal from "../../ConfirmationModal";
 
 const ModalController = ({ children }) => {
@@ -42,7 +41,6 @@ const ModalController = ({ children }) => {
 export default function CustomerDetails() {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
-  const { startCall } = useCall();
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
-import Modal from "../Modal";
+import Modal from "../../Modal";
 import './IsLiveChat.css';
 
 export const ConnectWhatsAppModal = ({ onCancel }) => {

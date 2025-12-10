@@ -70,14 +70,6 @@ const IVR = () => {
                             className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm w-full sm:w-auto">
                             + Create IVR
                         </button>
-                        <div className="flex h-[40px] p-[8px_12px_8px_14px] justify-center items-center gap-2 rounded-[10px] border border-[#DFE1E6] bg-white shadow">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
-                                <path d="M13.333 2H2.667A.667.667 0 0 0 2 2.667v1.08c0 .584.255 1.138.698 1.518l3.27 2.803c.444.38.699.935.699 1.519v4.413l2.666-1.333v-3.08c0-.584.255-1.139.698-1.519l3.27-2.803c.443-.38.698-.934.698-1.518V2.667A.667.667 0 0 0 13.333 2Z" stroke="#808897" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            <span className="text-[#666D80] text-sm font-medium tracking-[0.2px]">
-                                Filter
-                            </span>
-                        </div>
                     </div>
                 </div>
 

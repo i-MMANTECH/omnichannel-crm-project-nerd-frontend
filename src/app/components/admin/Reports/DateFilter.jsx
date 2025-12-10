@@ -39,7 +39,7 @@ const DateFilter = ({ onDateChange }) => {
   return (
     <div
       ref={containerRef}
-      className="absolute right-0 mt-10 z-50 bg-white dark:bg-gray-800 p-4 rounded-md shadow-lg"
+      className="absolute right-0 mt-10 z-50 bg-white p-4 rounded-md shadow-lg"
     >
       <p className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
         Date Range

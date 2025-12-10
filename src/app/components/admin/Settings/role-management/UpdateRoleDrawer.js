@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Drawer from '../../Drawer';
+import Drawer from '@/app/components/Drawer';
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
-import Pagination from '../../Pagination/Pagination';
+import Pagination from '@/app/components/Pagination/Pagination';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useDebounce } from "use-debounce";
 
@@ -24,7 +24,7 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
   const [currentPage, setCurrentPage] = useState(queryPage);
   const [pageSize, setPageSize] = useState(queryLimit);
 
-  
+
   const queryRoleId = searchParams.get('roleId')
 
   const finalRoleId = roleId || queryRoleId;
@@ -33,8 +33,8 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
   const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
 
   useEffect(() => {
-		fetchPermissions()
-	}, [debouncedSearchQuery])
+    fetchPermissions()
+  }, [debouncedSearchQuery])
 
   useEffect(() => {
     if (show) {
@@ -70,7 +70,7 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
       handleApiError(error);
     }
   };
-  
+
   // Handle permission selection
   const handlePermissionChange = (permissionId) => {
     setSelectedPermissions((prev) =>
@@ -177,8 +177,8 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 mr-2">
                 <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
-              </svg>                                        
-            </button> 
+              </svg>
+            </button>
           </div>
           <div className="mt-3 px-3">
             {availablePermissions.map((perm) => (
@@ -192,14 +192,12 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
                     className="sr-only peer"
                   />
                   <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      selectedPermissions.includes(perm.id) ? "bg-[#3EBF0F]" : "bg-gray-300"
-                    }`}
+                    className={`w-11 h-6 rounded-full transition-colors ${selectedPermissions.includes(perm.id) ? "bg-[#3EBF0F]" : "bg-gray-300"
+                      }`}
                   >
                     <div
-                      className={`w-6 h-6 body-theme rounded-full transition-transform ${
-                        selectedPermissions.includes(perm.id) ? "translate-x-5" : "translate-x-0"
-                      }`}
+                      className={`w-6 h-6 body-theme rounded-full transition-transform ${selectedPermissions.includes(perm.id) ? "translate-x-5" : "translate-x-0"
+                        }`}
                     />
                   </div>
                 </label>
@@ -209,14 +207,14 @@ const UpdateRoleDrawer = ({ show, onClose, roleId, onRoleUpdated }) => {
         </div>
       </form>
       <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={(page) => updatePagination(page, pageSize)}
-            onPageSizeChange={(size) => updatePagination(1, size)}
-            pageSize={pageSize}
-            pageParam='dPage'
-            limitParam='dLimit'
-          />
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={(page) => updatePagination(page, pageSize)}
+        onPageSizeChange={(size) => updatePagination(1, size)}
+        pageSize={pageSize}
+        pageParam='dPage'
+        limitParam='dLimit'
+      />
     </Drawer>
   );
 };

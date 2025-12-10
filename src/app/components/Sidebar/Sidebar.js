@@ -12,7 +12,7 @@ import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import { usePermissions } from "@/context/PermissionsContext";
 import UserAvatar from "../UserAvatar";
-import { Bell, House, Mail, Settings, SquareCheck, SquareKanban, UserPlus, Users, Phone } from 'lucide-react';
+import { Bell, House, Mail, Settings, SquareCheck, SquareKanban, UserPlus, Users, Phone, Ticket } from 'lucide-react';
 
 function Sidebar() {
   const { logout } = useAuth();
@@ -75,9 +75,8 @@ function Sidebar() {
       </button>
 
       <div
-        className={`body-theme sidebar z-20 p-6 pt-3 w-1/2 h-screen fixed top-0 ${
-          isOpen ? "left-0" : "-left-96"
-        } lg:left-0 lg:w-60 transition-all duration-300 ease-in-out`}
+        className={`body-theme sidebar z-20 p-6 pt-3 w-1/2 h-screen fixed top-0 ${isOpen ? "left-0" : "-left-96"
+          } lg:left-0 lg:w-60 transition-all duration-300 ease-in-out`}
       >
         <div className="flex flex-col justify-start items-start h-full relative">
           <Link href="/nativecrm" legacyBehavior>
@@ -91,93 +90,120 @@ function Sidebar() {
             <h2 className="text-sm text-gray-500 dark:text-gray-400 pl-4 mt-4">Main Menu</h2>
           </div>
 
-            <div className="mt-2  pb-3 w-full">
+          <div className="mt-2  pb-3 w-full">
+            <Link
+              onClick={() => setIsOpen(false)} // Close sidebar on navigation
+
+              href="/nativecrm/dashboard"
+              className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/dashboard") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+            >
+              <House
+                size={18}
+              />
+              <h3 className={`text-sm font-medium`}>
+                Dashboard
+              </h3>
+            </Link>
+
+            {viewUser && (
               <Link
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation
-              
-                href="/nativecrm/dashboard"
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/dashboard") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+
+                href="/nativecrm/users"
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/users") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
               >
-                   <House 
-                    size={18}
-                  />
+                <UserPlus
+                  size={18}
+                />
                 <h3 className={`text-sm font-medium`}>
-                  Dashboard
+                  Users
                 </h3>
               </Link>
+            )}
 
-               {viewUser && (
-                 <Link
+            <Link
+              onClick={() => setIsOpen(false)} // Close sidebar on navigation
+
+              href="/nativecrm/messages?chat=leads"
+              className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/messages") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+
+            >
+              <Mail
+                size={18}
+              />
+              <h3 className={`text-sm font-medium`}>
+                Messages
+              </h3>
+            </Link>
+
+            {viewTask && (
+              <Link
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation
-                 
-                 href="/nativecrm/users"
-                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/users") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
-               >
-                  <UserPlus 
-                    size={18}
-                  />
-                 <h3 className={`text-sm font-medium`}>
-                   Users
-                 </h3>
-               </Link>
-              )}
 
-                <Link
-                onClick={() => setIsOpen(false)} // Close sidebar on navigation
-                
-                href="/nativecrm/messages?chat=leads"
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/messages") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
-
+                href="/nativecrm/tasks"
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/tasks") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
               >
-                   <Mail 
-                    size={18}
-                   />
+                <SquareCheck
+                  size={18}
+                />
                 <h3 className={`text-sm font-medium`}>
-                  Messages
+                  Tasks
                 </h3>
               </Link>
-              
-              {viewTask && (
-                  <Link
+            )}
+
+            <Link
+              onClick={() => setIsOpen(false)} // Close sidebar on navigation
+
+              href="/nativecrm/tickets"
+              className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/tickets") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+            >
+              <Ticket size={18} />
+              <h3 className={`text-sm font-medium`}>
+                Tickets
+              </h3>
+            </Link>
+
+            {viewCustomer && (
+              <Link
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation
-                  
-                  href="/nativecrm/tasks"
-                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/tasks") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
-                >
-                   <SquareCheck
-                    size={18}
-                   />
-                  <h3 className={`text-sm font-medium`}>
-                    Tasks
-                  </h3>
-                </Link>
-                )}             
 
-                {viewCustomer && (
-                  <Link
-                onClick={() => setIsOpen(false)} // Close sidebar on navigation
-                  
-                  href="/nativecrm/customers"
-                  className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/customers") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
-                >
-                   <Users size={18} />
-                    
-                  <h3 className={`text-sm font-medium`}>
-                    Customers
-                  </h3>
-                </Link>
-                )}
+                href="/nativecrm/customers"
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/customers") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+              >
+                <Users size={18} />
 
-                <Link
-                  onClick={() => setIsOpen(false)}
-                  href="/nativecrm/call-center#call-detail-records"
-                  className={`hidden flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/call-center") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
-                >
-                  <Phone size={18} />
-                  <h3 className="text-sm font-medium">Call Center</h3>
-                </Link>
+                <h3 className={`text-sm font-medium`}>
+                  Customers
+                </h3>
+              </Link>
+            )}
 
-              <div
+            <Link
+              onClick={() => setIsOpen(false)}
+              href="/nativecrm/call-center#call-detail-records"
+              className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/call-center") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+            >
+              <Phone size={18} />
+              <h3 className="text-sm font-medium">Call Center</h3>
+            </Link>
+
+            <Link
+              onClick={() => setIsOpen(false)} // Close sidebar on navigation
+
+              href="/nativecrm/notifications"
+              className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/notifications") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+            >
+              <Bell
+                size={18}
+              />
+
+              <h3 className={`text-sm font-medium ${isActive("/reports") ? activeStyle : ""}`}>
+                Notifications
+              </h3>
+            </Link>
+
+            {/* <div
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/notifications") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
                 onClick={toggleNotification}
               >
@@ -187,136 +213,136 @@ function Sidebar() {
                 <h3 className={`text-sm font-medium`}>
                   Notifications
                 </h3>
-              </div>
+              </div> */}
+          </div>
+
+          <div className="self-end mt-auto w-full">
+            <div className="mb-5">
+              <Link
+                onClick={() => setIsOpen(false)} // Close sidebar on navigation
+
+                href="/nativecrm/support"
+                className={`hidden flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
+              >
+                <Image
+                  src="/assets/support.svg"
+                  className={`${isActive("/help") ? activeStyle : ""}`}
+                  alt="Support"
+                  width={20}
+                  height={20}
+                />
+                <h3 className={`text-sm font-medium ${isActive("/help") ? activeStyle : ""}`}>
+                  Help and Support
+                </h3>
+              </Link>
             </div>
 
-            <div className="self-end mt-auto w-full">
-              <div className="mb-5">
-                <Link
-                onClick={() => setIsOpen(false)} // Close sidebar on navigation
-                
-                  href="/nativecrm/support"
-                  className={`hidden flex mb-2 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`}
-                >
+            <div className="w-full border-t border-gray-200 dark:border-gray-600 pt-4 pointer" onClick={openModal}>
+              <div className="flex items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700">
+                {userProfile?.image ? (
                   <Image
-                    src="/assets/support.svg"
-                    className={`${isActive("/help") ? activeStyle : ""}`}
-                    alt="Support"
-                    width={20}
-                    height={20}
+                    src={userProfile?.image}
+                    alt="User Profile"
+                    width={100}
+                    height={100}
+                    className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
                   />
-                  <h3 className={`text-sm font-medium ${isActive("/help") ? activeStyle : ""}`}>
-                    Help and Support
+                ) : (
+                  <UserAvatar
+                    name={userProfile?.first_name ?
+                      `${userProfile.first_name} ${userProfile?.last_name}` :
+                      userProfile?.email || '--'
+                    }
+                    className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
+                    width="w-8"
+                    height="h-8"
+                  />
+                )}
+                <div className="text-sm min-w-0 flex-1">
+                  <h3 className="font-medium text-gray-800 dark:text-gray-200 truncate">
+                    {userProfile?.first_name || userProfile?.last_name
+                      ? `${userProfile.first_name} ${userProfile?.last_name}`
+                      : (
+                        <span title={userProfile?.email}>
+                          {userProfile?.email}
+                        </span>
+                      )}
                   </h3>
-                </Link>
+                  <p
+                    className="text-xs text-gray-500 dark:text-gray-400 truncate"
+                    title={userProfile?.roles?.map(role => role.name).join(' • ')}
+                  >
+                    {userProfile?.roles?.map((role, index) => (
+                      <span key={role.id}>
+                        {index > 0 && <span className="mx-1">•</span>}
+                        {role.name}
+                      </span>
+                    ))}
+                  </p>
+                </div>
+                <Image
+                  src="/assets/chevron-right.svg"
+                  alt="Agent"
+                  className="w-5 h-5 cursor-pointer flex-shrink-0"
+                  width={30}
+                  height={30}
+                />
               </div>
+            </div>
+          </div>
 
-              <div className="w-full border-t border-gray-200 dark:border-gray-600 pt-4 pointer" onClick={openModal}>
-                  <div className="flex items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700">
-                      {userProfile?.image ? (
-                        <Image
-                            src={userProfile?.image}
-                            alt="User Profile"                        
-                            width={100}
-                            height={100}
-                            className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
-                        />
-                    ) : (
-                      <UserAvatar 
-                        name={userProfile?.first_name ? 
-                          `${userProfile.first_name} ${userProfile?.last_name}` : 
-                          userProfile?.email || '--'
-                        } 
+          {isModalOpen && (
+            <div className="fixed inset-0 w-60 px-2">
+              <div
+                className="flex flex-col justify-center items-center body-theme absolute bottom-[100px] rounded p-3 border mx-6"
+                ref={modalRef}
+              >
+                <div className="flex flex-col gap-4 px-2">
+                  <Link
+                    onClick={() => setIsOpen(false)}
+
+                    href="/nativecrm/profile"
+                    className="flex items-center gap-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 no-underline hover:no-underline"
+                  >
+                    {userProfile?.image ? (
+                      <Image
+                        src={userProfile?.image}
+                        alt="User Profile"
+                        width={30}
+                        height={30}
                         className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
-                        width="w-8" 
-                        height="h-8" 
                       />
-                    )}   
-                    <div className="text-sm min-w-0 flex-1">
-                      <h3 className="font-medium text-gray-800 dark:text-gray-200 truncate">
-                        {userProfile?.first_name || userProfile?.last_name
-                          ? `${userProfile.first_name} ${userProfile?.last_name}`
-                          : (
-                            <span title={userProfile?.email}>
-                              {userProfile?.email}
-                            </span>
-                          )}
-                      </h3>
-                      <p 
-                        className="text-xs text-gray-500 dark:text-gray-400 truncate"
-                        title={userProfile?.roles?.map(role => role.name).join(' • ')}
-                      >
-                        {userProfile?.roles?.map((role, index) => (
-                          <span key={role.id}>
-                            {index > 0 && <span className="mx-1">•</span>}
-                            {role.name}
-                          </span>
-                        ))}
-                      </p>
-                    </div>
+                    ) : (
+                      <UserAvatar
+                        name={userProfile?.first_name ?
+                          `${userProfile.first_name} ${userProfile?.last_name}` :
+                          userProfile?.email || '--'
+                        }
+                        className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
+                        width="w-8"
+                        height="h-8"
+                      />
+                    )}
+                    <h3 className="text-gray-800 dark:text-gray-200 font-medium">View Profile</h3>
+                  </Link>
+
+                  <div
+                    onClick={logout}
+                    className="flex items-center gap-3 pointer rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
                     <Image
-                      src="/assets/chevron-right.svg"
+                      src="/assets/logout-icon.svg"
                       alt="Agent"
-                      className="w-5 h-5 cursor-pointer flex-shrink-0"
+                      className="w-8 h-8 rounded-full"
                       width={30}
                       height={30}
                     />
-                  </div>
-                </div>
-            </div>
-
-            {isModalOpen && (
-              <div className="fixed inset-0 w-60 px-2">
-                <div
-                  className="flex flex-col justify-center items-center body-theme absolute bottom-[100px] rounded p-3 border mx-6"
-                  ref={modalRef}
-                >
-                  <div className="flex flex-col gap-4 px-2">
-                    <Link
-                      onClick={() => setIsOpen(false)} 
-                    
-                      href="/nativecrm/profile"
-                      className="flex items-center gap-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 no-underline hover:no-underline"
-                    >
-                      {userProfile?.image ? (
-                        <Image
-                            src={userProfile?.image}
-                            alt="User Profile"                        
-                            width={30}
-                            height={30}
-                            className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
-                          />
-                      ) : (
-                        <UserAvatar 
-                          name={userProfile?.first_name ? 
-                            `${userProfile.first_name} ${userProfile?.last_name}` : 
-                            userProfile?.email || '--'
-                          } 
-                          className="w-8 h-8 rounded-full profile-icon cursor-pointer flex-shrink-0"
-                          width="w-8" 
-                          height="h-8" 
-                        />
-                        )}
-                      <h3 className="text-gray-800 dark:text-gray-200 font-medium">View Profile</h3>
-                    </Link>
-
-                    <div
-                      onClick={logout}
-                      className="flex items-center gap-3 pointer rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      <Image
-                        src="/assets/logout-icon.svg"
-                        alt="Agent"
-                        className="w-8 h-8 rounded-full"
-                        width={30}
-                        height={30}
-                      />
-                      <h3 className="text-red-500 font-medium">Log out</h3>
-                    </div>
+                    <h3 className="text-red-500 font-medium">Log out</h3>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
+          )}
         </div>
       </div>
     </>

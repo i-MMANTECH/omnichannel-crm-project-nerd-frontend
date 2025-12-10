@@ -1,11 +1,11 @@
 /* tailwind-compatible-calendar.css */
-.rdrCalendarWrapper {
+/* .rdrCalendarWrapper {
   @apply bg-gray-800 text-gray-100 rounded-lg p-4;
-}
+} */
 
-.rdrDayNumber span {
+/* .rdrDayNumber span {
   @apply text-gray-100;
-}
+} */
 
 .rdrSelected,
 .rdrInRange,

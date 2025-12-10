@@ -51,7 +51,7 @@ const UserAvatar = ({
 
     return (
         <div
-            className={`p-4 ${width} ${height} ${className}  rounded-full flex items-center justify-center text-white font-bold text-lg`}
+            className={`p-4 ${width} ${height} ${className}  rounded-full flex items-center justify-center text-white font-bold text-md`}
             style={{ backgroundColor }}
         >
             {initials}

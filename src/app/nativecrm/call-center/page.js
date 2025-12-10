@@ -9,11 +9,19 @@ import MissedCallReport from '@/app/components/CallCenter/MissedCallReport';
 import LiveCalls from '@/app/components/CallCenter/LiveCalls';
 import IVR from '@/app/components/CallCenter/IVR';
 import Setup from '@/app/components/CallCenter/Setup';
+import FloatingDialer from '@/app/components/CallCenter/FloatingDialer';
+import Loader from '@/app/components/Loader';
+import { useApi } from '@/services/axiosConfig';
+import CallCenterNotActivated from '@/app/components/CallCenter/CallCenterNotActivated';
+
 
 
 export default function CallCenter() {
   const pathname = usePathname();
   const [currentSection, setCurrentSection] = useState(null);
+  const [isConfigured, setIsConfigured] = useState(null)
+  const [message, setMessage] = useState('')
+  const { axiosInstance, loading: apiLoading } = useApi()
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -21,6 +29,25 @@ export default function CallCenter() {
       setCurrentSection(hash || 'default');
     }
   }, [pathname]);
+
+   useEffect(() => {
+    let mounted = true
+    axiosInstance
+      .get('/call-center/config-status/')
+      .then(({ data }) => {
+        if (!mounted) return
+        setIsConfigured(Boolean(data.is_configured))
+        setMessage(data.message)
+      })
+      .catch(() => {
+        if (!mounted) return
+        setIsConfigured(false)
+        setMessage('Unable to fetch configuration.')
+      })
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   const handleSidebarClick = (section) => {
     setCurrentSection(section);
@@ -48,20 +75,31 @@ export default function CallCenter() {
     }
   };
 
+  if (isConfigured === null || apiLoading) {
+    return <div className="flex items-center justify-center py-20">
+      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-[#3EBF0F]"></div>
+    </div>
+  }
+
+   if (!isConfigured) {
+    return <CallCenterNotActivated message={message} />;
+  }
+
   return (
     <div> 
-    <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh] gap-5">      
-      <div className='relative w-1/5 border-e border-gray-300 dark:border-gray-600'>
-        <CallCenterSidebar 
-          onSidebarClick={handleSidebarClick}
-          currentSection={currentSection}
-        />
-        
+      <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh] gap-5">      
+        <div className='relative w-1/5 border-e border-gray-300 dark:border-gray-600'>
+          <CallCenterSidebar 
+            onSidebarClick={handleSidebarClick}
+            currentSection={currentSection}
+          />
+        </div>
+        <div className="flex-1">
+          {renderContent()}
+        </div>
       </div>
-      <div className="flex-1">
-        {renderContent()}
-      </div>
-    </div>
-    </div>
+
+      <FloatingDialer />
+  </div>
   );
 }

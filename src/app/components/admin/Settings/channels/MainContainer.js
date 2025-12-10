@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ConnectEmailModal } from "../../MainContainer/ConnectEmailModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
-import ComingSoonModal from "../../ComingSoonModal";
+import ComingSoonModal from "@/app/components/ComingSoonModal";
 import { ConnectWhatsAppModal } from "../../MainContainer/ConnectWhatsAppModal";
 
 
