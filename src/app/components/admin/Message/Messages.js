@@ -893,9 +893,9 @@ export const MessagesContent = () => {
 		if (isFetchingMore || !next) return;
 
 		const endpointMap = {
-			leads: `/communication/contacts/?page=${page}&page_size=${15}`,
-			customers: `/communication/chatted-customers/?page=${page}&page_size=${15}`,
-			archived: `/communication/conversations/?page=${page}&page_size=${15}`,
+			leads: `/communication/contacts/?page=${page}&page_size=${10}`,
+			customers: `/communication/chatted-customers/?page=${page}&page_size=${10}`,
+			archived: `/communication/conversations/?page=${page}&page_size=${10}`,
 		};
 
 		const endpoint = next || endpointMap[chatType];

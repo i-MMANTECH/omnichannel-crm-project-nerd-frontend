@@ -124,7 +124,7 @@ export default function Task() {
     parseInt(searchParams.get('page')) || 1
   );
   const [pageSize, setPageSize] = useState(
-    parseInt(searchParams.get('page_size')) || 10
+    parseInt(searchParams.get('page_size')) || 50
   );
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -199,8 +199,8 @@ export default function Task() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      // params.append('page', page);
-      // params.append('page_size', page_size);
+      params.append('page', page);
+      params.append('page_size', page_size);
 
       if (assignee) {
         params.append('assignee', assignee);
@@ -214,14 +214,14 @@ export default function Task() {
 
       setTasks(data.tasks || data.results || []);
 
-      if (data.total_pages) {
-        setTotalPages(data.total_pages);
-      } else if (data.count) {
+      if (data.pagination.total_pages) {
+        setTotalPages(data.pagination.total_pages);
+      } else if (data.pagination.count) {
         setTotalPages(Math.ceil(data.count / page_size));
       }
 
       if (data.count !== undefined) {
-        setTotalCount(data.count);
+        setTotalCount(data.pagination.count);
       }
 
     } catch (err) {
@@ -349,7 +349,7 @@ export default function Task() {
 
   useEffect(() => {
     const urlPage = parseInt(searchParams.get('page')) || 1;
-    const urlPageSize = parseInt(searchParams.get('page_size')) || 10;
+    const urlPageSize = parseInt(searchParams.get('page_size')) || 50;
     const urlSearch = searchParams.get('search') || '';
 
     setCurrentPage(urlPage);
