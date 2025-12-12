@@ -16,6 +16,8 @@ const CustomUrlForm = () => {
     const [isUrlAvailable, setIsUrlAvailable] = useState(true);
     const [userData, setUserData] = useState(null);
     const { handleApiError } = useError();
+    const [enableCallCenter, setEnableCallCenter] = useState(false);
+
 
     const handleChange = (e) => {
         setUrl(e.target.value);
@@ -43,7 +45,8 @@ const CustomUrlForm = () => {
                 {
                     ...userData,
                     company_description: 'Voip',
-                    company_username: url
+                    company_username: url,
+                    enable_call_center: enableCallCenter ? "1" : "0",
                 }
             );
             router.push('success');
@@ -97,6 +100,19 @@ const CustomUrlForm = () => {
                         <span className="px-2 text-green-500">{isUrlAvailable ? '✔' : '✖'}</span>
                     </div>
                     <p className="text-xs text-gray-500 mb-6">This is just a suggestion, you can change to what you want</p>
+                    <div className="flex items-center justify-between mb-4 mt-3">
+                        <label className="flex items-center">
+                            <input
+                                type="checkbox"
+                                className="form-checkbox text-[#3EBF0F]"
+                                checked={enableCallCenter}
+                                onChange={(e) => setEnableCallCenter(e.target.checked)}
+                            />
+                            <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                                Enable Call Center Module (handle calls inside your CRM)
+                            </span>
+                        </label>
+                    </div>
 
                     <button
                         onClick={handleSubmit}

@@ -36,23 +36,51 @@ const Invitation = () => {
         }
 
         checkAndAcceptInvitation()
-    }, [setEmail, handleApiError]);
+    }, [setEmail, handleApiError])
+    
+    const isPasswordValid = (password) => {
+        const lengthValid = password.length >= 8 && password.length <= 24;
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasLowercase = /[a-z]/.test(password);
+        const hasDigit = /\d/.test(password);
+        const hasSymbol = /[\W_]/.test(password);
+        return lengthValid && hasUppercase && hasLowercase && hasDigit && hasSymbol;
+    };
 
     const handleSubmit = async () => {
+        NProgress.setColor('green');
+        NProgress.start();
+    
+        if (!isPasswordValid(password)) {
+            NProgress.setColor('red');
+            toast.error("Password must be 8-24 characters, include uppercase, lowercase, digit, and symbol.");
+            NProgress.done();
+            return;
+        }
+    
+        if (password !== confirmPassword) {
+            NProgress.setColor('red');
+            toast.error("Passwords do not match.");
+            NProgress.done();
+            return;
+        }
+    
         try {
-            const resp = await axiosInstance.post(`/users/invitations/register/${id}/`, {
+            await axiosInstance.post(`/users/invitations/register/${id}/`, {
                 password,
                 phone_number: phoneNumber
-            })
+            });
             router.push(`${id}/success`);
-        } catch(error) {
-            handleApiError(error)
-        }  
-    };
+        } catch (error) {
+            handleApiError(error);
+        } finally {
+            NProgress.done();
+        }
+    };    
 
     const evaluatePasswordStrength = (password) => {
         let strength = 0;
-        if (password.length >= 6) strength += 1;
+        if (password.length >= 8) strength += 1;
         if (/[a-z]/.test(password)) strength += 1;
         if (/[A-Z]/.test(password)) strength += 1;
         if (/\d/.test(password)) strength += 1;
@@ -108,7 +136,7 @@ const Invitation = () => {
         }
     };
 
-    const isFormValid = password.length >= 6 && confirmPassword.length >= 6;
+    const isFormValid = isPasswordValid(password) && password === confirmPassword;
 
     return (
         <div className="flex min-h-screen" style={{ height: '100%', overflow: 'hidden' }}>
@@ -140,7 +168,9 @@ const Invitation = () => {
             <div className="w-1/2 flex flex-col items-center justify-center p-8">
                 <div className="w-full max-w-md flex-grow mt-6 mt-[100px]">
                     <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 text-left mb-2">Create Your Password</h2>
-                    <p className="text-gray-500 dark:text-gray-400 text-left mb-6">Set a password with at least 6 characters, combining letters and numbers.</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-left mb-6">
+                        Set a password with 8-24 characters, including uppercase, lowercase, numbers, and symbols.
+                    </p>
 
                     <div className="mb-4">
                             <label htmlFor="email"  className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -207,7 +237,7 @@ const Invitation = () => {
                         </div>
                         {password.length > 0 && (
                             <p className="text-gray-500 text-xs">
-                                Minimum password length is 6 characters and maximum is 24 characters.
+                                Password must be 8-24 characters, with at least one uppercase letter, one lowercase letter, one number, and one symbol.
                             </p>
                         )}
                     </div>

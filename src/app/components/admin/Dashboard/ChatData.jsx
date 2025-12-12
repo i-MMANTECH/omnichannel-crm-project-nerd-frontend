@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import { Doughnut } from "react-chartjs-2";
-import NoDataFound from '../NoDataFound';
+import NoDataFound from '../../NoDataFound';
 import './style.css';
 import { useRouter } from 'next/navigation';
 import { usePermissions } from '@/context/PermissionsContext';

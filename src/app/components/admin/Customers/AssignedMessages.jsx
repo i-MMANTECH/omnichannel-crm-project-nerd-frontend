@@ -1,6 +1,4 @@
 import react, {useEffect, useState} from "react";
-import MessageList from "../Message/MessageList";
-import MessageInput from "../Message/MessageInput";
 import UserChatList from "../Users/UserChatList";
 import { useParams } from "next/navigation";
 import { useError } from '@/context/ErrorContext';
@@ -22,7 +20,7 @@ export default function CustomerAssignedMessages() {
         async function fetchCustomerMessages() {
             try {
                 const response = await axiosInstance.get(`/communication/customer-chat-history/${id}/`);
-                setChatHistory(response.data.results.messages)
+                setChatHistory(response.data.results)
             } catch (error) {
                 handleApiError(error);
             }
@@ -72,7 +70,13 @@ export default function CustomerAssignedMessages() {
             </div>
         
         <div className="w-full">
-        {chatHistory?.map((chat) => {
+        {
+        chatHistory?.length === 0 ? (
+           <div className="flex items-center justify-center h-48 text-gray-500 italic">
+         No messages for this customer yet.
+           </div>
+         ) : (
+        chatHistory?.map((chat) => {
           return (
           <div key={chat?.id}
           style={{cursor:"pointer"}}
@@ -107,7 +111,11 @@ export default function CustomerAssignedMessages() {
               </div>
             </div>
           </div>
-        )})}
+        )
+        }
+        )
+      )
+        }
         </div>
       </div>
     );

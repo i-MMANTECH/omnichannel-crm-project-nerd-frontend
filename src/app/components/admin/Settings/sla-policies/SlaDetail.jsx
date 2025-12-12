@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Modal from "../../Modal";
+import Modal from "@/app/components/Modal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 

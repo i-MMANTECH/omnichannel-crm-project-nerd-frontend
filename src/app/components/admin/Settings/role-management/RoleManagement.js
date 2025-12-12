@@ -6,7 +6,7 @@ import UpdateRoleDrawer from "./UpdateRoleDrawer";
 import { useApi } from "@/services/axiosConfig";
 import { useRouter, useSearchParams } from "next/navigation";
 import useCustomAlert from "@/context/useCustomAlert";
-import Pagination from "../../Pagination/Pagination";
+import Pagination from "@/app/components/Pagination/Pagination";
 
 const RoleManagement = () => {
   const [menuOpen, setMenuOpen] = useState(null);
@@ -19,12 +19,12 @@ const RoleManagement = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showAlert, AlertModal } = useCustomAlert();
-  
+
   // Pagination states
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  
+
   const isUpdateDrawerOpen = searchParams.get("action") === "update-role";
 
   const openUpdateDrawer = (roleId) => {
@@ -88,12 +88,12 @@ const RoleManagement = () => {
             <p className="text-md mb-3">Admins can create new roles and assign permissions to these roles</p>
           </div>
           <div className="flex gap-3">
-            <button 
+            <button
               onClick={() => router.push('/nativecrm/users?action=invite-user')}
               className="py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700">
               + Invite Users
             </button>
-            <button 
+            <button
               onClick={() => setIsDrawerOpen(true)}
               className="bg-[#3EBF0F] py-2 px-4 rounded-lg hover:bg-green-600">
               + New Role
@@ -152,31 +152,31 @@ const RoleManagement = () => {
           {AlertModal()}
         </div>
 
-        <CreateRoleDrawer 
-          show={isDrawerOpen} 
+        <CreateRoleDrawer
+          show={isDrawerOpen}
           onClose={() => {
             setIsDrawerOpen(false);
             fetchRoles();
-          }} 
+          }}
           onRoleCreated={() => fetchRoles(currentPage)}
         />
-        <UpdateRoleDrawer 
-          show={isUpdateDrawerOpen} 
-          onClose={closeUpdateDrawer} 
-          roleId={roleToEdit} 
+        <UpdateRoleDrawer
+          show={isUpdateDrawerOpen}
+          onClose={closeUpdateDrawer}
+          roleId={roleToEdit}
           onRoleUpdated={() => fetchRoles(currentPage)}
         />
       </div>
 
       <div className="mt-10 pl-10">
-          <Pagination 
-            currentPage={currentPage} 
-            totalPages={totalPages} 
-            onPageChange={setCurrentPage} 
-            onPageSizeChange={setPageSize}
-            pageSize={pageSize}
-          />
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          pageSize={pageSize}
+        />
+      </div>
     </div>
   );
 };

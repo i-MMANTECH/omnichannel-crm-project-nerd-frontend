@@ -22,8 +22,8 @@ const UserTable = ({ searchQuery, users }) => {
 
   return (
     < >
-        <div >
-          <div className="overflow-auto ">
+      <div >
+        <div className="overflow-auto ">
           <table className="min-w-full body-theme ">
             <thead className="bg-gray-100 dark:bg-neutral-900">
               <tr>
@@ -49,26 +49,26 @@ const UserTable = ({ searchQuery, users }) => {
                 <tr key={index} onClick={() => router.push(`users/${user.id}`)} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer">
                   <td className="py-3 px-4 border-b flex items-center space-x-3">
                     {user?.image && <Image
-                      className="user-left-image mt-2 w-10 h-10 rounded-full" 
+                      className="user-left-image mt-2 w-10 h-10 rounded-full"
                       alt="bio"
-                      src={user?.image} 
+                      src={user?.image}
                       width={50}
                       height={50}
                     />}
-                    {!user?.image && 
-                      <UserAvatar 
-                        name={user.first_name ? 
-                          `${user.first_name} ${user.last_name}` : 
+                    {!user?.image &&
+                      <UserAvatar
+                        name={user.first_name ?
+                          `${user.first_name} ${user.last_name}` :
                           user.email || '--'
-                        } 
-                        width="w-8" 
-                        height="h-8" 
+                        }
+                        width="w-8"
+                        height="h-8"
                       />
                     }
-                    <span>{user.first_name ? 
-                        `${user.first_name} ${user.last_name}` : 
-                        '--'
-                      } </span>
+                    <span>{user.first_name ?
+                      `${user.first_name} ${user.last_name}` :
+                      '--'
+                    } </span>
                   </td>
                   <td className="py-3 px-4 border-b">
                     {user.roles.map((role) => (
@@ -82,19 +82,19 @@ const UserTable = ({ searchQuery, users }) => {
                     ))}
                   </td>
                   <td className="py-3 px-4 border-b">
-                      <span style={{ color: "inherit", textDecoration: "none" }}>
-                        {user.email}
-                      </span>
+                    <span style={{ color: "inherit", textDecoration: "none" }}>
+                      {user.email}
+                    </span>
                   </td>
                   <td className="py-3 px-4 border-b">
-                      <span style={{ color: "inherit", textDecoration: "none" }}>
-                        {user.phone_number}
-                      </span>
+                    <span style={{ color: "inherit", textDecoration: "none" }}>
+                      {user.phone_number}
+                    </span>
                   </td>
                   <td className="py-3 px-4 border-b">
-                      <span style={{ color: "inherit", textDecoration: "none" }}>
-                        {user.lastActive || "--"}
-                      </span>
+                    <span style={{ color: "inherit", textDecoration: "none" }}>
+                      {user.lastActive || "--"}
+                    </span>
                   </td>
                 </tr>
               ))}

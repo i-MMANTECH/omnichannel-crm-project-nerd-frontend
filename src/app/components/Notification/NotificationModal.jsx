@@ -13,7 +13,6 @@ const NotificationModal = () => {
   const { axiosInstance, loading } = useApi();
   const { handleApiError } = useError();
   const [notifications, setNotifications] = useState([]);
-  const [replyingTo, setReplyingTo] = useState(null);
   const [replies, setReplies] = useState({});
   const [unreadCount, setUnreadCount] = useState(0);
   const router = useRouter();
@@ -23,7 +22,17 @@ const NotificationModal = () => {
     try {
       const response = await axiosInstance.get('/notifications', { showLoader: false });
       if (response.data.success) {
-        setNotifications(response.data.notifications);
+        const rawNotifications = response.data.notifications;
+
+        const seen = new Set();
+        const uniqueNotifications = rawNotifications.filter((item) => {
+          const key = `${item.notification_type}-${item.metadata?.task_id || ''}-${item.description}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+
+        setNotifications(uniqueNotifications);
         setUnreadCount(response.data.unread_count);
       }
     } catch (error) {
@@ -36,12 +45,11 @@ const NotificationModal = () => {
   }, []);
 
   const handleReplyChange = (id, value) => {
-    setReplies((prev) => ({ ...prev, [id]: value }));
+    setReplies(prev => ({ ...prev, [id]: value }));
   };
 
   const handleReplySubmit = (id) => {
     console.log(`Reply to notification ${id}:`, replies[id]);
-    setReplyingTo(null);
   };
 
   const markNotificationAsRead = async (id) => {
@@ -54,29 +62,19 @@ const NotificationModal = () => {
 
   const getNotificationMessage = (notification) => {
     const { notification_type, metadata, description } = notification;
-    
-    switch (notification_type) {
-      case 'task':
-        if (metadata.action === 'task_updated') {
-          return `Task status changed from ${metadata.old_status} to ${metadata.new_status}`;
-        }
-        return description;
-      default:
-        return description;
+    if (notification_type === 'task' && metadata?.action === 'task_updated') {
+      return `Task status changed from ${metadata.old_status} to ${metadata.new_status}`;
     }
+    return description;
   };
 
   const handleNotificationClick = async (notification) => {
     try {
       if (!notification.is_read) {
-        // Just call markNotificationAsRead once
         await markNotificationAsRead(notification.id);
       }
-
-      // Close notification using context
       toggleNotification();
 
-      // Then redirect if it's a task
       if (notification.notification_type === 'task' && notification.metadata?.task_id) {
         const params = new URLSearchParams();
         params.set('action', 'view-task');
@@ -97,7 +95,7 @@ const NotificationModal = () => {
             <div className="rounded-full bg-gray-200 h-6 w-6"></div>
           </div>
           <div className="space-y-5">
-            {[...Array(6)].map((i) => (
+            {[...Array(6)].map((_, i) => (
               <div key={i} className="flex gap-3 py-1">
                 <div className="rounded-full bg-gray-200 h-8 w-8"></div>
                 <div className="flex-1 space-y-3">
@@ -130,47 +128,41 @@ const NotificationModal = () => {
             No notifications yet
           </div>
         ) : (
-          notifications.map((notification) => (
+          notifications.map(notification => (
             <div
               key={notification.id}
-              className={`pointer flex gap-3 py-6 border-b border-gray-200 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer ${
-                notification.is_read ? "body-theme" : "body-theme"
-              }`}
+              className="pointer flex gap-3 py-6 border-b border-gray-200 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
               onClick={() => handleNotificationClick(notification)}
             >
               <div className="flex-shrink-0">
-                {notification?.receiver?.image && <Image 
-                  alt="profile pic"
-                  width={40}
-                  height={40}
-                  className="rounded-full w-8 h-8" 
-                  src={notification?.receiver?.image} 
-                />}
-                {!notification?.receiver?.image && (
-                  <UserAvatar 
-                    name={notification?.receiver?.first_name ? 
-                      `${notification.receiver.first_name} ${notification.receiver.last_name}` : 
-                      notification?.receiver?.email || '--'} 
-                    width="w-8" 
-                    height="h-8" 
+                {notification?.receiver?.image ? (
+                  <Image
+                    alt="profile pic"
+                    width={40}
+                    height={40}
+                    className="rounded-full w-8 h-8"
+                    src={notification.receiver.image}
+                  />
+                ) : (
+                  <UserAvatar
+                    name={
+                      notification?.receiver?.first_name
+                        ? `${notification.receiver.first_name} ${notification.receiver.last_name}`
+                        : notification?.receiver?.email || '--'
+                    }
+                    width="w-8"
+                    height="h-8"
                   />
                 )}
               </div>
               <div className="flex flex-col">
-                <p className="text-sm">
-                  <span className="font-semibold">
-                    {notification.receiver.first_name} {notification.receiver.last_name}
-                  </span>{" "}
+                <p className="text-sm font-semibold">
+                  {notification.receiver.first_name} {notification.receiver.last_name}
                 </p>
                 {notification.title && (
-                  <p className="text-sm text-purple-600  mt-1">
-                    {notification.title}
-                  </p>
+                  <p className="text-sm text-purple-600 mt-1">{notification.title}</p>
                 )}
-                <p className="text-sm">
-                  {getNotificationMessage(notification)}
-                </p>
-                
+                <p className="text-sm">{getNotificationMessage(notification)}</p>
                 <p className="text-xs text-gray-500 mt-1">
                   {moment(notification.created_at).fromNow()}
                 </p>
