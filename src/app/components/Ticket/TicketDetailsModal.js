@@ -8,6 +8,7 @@ import { timeAgo } from '@/utils/timeUtils';
 import { Calendar, Grid, User, CheckCircle, Circle } from 'lucide-react';
 import { selectStyles } from '../selectStyles';
 import Select from "react-select";
+import TextInput from '../TextInput';
 
 
 const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
@@ -36,7 +37,7 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const [submittingTask, setSubmittingTask] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
   const [newAssignees, setNewAssignees] = useState([]);
-
+  const [dueDate, setDueDate] = useState("")
 
   const fetchTicket = async () => {
     try {
@@ -132,6 +133,10 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const createTask = async () => {
     if (!newTask.title.trim()) return;
 
+    const isoDueDate = dueDate
+    ? new Date(dueDate).toISOString()
+    : null;
+
     try {
       setSubmittingTask(true);
       const taskData = {
@@ -139,6 +144,7 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
         description: newTask.description.trim(),
         assignees: newAssignees.map((agent) => agent.value),
         status: newTask.status || 1,
+        due_date: isoDueDate
       };
 
       if (newTask.priority) taskData.priority = newTask.priority;
@@ -362,6 +368,12 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
                   onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
                 />
 
+                <TextInput
+                  label="Due Date"
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                />
                 <div className="mb-7">
                   <label className="block text-sm font-medium mb-1">Select Agents</label>
                   <Select

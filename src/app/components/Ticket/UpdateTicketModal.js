@@ -4,6 +4,7 @@ import Select from 'react-select';
 import { selectStyles } from '../selectStyles';
 import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
+import TextInput from '../TextInput';
 
 const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const { axiosInstance } = useApi();
@@ -28,6 +29,8 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [ticket, setTicket] = useState(null);
+  const [dueDate, setDueDate] = useState("")
+
 
   useEffect(() => {
     if (isOpen && ticketId) {
@@ -139,6 +142,10 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
       return;
     }
 
+    const isoDueDate = dueDate
+    ? new Date(dueDate).toISOString()
+    : null;
+
     try {
       setSaving(true);
 
@@ -150,7 +157,8 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
         status_id: status?.value || null,
         priority_id: priority?.value || null,
         category_id: category?.value || null,
-        assignee_ids: assignedAgents.map(a => a.value)
+        assignee_ids: assignedAgents.map(a => a.value),
+        due_date: isoDueDate
       };
 
       const response = await axiosInstance.patch(`/tickets/${ticketId}/update/`, payload);
@@ -272,6 +280,13 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
                 isDisabled={saving}
               />
             </div>
+
+            <TextInput
+              label="Due Date"
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+            />
 
             {/* Description */}
             <div>
