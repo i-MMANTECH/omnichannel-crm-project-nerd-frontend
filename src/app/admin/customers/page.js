@@ -7,12 +7,12 @@ import CustomerTable from '@/app/components/Customers/CustomerTable/CustomerTabl
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
 import Image from 'next/image';
-import table from '/public/assets/table.svg';
-import grid from '/public/assets/grid.svg';
-import sort from '/public/assets/sort.svg';
-import filter from '/public/assets/filter.svg';
+import table from '@/public/assets/table.svg';
+import grid from '@/public/assets/grid.svg';
+import sort from '@/public/assets/sort.svg';
+import filter from '@/public/assets/filter.svg';
 import NoDataFound from '@/app/components/NoDataFound';
-import empty from '/public/assets/empty.svg';
+import empty from '@/public/assets/empty.svg';
 import CreateCustomerModal from '@/app/components/Customers/CreateCustomerModal';
 import SuccessModal from '@/app/components/SuccessModal';
 import Pagination from '@/app/components/Pagination/Pagination';

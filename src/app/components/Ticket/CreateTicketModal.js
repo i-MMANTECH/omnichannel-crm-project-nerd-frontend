@@ -5,6 +5,7 @@ import { selectStyles } from '../selectStyles';
 import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
 import { toast } from 'react-toastify';
+import TextInput from '../TextInput';
 
 const CreateTicketModal = ({
   isOpen,
@@ -38,6 +39,7 @@ const CreateTicketModal = ({
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [dueDate, setDueDate] = useState("")
 
   useEffect(() => {
     if (isOpen) {
@@ -194,6 +196,10 @@ const CreateTicketModal = ({
       return;
     }
 
+    const isoDueDate = dueDate
+    ? new Date(dueDate).toISOString()
+    : null;
+
     try {
       setSubmitting(true);
       const payload = {
@@ -209,7 +215,8 @@ const CreateTicketModal = ({
         assignee_ids: assignedTo.length > 0 ? assignedTo.map(a => a.value) : undefined,
         status_id: status?.value || undefined,
         priority_id: priority?.value || undefined,
-        category_id: category?.value || undefined
+        category_id: category?.value || undefined,
+        due_date: isoDueDate
       };
 
       // Remove undefined values
@@ -449,6 +456,13 @@ const CreateTicketModal = ({
               isClearable
             />
           </div>
+
+          <TextInput
+              label="Due Date"
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+            />
 
           {/* Description */}
           <div className="mb-7">

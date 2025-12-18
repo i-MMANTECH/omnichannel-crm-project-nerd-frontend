@@ -1,4 +1,4 @@
-import filter from '/public/assets/filter.svg'
+import filter from '@/public/assets/filter.svg'
 import Image from "next/image"
 
 export default function CustomerChatList({dummyData, handleChatSelect}){

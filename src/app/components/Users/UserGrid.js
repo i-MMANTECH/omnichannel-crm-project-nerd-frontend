@@ -13,7 +13,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import Link from 'next/link'; 
 import NoDataFound from '../NoDataFound';
-import empty from '/public/assets/empty.svg'
+import empty from '@/public/assets/empty.svg'
 import UserAvatar from '../UserAvatar';
 import { getRoleStyle } from '@/utils/getRoleStyle';
 import Image from 'next/image';

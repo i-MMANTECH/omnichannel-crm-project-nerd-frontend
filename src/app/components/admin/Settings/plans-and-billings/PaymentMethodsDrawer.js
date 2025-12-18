@@ -5,7 +5,7 @@ import Drawer from '@/app/components/Drawer';
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
 import NoDataFound from '../../NoDataFound';
-import empty from "/public/assets/empty.svg";
+import empty from "@/public/assets/empty.svg";
 
 const PaymentMethodsDrawer = ({ show, onClose, onRoleCreated }) => {
   const [paymentMethods, setPaymentMethods] = useState([]);
