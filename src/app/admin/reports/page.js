@@ -65,8 +65,8 @@ const Page = () => {
         return <TasksReport {...commonProps} />;
       case 'customers':
         return <CustomersReport {...commonProps} />;
-      case 'Follow up':
-        return <FollowUp {...commonProps} />;
+      // case 'Follow up':
+      //   return <FollowUp {...commonProps} />;
       default:
         return null;
     }
