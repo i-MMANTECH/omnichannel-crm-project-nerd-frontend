@@ -7,7 +7,7 @@ import { useApi } from "@/services/axiosConfig";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import NoDataFound from "@/app/components/NoDataFound";
-import empty from "/public/assets/empty.svg";
+import empty from "@/public/assets/empty.svg";
 import Pagination from "@/app/components/Pagination/Pagination";
 import { useDebounce } from 'use-debounce';
 import { useAuth } from "@/context/AuthContext";
