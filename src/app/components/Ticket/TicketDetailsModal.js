@@ -31,13 +31,52 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
     description: '',
     assignees: [],
     status: 1,
-    priority: null,
+    priority: 2,
     due_date: null
   });
   const [submittingTask, setSubmittingTask] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
   const [newAssignees, setNewAssignees] = useState([]);
   const [dueDate, setDueDate] = useState("")
+
+  const [taskPriorities, setTaskPriorities] = useState([]);
+  const [taskStatuses, setTaskStatuses] = useState([]);
+
+  // Compute selected values only when dependencies change
+  const selectedPriority = React.useMemo(() => {
+    return taskPriorities.find(p => p.value === newTask.priority) || null;
+  }, [taskPriorities, newTask.priority]);
+
+  const selectedStatus = React.useMemo(() => {
+    return taskStatuses.find(s => s.value === newTask.status) || null;
+  }, [taskStatuses, newTask.status]);
+
+
+  useEffect(() => {
+    if (isOpen && ticketId) {
+      fetchTicket();
+      fetchUsers();
+      fetchTasks();
+      fetchComments();
+    }
+  }, [ticketId, isOpen]);
+
+  useEffect(() => {
+    fetchTaskPriorities();
+    fetchTaskStatuses();
+  }, [])
+
+  useEffect(() => {
+    if (!ticket) return;
+  
+    setNewTask(prev => ({
+      ...prev,
+      priority: ticket?.priority?.id ?? prev.priority,
+      status: ticket?.status?.id ?? prev.status,
+    }));
+  }, [ticket?.priority?.id, ticket?.status?.id]);
+  
+
 
   const fetchTicket = async () => {
     try {
@@ -73,7 +112,6 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
     try {
       const response = await axiosInstance.get('/users/');
       
-      console.log('response is ', response)
       setAllUsers(response.data.results.map((user) => ({
         value: user.id,
         label: user.email,
@@ -83,14 +121,35 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
     }
   };
 
-  useEffect(() => {
-    if (isOpen && ticketId) {
-      fetchTicket();
-      fetchUsers();
-      fetchTasks();
-      fetchComments();
+  const fetchTaskPriorities = async () => {
+    try {
+      const response = await axiosInstance.get('/tasks/priorities/');
+      
+      setTaskPriorities(
+        response.data.priorities.map(p => ({
+          value: p.id,
+          label: p.label
+        }))
+      );
+    } catch (error) {
+      handleApiError(error);
     }
-  }, [ticketId, isOpen]);
+  };
+
+  const fetchTaskStatuses = async () => {
+    try {
+      const response = await axiosInstance.get('/tasks/statuses/');
+      
+      setTaskStatuses(
+        response.data.statuses.map(p => ({
+          value: p.id,
+          label: p.label
+        }))
+      );
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
 
   const fetchComments = async () => {
     try {
@@ -143,12 +202,10 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
         title: newTask.title.trim(),
         description: newTask.description.trim(),
         assignees: newAssignees.map((agent) => agent.value),
-        status: newTask.status || 1,
+        status: newTask?.status || 1,
+        priority: newTask?.priority || 2,
         due_date: isoDueDate
       };
-
-      if (newTask.priority) taskData.priority = newTask.priority;
-      if (newTask.due_date) taskData.due_date = newTask.due_date;
 
       const response = await axiosInstance.post(`/tickets/${ticketId}/tasks/`, taskData);
 
@@ -159,7 +216,7 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
           description: '',
           assignees: [],
           status: 1,
-          priority: null,
+          priority: 2,
           due_date: null
         });
         setShowTaskForm(false);
@@ -366,6 +423,24 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
                   rows={2}
                   value={newTask.description}
                   onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                />
+
+                <Select
+                  value={selectedPriority}
+                  onChange={(opt) =>
+                    setNewTask(prev => ({ ...prev, priority: opt?.value ?? null }))
+                  }
+                  options={taskPriorities}
+                  styles={selectStyles}
+                />
+
+                <Select
+                  value={selectedStatus}
+                  onChange={(opt) =>
+                    setNewTask(prev => ({ ...prev, status: opt?.value ?? null }))
+                  }
+                  options={taskStatuses}
+                  styles={selectStyles}
                 />
 
                 <TextInput
