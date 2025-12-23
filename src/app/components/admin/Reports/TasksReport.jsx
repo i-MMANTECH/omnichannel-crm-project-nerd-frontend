@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -12,7 +12,10 @@ import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
 import { useAuth } from '@/context/AuthContext';
 import StatCard from './StatCard';
-import { MessageSquareIcon, PhoneCallIcon, UsersIcon, MoreVertical, X, Clock, CheckCircle2, User, MessageCircleDashed, MessageSquareDashed } from 'lucide-react';
+import {
+  MessageSquareIcon, PhoneCallIcon, UsersIcon, MoreVertical, X, Clock, CheckCircle2, User,
+  MessageCircleDashed, MessageSquareDashed, AlertCircle, ArrowRight
+} from 'lucide-react';
 import UserAvatar from '../../UserAvatar';
 import Pagination from '../../Pagination/Pagination';
 import Select from 'react-select';
@@ -20,7 +23,7 @@ import { selectStyles } from '../../selectStyles';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-const TasksReport = ({filters, selectedUser, refreshKey}) => {
+const TasksReport = ({ filters, selectedUser, refreshKey }) => {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
   const { user } = useAuth();
@@ -33,7 +36,7 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
   const [taskTimeline, setTaskTimeline] = useState(null);
   const [timelineLoading, setTimelineLoading] = useState(false);
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -46,12 +49,17 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
   const [selectedAssignees, setSelectedAssignees] = useState([]);
   const [actionLoading, setActionLoading] = useState(false);
 
+  const [overdueCount, setOverdueCount] = useState(0);
+  const [showOverdueOnly, setShowOverdueOnly] = useState(false);
+  const tasksTableRef = useRef(null);
+
   const fetchData = async () => {
     setLoading(true);
+
     try {
       let params = {};
 
-      if (filters && filters.startDate && filters.endDate) {
+      if (filters?.startDate && filters?.endDate) {
         params.start_date = filters.startDate.toISOString().split("T")[0];
         params.end_date = filters.endDate.toISOString().split("T")[0];
       }
@@ -60,28 +68,56 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
         params.user_id = selectedUser;
       }
 
-      const res = await axiosInstance.get('/analytics/tasks/', { params });
-      setTasksReportData(res.data.data);
-      
-      // Fetch tasks list with pagination
+      // Table request (optionally filtered to overdue)
       const tasksParams = {
         ...params,
         page: currentPage,
-        page_size: pageSize
+        page_size: pageSize,
+        ...(showOverdueOnly ? { status: 4 } : {})
       };
-      
-      const tasksRes = await axiosInstance.get('/tasks/list/', { params: tasksParams });
+
+      // Overdue count request
+      const overdueParams = {
+        ...params,
+        page: 1,
+        page_size: 100,
+        status: 4
+      };
+
+      const [analyticsRes, tasksRes, overdueRes] = await Promise.all([
+        axiosInstance.get('/analytics/tasks/', { params }),
+        axiosInstance.get('/tasks/list/', { params: tasksParams }),
+        axiosInstance.get('/tasks/list/', { params: overdueParams }),
+      ]);
+
+      setTasksReportData(analyticsRes.data.data);
+
+      // Table data
       setTasksList(tasksRes.data.tasks || []);
-      
-      // Update pagination info
-      if (tasksRes.data.pagination) {
-        setTotalPages(tasksRes.data.pagination.total_pages || 1);
-        setTotalCount(tasksRes.data.pagination.total_count || 0);
-      } else if (tasksRes.data.count) {
-        // Alternative response structure
-        setTotalCount(tasksRes.data.count);
-        setTotalPages(Math.ceil(tasksRes.data.count / pageSize));
-      }
+
+      const pag = tasksRes.data?.pagination;
+      const count =
+        pag?.total_count ??
+        pag?.count ??               // <-- your API sample uses this
+        tasksRes.data?.count ??
+        0;
+
+      setTotalCount(Number(count) || 0);
+
+      const totalPagesFromApi = pag?.total_pages;
+      setTotalPages(
+        Number(totalPagesFromApi) || Math.max(1, Math.ceil((Number(count) || 0) / pageSize))
+      );
+
+      // Overdue count (prefer pagination.count when status=4)
+      const overduePag = overdueRes.data?.pagination;
+      const overdueTotal =
+        overduePag?.count ??
+        overdueRes.data?.count ??
+        overduePag?.status_counts?.overdue ?? // fallback if your API supports it
+        0;
+
+      setOverdueCount(Number(overdueTotal) || 0);
     } catch (err) {
       handleApiError(err);
     } finally {
@@ -113,9 +149,8 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
   };
 
   useEffect(() => {
-    console.log("user is", user)
     fetchData();
-  }, [filters, selectedUser, refreshKey, currentPage, pageSize]);
+  }, [filters, selectedUser, refreshKey, currentPage, pageSize, showOverdueOnly]);
 
   useEffect(() => {
     fetchUsers();
@@ -127,7 +162,7 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
     }
 
     const firstPeriod = tasksReportData.tasks_by_period[0];
-    const statusNames = Object.keys(firstPeriod).filter(key => 
+    const statusNames = Object.keys(firstPeriod).filter(key =>
       key !== 'period' && key !== 'period_label' && key !== 'total'
     );
 
@@ -162,6 +197,21 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
       ]
     };
   }, [tasksReportData, statusFilter]);
+
+  const handleViewOverdue = () => {
+    setShowOverdueOnly(true);
+    setCurrentPage(1);
+
+    // optional: scroll down to the table
+    setTimeout(() => {
+      tasksTableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
+  };
+
+  const handleViewAllTasks = () => {
+    setShowOverdueOnly(false);
+    setCurrentPage(1);
+  };
 
   const handleTaskClick = (task) => {
     setSelectedTask(task);
@@ -204,7 +254,7 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
 
       // Refresh timeline to show new comment
       await fetchTaskTimeline(selectedTask.id);
-      
+
       alert('Nudge sent successfully!');
     } catch (err) {
       handleApiError(err);
@@ -234,7 +284,7 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
       // Refresh data
       await fetchData();
       await fetchTaskTimeline(selectedTask.id);
-      
+
       // Update selected task state
       setSelectedTask({
         ...selectedTask,
@@ -268,7 +318,7 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
     setActionLoading(true);
     try {
       const assigneeIds = selectedAssignees.map(a => a.value);
-      
+
       // Update task assignees
       await axiosInstance.post(`/tasks/${selectedTask.id}/update/`, {
         assignees: assigneeIds
@@ -286,7 +336,7 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
       // Refresh data
       await fetchData();
       await fetchTaskTimeline(selectedTask.id);
-      
+
       // Update selected task state
       const updatedAssignees = selectedAssignees.map(a => {
         const userObj = users.find(u => u.id === a.value);
@@ -349,23 +399,23 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
     const date = new Date(dateString);
     const today = new Date();
     const isToday = date.toDateString() === today.toDateString();
-    
-    const timeStr = date.toLocaleString('en-US', { 
+
+    const timeStr = date.toLocaleString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     });
-    
+
     if (isToday) {
       return `Today, ${timeStr}`;
     }
-    
-    return date.toLocaleString('en-US', { 
+
+    return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     });
   };
 
@@ -380,16 +430,16 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
     const due = new Date(dueDate);
     const diffMs = now - due;
     const diffHours = Math.floor(diffMs / 3600000);
-    
+
     if (diffHours < 0) return null;
     if (diffHours < 24) return `${diffHours}hrs overdue`;
-    
+
     const diffDays = Math.floor(diffHours / 24);
     return `${diffDays}d overdue`;
   };
 
   const getPriorityText = (priority) => {
-    const priorityName = priority?.name || priority;
+    const priorityName = priority?.label || priority?.name || priority;
     if (!priorityName) return 'Medium';
     return priorityName.charAt(0).toUpperCase() + priorityName.slice(1);
   };
@@ -414,7 +464,7 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
     scales: {
       y: {
         beginAtZero: true,
-        max: tasksReportData?.tasks_by_period ? 
+        max: tasksReportData?.tasks_by_period ?
           Math.max(...tasksReportData.tasks_by_period.map(item =>
             statusFilter === 'All Status' ? item.total : item[statusFilter] || 0
           )) + 100 : 100,
@@ -456,12 +506,50 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
 
   return (
     <>
+      {overdueCount > 0 && (
+        <div className="mt-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-6 rounded-2xl border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-6 h-6 text-white" />
+              </div>
+
+              <div>
+                <div className="text-lg font-semibold text-red-900 dark:text-red-100">
+                  Critical Alert: {overdueCount} Overdue Task{overdueCount === 1 ? '' : 's'}
+                </div>
+                <div className="text-sm text-red-700 dark:text-red-200">
+                  These tasks require immediate attention to prevent project delays
+                </div>
+              </div>
+            </div>
+
+            {showOverdueOnly ? (
+              <button
+                onClick={handleViewAllTasks}
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 whitespace-nowrap"
+              >
+                View All Tasks
+              </button>
+            ) : (
+              <button
+                onClick={handleViewOverdue}
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-medium shadow-sm whitespace-nowrap"
+              >
+                View Overdue Tasks
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="mt-6">
         <div className="body-theme w-full rounded-lg border border-[#DFE1E6] shadow-lg p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-medium">Tasks</h3>
+            <h3 className="text-base font-medium">Task Overview</h3>
             <div className="flex gap-4">
-              <select 
+              <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-[#0D0D12] text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -482,7 +570,7 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
           </div>
         </div>
       </div>
-      
+
       <div className="gap-5 mt-5 flex flex-wrap border border-[#DFE1E6] body-theme rounded-[16px] p-5">
         {statsData.map((stat, index) => (
           <StatCard key={index} {...stat} />
@@ -490,18 +578,23 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
       </div>
 
       {/* Tasks List */}
-      <div className="w-full border rounded-[16px] border-gray-300 dark:border-gray-700 p-4 mt-6 overflow-auto body-theme">
+      <div ref={tasksTableRef} className="w-full border rounded-[16px] border-gray-300 dark:border-gray-700 p-4 mt-6 overflow-auto body-theme">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Recent Tasks</h3>
-          <span className="text-sm text-gray-500">
+          {/* <span className="text-sm text-gray-500">
             Showing {tasksList.length > 0 ? ((currentPage - 1) * pageSize) + 1 : 0} - {Math.min(currentPage * pageSize, totalCount)} of {totalCount} tasks
-          </span>
+          </span> */}
+          {showOverdueOnly && (
+            <span className="text-xs font-semibold px-2 py-1 rounded-md bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200">
+              Overdue
+            </span>
+          )}
         </div>
-        
+
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-gray-300 bg-[#F8F9FB] dark:bg-gray-800 rounded-lg overflow-hidden">
-              <th className="py-2 px-3 rounded-tl-lg">ID</th>  
+              <th className="py-2 px-3 rounded-tl-lg">ID</th>
               <th className="py-2 px-3">Task</th>
               <th className="py-2 px-3">Assignee</th>
               <th className="py-2 px-3">Priority</th>
@@ -525,7 +618,7 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
                 >
                   <td className="py-2 px-3">
                     <div className="font-medium">#{task.id}</div>
-                  </td>  
+                  </td>
                   <td className="py-2 px-3">
                     <div className="font-medium">{task.title}</div>
                     {task.description && (
@@ -555,7 +648,7 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
 
                   <td className="py-2 px-3">
                     <div className="flex items-center gap-2">
-                      <div 
+                      <div
                         className="w-2 h-2 rounded-full"
                         style={{ backgroundColor: getPriorityColor(task.priority) }}
                       />
@@ -597,18 +690,18 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
 
       {/* Task Detail Modal - System Reminder Style */}
       {selectedTask && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={closeTaskDetails}
         >
-          <div 
+          <div
             className="bg-white dark:bg-gray-900 rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Blue Header Bar */}
             <div className="bg-blue-600 text-white p-4 rounded-t-lg flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <button 
+                <button
                   onClick={closeTaskDetails}
                   className="hover:bg-white/10 rounded-full p-1 transition-colors"
                 >
@@ -639,7 +732,7 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
                 <div className="mb-6">
                   <h3 className="text-xl font-bold mb-2">Task requires immediate attention</h3>
                   <p className="text-gray-600 dark:text-gray-400">
-                    The following task has not been actioned after multiple reminders. 
+                    The following task has not been actioned after multiple reminders.
                     Team Lead intervention may be needed to ensure completion or identify blockers.
                   </p>
                 </div>
@@ -684,8 +777,8 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">Assigned By:</span>
                     <span className="font-medium">
-                      {selectedTask.created_by 
-                        ? `${selectedTask.created_by.first_name} ${selectedTask.created_by.last_name}` 
+                      {selectedTask.created_by
+                        ? `${selectedTask.created_by.first_name} ${selectedTask.created_by.last_name}`
                         : 'System'}
                     </span>
                   </div>
@@ -700,16 +793,16 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
               ) : taskTimeline?.timeline ? (
                 <div className="mb-6">
                   <h3 className="text-lg font-bold mb-4">Activity Status</h3>
-                  
+
                   <div className="space-y-4">
                     {taskTimeline.timeline.map((item, index) => {
                       const isLastItem = index === taskTimeline.timeline.length - 1;
-                      
+
                       // Determine icon and styling based on activity type
                       let icon, iconBg, iconColor, activityTitle;
                       const desc = item.description?.toLowerCase() || '';
                       const type = item.type?.toLowerCase() || '';
-                      
+
                       if (type === 'comment') {
                         icon = <MessageSquareDashed className="w-5 h-5" />;
                         iconBg = 'bg-green-100 dark:bg-green-900';
@@ -772,7 +865,7 @@ const TasksReport = ({filters, selectedUser, refreshKey}) => {
                               </span>
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                              {item.content || item.description || 
+                              {item.content || item.description ||
                                 (type === 'creation' ? 'Task created' : 'Activity recorded')}
                             </p>
                             {item.user && (
