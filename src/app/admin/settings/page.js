@@ -1,36 +1,42 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import React, { useEffect, useState, useCallback } from 'react';
 import SettingsSidebar from "@/app/components/admin/Settings/SettingsSidebar";
 import IntegrateChannels from "@/app/components/admin/Settings/channels/IntegrateChannels";
 import RoleManagement from '@/app/components/admin/Settings/role-management/RoleManagement';
-import dynamic from 'next/dynamic';
 import SlaPolicies from '@/app/components/admin/Settings/sla-policies/SlaPolicies';
 import DeveloperSettings from '@/app/components/admin/Settings/developer-settings/DeveloperSettings';
 import NotificationSettings from '@/app/components/admin/Settings/notification-settings/NotificationSettings';
-
-
-const PlansAndBillings = dynamic(() => import('@/app/components/admin/Settings/plans-and-billings/PlansAndBillings'), { 
-  ssr: false 
-});
+import AutomationsTemplates from '@/app/components/admin/Settings/automations/AutomationsTemplates';
 
 export default function Settings() {
-  const pathname = usePathname();
-  const [currentSection, setCurrentSection] = useState(null);
+  const [currentSection, setCurrentSection] = useState('default');
 
+  // 1) Single source of truth: read from window.location.hash
+  const syncFromHash = useCallback(() => {
+    const hash = window.location.hash.replace('#', '');
+    setCurrentSection(hash || 'default');
+  }, []);
+
+  // 2) Run once on mount + whenever hash changes (including browser back/forward)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hash = window?.location.hash.substring(1);
-      setCurrentSection(hash || 'default');
-    }
-  }, [pathname]);
+    if (typeof window === 'undefined') return;
 
+    syncFromHash(); // initial load
+
+    window.addEventListener('hashchange', syncFromHash);
+    window.addEventListener('popstate', syncFromHash);
+
+    return () => {
+      window.removeEventListener('hashchange', syncFromHash);
+      window.removeEventListener('popstate', syncFromHash);
+    };
+  }, [syncFromHash]);
+
+  // 3) Sidebar click updates the hash (hashchange listener will sync state)
   const handleSidebarClick = (section) => {
-    setCurrentSection(section);
-    if (typeof window !== 'undefined') {
-      window.location.hash = section;
-    }
+    window.location.hash = section;
+    // no need to setCurrentSection here; the event listener handles it
   };
 
   const renderContent = () => {
@@ -39,41 +45,33 @@ export default function Settings() {
         return <RoleManagement />;
       case 'channels-integration':
         return <IntegrateChannels />;
-      // case 'report-settings':
-      //   return <div>Report Settings Component</div>;
-      // case 'data-backup':
-      //   return <div>Data Backup Component</div>;
       case 'notification-settings':
         return <NotificationSettings />;
-      // case 'task-management':
-      //   return <div>Task Management Component</div>;
-      // case 'security-settings':
-      //   return <div>Security Settings Component</div>;
-      // case 'plans-and-billings':
-      //   return <PlansAndBillings/>;
       case 'sla-policies':
-        return <SlaPolicies/>;
+        return <SlaPolicies />;
       case 'developer-settings':
-        return <DeveloperSettings/>;
+        return <DeveloperSettings />;
+      case 'automations':
+        return <AutomationsTemplates />;
       default:
         return <div>Select a setting from the sidebar</div>;
     }
   };
 
   return (
-    <div> 
-    <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh]">      
-      <div className='relative w-1/5 border-e border-gray-300 dark:border-gray-600'>
-        <SettingsSidebar 
-          onSidebarClick={handleSidebarClick}
-          currentSection={currentSection}
-        />
-        
+    <div>
+      <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh]">
+        <div className='relative w-1/5 border-e border-gray-300 dark:border-gray-600'>
+          <SettingsSidebar
+            onSidebarClick={handleSidebarClick}
+            currentSection={currentSection}
+          />
+        </div>
+
+        <div className="flex-1">
+          {renderContent()}
+        </div>
       </div>
-      <div className="flex-1">
-        {renderContent()}
-      </div>
-    </div>
     </div>
   );
 }

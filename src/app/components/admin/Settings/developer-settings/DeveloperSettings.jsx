@@ -35,7 +35,7 @@ export default function DeveloperSettings() {
         setLoadingWebhook(false)
       }
     };
-  
+
     const fetchApiKey = async () => {
       try {
         const response = await axiosInstance.get("/companies/api-key/");
@@ -50,7 +50,7 @@ export default function DeveloperSettings() {
 
     const fetchPaymentKeys = async () => {
       try {
-        const {data} = await axiosInstance.get("/companies/payment-config/");
+        const { data } = await axiosInstance.get("/companies/payment-config/");
         const paystackConfig = data?.data?.config?.paystack || {};
 
         setPublicKey(paystackConfig.public_key || "");
@@ -83,10 +83,10 @@ export default function DeveloperSettings() {
   const handleUploadDocument = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
-  
+
     try {
       setUploading(true);
       await axiosInstance.post("/documents/", formData, {
@@ -99,7 +99,7 @@ export default function DeveloperSettings() {
       setUploading(false);
     }
   };
-  
+
   const handleDeleteDocument = async (docId) => {
     try {
       await axiosInstance.delete(`/documents/${docId}/`);
@@ -107,7 +107,7 @@ export default function DeveloperSettings() {
     } catch (error) {
       handleApiError(error);
     }
-  };    
+  };
 
   useEffect(() => {
     fetchDocuments();
@@ -147,7 +147,9 @@ export default function DeveloperSettings() {
 
   return (
     <div className="ms-10">
-      <div className="flex flex-col flex-1 gap-4 p-6">
+      <h2 className="text-lg font-semibold mb-2">Developer Settings</h2>
+
+      <div className="flex flex-col flex-1 gap-4 py-6 pr-6">
         <div className="flex gap-6">
           {tabs.map((tab) => (
             <p
@@ -311,7 +313,7 @@ export default function DeveloperSettings() {
                 className="mt-4 px-4 py-2 bg-[#3EBF0F] text-white rounded"
               >
                 Save
-                  </button>
+              </button>
             </>
           )}
         </div>

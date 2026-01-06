@@ -25,7 +25,7 @@ export const MainContainer = () => {
   const handleConnectClick = (title, icon) => {
     const lowerCaseTitle = title.toLowerCase();
     const comingSoonChannels = ["facebook", "instagram", "sms", "telegram"];
-  
+
     if (lowerCaseTitle === "whatsapp") {
       setIsWhatsApp(true);
     } else if (comingSoonChannels.includes(lowerCaseTitle)) {
@@ -42,23 +42,23 @@ export const MainContainer = () => {
       setShowModal(true);
     }
   };
-  
+
 
   const closeModal = () => {
     setShowModal(false);
     setShowDisconnectModal(false);
     setIsLiveChat(false);
     setIsEmail(false);
-    setIsWhatsApp(false); 
+    setIsWhatsApp(false);
   };
 
   useEffect(() => {
-    const getChannels = async() => {
+    const getChannels = async () => {
       try {
         const response = await axiosInstance.get('/channels/all/')
-          
+
         setChannels(response.data.channels);
-      } catch(error) {
+      } catch (error) {
         handleApiError(error)
       }
     }
@@ -70,6 +70,7 @@ export const MainContainer = () => {
   return (
     <div className="main-container max-w-full body-theme pl-10 w-full">
       <div className="frame min-h-full">
+        <h2 className="text-lg font-semibold mb-2">Channels</h2>
         <p className="text-lg">Select the channels you want to connect</p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-5 justify-between w-full flex-wrap">
@@ -80,7 +81,7 @@ export const MainContainer = () => {
                   <img src={channel.image} alt={channel.name}
                     width={80}
                     height={80}
-                />
+                  />
                 </div>
 
                 <div>
@@ -105,13 +106,13 @@ export const MainContainer = () => {
               </div>
             </div>
           ))}
-        </div> 
+        </div>
 
-        <ComingSoonModal 
-          isOpen={showModal} 
-          onCancel={closeModal} 
-          onConfirm={closeModal} 
-          title={modalTitle} 
+        <ComingSoonModal
+          isOpen={showModal}
+          onCancel={closeModal}
+          onConfirm={closeModal}
+          title={modalTitle}
           message={modalContent} />
 
         {isWhatsApp && <ConnectWhatsAppModal onCancel={closeModal} />}

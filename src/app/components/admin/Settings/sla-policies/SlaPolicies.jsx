@@ -48,7 +48,8 @@ const SlaPolicies = () => {
     return (
         <>
             {/* Search and Button Wrapper */}
-            <div className="mb-6 flex justify-end w-full">
+            <div className="mb-6 flex justify-between items-center pl-10 w-full">
+                <h2 className="text-lg font-semibold mb-2">SLA Policies</h2>
                 <div className="flex flex-wrap items-center gap-4 sm:flex-nowrap">
                     <button
                         onClick={() => setShowModal(true)}
@@ -80,11 +81,11 @@ const SlaPolicies = () => {
 
             {/* SLA Detail Modal */}
             {isReview && (
-                <SlaDetail 
-                  isOpen={isReview} 
-                  onClose={() => 
-                  setIsReview(false)} 
-                  slaId={slaId} />
+                <SlaDetail
+                    isOpen={isReview}
+                    onClose={() =>
+                        setIsReview(false)}
+                    slaId={slaId} />
             )}
 
             {/* Table Section */}
@@ -120,13 +121,13 @@ const SlaPolicies = () => {
                                             onClick={() => handleReview(sla.id)}
                                             className="bg-blue-500 text-white px-2 py-1 rounded-md shadow-sm"
                                         >
-                                             <View />
+                                            <View />
                                         </button>
                                         <button
                                             onClick={() => handleEdit(sla.id)}
                                             className="bg-yellow-500 text-white px-2 py-1 rounded-md shadow-sm"
                                         >
-                                             <Pencil />
+                                            <Pencil />
                                         </button>
                                     </td>
                                 </tr>
