@@ -5,7 +5,7 @@ import SuccessModal from "../SuccessModal";
 import Image from "next/image";
 import Select from 'react-select';
 import { selectStyles } from "../selectStyles";
-import Modal from "../../Modal";
+import Modal from "../Modal";
 import CreatableSelect from "react-select/creatable";
 
 
