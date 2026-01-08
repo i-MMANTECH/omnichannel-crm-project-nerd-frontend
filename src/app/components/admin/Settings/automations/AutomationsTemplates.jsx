@@ -10,13 +10,16 @@ import {
     Pencil,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import CreateTemplateDrawer from "./CreateTemplateDrawer";
+import TemplatePreviewModal from "./TemplatePreviewModal";
+import EditTemplateDrawer from "./EditTemplateDrawer";
 
 /**
  * Map your CRM channel names to the backend "channel_type" slug
  * used in: /communication/templates/by-channel/<channel_type>/
  *
  * IMPORTANT:
- * Adjust any value here if your backend expects something different.
+ * Adjust any value here when the backend expects something different.
  */
 const CHANNEL_TYPE_MAP = {
     Facebook: "facebook",
@@ -90,7 +93,25 @@ export default function AutomationsTemplates() {
 
     // Master toggle (UI only for now — you didn’t share the endpoint yet)
     const [autoResponderEnabled, setAutoResponderEnabled] = useState(true);
+    const [createOpen, setCreateOpen] = useState(false);
+    const [createDefaultChannel, setCreateDefaultChannel] = useState("");
+
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const [previewId, setPreviewId] = useState(null);
+
+    const [editOpen, setEditOpen] = useState(false);
+    const [editId, setEditId] = useState(null);
+    const [editFromChannel, setEditFromChannel] = useState("");
+
     const router = useRouter();
+
+    const connectedChannelOptions = useMemo(() => {
+        const connected = (channels || []).filter((c) => c.connected);
+        return connected.map((c) => ({
+            label: c.name,
+            value: slugFromChannel(c),
+        }));
+    }, [channels]);
 
     const fetchChannels = async () => {
         try {
@@ -205,17 +226,16 @@ export default function AutomationsTemplates() {
     }, [channels, templatesByChannelType, expanded, loadingTemplates]);
 
     const onAddTemplate = (channel) => {
-        // Hook this into your modal / create-template screen
-        console.log("Add template for:", channel.name);
-    };
-
-    const onManageTemplate = () => {
-        console.log("Manage template clicked");
+        const channelType = slugFromChannel(channel);
+        setCreateDefaultChannel(channelType);
+        setCreateOpen(true);
     };
 
     const onCreateTemplateTop = () => {
-        console.log("Create template clicked");
+        setCreateDefaultChannel(""); // user will pick
+        setCreateOpen(true);
     };
+
 
     const onConnectChannel = (channel) => {
         window.location.hash = "channels-integration";
@@ -240,12 +260,6 @@ export default function AutomationsTemplates() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={onManageTemplate}
-                        className="px-4 py-2 rounded-lg border border-gray-200 text-sm hover:bg-gray-50"
-                    >
-                        Manage Template
-                    </button>
                     <button
                         onClick={onCreateTemplateTop}
                         className="px-4 py-2 rounded-lg bg-[#3EBF0F] text-white text-sm hover:bg-[#34ab0d]"
@@ -419,9 +433,10 @@ export default function AutomationsTemplates() {
                                                                 <div className="flex items-center gap-4">
                                                                     <button
                                                                         className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                                                                        onClick={() =>
-                                                                            console.log("Preview template", t.id)
-                                                                        }
+                                                                        onClick={() => {
+                                                                            setPreviewId(t.id);
+                                                                            setPreviewOpen(true);
+                                                                        }}
                                                                     >
                                                                         <Eye className="w-4 h-4" />
                                                                         Preview
@@ -429,9 +444,11 @@ export default function AutomationsTemplates() {
 
                                                                     <button
                                                                         className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                                                                        onClick={() =>
-                                                                            console.log("Edit template", t.id)
-                                                                        }
+                                                                        onClick={() => {
+                                                                            setEditId(t.id);
+                                                                            setEditFromChannel(channelType); // remember where it came from
+                                                                            setEditOpen(true);
+                                                                        }}
                                                                     >
                                                                         <Pencil className="w-4 h-4" />
                                                                         Edit
@@ -461,6 +478,53 @@ export default function AutomationsTemplates() {
                     )}
                 </div>
             </div>
+            <CreateTemplateDrawer
+                open={createOpen}
+                onClose={() => setCreateOpen(false)}
+                axiosInstance={axiosInstance}
+                connectedChannels={connectedChannelOptions}
+                defaultChannelType={createDefaultChannel}
+                onCreated={(channelType) => {
+                    // refresh the list so the new template appears immediately
+                    fetchTemplatesForChannelType(channelType);
+
+                    // expand that channel card automatically
+                    setExpanded((prev) => ({ ...prev, [channelType]: true }));
+                }}
+            />
+            <TemplatePreviewModal
+                isOpen={previewOpen}
+                onClose={() => {
+                    setPreviewOpen(false);
+                    setPreviewId(null);
+                }}
+                axiosInstance={axiosInstance}
+                templateId={previewId}
+                businessName="Your Business"
+            />
+            <EditTemplateDrawer
+                open={editOpen}
+                onClose={() => {
+                    setEditOpen(false);
+                    setEditId(null);
+                    setEditFromChannel("");
+                }}
+                axiosInstance={axiosInstance}
+                templateId={editId}
+                connectedChannels={connectedChannelOptions}
+                onUpdated={({ oldChannelType, newChannelType }) => {
+                    // refresh old channel list
+                    fetchTemplatesForChannelType(oldChannelType);
+
+                    // if channel type changed, refresh the new one too
+                    if (newChannelType && newChannelType !== oldChannelType) {
+                        fetchTemplatesForChannelType(newChannelType);
+                        setExpanded((prev) => ({ ...prev, [newChannelType]: true }));
+                    } else {
+                        setExpanded((prev) => ({ ...prev, [oldChannelType]: true }));
+                    }
+                }}
+            />
         </div>
     );
 }

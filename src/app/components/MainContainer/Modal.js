@@ -13,7 +13,7 @@ export const Modal = ({ show, onClose, title, icon }) => {
   };
 
   const togglePasswordVisibility = () => {
-    setIsPasswordVisible(!isPasswordVisible); 
+    setIsPasswordVisible(!isPasswordVisible);
   };
 
   if (!show) return null;
@@ -43,14 +43,14 @@ export const Modal = ({ show, onClose, title, icon }) => {
               onClick={togglePasswordVisibility}
             >
               <span role="img" aria-label={isPasswordVisible ? "show-password" : "hide-password"}>
-                
-              <Image
-                  src={isPasswordVisible ? "/assets/show-password.svg" :"/assets/hide-password.svg"}
+
+                <Image
+                  src={isPasswordVisible ? "/assets/show-password.svg" : "/assets/hide-password.svg"}
                   alt="Show Password"
                   width={24}
                   height={24}
                 />
-                
+
               </span>
             </button>
           </div>
