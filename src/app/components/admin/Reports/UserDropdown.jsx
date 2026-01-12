@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { UserPlus, ChevronDown } from 'lucide-react';
 
-const options = ['messages', 'tasks', 'users', 'Follow up'];
+const options = ['messages', 'tasks', 'users'];
 
 const UserDropdown = ({ selectedSection, setSelectedSection }) => {
   const [isOpen, setIsOpen] = useState(false);
