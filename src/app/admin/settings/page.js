@@ -60,7 +60,7 @@ export default function Settings() {
 
   return (
     <div>
-      <div className="overflow-x-hidden flex flex-row body-theme px-10 min-h-[83vh]">
+      <div className="overflow-x-hidden flex flex-row body-theme min-h-[83vh]">
         <div className='relative w-1/5 border-e border-gray-300 dark:border-gray-600'>
           <SettingsSidebar
             onSidebarClick={handleSidebarClick}
