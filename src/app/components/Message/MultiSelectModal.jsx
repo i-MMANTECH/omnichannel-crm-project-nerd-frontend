@@ -4,12 +4,12 @@ import { X, Image as ImageIcon, Send, File, Plus } from 'lucide-react';
 
 import UserAvatar from '../UserAvatar';
 
-const MultiSelectModal = ({ 
-  selectedImages = [], 
-  selectedFiles = [], 
-  onImageSelect, 
-  onFileSelect, 
-  onRemoveImage, 
+const MultiSelectModal = ({
+  selectedImages = [],
+  selectedFiles = [],
+  onImageSelect,
+  onFileSelect,
+  onRemoveImage,
   onRemoveFile,
   onSend,
   message = "",
@@ -92,7 +92,7 @@ const MultiSelectModal = ({
             </div>
             <div className="flex flex-col justify-center gap-2 bottom-1">
               <div className="text-black">{activeUser.name || "Unknown User"}</div>
-              <div className="title-4">Last Seen {formattedTime}</div>
+              <div className="title-4">Last Active {formattedTime}</div>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
@@ -101,12 +101,12 @@ const MultiSelectModal = ({
         </div>
 
         <div className="p-6">
-            <p className="text-sm text-gray-600 mb-3 text-center">
-                {selectedImages.length > 0 || selectedFiles.length > 0 
-                    ? `${selectedImages.length + selectedFiles.length} file(s) selected: ${selectedFiles[0]?.name || selectedImages[0]?.name}`
-                    : ''
-                }
-            </p>
+          <p className="text-sm text-gray-600 mb-3 text-center">
+            {selectedImages.length > 0 || selectedFiles.length > 0
+              ? `${selectedImages.length + selectedFiles.length} file(s) selected: ${selectedFiles[0]?.name || selectedImages[0]?.name}`
+              : ''
+            }
+          </p>
           <div className="mb-4">
             {previewItem ? (
               <div className="relative rounded-2xl overflow-hidden h-64 w-full flex items-center justify-center bg-gray-100">
@@ -229,7 +229,7 @@ const MultiSelectModal = ({
                 className="hidden"
               />
 
-              <button 
+              <button
                 onClick={() => imageInputRef.current?.click()}
                 className="relative w-12 h-12 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-[#3EBF0F] hover:bg-[#3EBF0F1A]"
               >
@@ -239,7 +239,7 @@ const MultiSelectModal = ({
                 </div>
               </button>
 
-              <button 
+              <button
                 onClick={() => fileInputRef.current?.click()}
                 className="relative w-12 h-12 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-[#3EBF0F] hover:bg-[#3EBF0F1A]"
               >
@@ -250,15 +250,15 @@ const MultiSelectModal = ({
               </button>
             </div>
 
-           {/* Send button */}
-            <button 
-            onClick={canSend ? onSend : undefined}
-            disabled={!canSend}
-            className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 
+            {/* Send button */}
+            <button
+              onClick={canSend ? onSend : undefined}
+              disabled={!canSend}
+              className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 
                 ${canSend ? 'hover:scale-105' : 'opacity-50 cursor-not-allowed'}`}
-            style={{ backgroundColor: '#3EBF0F' }}
+              style={{ backgroundColor: '#3EBF0F' }}
             >
-            <Send size={20} className="text-white ml-0.5" />
+              <Send size={20} className="text-white ml-0.5" />
             </button>
 
           </div>

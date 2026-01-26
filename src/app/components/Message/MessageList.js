@@ -49,7 +49,7 @@ const getSmartTimestamp = (messageDate) => {
   return `${shortDateWithYear}, ${timeString}`; // "2/11/22, 2:50 PM"
 };
 
-const MessageList = ({ chatHistory, inputIsEmailMode, loadMoreMessages, isFetchingMore, isScrolledUp, setIsScrolledUp, next }) => {
+const MessageList = ({ chatHistory, inputIsEmailMode, loadMoreMessages, isFetchingMore, isScrolledUp, setIsScrolledUp, next, chatType, currentUserId }) => {
   const messageEndRef = useRef(null);
   const listRef = useRef(null);
   const router = useRouter();
@@ -184,15 +184,17 @@ const MessageList = ({ chatHistory, inputIsEmailMode, loadMoreMessages, isFetchi
     return faFile;
   };
 
-
   function renderMessageContent(msg) {
-    if (msg.content_type === 'html') {
+    const contentType = msg.content_type || "text"; // ✅ fallback for internal messages
+
+    if (contentType === "html") {
       return <div dangerouslySetInnerHTML={{ __html: msg.content }} />;
     }
 
-    if (msg.content_type === 'text' && msg.channel?.name === 'WhatsApp') {
-      let md = msg.content
-        .replace(/^•\s/gm, '- ')
+    // WhatsApp markdown formatting
+    if (contentType === "text" && msg.channel?.name === "WhatsApp") {
+      let md = (msg.content || "")
+        .replace(/^•\s/gm, "- ")
         .replace(
           /^([A-Za-z0-9 \-\(\)]+):\s*(.+)$/gm,
           (_, title, rest) => `- **${title.trim()}**: ${rest.trim()}`
@@ -205,8 +207,8 @@ const MessageList = ({ chatHistory, inputIsEmailMode, loadMoreMessages, isFetchi
             p: ({ node, ...props }) => (
               <p
                 style={{
-                  whiteSpace: 'pre-wrap',
-                  marginTop: msg.attachments?.length ? '8px' : '0',
+                  whiteSpace: "pre-wrap",
+                  marginTop: msg.attachments?.length ? "8px" : "0",
                 }}
                 {...props}
               />
@@ -218,60 +220,37 @@ const MessageList = ({ chatHistory, inputIsEmailMode, loadMoreMessages, isFetchi
       );
     }
 
-    if (msg.content_type === "text" || msg.content_type === "image" || msg.content_type === "document") {
+    // ✅ Normal text (internal messages will land here)
+    if (contentType === "text") {
       return (
-        <div dangerouslySetInnerHTML={{ __html: msg.content }} style={{ whiteSpace: "pre-wrap", marginTop: msg.attachments?.length ? "8px" : "0" }} />
-      );
-    }
-
-    // For image/document/unknown types, don't show text
-    return null;
-  }
-
-
-
-  function renderMessageContent(msg) {
-    if (msg.content_type === 'html') {
-      return <div dangerouslySetInnerHTML={{ __html: msg.content }} />;
-    }
-
-    if (msg.content_type === 'text' && msg.channel?.name === 'WhatsApp') {
-      let md = msg.content
-        .replace(/^•\s/gm, '- ')
-        .replace(
-          /^([A-Za-z0-9 \-\(\)]+):\s*(.+)$/gm,
-          (_, title, rest) => `- **${title.trim()}**: ${rest.trim()}`
-        );
-
-      return (
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          components={{
-            p: ({ node, ...props }) => (
-              <p
-                style={{
-                  whiteSpace: 'pre-wrap',
-                  marginTop: msg.attachments?.length ? '8px' : '0',
-                }}
-                {...props}
-              />
-            ),
+        <div
+          style={{
+            whiteSpace: "pre-wrap",
+            marginTop: msg.attachments?.length ? "8px" : "0",
           }}
         >
-          {md}
-        </ReactMarkdown>
+          {msg.content}
+        </div>
       );
     }
 
-    if (msg.content_type === "text" || msg.content_type === "image" || msg.content_type === "document") {
-      return (
-        <div dangerouslySetInnerHTML={{ __html: msg.content }} style={{ whiteSpace: "pre-wrap", marginTop: msg.attachments?.length ? "8px" : "0" }} />
-      );
+    // If you truly want "image"/"document" to still show msg.content as HTML text
+    if (contentType === "image" || contentType === "document") {
+      return msg.content ? (
+        <div
+          style={{
+            whiteSpace: "pre-wrap",
+            marginTop: msg.attachments?.length ? "8px" : "0",
+          }}
+        >
+          {msg.content}
+        </div>
+      ) : null;
     }
 
-    // For image/document/unknown types, don't show text
     return null;
   }
+
 
 
   if (!chatHistory || chatHistory?.length === 0) return null;
@@ -285,7 +264,11 @@ const MessageList = ({ chatHistory, inputIsEmailMode, loadMoreMessages, isFetchi
     >
       {chatHistory.map((msg, index) => {
         const isSystemMessage = msg.is_system_message;
-        const isOutgoing = msg.company_is_sender;
+        const isOutgoing =
+          chatType === "internal"
+            ? msg?.sender?.id === currentUserId
+            : !!msg.company_is_sender;
+
         const userDisplayInfo =
           msg.user_sender_details?.last_name ||
           msg.user_sender_details?.first_name ||
@@ -297,7 +280,7 @@ const MessageList = ({ chatHistory, inputIsEmailMode, loadMoreMessages, isFetchi
         // Render ticket notification messages (when ticket is created or closed)
         if (msg.message_type === 'ticket_notification' || msg.is_ticket_notification) {
           return (
-            <div key={index} className="flex justify-center my-3">
+            <div key={stableKey} className="flex justify-center my-3">
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg px-4 py-2 text-sm max-w-[80%]">
                 <p className="text-green-800 dark:text-green-300 text-center">
                   {msg.content || msg.notification_text}
@@ -308,7 +291,7 @@ const MessageList = ({ chatHistory, inputIsEmailMode, loadMoreMessages, isFetchi
         }
 
         return (
-          <>
+          <React.Fragment key={stableKey}>
             {isSystemMessage ? (
               <div className="flex items-center justify-center w-full mt-4">
                 <div
@@ -318,7 +301,7 @@ const MessageList = ({ chatHistory, inputIsEmailMode, loadMoreMessages, isFetchi
               </div>
 
             ) :
-              <div className={`chat ${isOutgoing ? "chat-right" : "chat-left"}`} key={index}>
+              <div className={`chat ${isOutgoing ? "chat-right" : "chat-left"}`}>
                 <div className={`mt-1 bubble-chat ${isOutgoing ? "bubble-chat-user" : "bubble-chat-other"}`}>
                   {msg?.channel?.image && (
                     <div
@@ -494,7 +477,7 @@ const MessageList = ({ chatHistory, inputIsEmailMode, loadMoreMessages, isFetchi
                 </div>
               </div>
             }
-          </>
+          </React.Fragment>
         );
       })}
 

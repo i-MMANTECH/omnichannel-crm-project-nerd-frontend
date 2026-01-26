@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, act } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import "./chatHeader.css";
@@ -13,12 +13,8 @@ import AssignAgentModal from "./AssignAgentModal";
 import EndSessionModal from "./EndSessionModal";
 import ArchiveModal from "./ArchiveModal";
 import TaskModel from "./TaskModel";
-import TicketsPanel from "../Ticket/TicketsPanel";
-import CreateTicketModal from "../Ticket/CreateTicketModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from '@/context/ErrorContext';
-import { useAuth } from '@/context/AuthContext';
-import { Plus } from "lucide-react";
 
 
 
@@ -44,7 +40,7 @@ const ModalController = ({ children }) => {
   return children({ isModalOpen, openModal, closeModal });
 };
 
-const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refreshChatHeader }) => {
+const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInternal = false, baseRoute }) => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successModalMessage, setSuccessModalMessage] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -52,9 +48,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
   const [isAssignAgentModalOpen, setIsAssignAgentModalOpen] = useState(false);
   const [isEndSessionModalOpen, setIsEndSessionModalOpen] = useState(false);
   const [isArchivedModalOpen, setIsArchivedModalOpen] = useState(false);
-  const [isTaskCreation, setIsTaskCreation] = useState(false);
-  const [isTicketsPanelOpen, setIsTicketsPanelOpen] = useState(false);
-  const [isCreateTicketModalOpen, setIsCreateTicketModalOpen] = useState(false);
+  const [isTaskCreation, setIsTaskCreation] = useState(false)
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
   const router = useRouter();
@@ -62,15 +56,12 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
   const [aiResponsesEnabled, setAiResponsesEnabled] = useState(false);
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
-  const { user } = useAuth();
 
 
   const { checkPermission } = usePermissions();
   const addCustomer = checkPermission('add_customer');
 
-  // Check if user is admin
-  const isAdmin = user?.roles?.includes("Admin") || user?.roles?.includes("admin");
-  const basePath = isAdmin ? '/admin' : '/nativecrm';
+  const isInternalChat = Boolean(isInternal || activeUser?.chat_type);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -104,7 +95,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
     if (conversationId) fetchAiStatus();
 
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [conversationId, refreshChatHeader]);
+  }, [conversationId]);
 
   if (!activeUser) return null;
 
@@ -169,10 +160,6 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
       },
     }] : []),
     {
-      label: "View tickets",
-      onClick: () => setIsTicketsPanelOpen(true),
-    },
-    {
       label: "Archived messages",
       onClick: () => setIsArchivedModalOpen(true),
     },
@@ -203,12 +190,8 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
     {
       label: "Edit customer",
       onClick: () => {
-        router.push(`${basePath}/customers/${activeUser?.id}?action=edit-customer`);
+        router.push(`${baseRoute}/customers/${activeUser?.id}?action=edit-customer`);
       },
-    },
-    {
-      label: "View tickets",
-      onClick: () => setIsTicketsPanelOpen(true),
     },
     {
       label: "Archived messages",
@@ -232,17 +215,24 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
     setIsSuccessModalOpen(false);
   };
 
+  useEffect(() => {
+    if (isInternal) setIsMenuOpen(false);
+  }, [isInternal]);
+
+
+  const avatarUrl = activeUser?.profileImage || activeUser?.image;
+
   return (
     <>
       <ModalController>
         {({ isModalOpen, closeModal }) => (
           <div className="header">
-            <div className="relative self-center">
+            <div className="relative">
               <div>
-                {activeUser?.profileImage ? (
+                {avatarUrl ? (
                   <Image
-                    loader={() => activeUser?.profileImage}
-                    src={activeUser?.profileImage}
+                    loader={() => avatarUrl}
+                    src={avatarUrl}
                     alt="User Profile"
                     width={70}
                     height={70}
@@ -266,34 +256,23 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
               )}
             </div>
             <div className="info flex flex-col relative grow justify-center gap-2 bottom-1">
-              <div className="text-black dark:text-white flex gap-3 items-center justify-between  w-full">
-                {activeUser.name || activeUser.lead_name || "Unknown User"}
+              <div className="text-black dark:text-white">
+                {activeUser?.name || activeUser?.lead_name || "Unknown User"}
               </div>
-              <div className="title-4">Last Seen {formattedTime}</div>
+              <div className="title-4">Last Active {formattedTime}</div>
             </div>
-            <span className="bg-purple-500 hidden text-white text-xs px-2 py-0.5 rounded-md font-mono tracking-wider">
-              #{conversationId}
-            </span>
-            <div className="relative flex justify-between">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setIsCreateTicketModalOpen(true)}
-                  className="bg-[#3EBF0F] hover:bg-green-600 text-white px-3 rounded-md transition-colors flex items-center gap-1 mr-3"
-                >
-                  <Plus size={20} />
-                  <span>Create Ticket</span>
-                </button>
-              </div>
-              {!activeUser.ended_at &&
+            <div className="relative">
+              {!isInternalChat && !activeUser?.ended_at && (
                 <button
                   ref={buttonRef}
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="p-2 hover:bg-gray-100 rounded-full h-fit dark:hover:bg-gray-700 transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-full dark:hover:bg-gray-700 transition-colors"
                 >
                   <FontAwesomeIcon icon={faEllipsisH} className="icon-instance-node" />
                 </button>
-              }
-              {isMenuOpen && (
+              )}
+
+              {!isInternalChat && isMenuOpen && (
                 <div
                   ref={menuRef}
                   className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
@@ -302,7 +281,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
                     {(isLead ? leadMenuItems : customerMenuItems).map((item, index) => (
                       <div key={index}>
                         {item.isCustom ? (
-                          item.label // direct JSX like toggle
+                          item.label
                         ) : (
                           <button
                             onClick={() => {
@@ -316,9 +295,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
                         )}
                       </div>
                     ))}
-
                   </div>
-
                 </div>
               )}
             </div>
@@ -327,24 +304,6 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, refre
               <TaskModel
                 isOpen={isTaskCreation}
                 onClose={() => setIsTaskCreation(false)}
-                conversationId={conversationId}
-                setIsSuccessModalOpen={setIsSuccessModalOpen}
-                setSuccessModalMessage={setSuccessModalMessage}
-              />
-            )}
-
-            {isTicketsPanelOpen && (
-              <TicketsPanel
-                isOpen={isTicketsPanelOpen}
-                onClose={() => setIsTicketsPanelOpen(false)}
-                conversationId={conversationId}
-              />
-            )}
-
-            {isCreateTicketModalOpen && (
-              <CreateTicketModal
-                isOpen={isCreateTicketModalOpen}
-                onClose={() => setIsCreateTicketModalOpen(false)}
                 conversationId={conversationId}
                 setIsSuccessModalOpen={setIsSuccessModalOpen}
                 setSuccessModalMessage={setSuccessModalMessage}

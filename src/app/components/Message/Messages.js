@@ -12,8 +12,47 @@ import { useAuth } from "@/context/AuthContext";
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
 import { Tooltip } from "react-tooltip";
+import TicketListPanel from "../Ticket/TicketsPanel";
+import ExportModal from "../ExportModal";
+import { Download } from "lucide-react";
 import Modal from "../Modal";
+import CreateTicketModal from "../Ticket/CreateTicketModal";
+import useWebSocket from "@/context/useWebsocket";
+import getBaseRoute from "@/utils/getBaseRoute";
 
+const normalizeInternalChat = (chat, myUserId) => {
+	// chat.other_member exists in your POST response, and is usually returned on list too
+	const other = chat.other_member;
+
+	const displayName =
+		chat.name ||
+		(other
+			? `${other.first_name || ""} ${other.last_name || ""}`.trim() || other.email
+			: "Internal chat");
+
+	return {
+		// ChatList relies on user.id
+		id: chat.id,
+
+		// ChatList renders name from several fallbacks — we’ll set "name"
+		name: displayName,
+
+		// ChatList expects "image" for avatar
+		image: other?.image || null,
+
+		// ChatList expects lastMessage / lastMessageTime / unreadCount
+		lastMessage: chat.last_message?.content || chat.last_message || "",
+		lastMessageTime: chat.last_message_at,
+		unreadCount: chat.unread_count || 0,
+
+		// helpful flags
+		_internal: true,
+		other_member: other || null,
+
+		// keep raw in case you need later
+		_raw: chat,
+	};
+};
 
 const getMessageType = (message) => {
 	if (message.lead_sender != null || message.lead_receiver != null) {
@@ -35,6 +74,7 @@ export const MessagesContent = () => {
 
 	const [users, setUsers] = useState([]);
 	const { company, user } = useAuth();
+	const baseRoute = getBaseRoute(user?.roles);
 	const [chatHistory, setChatHistory] = useState([]);
 
 	const [searchQuery, setSearchQuery] = useState("");
@@ -43,7 +83,17 @@ export const MessagesContent = () => {
 	const [page, setPage] = useState(1);
 	const [next, setNext] = useState(null);
 	const [isFetchingMore, setIsFetchingMore] = useState(false);
+
+	const [pageUsers, setPageUsers] = useState(1);
+	const [nextUsers, setNextUsers] = useState(null);
+	const [isFetchingMoreUsers, setIsFetchingMoreUsers] = useState(false);
+
+	const [pageMessages, setPageMessages] = useState(1);
+	const [nextMessages, setNextMessages] = useState(null);
+	const [isFetchingMoreMessages, setIsFetchingMoreMessages] = useState(false);
+
 	const [isScrolledUp, setIsScrolledUp] = useState(false);
+
 
 	const [loading, setLoading] = useState(true);
 	const [chatResponse, setChatResponse] = useState();
@@ -73,23 +123,33 @@ export const MessagesContent = () => {
 	const [tabUnreadFlags, setTabUnreadFlags] = useState({
 		leads: false,
 		customers: false,
-		archived: false,
+		internal: false,
+		archived: false
 	});
 
 	const [isFilterActive, setIsFilterActive] = useState(false)
+
+	// Ticketing states
+	const [showTicketPanel, setShowTicketPanel] = useState(false);
+	const [isCreateTicketModalOpen, setIsCreateTicketModalOpen] = useState(false);
+
 	const isCancelError = (error) =>
 		error?.name === 'CanceledError' || error?.message === 'canceled' || error?.code === 'ERR_CANCELED';
-
 
 	const [cachedData, setCachedData] = useState({
 		leads: { users: null, histories: {} },
 		customers: { users: null, histories: {} },
-		archived: { users: null, histories: {} }
+		internal: { users: null, histories: {} },
+		archived: { users: null, histories: {} },
 	});
 
-	const wsRef = useRef(null);
 	const currentTabRef = useRef(chatType);
 	const abortControllerRef = useRef(null);
+	const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
+	const [showInternalModal, setShowInternalModal] = useState(false);
+	const [internalUserSearch, setInternalUserSearch] = useState("");
+
 
 	useEffect(() => {
 		const newChatType = searchParams.get("chat") || "leads";
@@ -130,68 +190,15 @@ export const MessagesContent = () => {
 		setPage(1);
 	}, [debouncedSearchQuery, chatType, selectedAgent])
 
-	useEffect(() => {
-		if (!company?.id) return;
-		const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-		const wsUrl = `${protocol}://ws-staging.nativetalkcrm.com/ws/chat/?uuid=${company?.id}&type=company`;
+	const wsUrl = company?.id
+		? `${window.location.protocol === "https:" ? "wss" : "ws"}://ws-staging.nativetalkcrm.com/ws/chat/?uuid=${company.id}&type=company`
+		: null;
 
-		const connectWebSocket = () => {
-			if (wsRef.current) return;
-
-			wsRef.current = new WebSocket(wsUrl);
-
-			wsRef.current.onopen = () => {
-				console.log('✅ WebSocket connected');
-			};
-
-			wsRef.current.onerror = (error) => {
-				console.log('❌ WebSocket error:', error);
-			};
-
-			wsRef.current.onclose = () => {
-				console.log('🔄 WebSocket disconnected, attempting to reconnect...');
-				wsRef.current = null;
-				setTimeout(connectWebSocket, 2000);
-			};
-		};
-
-		connectWebSocket();
-
-		return () => {
-			if (wsRef.current) {
-				console.log('🔌 Closing WebSocket connection...');
-				wsRef.current.close();
-			}
-		};
-
-	}, [company]);
-
-	useEffect(() => {
-		const fetchUserProfile = async () => {
-			try {
-				const resp = await axiosInstance.get(`/users/me`)
-				setUserProfile(resp?.data?.user)
-			}
-			catch (error) {
-				if (isCancelError(error)) {
-					console.log('cr');
-				} else {
-					handleApiError(error);
-				}
-			}
-
-		}
-
-		fetchUserProfile()
-	}, []);
-
-	useEffect(() => {
-		if (!wsRef.current) {
-			return;
-		}
-
-		wsRef.current.onmessage = (event) => {
-			const data = JSON.parse(event.data);
+	const { wsRef, reconnect } = useWebSocket(
+		wsUrl,
+		// onMessage handler
+		(data) => {
+			console.log('📬 Processing WebSocket data:', { type: data.type });
 
 			if (data.type === "message_status") {
 				const updatedMessage = data.message;
@@ -225,8 +232,37 @@ export const MessagesContent = () => {
 				return;
 			}
 
-			// 🎯 Handle normal "message"
+			// Handle normal "message"
 			const message = data.message;
+
+			// Handle system messages separately
+			if (message.is_system_message) {
+				if (activeUser && message.conversation === chatResponse?.conversation_id) {
+					setChatHistory((prevHistory) => {
+						const alreadyExists = prevHistory.some((msg) => msg.id === message.id);
+						if (alreadyExists) return prevHistory;
+						return [...prevHistory, message];
+					});
+
+					setCachedData((prev) => {
+						const existing = prev[chatType]?.histories[activeUser.id] || [];
+						const messageExists = existing.some((msg) => msg.id === message.id);
+						if (messageExists) return prev;
+
+						return {
+							...prev,
+							[chatType]: {
+								...prev[chatType],
+								histories: {
+									...prev[chatType].histories,
+									[activeUser.id]: [...existing, message],
+								},
+							},
+						};
+					});
+				}
+				return;
+			}
 
 			const isLeadMessage = message.lead_sender != null || message.lead_receiver != null;
 			const isCustomerMessage = message.customer_sender != null || message.customer_receiver != null;
@@ -246,8 +282,15 @@ export const MessagesContent = () => {
 				}));
 			}
 
+			console.log('🔍 Message details:', {
+				isSystemMessage: message?.is_system_message,
+				conversation: message?.conversation,
+				conversationId: chatResponse?.conversation_id
+			});
+
 			const isRelevantToActiveUser = activeUser &&
 				(
+					message.is_system_message && message.conversation === chatResponse?.conversation_id ||
 					(isLeadMessage && (
 						message.lead_sender === activeUser.id ||
 						message.lead_receiver === activeUser.id ||
@@ -259,8 +302,12 @@ export const MessagesContent = () => {
 					))
 				);
 
+			console.log('🎯 Is relevant to active user:', isRelevantToActiveUser);
+
 			if (currentTabRef.current === messageChatType && isRelevantToActiveUser) {
-				markConversationAsRead(activeUser.id);
+				if (!message.is_system_message) {
+					markConversationAsRead(activeUser.id);
+				}
 
 				setChatHistory((prevHistory) => {
 					const alreadyExists = prevHistory.some((msg) => msg.id === message.id);
@@ -320,7 +367,7 @@ export const MessagesContent = () => {
 				});
 			}
 
-			// 👥 Update users (only in the correct chat type)
+			// Update users (only in the correct chat type)
 			if (newUser && currentTabRef.current === messageChatType) {
 				setUsers((prevUsers) => {
 					const existingUsers = prevUsers?.results || [];
@@ -353,9 +400,34 @@ export const MessagesContent = () => {
 					};
 				});
 			}
-		};
-	}, [activeUser, chatHistory, chatType]);
+		},
+		{
+			onOpen: () => console.log('✅ WebSocket connected successfully'),
+			onClose: (event) => console.log('🔌 WebSocket closed:', event.code),
+			onError: (error) => console.error('❌ WebSocket error:', error),
+			reconnectDelay: 2000,
+			shouldReconnect: true
+		}
+	);
 
+	useEffect(() => {
+		const fetchUserProfile = async () => {
+			try {
+				const resp = await axiosInstance.get(`/users/me`)
+				setUserProfile(resp?.data?.user)
+			}
+			catch (error) {
+				if (isCancelError(error)) {
+					// console.log('cr');
+				} else {
+					handleApiError(error);
+				}
+			}
+
+		}
+
+		fetchUserProfile()
+	}, []);
 
 	useEffect(() => {
 		return () => {
@@ -370,11 +442,39 @@ export const MessagesContent = () => {
 		fetchChannelsData();
 	}, []);
 
-	const fetchAiStatus = async (conversationId) => {
-		if (chatType === "archived") {
-			return;
-		}
+	const handleExport = async (startDate, endDate) => {
+		try {
+			const params = new URLSearchParams();
+			params.append('start_date', startDate);
+			params.append('end_date', endDate);
 
+			const response = await axiosInstance.get(`/tickets/export/?${params.toString()}`, {
+				responseType: 'blob',
+			});
+
+			// Create a blob from the CSV data
+			const blob = new Blob([response.data], { type: 'text/csv' });
+
+			// Create a download link and trigger it
+			const url = window.URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			link.setAttribute('download', `messages_export_${startDate}_to_${endDate}.csv`);
+			document.body.appendChild(link);
+			link.click();
+
+			// Clean up
+			link.parentNode.removeChild(link);
+			window.URL.revokeObjectURL(url);
+
+		} catch (err) {
+			handleApiError(err);
+			throw err;
+		}
+	};
+
+
+	const fetchAiStatus = async (conversationId) => {
 		if (chatType === "archived") {
 			return;
 		}
@@ -461,7 +561,7 @@ export const MessagesContent = () => {
 		}
 		catch (error) {
 			if (isCancelError(error)) {
-				console.log('cr');
+				// console.log('cr');
 			} else {
 				handleApiError(error);
 			}
@@ -471,15 +571,19 @@ export const MessagesContent = () => {
 
 	const fetchChatList = async ({ reset = false } = {}) => {
 		let endpoint;
-		const channelIdParam = selectedChannel ? `&channel_id=${selectedChannel.id}` : "";
-		const assigneeParam = selectedAgent ? `&assignee=${selectedAgent}` : "";
+		if (chatType === "internal") {
+			endpoint = `/internal-messaging/chats/`;
+		} else {
+			const channelIdParam = selectedChannel ? `&channel_id=${selectedChannel.id}` : "";
+			const assigneeParam = selectedAgent ? `&assignee=${selectedAgent}` : "";
 
-		if (chatType === "customers") {
-			endpoint = `/communication/chatted-customers/?search=${debouncedSearchQuery}${channelIdParam}${assigneeParam}`;
-		} else if (chatType === "leads") {
-			endpoint = `/communication/contacts/?search=${debouncedSearchQuery}${channelIdParam}${assigneeParam}`;
-		} else if (chatType === "archived") {
-			endpoint = `/communication/conversations/?status=ended&search=${debouncedSearchQuery}${channelIdParam}${assigneeParam}`;
+			if (chatType === "customers") {
+				endpoint = `/communication/chatted-customers/?search=${debouncedSearchQuery}${channelIdParam}${assigneeParam}`;
+			} else if (chatType === "leads") {
+				endpoint = `/communication/contacts/?search=${debouncedSearchQuery}${channelIdParam}${assigneeParam}`;
+			} else if (chatType === "archived") {
+				endpoint = `/communication/conversations/?status=ended&search=${debouncedSearchQuery}${channelIdParam}${assigneeParam}`;
+			}
 		}
 
 		if (!endpoint) return;
@@ -507,6 +611,35 @@ export const MessagesContent = () => {
 			});
 
 			setLoading(false);
+
+			if (requestChatType === "internal") {
+				const chats = response?.data?.chats || response?.data?.results || response?.data || [];
+				const normalized = chats
+					.map((c) => normalizeInternalChat(c, userProfile?.id))
+					// optional: client-side search if API doesn’t support it
+					.filter((c) =>
+						!debouncedSearchQuery
+							? true
+							: (c.name || "").toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+					);
+
+				const shaped = { results: normalized, next: null };
+
+				setCachedData((prev) => ({
+					...prev,
+					internal: { ...prev.internal, users: shaped },
+				}));
+
+				setUsers(shaped);
+
+				// open chat from URL: ?chat=internal&id=1
+				const found = normalized.find((c) => c.id.toString() === chatId);
+				if (found) setActiveUser(found);
+
+				setNext(null);
+				return;
+			}
+
 			// Only update state if we're still on the same tab
 			if (currentTabRef.current === requestChatType) {
 				setCachedData(prev => ({
@@ -532,7 +665,7 @@ export const MessagesContent = () => {
 						: [...(prevUsers?.results || []), ...response.data.results],
 				}));
 
-				setNext(response.data.next);
+				setNextUsers(response.data.next);
 
 				const foundUser = response.data.results?.find(
 					(user) => user.id.toString() === chatId
@@ -544,7 +677,7 @@ export const MessagesContent = () => {
 		}
 		catch (error) {
 			if (isCancelError(error)) {
-				console.log('cr');
+				// console.log('cr');
 			} else {
 				handleApiError(error);
 			}
@@ -572,7 +705,9 @@ export const MessagesContent = () => {
 		}
 
 		let endpoint;
-		if (chatType === "customers") {
+		if (chatType === "internal") {
+			endpoint = `/internal-messaging/chats/${activeUser.id}/messages/`;
+		} else if (chatType === "customers") {
 			endpoint = `/communication/customer-chat-history/${activeUser.id}?page=${page}`;
 		} else if (chatType === "leads") {
 			endpoint = `/communication/history/?lead_id=${activeUser.id}&page=${page}`;
@@ -585,9 +720,26 @@ export const MessagesContent = () => {
 				signal: abortControllerRef.current.signal
 			});
 
-			setNext(response.data.next);
+			setNextMessages(response.data.next);
 
 			if (currentTabRef.current === requestChatType && activeUser?.id === requestUserId) {
+				if (requestChatType === "internal") {
+					const msgs = response?.data?.messages || [];
+					const newHistory = msgs.slice().reverse();
+
+					setCachedData((prev) => ({
+						...prev,
+						internal: {
+							...prev.internal,
+							histories: { ...prev.internal.histories, [requestUserId]: newHistory },
+						},
+					}));
+
+					setChatHistory(newHistory);
+					setChatResponse({ chat_id: requestUserId });
+					return;
+				}
+
 				const newHistory = response.data.results.reverse() || [];
 
 				setCachedData(prev => ({
@@ -606,12 +758,12 @@ export const MessagesContent = () => {
 
 				markConversationAsRead()
 			}
-			// console.log('response is ', response)
+
 			fetchAiStatus(response?.data?.results[0]?.conversation)
 		}
 		catch (error) {
 			if (isCancelError(error)) {
-				console.log('cr');
+				// console.log('cr');
 			} else {
 				handleApiError(error);
 			}
@@ -652,11 +804,9 @@ export const MessagesContent = () => {
 
 	const handleChatSelect = (user) => {
 		setActiveUser(user);
-
-		// ensure fresh bottom-auto-scroll when entering a chat
 		setIsScrolledUp(false);
-		setPage(1);
-		router.push(`/nativecrm/messages?chat=${chatType}&id=${user.id}`, { scroll: false });
+		setPageMessages(1);
+		router.push(`${baseRoute}/messages?chat=${chatType}&id=${user.id}`, { scroll: false });
 	};
 
 	const handleTabChange = (tab) => {
@@ -668,7 +818,9 @@ export const MessagesContent = () => {
 		setActiveUser(null);
 		setChatHistory([]);
 		setIsScrolledUp(false);
-		router.push(`/nativecrm/messages?chat=${tab}`, { scroll: false });
+		setPageUsers(1);
+		setPageMessages(1);
+		router.push(`${baseRoute}/messages?chat=${tab}`, { scroll: false });
 
 		setTabUnreadFlags((prev) => ({
 			...prev,
@@ -686,6 +838,59 @@ export const MessagesContent = () => {
 	};
 
 	const handleSendMessage = (messageContent) => {
+		if (chatType === "internal") {
+			const tempMessage = {
+				id: `temp-${Date.now()}`,
+				content: messageContent.text || "",
+				created_at: new Date().toISOString(),
+				sender: userProfile,          // matches backend response structure
+				status: "sending",
+			};
+
+			setChatHistory((prev) => [...prev, tempMessage]);
+			setIsScrolledUp(false);
+
+			axiosInstance
+				.post(`/internal-messaging/chats/${activeUser.id}/messages/`, {
+					content: messageContent.text || "",
+				}, { showLoader: false })
+				.then((res) => {
+					const real = res?.data?.data;
+
+					if (!real) return;
+
+					setChatHistory((prev) =>
+						prev.map((m) => (m.id === tempMessage.id ? real : m))
+					);
+
+					// update left list preview
+					setUsers((prev) => {
+						const current = prev?.results || [];
+						const idx = current.findIndex((c) => c.id === activeUser.id);
+						if (idx === -1) return prev;
+
+						const updated = [...current];
+						updated[idx] = {
+							...updated[idx],
+							lastMessage: real.content,
+							lastMessageTime: real.created_at,
+						};
+
+						// move to top like WhatsApp
+						const moved = [updated[idx], ...updated.filter((x) => x.id !== activeUser.id)];
+						return { ...prev, results: moved };
+					});
+				})
+				.catch((error) => {
+					setChatHistory((prev) =>
+						prev.map((m) => (m.id === tempMessage.id ? { ...m, status: "failed" } : m))
+					);
+					handleApiError(error);
+				});
+
+			return;
+		}
+
 		const formData = new FormData();
 		const contentType = messageContent?.file
 			? "document"
@@ -694,6 +899,7 @@ export const MessagesContent = () => {
 				: "text";
 
 		formData.append("content", messageContent.text || "");
+		formData.append("subject", messageContent?.subject)
 		formData.append("content_type", contentType);
 
 		if (messageContent?.file?.length > 0) {
@@ -765,7 +971,7 @@ export const MessagesContent = () => {
 					)
 				);
 				if (isCancelError(error)) {
-					console.log('cr');
+					// console.log('cr');
 				} else {
 					handleApiError(error);
 				}
@@ -782,7 +988,7 @@ export const MessagesContent = () => {
 		}
 		catch (error) {
 			if (isCancelError(error)) {
-				console.log('cr');
+				// console.log('cr');
 			} else {
 				handleApiError(error);
 			}
@@ -811,22 +1017,22 @@ export const MessagesContent = () => {
 	];
 
 	const loadMoreUsers = async () => {
-		if (isFetchingMore || !next) return;
+		if (isFetchingMoreUsers || !nextUsers) return;
 
 		const endpointMap = {
-			leads: `/communication/contacts/?page=${page}&page_size=${15}`,
-			customers: `/communication/chatted-customers/?page=${page}&page_size=${15}`,
-			archived: `/communication/conversations/?page=${page}&page_size=${15}`,
+			leads: `/communication/contacts/?page=${pageUsers}&page_size=${15}`,
+			customers: `/communication/chatted-customers/?page=${pageUsers}&page_size=${15}`,
+			archived: `/communication/conversations/?page=${pageUsers}&page_size=${15}`,
 		};
 
-		const endpoint = next || endpointMap[chatType];
+		const endpoint = nextUsers || endpointMap[chatType];
 		if (!endpoint) return;
-		setIsFetchingMore(true);
+		setIsFetchingMoreUsers(true);
 
 		try {
 			const { data } = await axiosInstance.get(endpoint, { showLoader: false });
 			const newContacts = data.results;
-			setNext(data.next);
+			setNextUsers(data.next);
 
 			setUsers((prevUsers) => {
 				const currentResults = Array.isArray(prevUsers?.results) ? prevUsers.results : [];
@@ -859,7 +1065,7 @@ export const MessagesContent = () => {
 				},
 			}));
 
-			setPage((prevPage) => prevPage + 1);
+			setPageUsers((prevPage) => prevPage + 1);
 		}
 		catch (error) {
 			if (isCancelError(error)) {
@@ -869,25 +1075,37 @@ export const MessagesContent = () => {
 			}
 		}
 		finally {
-			setIsFetchingMore(false);
+			setIsFetchingMoreUsers(false);
+		}
+	};
+
+	const handleCreateTicket = async (ticketData) => {
+		try {
+			setIsCreateTicketModalOpen(false);
+			// Optionally refresh ticket panel or show success message
+		} catch (error) {
+			handleApiError(error);
 		}
 	};
 
 	const loadMoreMessages = async () => {
-		if (isFetchingMore || !next) return;  // Don't load if already fetching or no more pages
-		setIsFetchingMore(true);
+		console.log("Loading more messages...");
+		if (isFetchingMoreMessages || !nextMessages) return;  // Don't load if already fetching or no more pages
+		setIsFetchingMoreMessages(true);
 
 		try {
-			const response = await axiosInstance.get(next);  // Fetch next page
+			const response = await axiosInstance.get(nextMessages);  // Fetch next page
 			setChatHistory((prevHistory) => [...response.data.results.reverse(), ...prevHistory]); // Prepend new messages
-			setNext(response.data.next);  // Update the next page URL
+			setNextMessages(response.data.next);  // Update the next page URL
 		} catch (error) {
 			handleApiError(error);
 		} finally {
-			setIsFetchingMore(false);
-			// Reset the flag after messages are loaded
+			setIsFetchingMoreMessages(false);
 		}
 	};
+
+	const isInternalTab = chatType === "internal";
+
 
 	return (
 		<div className="body-theme flex flex-col px-5 ">
@@ -901,7 +1119,7 @@ export const MessagesContent = () => {
 							<div
 								key={index}
 								className={`cursor-pointer rounded-full transition-all duration-300
-						${selectedAgent === assignee.id ? 'ring-2 dark:ring-white ring-[#3EBF0F] z-10' : ''}`}
+							${selectedAgent === assignee.id ? 'ring-2 dark:ring-white ring-[#3EBF0F] z-10' : ''}`}
 								style={{ marginLeft: index !== 0 ? '-7px' : '0px' }}
 								onClick={() => handleAssigneeClick(assignee.id)}
 								onMouseEnter={(e) => e.currentTarget.classList.add("z-10")}
@@ -919,7 +1137,7 @@ export const MessagesContent = () => {
 								) : (
 									<UserAvatar
 										name={assignee?.first_name ?
-											`${assignee?.first_name} ${assignee?.last_name}` :
+											`${assignee.first_name} ${assignee?.last_name}` :
 											assignee?.email || '--'
 										}
 										className="w-10 h-10 rounded-full flex-shrink-0"
@@ -945,6 +1163,22 @@ export const MessagesContent = () => {
 				</div>
 
 				<div className="flex gap-4">
+					{baseRoute == '/admin' && (
+						<>
+							<button
+								onClick={() => setIsExportModalOpen(true)}
+								className="bg-white dark:bg-gray-800 text-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-2"
+							>
+								<Download className="w-4 h-4" />
+								Export
+							</button>
+							<button
+								onClick={() => { router.push(`${baseRoute}/settings#channels-integration`); }}
+								className="bg-[#3EBF0F] text-white px-4 py-2 rounded-lg shadow-sm">
+								+ Connect Channel
+							</button>
+						</>
+					)}
 					<div className="bg-gray-500 w-0.5 hidden"></div>
 					<div
 						className=" flex h-10 min-w-20 px-3 justify-center items-center gap-2 rounded-lg border border-[#DFE1E6] body-theme cursor-pointer shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]"
@@ -964,6 +1198,16 @@ export const MessagesContent = () => {
 							{selectedChannel ? selectedChannel.name : "Filter"}
 						</p>
 					</div>
+
+					{chatType === "internal" && (
+						<button
+							className="px-4 py-2 bg-[#3EBF0F] text-white rounded-md shadow-sm"
+							onClick={() => setShowInternalModal(true)}
+						>
+							+ New Internal Chat
+						</button>
+					)}
+
 					{isMenuOpen && (
 						<div
 							ref={menuRef}
@@ -991,7 +1235,7 @@ export const MessagesContent = () => {
 			<div className="overflow-y-hidden overflow-x-hidden messages flex items-start border border-gray-500 rounded-lg relative h-[80vh] m-4 mt-0">
 				<div>
 					<div className="body-theme justify-center gap-5 p-5 flex items-start flex-col w-full">
-						<div className="flex items-center justify-between space-x-4 ">
+						<div className="flex items-center  w-full justify-between space-x-4 ">
 							<div className="relative">
 								<input
 									className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
@@ -1000,7 +1244,7 @@ export const MessagesContent = () => {
 									onChange={(e) => setSearchQuery(e.target.value)}
 								/>
 								<button
-									className="absolute top-1 right-1 flex items-center rounded body-theme py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 active:dark:bg-black hover:bg-gray-100 hover:dark:bg-gray-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+									className="absolute top-1 right-0 flex items-center rounded body-theme py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 active:dark:bg-black hover:bg-gray-100 hover:dark:bg-gray-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
 									type="button"
 								>
 									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 mr-2">
@@ -1045,6 +1289,14 @@ export const MessagesContent = () => {
 									)}
 								</div>
 							</div>
+							<div className="tab-atom relative">
+								<div className={`px-3 pb-1 ${chatType === 'internal' ? 'active' : ""}`} onClick={() => handleTabChange('internal')}>
+									Internal
+									{tabUnreadFlags.internal && (
+										<span className="absolute top-0.5 right-1 w-1.5 h-1.5 bg-[#3EBF0F] rounded-full"></span>
+									)}
+								</div>
+							</div>
 						</div>
 
 					</div>
@@ -1056,7 +1308,7 @@ export const MessagesContent = () => {
 						loadMoreUsers={loadMoreUsers}
 						loading={loading}
 					/>
-					{isFetchingMore && (
+					{isFetchingMoreUsers && (
 						<div className="flex justify-center py-4">
 							<div className="animate-spin rounded-full h-6 w-6 border-t-2 border-gray-400"></div>
 						</div>
@@ -1070,22 +1322,40 @@ export const MessagesContent = () => {
 								activeUser={activeUser}
 								conversationId={chatResponse?.conversation_id}
 								isLead={chatType === "leads"}
+								isInternal={isInternalTab}
 								refreshChatList={() => {
-									fetchChatList({ reset: true })
-									setActiveUser(null)
+									fetchChatList({ reset: true });
+									setActiveUser(null);
 								}}
 								refreshChatHeader={refreshChatHeader}
+
+								// ✅ only allow ticket actions outside internal
+								onCreateTicket={!isInternalTab ? () => setIsCreateTicketModalOpen(true) : undefined}
+								onToggleTicketPanel={!isInternalTab ? () => setShowTicketPanel(!showTicketPanel) : undefined}
+								showTicketPanel={!isInternalTab ? showTicketPanel : false}
+								baseRoute={baseRoute}
 							/>
 							<div className="flex items-center ">
 								<MessageList
 									chatHistory={chatHistory}
 									inputIsEmailMode={inputIsEmailMode}
 									loadMoreMessages={loadMoreMessages}
-									isFetchingMore={isFetchingMore}
+									isFetchingMore={isFetchingMoreMessages}
 									isScrolledUp={isScrolledUp}
 									setIsScrolledUp={setIsScrolledUp}
-									next={next}
+									next={nextMessages}
+									chatType={chatType}
+									currentUserId={userProfile?.id}
 								/>
+
+								{/* Ticket Panel */}
+								{chatType !== "internal" && showTicketPanel && (
+									<TicketListPanel
+										conversationId={chatResponse?.conversation_id}
+										isVisible={showTicketPanel}
+									/>
+								)}
+
 
 								{chatType != "archived" ? (
 									<MessageInput
@@ -1116,6 +1386,7 @@ export const MessagesContent = () => {
 				</div>
 			</div>
 
+			{/* AI Takeover Modal */}
 			<Modal
 				isOpen={showAiTakeoverPrompt}
 				onClose={() => setShowAiTakeoverPrompt(false)}
@@ -1137,7 +1408,6 @@ export const MessagesContent = () => {
 							className="hover:shadow-md px-4 py-2 bg-[#3EBF0F] text-white rounded-md "
 							onClick={async () => {
 								try {
-									console.log(chatResponse)
 									await axiosInstance.patch(`/communication/conversations/${chatResponse?.conversation_id}/ai-status/`, {}, { showLoader: false });
 									setShowAiTakeoverPrompt(false);
 									sessionStorage.setItem(`ai_prompt_dismissed_${chatResponse?.conversation_id}`, 'true');
@@ -1156,6 +1426,82 @@ export const MessagesContent = () => {
 					Automated responses are currently enabled for this chat. Would you like to take over and respond manually?
 				</p>
 			</Modal>
+
+			{chatType !== "internal" && (
+				<CreateTicketModal
+					isOpen={isCreateTicketModalOpen}
+					onClose={() => setIsCreateTicketModalOpen(false)}
+					onSubmit={handleCreateTicket}
+					customerId={activeUser?.id}
+					customerName={activeUser?.name || activeUser?.email}
+					conversationId={chatId}
+				/>
+			)}
+
+			<ExportModal
+				isOpen={isExportModalOpen}
+				onClose={() => setIsExportModalOpen(false)}
+				onExport={handleExport}
+				title="Export Messages"
+			/>
+
+			<Modal
+				isOpen={showInternalModal}
+				onClose={() => setShowInternalModal(false)}
+				title="Start internal chat"
+				footer={null}
+			>
+				<input
+					className="w-full body-theme bg-transparent text-sm border border-slate-200 rounded-md px-3 py-2"
+					placeholder="Search users..."
+					value={internalUserSearch}
+					onChange={(e) => setInternalUserSearch(e.target.value)}
+				/>
+
+				<div className="mt-3 max-h-[360px] overflow-y-auto">
+					{agents
+						.filter((u) => u.id !== userProfile?.id)
+						.filter((u) => {
+							const name = `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email;
+							return name.toLowerCase().includes(internalUserSearch.toLowerCase());
+						})
+						.map((u) => {
+							const name = `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email;
+
+							return (
+								<button
+									key={u.id}
+									className="w-full flex items-center gap-3 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+									onClick={async () => {
+										const res = await axiosInstance.post("/internal-messaging/chats/", {
+											chat_type: "direct",
+											recipient_id: u.id,
+										}, { showLoader: false });
+
+										const chat = res?.data?.chat;
+										if (!chat?.id) return;
+
+										const normalized = normalizeInternalChat(chat, userProfile?.id);
+										setShowInternalModal(false);
+
+										setActiveUser(normalized);
+										router.push(`/nativecrm/messages?chat=internal&id=${chat.id}`, { scroll: false });
+
+										// refresh list so it appears immediately
+										fetchChatList({ reset: true });
+									}}
+								>
+									<UserAvatar name={name} width="w-9" height="h-9" />
+									<div className="text-left">
+										<div className="font-medium">{name}</div>
+										<div className="text-xs text-gray-500">{u.email}</div>
+									</div>
+								</button>
+							);
+						})}
+				</div>
+			</Modal>
+
 		</div>
 	);
 };
