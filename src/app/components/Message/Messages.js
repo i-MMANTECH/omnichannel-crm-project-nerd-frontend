@@ -190,15 +190,177 @@ export const MessagesContent = () => {
 		setPage(1);
 	}, [debouncedSearchQuery, chatType, selectedAgent])
 
+	useEffect(() => {
+		const fetchUserProfile = async () => {
+			try {
+				const resp = await axiosInstance.get(`/users/me`)
+				setUserProfile(resp?.data?.user)
+			}
+			catch (error) {
+				if (isCancelError(error)) {
+					// console.log('cr');
+				} else {
+					handleApiError(error);
+				}
+			}
+
+		}
+
+		fetchUserProfile()
+	}, []);
+
+	useEffect(() => {
+		return () => {
+			if (abortControllerRef.current) {
+				abortControllerRef?.current?.abort();
+			}
+		};
+	}, []);
+
+	useEffect(() => {
+		fetchAgents()
+		fetchChannelsData();
+	}, []);
+
+	const handleInternalWsMessage = (data) => {
+		// Expect: { type: "...", message: {...} } (or sometimes message is the data itself)
+		const msg =
+			(data?.data && typeof data.data === "object" ? data.data : null) ||
+			(data?.message && typeof data.message === "object" ? data.message : null) ||
+			data;
+
+		// Try to locate the chat id in a flexible way
+		const incomingChatId =
+			data?.chat_id ||
+			msg?.chat_id ||
+			msg?.chat?.id ||
+			msg?.chat ||
+			msg?.thread_id ||
+			msg?.room_id;
+
+		const normalizedMsg = {
+			...msg,
+			// help MessageList identify who sent it
+			user_sender: msg?.sender?.id,
+			user_sender_details: msg?.sender,
+			company_is_sender: false,
+			is_internal: true,
+		};
+
+
+		// console.log("resolved", { incomingChatId, activeChatId: activeUser?.id, msgId: msg?.id });
+
+		if (!incomingChatId || !msg?.id) return;
+
+		// set unread dot on Internal tab when user isn't currently there
+		if (currentTabRef.current !== "internal") {
+			setTabUnreadFlags((prev) => ({ ...prev, internal: true }));
+		}
+
+		// If user is currently viewing that internal chat, append it
+		const isViewingThisInternalChat =
+			currentTabRef.current === "internal" &&
+			activeUser?.id &&
+			String(activeUser.id) === String(incomingChatId);
+
+		if (isViewingThisInternalChat) {
+			setChatHistory((prev) => {
+				const exists = prev.some((m) => String(m.id) === String(msg.id));
+				if (exists) return prev;
+
+				// temp replacement (optional)
+				const tempIndex = prev.findIndex(
+					(m) =>
+						typeof m.id === "string" &&
+						m.id.startsWith("temp-") &&
+						m.content === msg.content
+				);
+				if (tempIndex !== -1) {
+					const copy = [...prev];
+					copy[tempIndex] = msg;
+					return copy;
+				}
+
+				return [...prev, msg];
+			});
+		}
+
+		// Update internal cache always
+		setCachedData((prev) => {
+			const existing = prev.internal?.histories?.[incomingChatId] || [];
+			const already = existing.some((m) => String(m.id) === String(msg.id));
+			const updatedHistory = already ? existing : [...existing, msg];
+
+			return {
+				...prev,
+				internal: {
+					...prev.internal,
+					histories: {
+						...(prev.internal?.histories || {}),
+						[incomingChatId]: updatedHistory,
+					},
+				},
+			};
+		});
+
+		// Update left list preview (move chat to top) if internal list is loaded
+		setCachedData((prev) => {
+			const list = prev.internal?.users?.results || [];
+			if (!list.length) return prev;
+
+			const idx = list.findIndex((c) => String(c.id) === String(incomingChatId));
+			if (idx === -1) return prev;
+
+			const updatedItem = {
+				...list[idx],
+				lastMessage: msg.content || "",
+				lastMessageTime: msg.created_at,
+				unreadCount: (list[idx].unreadCount || 0) + 1,
+			};
+
+			const moved = [updatedItem, ...list.filter((x) => String(x.id) !== String(incomingChatId))];
+
+			return {
+				...prev,
+				internal: {
+					...prev.internal,
+					users: {
+						...(prev.internal?.users || {}),
+						results: moved,
+					},
+				},
+			};
+		});
+
+		// If currently on internal tab, also reflect list update in `users` state
+		if (currentTabRef.current === "internal") {
+			setUsers((prev) => {
+				const current = prev?.results || [];
+				const idx = current.findIndex((c) => String(c.id) === String(incomingChatId));
+				if (idx === -1) return prev;
+
+				const updatedItem = {
+					...current[idx],
+					lastMessage: msg.content || "",
+					lastMessageTime: msg.created_at,
+					unreadCount: (current[idx].unreadCount || 0) + 1,
+				};
+
+				const moved = [updatedItem, ...current.filter((x) => String(x.id) !== String(incomingChatId))];
+				return { ...(prev || {}), results: moved };
+			});
+		}
+	};
+
 	const wsUrl = company?.id
 		? `${window.location.protocol === "https:" ? "wss" : "ws"}://ws-staging.nativetalkcrm.com/ws/chat/?uuid=${company.id}&type=company`
 		: null;
 
-	const { wsRef, reconnect } = useWebSocket(
+	const { wsRef: companyWsRef, reconnect: reconnectCompanyWs } = useWebSocket(
 		wsUrl,
-		// onMessage handler
 		(data) => {
-			console.log('📬 Processing WebSocket data:', { type: data.type });
+			// ✅ your existing handler body 그대로
+			// console.log("📬 Processing WebSocket data:", { type: data.type });
 
 			if (data.type === "message_status") {
 				const updatedMessage = data.message;
@@ -212,17 +374,19 @@ export const MessagesContent = () => {
 				if (!activeUser || !activeUser.id) return;
 
 				setCachedData((prev) => {
-					const current = prev[chatType]?.histories[activeUser?.id] || [];
+					const statusTab = currentTabRef.current; // safest
+					const current = prev[statusTab]?.histories?.[activeUser?.id] || [];
+
 					const updatedHistory = current.map((msg) =>
 						msg.id === updatedMessage.id ? { ...msg, ...updatedMessage } : msg
 					);
 
 					return {
 						...prev,
-						[chatType]: {
-							...prev[chatType],
+						[statusTab]: {
+							...prev[statusTab],
 							histories: {
-								...prev[chatType].histories,
+								...prev[statusTab].histories,
 								[activeUser.id]: updatedHistory,
 							},
 						},
@@ -232,11 +396,9 @@ export const MessagesContent = () => {
 				return;
 			}
 
-			// Handle normal "message"
 			const message = data.message;
 
-			// Handle system messages separately
-			if (message.is_system_message) {
+			if (message?.is_system_message) {
 				if (activeUser && message.conversation === chatResponse?.conversation_id) {
 					setChatHistory((prevHistory) => {
 						const alreadyExists = prevHistory.some((msg) => msg.id === message.id);
@@ -264,8 +426,10 @@ export const MessagesContent = () => {
 				return;
 			}
 
-			const isLeadMessage = message.lead_sender != null || message.lead_receiver != null;
-			const isCustomerMessage = message.customer_sender != null || message.customer_receiver != null;
+			const isLeadMessage =
+				message?.lead_sender != null || message?.lead_receiver != null;
+			const isCustomerMessage =
+				message?.customer_sender != null || message?.customer_receiver != null;
 
 			const newUser = isLeadMessage
 				? message.lead_sender_details
@@ -282,27 +446,17 @@ export const MessagesContent = () => {
 				}));
 			}
 
-			console.log('🔍 Message details:', {
-				isSystemMessage: message?.is_system_message,
-				conversation: message?.conversation,
-				conversationId: chatResponse?.conversation_id
-			});
-
-			const isRelevantToActiveUser = activeUser &&
-				(
-					message.is_system_message && message.conversation === chatResponse?.conversation_id ||
-					(isLeadMessage && (
-						message.lead_sender === activeUser.id ||
-						message.lead_receiver === activeUser.id ||
-						message.lead_info?.id === activeUser.id
-					)) ||
-					(isCustomerMessage && (
-						message.customer_sender === activeUser.id ||
-						message.customer_receiver === activeUser.id
-					))
-				);
-
-			console.log('🎯 Is relevant to active user:', isRelevantToActiveUser);
+			const isRelevantToActiveUser =
+				activeUser &&
+				((message?.is_system_message &&
+					message.conversation === chatResponse?.conversation_id) ||
+					(isLeadMessage &&
+						(message.lead_sender === activeUser.id ||
+							message.lead_receiver === activeUser.id ||
+							message.lead_info?.id === activeUser.id)) ||
+					(isCustomerMessage &&
+						(message.customer_sender === activeUser.id ||
+							message.customer_receiver === activeUser.id)));
 
 			if (currentTabRef.current === messageChatType && isRelevantToActiveUser) {
 				if (!message.is_system_message) {
@@ -314,11 +468,12 @@ export const MessagesContent = () => {
 
 					const tempMatchIndex = prevHistory.findIndex(
 						(msg) =>
-							typeof msg.id === 'string' &&
-							msg.id.startsWith('temp-') &&
+							typeof msg.id === "string" &&
+							msg.id.startsWith("temp-") &&
 							msg.content === message.content &&
 							msg.created_at &&
-							new Date(msg.created_at).getTime() <= new Date(message.created_at).getTime() + 500
+							new Date(msg.created_at).getTime() <=
+							new Date(message.created_at).getTime() + 500
 					);
 
 					if (alreadyExists) return prevHistory;
@@ -342,8 +497,8 @@ export const MessagesContent = () => {
 
 					const tempMatchIndex = existing.findIndex(
 						(msg) =>
-							typeof msg.id === 'string' &&
-							msg.id.startsWith('temp-') &&
+							typeof msg.id === "string" &&
+							msg.id.startsWith("temp-") &&
 							msg.content === message.content
 					);
 
@@ -367,7 +522,6 @@ export const MessagesContent = () => {
 				});
 			}
 
-			// Update users (only in the correct chat type)
 			if (newUser && currentTabRef.current === messageChatType) {
 				setUsers((prevUsers) => {
 					const existingUsers = prevUsers?.results || [];
@@ -402,45 +556,24 @@ export const MessagesContent = () => {
 			}
 		},
 		{
-			onOpen: () => console.log('✅ WebSocket connected successfully'),
-			onClose: (event) => console.log('🔌 WebSocket closed:', event.code),
-			onError: (error) => console.error('❌ WebSocket error:', error),
+			onOpen: () => console.log("✅ Company WS connected"),
+			onClose: (event) => console.log("🔌 Company WS closed:", event.code),
+			onError: (error) => console.error("❌ Company WS error:", error),
 			reconnectDelay: 2000,
-			shouldReconnect: true
+			shouldReconnect: true,
 		}
 	);
 
-	useEffect(() => {
-		const fetchUserProfile = async () => {
-			try {
-				const resp = await axiosInstance.get(`/users/me`)
-				setUserProfile(resp?.data?.user)
-			}
-			catch (error) {
-				if (isCancelError(error)) {
-					// console.log('cr');
-				} else {
-					handleApiError(error);
-				}
-			}
+	const internalWsUrl = userProfile?.id
+		? `wss://dev-core.nativetalkcrm.com/ws/internal-chat/?agent_uuid=${userProfile.id}`
+		: null;
 
-		}
+	const { wsRef: internalWsRef, reconnect: reconnectInternalWs } = useWebSocket(
+		internalWsUrl,
+		handleInternalWsMessage,
+		{ shouldReconnect: true, reconnectDelay: 2000 }
+	);
 
-		fetchUserProfile()
-	}, []);
-
-	useEffect(() => {
-		return () => {
-			if (abortControllerRef.current) {
-				abortControllerRef?.current?.abort();
-			}
-		};
-	}, []);
-
-	useEffect(() => {
-		fetchAgents()
-		fetchChannelsData();
-	}, []);
 
 	const handleExport = async (startDate, endDate) => {
 		try {
@@ -1485,7 +1618,7 @@ export const MessagesContent = () => {
 										setShowInternalModal(false);
 
 										setActiveUser(normalized);
-										router.push(`/nativecrm/messages?chat=internal&id=${chat.id}`, { scroll: false });
+										router.push(`${baseRoute}/messages?chat=internal&id=${chat.id}`, { scroll: false });
 
 										// refresh list so it appears immediately
 										fetchChatList({ reset: true });
