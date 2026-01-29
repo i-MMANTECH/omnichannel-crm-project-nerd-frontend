@@ -9,6 +9,7 @@ import Footer from '@/app/components/Footer';
 import Image from 'next/image';
 import { toast } from 'react-toastify';
 import { getUserDomain } from '@/utils/getUserDomain';
+import Link from 'next/link';
 
 const SignIn = () => {
     const router = useRouter();
@@ -25,12 +26,12 @@ const SignIn = () => {
         if (!subdomain) {
             router.push('/auth/sign-up');
         }
-    
+
         if (user) {
             router.push('/');
         }
     }, [user]);
-    
+
 
     const handleInputChange = (event) => {
         const { id, value } = event.target;
@@ -55,7 +56,7 @@ const SignIn = () => {
             if (response.status === 200) {
                 login(response.data);
                 setTimeout(() => {
-                  router.push('/');
+                    router.push('/');
                 }, 200);
             }
         } catch (error) {
@@ -88,18 +89,18 @@ const SignIn = () => {
                         src="/assets/sign-in-image.png"
                         alt="Create Password"
                         className="object-cover w-full h-full"
-                        style={{height: '100%'}}
+                        style={{ height: '100%' }}
                     />
                 </div>
 
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
 
                 <div className="bg-black p-8 text-white flex flex-col items-start">
-                    <Image src="/assets/nativetalk-logo2.svg" 
-                            alt="Logo" 
-                            width={100}
-                            height={100}
-                            />
+                    <Image src="/assets/nativetalk-logo2.svg"
+                        alt="Logo"
+                        width={100}
+                        height={100}
+                    />
                     <h2 className="text-3xl font-bold text-white leading-tight mt-4">
                         Let's empower your <br /> employees today.
                     </h2>
@@ -158,7 +159,7 @@ const SignIn = () => {
                                 <input type="checkbox" className="form-checkbox text-[#3EBF0F]" />
                                 <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Remember Me</span>
                             </label>
-                            <a href="/auth/password-reset" className="text-sm text-[#3EBF0F] hover:underline">Forgot Password?</a>
+                            <Link href="/auth/password-reset" className="text-sm text-[#3EBF0F] hover:underline">Forgot Password?</Link>
                         </div>
                         <button
                             type="submit"
@@ -179,7 +180,7 @@ const SignIn = () => {
                             onClick={handleCreateAccountRedirect}
                         >
                             <Image src="/assets/google.svg"
-                                alt="Google" 
+                                alt="Google"
                                 className='mr-2'
                                 width={25}
                                 height={25}
@@ -192,7 +193,7 @@ const SignIn = () => {
                             You're new here? <a href="#" onClick={handleCreateAccountRedirect} className="text-[#3EBF0F] hover:underline">Create Account</a>
                         </p>
                     </div>
-                    
+
                 </div>
                 <div style={{ width: 500 }} className="text-xs mt-auto pt-6">
                     <Footer />
