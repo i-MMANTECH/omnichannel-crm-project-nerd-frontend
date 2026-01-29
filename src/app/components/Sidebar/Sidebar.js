@@ -198,7 +198,7 @@ function Sidebar() {
                 size={18}
               />
 
-              <h3 className={`text-sm font-medium ${isActive("/reports") ? activeStyle : ""}`}>
+              <h3 className={`text-sm font-medium ${isActive("/notifications") ? activeStyle : ""}`}>
                 Notifications
               </h3>
             </Link>
