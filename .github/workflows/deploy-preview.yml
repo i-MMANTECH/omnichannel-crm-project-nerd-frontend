@@ -1,0 +1,90 @@
+name: Deploy to Preview
+
+# This workflow allows you to manually merge ANY branch to preview
+# It will OVERWRITE preview if there are conflicts
+on:
+  workflow_dispatch:  # Manual trigger only
+    inputs:
+      branch:
+        description: 'Branch to deploy to preview (e.g., NOCF-75)'
+        required: true
+        type: string
+
+jobs:
+  deploy-preview:
+    name: Force Deploy to Preview Server
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Checkout the branch you want to deploy
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          fetch-depth: 0  # Get full history
+      
+      # Step 2: Force merge to preview branch (overwrites preview)
+      - name: Force update preview branch
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          
+          # Fetch preview branch
+          git fetch origin preview:preview || git checkout -b preview
+          
+          # Force merge: make preview identical to the selected branch
+          git checkout preview
+          git reset --hard origin/${{ inputs.branch }}
+          git push origin preview --force
+          
+          echo "✅ Preview branch updated to match ${{ inputs.branch }}"
+      
+      # Step 3: Set up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+      
+      # Step 4: Install dependencies
+      - name: Install dependencies
+        run: npm ci
+      
+      # Step 5: Build the project
+      - name: Build for preview
+        run: npm run build
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_API_URL: ${{ secrets.PREVIEW_API_URL }}
+          NEXT_PUBLIC_WS_URL: ${{ secrets.PREVIEW_WS_URL }}
+      
+      # Step 6: Deploy to preview server
+      - name: Deploy to Preview Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 72.61.18.174
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: ".next,package.json,package-lock.json,public,next.config.js,app,components,context,services,utils"
+          target: /var/www/omnichannel-crm/preview/omnicrm-frontend
+          strip_components: 0
+      
+      # Step 7: Restart the application
+      - name: Restart application
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 72.61.18.174
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /var/www/omnichannel-crm/preview/omnicrm-frontend
+            npm install --production
+            pm2 restart omnicrm-preview || pm2 start npm --name "omnicrm-preview" -- start
+            echo "✅ Preview deployment completed!"
+      
+      # Step 8: Success message
+      - name: Deployment summary
+        run: |
+          echo "🚀 Preview Environment Updated!"
+          echo "Branch deployed: ${{ inputs.branch }}"
+          echo "Preview branch has been overwritten with ${{ inputs.branch }}"
