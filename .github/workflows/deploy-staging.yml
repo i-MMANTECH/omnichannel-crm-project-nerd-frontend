@@ -55,8 +55,8 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /var/www/omnichannel-crm/staging/omnicrm-frontend
-            npm install --production
-            pm2 restart omnicrm-staging || pm2 start npm --name "omnicrm-staging" -- start
+            npm install --force
+            systemctll restart omnicrm-frontend-staging.service
             echo "✅ Staging deployment completed!"
       
       # Step 7: Check if deployment was successful
