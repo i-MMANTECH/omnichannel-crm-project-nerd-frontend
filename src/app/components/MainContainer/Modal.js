@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./modalStyle.css";
 import Image from "next/image";
+import Link from "next/link";
 
 
 export const Modal = ({ show, onClose, title, icon }) => {
@@ -60,8 +61,8 @@ export const Modal = ({ show, onClose, title, icon }) => {
 
         <p className="modal-terms">
           By connecting your channel, you agree to our{" "}
-          <a href="#">Terms and Conditions</a>, and
-          <a href="#"> Privacy Policy</a>
+          <Link href="#">Terms and Conditions</Link>, and
+          <Link href="#"> Privacy Policy</Link>
         </p>
       </div>
     </div>

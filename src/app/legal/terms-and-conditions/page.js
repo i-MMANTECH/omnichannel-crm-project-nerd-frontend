@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Terms() {
   return (
     <div className="min-h-screen body-theme py-10 px-4 sm:px-8 md:px-16 lg:px-32">
@@ -7,9 +9,9 @@ export default function Terms() {
         <section className="mb-6">
           <h2 className="text-xl font-semibold  mb-2">1. Introduction</h2>
           <p className="">
-            Welcome to <span className="font-semibold">Native Talk CRM</span> ("Platform", "Service"), operated by 
-            <span className="font-semibold"> Tech4mation Limited</span> ("Company", "we", "our", "us"). These Terms 
-            of Service ("Terms") govern your use of our Customer Relationship Management (CRM) software. 
+            Welcome to <span className="font-semibold">Native Talk CRM</span> ("Platform", "Service"), operated by
+            <span className="font-semibold"> Tech4mation Limited</span> ("Company", "we", "our", "us"). These Terms
+            of Service ("Terms") govern your use of our Customer Relationship Management (CRM) software.
             By accessing or using the Service, you agree to be bound by these Terms and our Privacy Policy.
             If you do not agree, you may not use the Service.
           </p>
@@ -28,8 +30,8 @@ export default function Terms() {
         <section className="mb-6">
           <h2 className="text-xl font-semibold  mb-2">3. Subscription & Payment</h2>
           <p className="">
-            The Service operates on a subscription-based model. By subscribing, you agree to provide accurate billing 
-            information. Payments are processed via a third-party payment gateway. We reserve the right to modify 
+            The Service operates on a subscription-based model. By subscribing, you agree to provide accurate billing
+            information. Payments are processed via a third-party payment gateway. We reserve the right to modify
             pricing and plans at any time with prior notice.
           </p>
         </section>
@@ -37,8 +39,8 @@ export default function Terms() {
         <section className="mb-6">
           <h2 className="text-xl font-semibold  mb-2">4. Refund Policy</h2>
           <p className="">
-            We have a no-refund policy. However, we offer customer support to assist with technical issues. 
-            If you experience issues, contact <a href="mailto:support@nativetalk.io" className="text-blue-600 hover:underline">support@nativetalk.io</a>.
+            We have a no-refund policy. However, we offer customer support to assist with technical issues.
+            If you experience issues, contact <Link href="mailto:support@nativetalk.io" className="text-blue-600 hover:underline">support@nativetalk.io</Link>.
           </p>
         </section>
 
@@ -63,7 +65,7 @@ export default function Terms() {
         <section className="mb-6">
           <h2 className="text-xl font-semibold  mb-2">7. Third-Party Integrations</h2>
           <p className="">
-            The Platform integrates with messaging applications and third-party tools. 
+            The Platform integrates with messaging applications and third-party tools.
             We are not responsible for their content, policies, or reliability.
           </p>
         </section>
@@ -71,7 +73,7 @@ export default function Terms() {
         <section className="mb-6">
           <h2 className="text-xl font-semibold  mb-2">8. Service Modifications & Termination</h2>
           <p className="">
-            We reserve the right to modify or discontinue the Service without prior notice. 
+            We reserve the right to modify or discontinue the Service without prior notice.
             We are not liable for any impact resulting from such modifications.
           </p>
         </section>
@@ -79,7 +81,7 @@ export default function Terms() {
         <section className="mb-6">
           <h2 className="text-xl font-semibold  mb-2">9. Limitation of Liability</h2>
           <p className="">
-            We provide the Service "as is" and make no warranties regarding uninterrupted access. 
+            We provide the Service "as is" and make no warranties regarding uninterrupted access.
             We are not responsible for any indirect, incidental, or consequential damages resulting from Service use.
           </p>
         </section>
@@ -94,13 +96,13 @@ export default function Terms() {
         <section className="mb-6">
           <h2 className="text-xl font-semibold  mb-2">11. Contact Information</h2>
           <p className="">
-            For any inquiries, please contact 
-            <a href="mailto:support@nativetalk.io" className="text-blue-600 hover:underline"> support@nativetalk.io</a>.
+            For any inquiries, please contact
+            <Link href="mailto:support@nativetalk.io" className="text-blue-600 hover:underline"> support@nativetalk.io</Link>.
           </p>
         </section>
 
         <div className="text-center mt-8">
-          <a href="/" className="text-blue-600 hover:underline">Back to Home</a>
+          <Link href="/" className="text-blue-600 hover:underline">Back to Home</Link>
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import { Eye, EyeOff } from "lucide-react";
 import "../../Profile/agentProfile.css";
+import Link from "next/link";
 
 export default function DeveloperSettings() {
   const { axiosInstance } = useApi();
@@ -222,9 +223,9 @@ export default function DeveloperSettings() {
               ) : (
                 documents.map((doc) => (
                   <li key={doc.id} className="flex justify-between items-center border border-gray-200 rounded p-2">
-                    <a href={doc.file} target="_blank" rel="noopener noreferrer" className="truncate max-w-[75%] text-blue-600 underline">
+                    <Link href={doc.file} target="_blank" rel="noopener noreferrer" className="truncate max-w-[75%] text-blue-600 underline">
                       {doc.title || `Document #${doc.id}`}
-                    </a>
+                    </Link>
                     <button
                       className="text-red-500 text-sm"
                       onClick={() => handleDeleteDocument(doc.id)}

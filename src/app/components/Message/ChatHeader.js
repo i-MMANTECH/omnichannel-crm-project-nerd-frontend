@@ -97,6 +97,10 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInt
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [conversationId]);
 
+  useEffect(() => {
+    if (isInternal) setIsMenuOpen(false);
+  }, [isInternal]);
+
   if (!activeUser) return null;
 
   const closeSessionModal = () => {
@@ -214,11 +218,6 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInt
   const closeSuccessModal = () => {
     setIsSuccessModalOpen(false);
   };
-
-  useEffect(() => {
-    if (isInternal) setIsMenuOpen(false);
-  }, [isInternal]);
-
 
   const avatarUrl = activeUser?.profileImage || activeUser?.image;
 

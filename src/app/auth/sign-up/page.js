@@ -10,6 +10,7 @@ import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
 import { toast } from 'react-toastify';
 import Image from 'next/image';
+import Link from 'next/link';
 
 
 const SignUp = () => {
@@ -29,18 +30,18 @@ const SignUp = () => {
 
     const handleSignUp = async (event) => {
         event.preventDefault();
-    
+
         if (!company_name || !email || !phone_number) {
             toast.dark(errorMessage);
             return;
         }
-        
+
         try {
-            const response = await axiosInstance.post('/auth/create-account/send-otp/', 
-            {
-                email
-            });
-            
+            const response = await axiosInstance.post('/auth/create-account/send-otp/',
+                {
+                    email
+                });
+
             sessionStorage.setItem('signUpData', JSON.stringify({ company_name, email, phone_number }));
             sessionStorage.setItem(
                 'signUpData',
@@ -50,9 +51,9 @@ const SignUp = () => {
             router.push("sign-up/verify-otp");
         } catch (error) {
             handleApiError(error);
-        } 
+        }
     };
-    
+
 
     const allFieldsFilled = company_name && email && phone_number;
 
@@ -81,7 +82,7 @@ const SignUp = () => {
                 <div className="w-full max-w-md mt-[100px]">
                     <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 text-left mb-2">Manage your employees easily! </h2>
                     <p className="text-gray-500 dark:text-gray-400 text-left mb-6">Get started for free today!</p>
-                    
+
                     <form onSubmit={handleSignUp}>
                         <div className="mb-4">
                             <label htmlFor="company_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -97,10 +98,10 @@ const SignUp = () => {
                                 required
                             />
                         </div>
-                        
+
                         <div className="mb-4">
-                            
-                            <label htmlFor="email"  className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Work Email <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -113,9 +114,9 @@ const SignUp = () => {
                                 required
                             />
                         </div>
-                        
+
                         <div className="mb-4">
-                            <label htmlFor="phoneNumber"  className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label htmlFor="phoneNumber" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Phone Number <span className="text-red-500">*</span>
                             </label>
                             <PhoneInput
@@ -128,18 +129,18 @@ const SignUp = () => {
                             />
                         </div>
 
-                    <button
-                        type="submit"
-                        className={`w-full text-white py-2 rounded-md focus:outline-none ${allFieldsFilled ? 'bg-[#3EBF0F] hover:bg-green-700' : 'bg-[#EEEFF2]'}`}
-                        disabled={!allFieldsFilled || loading}
-                    >
-                        {loading ? "Processing..." : "Continue"}
-                    </button>
-                </form>
+                        <button
+                            type="submit"
+                            className={`w-full text-white py-2 rounded-md focus:outline-none ${allFieldsFilled ? 'bg-[#3EBF0F] hover:bg-green-700' : 'bg-[#EEEFF2]'}`}
+                            disabled={!allFieldsFilled || loading}
+                        >
+                            {loading ? "Processing..." : "Continue"}
+                        </button>
+                    </form>
 
                     <div className="text-left mt-6">
                         <p className="text-sm text-gray-600">
-                            Already have an account? <a href="/auth/sign-in" className="text-[#3EBF0F] hover:underline">Login Here</a>
+                            Already have an account? <Link href="/auth/sign-in" className="text-[#3EBF0F] hover:underline">Login Here</Link>
                         </p>
                     </div>
                 </div>
