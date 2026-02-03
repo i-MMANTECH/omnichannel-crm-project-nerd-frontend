@@ -158,7 +158,7 @@ const CustomersContent = () => {
                                         className="flex items-center border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
                                     >
                                         <Upload size={16} className="mr-2" />
-                                        Import
+                                        Import Customers
                                     </button>
                                     <button
                                         onClick={openModal}
