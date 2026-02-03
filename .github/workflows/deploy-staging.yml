@@ -56,7 +56,7 @@ jobs:
           script: |
             cd /var/www/omnichannel-crm/staging/omnicrm-frontend
             npm install --force
-            systemctll restart omnicrm-frontend-staging.service
+            systemctl restart omnicrm-frontend-staging.service
             echo "✅ Staging deployment completed!"
       
       # Step 7: Check if deployment was successful
