@@ -7,7 +7,7 @@ import UserAvatar from "../UserAvatar";
 import Image from "next/image";
 import Notes from "./Notes";
 import { getRoleStyle } from "@/utils/getRoleStyle";
-import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import EditCustomerModal from "./EditCustomerModal";
 import SuccessModal from '@/app/components/SuccessModal';
 import SendMessageModal from "./SendMessageModal";
@@ -15,26 +15,27 @@ import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import { useCall } from "@/context/CallContext";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import { usePortalRouter } from "@/context/usePortalRouter";
 
 const ModalController = ({ children }) => {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-  
+  const { navigateTo, buildRoute } = usePortalRouter(); // Use portal router
+
   const isModalOpen = searchParams.get('action') === 'edit-customer';
 
   const openModal = () => {
-      const params = new URLSearchParams(searchParams);
-      params.set('action', 'edit-customer');
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    const params = new URLSearchParams(searchParams);
+    params.set('action', 'edit-customer');
+    const currentRoute = window.location.pathname.split('/').slice(2).join('/'); // Get path after portal
+    navigateTo(`${currentRoute}?${params.toString()}`, { scroll: false });
   };
 
   const closeModal = () => {
-      const params = new URLSearchParams(searchParams);
-      params.delete('action');
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    const params = new URLSearchParams(searchParams);
+    params.delete('action');
+    const currentRoute = window.location.pathname.split('/').slice(2).join('/');
+    navigateTo(`${currentRoute}?${params.toString()}`, { scroll: false });
   };
-  
 
   return children({ isModalOpen, openModal, closeModal });
 };
@@ -43,17 +44,17 @@ export default function CustomerDetails() {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
   const { makeCall } = useCall();
+  const { navigateTo, buildRoute, goBack } = usePortalRouter(); // Use portal router
+
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
   const [selected, setSelected] = useState("work-schedule");
-  const router = useRouter();
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [availableChannels, setAvailableChannels] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [customer, setCustomer] = useState({})
-
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const { id } = useParams();
@@ -70,7 +71,6 @@ export default function CustomerDetails() {
   useEffect(() => {
     getCustomer();
   }, [id]);
-  
 
   const handleChatSelect = async () => {
     setIsLoading(true);
@@ -79,7 +79,8 @@ export default function CustomerDetails() {
       const messages = response.data?.results?.messages || [];
 
       if (messages.length > 0) {
-        router.push(`/nativecrm/messages?chat=customers&id=${customer.id}`);
+        // Use portal-aware navigation
+        navigateTo(`messages?chat=customers&id=${customer.id}`);
       } else {
         setIsMessageModalOpen(true);
       }
@@ -95,20 +96,19 @@ export default function CustomerDetails() {
     getCustomer()
   };
 
-const customerUsername = useMemo(() => {
-  if (customer?.username) {
-    return customer.username;
-  } else if (customer?.name) {
-    return customer.name;
-  } else if (customer?.first_name && customer?.last_name) {
-    return `${customer.first_name} ${customer.last_name}`;
-  } else if (customer?.first_name) {
-    return customer.first_name;
-  } else {
-    return '--';
-  }
-}, [customer]);
-
+  const customerUsername = useMemo(() => {
+    if (customer?.username) {
+      return customer.username;
+    } else if (customer?.name) {
+      return customer.name;
+    } else if (customer?.first_name && customer?.last_name) {
+      return `${customer.first_name} ${customer.last_name}`;
+    } else if (customer?.first_name) {
+      return customer.first_name;
+    } else {
+      return '--';
+    }
+  }, [customer]);
 
   const customerName = useMemo(() => {
     if (customer?.first_name && customer?.last_name) {
@@ -121,38 +121,40 @@ const customerUsername = useMemo(() => {
       return '--';
     }
   }, [customer]);
-  
 
   const handleConfirmDelete = async () => {
     try {
       await axiosInstance.delete(`/customers/${id}/`);
       setIsDeleteModalOpen(false);
       setIsSuccessModalOpen(true);
-      router.push("/nativecrm/customers");
+      goBack(); // Use portal router's goBack
     } catch (error) {
       handleApiError(error);
     }
   };
 
+  // Build the messages route for SendMessageModal
+  const messagesRoute = buildRoute(`messages?chat=customers&id=${customer.id}`);
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>    
+    <Suspense fallback={<div>Loading...</div>}>
       <ModalController>
         {({ isModalOpen, openModal, closeModal }) => (
           <div className="flex justify-center mt-5">
             <div className="flex mb-5 flex-col max-w-[788px] p-8 items-center gap-6 flex-1 rounded-lg border border-gray-300 body-theme">
               <div className="customer-top-content flex justify-between border w-full rounded-lg p-6 gap-3">
                 <div className="px-6 py-4 flex flex-col items-center gap-1 h-fit rounded-lg border border-gray-200 body-theme">
-                  {customer?.image && <Image 
+                  {customer?.image && <Image
                     alt="profile pic"
                     width={40}
                     height={40}
-                    className="customer-left-image mt-2 rounded-full w-20 h-20" 
-                    src={customer.image} 
+                    className="customer-left-image mt-2 rounded-full w-20 h-20"
+                    src={customer.image}
                   />}
-                  {!customer?.image && <UserAvatar name={ customerUsername } width="w-20" height="h-20" />}
+                  {!customer?.image && <UserAvatar name={customerUsername} width="w-20" height="h-20" />}
 
-                  <p className="customer-left-name text-xl font-bold mt-1">{ customerUsername.slice(0, 10) }</p>
-                  <p className="customer-left-email text-sm mt-1">{ customer?.email }</p>
+                  <p className="customer-left-name text-xl font-bold mt-1">{customerUsername.slice(0, 10)}</p>
+                  <p className="customer-left-email text-sm mt-1">{customer?.email}</p>
                   <div className="flex gap-6 mt-5">
                     <div
                       className=" flex flex-col items-center gap-2 cursor-pointer"
@@ -171,7 +173,7 @@ const customerUsername = useMemo(() => {
                     <div onClick={() => handleChatSelect()} className="flex flex-col items-center gap-2 pointer" >
                       <div className="flex w-8 h-8 p-2 justify-center items-center gap-2 rounded-md border border-gray-100 bg-white shadow-sm text-gray-600">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 17 16" fill="none">
-                          <path d="M6.08333 5.33333H8.08333M6.08333 8H10.0833M4.08333 2H13.4167C14.153 2 14.75 2.59431 14.75 3.32743V9.96753C14.75 10.7007 14.153 11.295 13.4167 11.295H5.73708C5.53456 11.295 5.34302 11.3866 5.2165 11.5441L3.34362 13.8748C3.14679 14.1198 2.75 13.9812 2.75 13.6675V3.32743C2.75 2.59431 3.34695 2 4.08333 2Z" stroke="#0D0D12" strokeWidth="1.5" strokeLinecap="round"/>
+                          <path d="M6.08333 5.33333H8.08333M6.08333 8H10.0833M4.08333 2H13.4167C14.153 2 14.75 2.59431 14.75 3.32743V9.96753C14.75 10.7007 14.153 11.295 13.4167 11.295H5.73708C5.53456 11.295 5.34302 11.3866 5.2165 11.5441L3.34362 13.8748C3.14679 14.1198 2.75 13.9812 2.75 13.6675V3.32743C2.75 2.59431 3.34695 2 4.08333 2Z" stroke="#0D0D12" strokeWidth="1.5" strokeLinecap="round" />
                         </svg>
                       </div>
                       <span className="text-center text-sm font-normal font-['Encode_Sans'] tracking-wide leading-[150%]">
@@ -180,29 +182,29 @@ const customerUsername = useMemo(() => {
                     </div>
 
                     <div className="relative">
-                    <div 
-                    className="pointer flex flex-col items-center gap-2"
-                    ref={buttonRef}
+                      <div
+                        className="pointer flex flex-col items-center gap-2"
+                        ref={buttonRef}
                         onClick={(e) => {
                           e.stopPropagation();
                           setMenuOpen(menuOpen === customer.id ? null : customer.id);
                         }}>
-                      <div className="flex w-8 h-8 p-2 justify-center items-center gap-2 rounded-md border border-gray-100 bg-white shadow-sm text-gray-600">
-                      <svg width="12" height="4" viewBox="0 0 12 4" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6.91665 1.99967C6.91665 2.36786 6.61817 2.66634 6.24998 2.66634C5.88179 2.66634 5.58331 2.36786 5.58331 1.99967C5.58331 1.63148 5.88179 1.33301 6.24998 1.33301C6.61817 1.33301 6.91665 1.63148 6.91665 1.99967Z" fill="#0D0D12"/>
-                        <path d="M2.91665 1.99967C2.91665 2.36786 2.61817 2.66634 2.24998 2.66634C1.88179 2.66634 1.58331 2.36786 1.58331 1.99967C1.58331 1.63148 1.88179 1.33301 2.24998 1.33301C2.61817 1.33301 2.91665 1.63148 2.91665 1.99967Z" fill="#0D0D12"/>
-                        <path d="M10.9166 1.99967C10.9166 2.36786 10.6182 2.66634 10.25 2.66634C9.88179 2.66634 9.58331 2.36786 9.58331 1.99967C9.58331 1.63148 9.88179 1.33301 10.25 1.33301C10.6182 1.33301 10.9166 1.63148 10.9166 1.99967Z" fill="#0D0D12"/>
-                        <path d="M6.91665 1.99967C6.91665 2.36786 6.61817 2.66634 6.24998 2.66634C5.88179 2.66634 5.58331 2.36786 5.58331 1.99967C5.58331 1.63148 5.88179 1.33301 6.24998 1.33301C6.61817 1.33301 6.91665 1.63148 6.91665 1.99967Z" stroke="#0D0D12" strokeWidth="2"/>
-                        <path d="M2.91665 1.99967C2.91665 2.36786 2.61817 2.66634 2.24998 2.66634C1.88179 2.66634 1.58331 2.36786 1.58331 1.99967C1.58331 1.63148 1.88179 1.33301 2.24998 1.33301C2.61817 1.33301 2.91665 1.63148 2.91665 1.99967Z" stroke="#0D0D12" strokeWidth="2"/>
-                        <path d="M10.9166 1.99967C10.9166 2.36786 10.6182 2.66634 10.25 2.66634C9.88179 2.66634 9.58331 2.36786 9.58331 1.99967C9.58331 1.63148 9.88179 1.33301 10.25 1.33301C10.6182 1.33301 10.9166 1.63148 10.9166 1.99967Z" stroke="#0D0D12" strokeWidth="2"/>
-                      </svg>
+                        <div className="flex w-8 h-8 p-2 justify-center items-center gap-2 rounded-md border border-gray-100 bg-white shadow-sm text-gray-600">
+                          <svg width="12" height="4" viewBox="0 0 12 4" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.91665 1.99967C6.91665 2.36786 6.61817 2.66634 6.24998 2.66634C5.88179 2.66634 5.58331 2.36786 5.58331 1.99967C5.58331 1.63148 5.88179 1.33301 6.24998 1.33301C6.61817 1.33301 6.91665 1.63148 6.91665 1.99967Z" fill="#0D0D12" />
+                            <path d="M2.91665 1.99967C2.91665 2.36786 2.61817 2.66634 2.24998 2.66634C1.88179 2.66634 1.58331 2.36786 1.58331 1.99967C1.58331 1.63148 1.88179 1.33301 2.24998 1.33301C2.61817 1.33301 2.91665 1.63148 2.91665 1.99967Z" fill="#0D0D12" />
+                            <path d="M10.9166 1.99967C10.9166 2.36786 10.6182 2.66634 10.25 2.66634C9.88179 2.66634 9.58331 2.36786 9.58331 1.99967C9.58331 1.63148 9.88179 1.33301 10.25 1.33301C10.6182 1.33301 10.9166 1.63148 10.9166 1.99967Z" fill="#0D0D12" />
+                            <path d="M6.91665 1.99967C6.91665 2.36786 6.61817 2.66634 6.24998 2.66634C5.88179 2.66634 5.58331 2.36786 5.58331 1.99967C5.58331 1.63148 5.88179 1.33301 6.24998 1.33301C6.61817 1.33301 6.91665 1.63148 6.91665 1.99967Z" stroke="#0D0D12" strokeWidth="2" />
+                            <path d="M2.91665 1.99967C2.91665 2.36786 2.61817 2.66634 2.24998 2.66634C1.88179 2.66634 1.58331 2.36786 1.58331 1.99967C1.58331 1.63148 1.88179 1.33301 2.24998 1.33301C2.61817 1.33301 2.91665 1.63148 2.91665 1.99967Z" stroke="#0D0D12" strokeWidth="2" />
+                            <path d="M10.9166 1.99967C10.9166 2.36786 10.6182 2.66634 10.25 2.66634C9.88179 2.66634 9.58331 2.36786 9.58331 1.99967C9.58331 1.63148 9.88179 1.33301 10.25 1.33301C10.6182 1.33301 10.9166 1.63148 10.9166 1.99967Z" stroke="#0D0D12" strokeWidth="2" />
+                          </svg>
 
+                        </div>
+                        <span className="text-center text-sm font-normal font-['Encode_Sans'] tracking-wide leading-[150%]">
+                          More
+                        </span>
                       </div>
-                      <span className="text-center text-sm font-normal font-['Encode_Sans'] tracking-wide leading-[150%]">
-                        More
-                      </span>
-                    </div>
-                    {menuOpen === customer.id && (
+                      {menuOpen === customer.id && (
                         <div
                           ref={menuRef}
                           className="absolute z-50 right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
@@ -247,14 +249,14 @@ const customerUsername = useMemo(() => {
                     <p className="text-left">
                       Name
                     </p>
-                    <p className="customer-left-name font-bold">{ customerName.slice(0, 30) }</p>
+                    <p className="customer-left-name font-bold">{customerName.slice(0, 30)}</p>
                   </div>
 
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-left">
                       Gender
                     </p>
-                    <p className="customer-left-name font-bold">{ customer?.gender || '--'}</p>
+                    <p className="customer-left-name font-bold">{customer?.gender || '--'}</p>
                   </div>
 
                   <div className="flex flex-row items-center justify-between mt-2 ">
@@ -262,31 +264,31 @@ const customerUsername = useMemo(() => {
                     {customer?.tags?.length <= 0 && (
                       <p className="customer-left-name font-bold mr-1">--</p>
                     )}
-                      <div className="flex flex-wrap gap-1 max-w-[250px]  text-sm ">
-                        {customer?.tags?.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 ml-1 rounded whitespace-nowrap"
-                            style={getRoleStyle(tag)}
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
+                    <div className="flex flex-wrap gap-1 max-w-[250px]  text-sm ">
+                      {customer?.tags?.map((tag, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 ml-1 rounded whitespace-nowrap"
+                          style={getRoleStyle(tag)}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-left">
                       Email
                     </p>
-                    <p className="customer-left-name font-bold">{ customer?.email || '--' }</p>
+                    <p className="customer-left-name font-bold">{customer?.email || '--'}</p>
                   </div>
 
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-left">
                       Phone Number
                     </p>
-                    <p className="customer-left-name font-bold">{ customer?.phone_number || '--' }</p>
+                    <p className="customer-left-name font-bold">{customer?.phone_number || '--'}</p>
                   </div>
 
                   <p className="text-left mt-6">
@@ -298,14 +300,14 @@ const customerUsername = useMemo(() => {
                     <p className="text-left">
                       Country
                     </p>
-                    <p className="customer-left-name font-bold">{ customer?.country || '--' }</p>
+                    <p className="customer-left-name font-bold">{customer?.country || '--'}</p>
                   </div>
 
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-left">
                       City
                     </p>
-                    <p className="customer-left-name font-bold">{ customer?.state || '--' }</p>
+                    <p className="customer-left-name font-bold">{customer?.state || '--'}</p>
                   </div>
                 </div>
               </div>
@@ -328,20 +330,20 @@ const customerUsername = useMemo(() => {
 
                 <div className="mt-10 w-full ">
                   {selected === "work-schedule" && (
-                    <Notes customerId={customer.id}/>
+                    <Notes customerId={customer.id} />
                   )}
                   {selected === "assigned-messages" && (
-                    <AssignedMessages/>
+                    <AssignedMessages />
                   )}
                 </div>
               </div>
             </div>
 
-            <EditCustomerModal 
-                isOpen={isModalOpen} 
-                onClose={closeModal}
-                customerId={customer?.id}
-                setIsSuccessModalOpen={setIsSuccessModalOpen}
+            <EditCustomerModal
+              isOpen={isModalOpen}
+              onClose={closeModal}
+              customerId={customer?.id}
+              setIsSuccessModalOpen={setIsSuccessModalOpen}
             />
 
             <SendMessageModal
@@ -349,22 +351,22 @@ const customerUsername = useMemo(() => {
               onClose={() => setIsMessageModalOpen(false)}
               customerId={customer.id}
               customerName={customerName}
-              onMessageSent={() => router.push(`/nativecrm/messages?chat=customers&id=${customer.id}`)}
+              onMessageSent={() => navigateTo(`messages?chat=customers&id=${customer.id}`)}
             />
 
             <SuccessModal
-                  isOpen={isSuccessModalOpen}
-                  title="Success!"
-                  message="Customer updated successfully"
-                  buttonText="Okay, thank you"
-                  onClose={closeSuccessModal}
-              />
+              isOpen={isSuccessModalOpen}
+              title="Success!"
+              message="Customer updated successfully"
+              buttonText="Okay, thank you"
+              onClose={closeSuccessModal}
+            />
             <ConfirmationModal
-                isOpen={isDeleteModalOpen}
-                title="Confirm Delete"
-                message="Are you sure you want to delete this customer?"
-                onConfirm={handleConfirmDelete}
-                onCancel={() => setIsDeleteModalOpen(false)}
+              isOpen={isDeleteModalOpen}
+              title="Confirm Delete"
+              message="Are you sure you want to delete this customer?"
+              onConfirm={handleConfirmDelete}
+              onCancel={() => setIsDeleteModalOpen(false)}
             />
           </div>
         )}
