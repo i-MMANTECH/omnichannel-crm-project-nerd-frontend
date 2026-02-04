@@ -117,7 +117,7 @@ const CustomersContent = () => {
     };
 
     const handleImportSuccess = () => {
-        fetchCustomers(); // Refresh the customer list
+        fetchCustomers();
         setIsImportModalOpen(false);
     };
 

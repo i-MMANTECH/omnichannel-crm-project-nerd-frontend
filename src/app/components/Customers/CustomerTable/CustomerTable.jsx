@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './style.css';
 import { useRouter } from 'next/navigation';
 import UserAvatar from '../../UserAvatar';
@@ -7,14 +7,14 @@ import { getRoleStyle } from '@/utils/getRoleStyle';
 
 const CustomerTable = ({ customers }) => {
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10); 
+    const [pageSize, setPageSize] = useState(10);
     const router = useRouter()
 
     const handlePageChange = (page) => setCurrentPage(page);
 
     const handlePageSizeChange = (size) => {
         setPageSize(size);
-        setCurrentPage(1); 
+        setCurrentPage(1);
     };
 
     const getChannelIcon = (channel) => {
@@ -29,7 +29,7 @@ const CustomerTable = ({ customers }) => {
                 return "https://via.placeholder.com/24/000000/FFFFFF?text=?";
         }
     };
-    
+
 
     return (
         <>
@@ -37,6 +37,7 @@ const CustomerTable = ({ customers }) => {
                 <table className="min-w-full body-theme text-left text-sm">
                     <thead className="bg-gray-100 dark:bg-neutral-900">
                         <tr>
+                            <th className="styled-th whitespace-nowrap">Username</th>
                             <th className="styled-th whitespace-nowrap">Customer Name</th>
                             <th className="styled-th whitespace-nowrap">
                                 <div className="flex items-center">
@@ -74,10 +75,10 @@ const CustomerTable = ({ customers }) => {
                             </th>
                         </tr>
                     </thead>
-                    
+
                     <tbody>
                         {customers?.map((customer, index) => (
-                            <tr  style={{
+                            <tr style={{
                                 width: '100px',
                                 flexShrink: 0,
                                 fontFamily: '"Encode Sans"',
@@ -86,20 +87,23 @@ const CustomerTable = ({ customers }) => {
                                 fontWeight: 500,
                                 lineHeight: '150%',
                                 letterSpacing: '0.2px'
-                            }} key={index} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer" 
-                            onClick={() => router.push(`customers/${customer.id}`)}
+                            }} key={index} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer"
+                                onClick={() => router.push(`customers/${customer.id}`)}
                             >
-                                <td className="whitespace-nowrap py-3 px-4 border-b flex items-center space-x-3">
-                                    {customer?.image && <Image 
-                                        alt="profile pic"
-                                        width={10}
-                                        height={10}
-                                        className="mt-2 w-10 h-10 rounded-full" 
-                                        src={customer.image} 
+                                <td className="whitespace-nowrap py-3 px-4 border-b flex items-center">
+                                    <div className='pr-2'>
+                                        {customer?.image && <Image
+                                            alt="profile pic"
+                                            width={10}
+                                            height={10}
+                                            className="mt-2 w-10 h-10 rounded-full"
+                                            src={customer.image}
                                         />}
-                                    {!customer?.image && <UserAvatar name={`${customer.first_name} ${customer.last_name}`} width="w-10" height="h-10" />}
-                                    <span>{`${customer.first_name} ${customer.last_name}` || "--"}</span>
+                                        {!customer?.image && <UserAvatar name={`${customer.first_name} ${customer.last_name}`} width="w-10" height="h-10" />}
+                                    </div>
+                                    {customer?.username || "--"}
                                 </td>
+                                <td className="whitespace-nowrap py-3 px-4 border-b">{`${customer.first_name} ${customer.last_name}` || "--"}</td>
                                 <td className="whitespace-nowrap py-3 px-4 border-b">{customer.email}</td>
                                 <td className="whitespace-nowrap py-3 px-4 border-b ">{customer.phone_number}</td>
                                 <td className="whitespace-nowrap py-3 px-4 border-b">
