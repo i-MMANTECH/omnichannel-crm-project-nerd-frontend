@@ -66,11 +66,18 @@ const CustomerTable = ({ customers }) => {
                             </th>
                             <th className="styled-th whitespace-nowrap">
                                 <div className="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-group-icon lucide-group"><path d="M3 7V5c0-1.1.9-2 2-2h2" /><path d="M17 3h2c1.1 0 2 .9 2 2v2" /><path d="M21 17v2c0 1.1-.9 2-2 2h-2" /><path d="M7 21H5c-1.1 0-2-.9-2-2v-2" /><rect width="7" height="5" x="7" y="7" rx="1" /><rect width="7" height="5" x="10" y="12" rx="1" /></svg>
+
+                                    <span className="ml-1">Categories</span>
+                                </div>
+                            </th>
+                            <th className="styled-th whitespace-nowrap">
+                                <div className="flex items-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" style={{ flexShrink: 0 }} viewBox="0 0 16 16" fill="none">
                                         <path d="M8.66658 2.66699H4.15629C2.52941 2.66699 1.71597 2.66699 1.42951 3.17799C1.42078 3.19355 1.41247 3.20935 1.40459 3.22535C1.14587 3.75094 1.6068 4.42119 2.52865 5.76169C3.264 6.83099 3.63167 7.36566 3.64065 7.97066C3.64095 7.99046 3.64095 8.01019 3.64065 8.02999C3.63167 8.63499 3.264 9.16966 2.52865 10.239C1.6068 11.5795 1.14587 12.2497 1.40459 12.7753C1.41247 12.7913 1.42078 12.8071 1.42951 12.8227C1.71597 13.3337 2.52941 13.3337 4.15629 13.3337H8.66658C9.97512 13.3337 10.6295 13.3337 11.1925 13.0521C11.7555 12.7706 12.1481 12.2472 12.9333 11.2003C14.0888 9.65959 14.6666 8.88919 14.6666 8.00033C14.6666 7.11146 14.0888 6.34107 12.9333 4.80033C12.1481 3.75347 11.7555 3.23005 11.1925 2.94852C10.6295 2.66699 9.97512 2.66699 8.66658 2.66699Z" stroke="#808897" />
                                     </svg>
 
-                                    <span className="ml-1">Tag</span>
+                                    <span className="ml-1">Tags</span>
                                 </div>
                             </th>
                         </tr>
@@ -127,6 +134,27 @@ const CustomerTable = ({ customers }) => {
                                     </div>
                                 </td>
                                 <td className="whitespace-nowrap py-3 px-4 border-b">
+                                    {(!customer?.categories || customer?.categories.length === 0) ? (
+                                        <span className="customer-left-name font-bold mr-1">--</span>
+                                    ) : (
+                                        <span className="inline-block py-1 rounded-full -ml-1 text-sm font-medium">
+                                            {customer?.categories.slice(0, 6).map((cat, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="px-2 py-1 ml-1 rounded"
+                                                    style={getRoleStyle(cat)}
+                                                >
+                                                    {cat}
+                                                </span>
+                                            ))}
+                                            {customer?.categories.length > 6 && (
+                                                <span className="ml-1 font-bold text-base">...</span>
+                                            )}
+
+                                        </span>
+                                    )}
+                                </td>
+                                <td className="whitespace-nowrap py-3 px-4 border-b">
                                     {(!customer?.tags || customer?.tags.length === 0) ? (
                                         <span className="customer-left-name font-bold mr-1">--</span>
                                     ) : (
@@ -147,6 +175,7 @@ const CustomerTable = ({ customers }) => {
                                         </span>
                                     )}
                                 </td>
+
                             </tr>
                         ))}
                     </tbody>

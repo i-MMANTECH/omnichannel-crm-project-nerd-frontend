@@ -63,6 +63,7 @@ export default function CustomerDetails() {
     try {
       const { data } = await axiosInstance.get(`/customers/${id}/`);
       setCustomer(data.customer);
+      console.log(data.customer)
     } catch (error) {
       handleApiError(error);
     }
@@ -258,7 +259,23 @@ export default function CustomerDetails() {
                     </p>
                     <p className="customer-left-name font-bold">{customer?.gender || '--'}</p>
                   </div>
-
+                  <div className="flex flex-row items-center justify-between mt-2 ">
+                    <p className="flex-1">Categories</p>
+                    {customer?.categories?.length <= 0 && (
+                      <p className="customer-left-name font-bold mr-1">--</p>
+                    )}
+                    <div className="flex flex-wrap gap-1 max-w-[250px]  text-sm ">
+                      {customer?.categories?.map((cat, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 ml-1 rounded whitespace-nowrap"
+                          style={getRoleStyle(cat)}
+                        >
+                          {cat}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                   <div className="flex flex-row items-center justify-between mt-2 ">
                     <p className="flex-1">Tags</p>
                     {customer?.tags?.length <= 0 && (
@@ -298,16 +315,51 @@ export default function CustomerDetails() {
 
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-left">
-                      Country
+                      State
                     </p>
-                    <p className="customer-left-name font-bold">{customer?.country || '--'}</p>
+                    <p className="customer-left-name font-bold">{customer?.state_name || '--'}</p>
                   </div>
 
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-left">
-                      City
+                      Country
                     </p>
-                    <p className="customer-left-name font-bold">{customer?.state || '--'}</p>
+                    <p className="customer-left-name font-bold">{customer?.country_name || '--'}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-left">
+                      Description
+                    </p>
+                    <p className="customer-left-name font-bold">{customer?.description || '--'}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-left">
+                      Facebok URL
+                    </p>
+                    <p className="customer-left-name font-bold">{customer?.facebook_url || '--'}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-left">
+                      Instagram URL
+                    </p>
+                    <p className="customer-left-name font-bold">{customer?.instagram_url || '--'}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-left">
+                      Tiktok URL
+                    </p>
+                    <p className="customer-left-name font-bold">{customer?.tiktok_url || '--'}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-left">
+                      Website
+                    </p>
+                    <p className="customer-left-name font-bold">{customer?.website || '--'}</p>
                   </div>
                 </div>
               </div>
