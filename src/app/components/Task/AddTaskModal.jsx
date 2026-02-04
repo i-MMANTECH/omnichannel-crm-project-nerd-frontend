@@ -27,6 +27,19 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
   const getAssigneesEndpoint = "/users/";
   const getSlasEndpoint = "/sla/";
 
+  const getUserLabel = (user) => {
+    const first = user.first_name?.trim();
+    const last = user.last_name?.trim();
+    const fullName = [first, last].filter(Boolean).join(" ");
+
+    if (fullName) {
+      return `${fullName} <${user.email}>`;
+    }
+
+    return user.email;
+  };
+
+
   useEffect(() => {
     if (isOpen) {
       const fetchData = async () => {
@@ -38,15 +51,24 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
               axiosInstance.get(getAssigneesEndpoint),
               axiosInstance.get(getSlasEndpoint),
             ]);
-  
+
           setPriorities(prioritiesRes.data.priorities || []);
           setStatuses(statusesRes.data.statuses || []);
           setUsers(
             assigneesRes.data.results.map((user) => ({
               value: user.id,
-              label: user.email,
+              label: (() => {
+                const first = user.first_name?.trim();
+                const last = user.last_name?.trim();
+                const fullName = [first, last].filter(Boolean).join(" ");
+
+                return fullName
+                  ? `${fullName} <${user.email}>`
+                  : user.email;
+              })(),
             }))
           );
+
           setSlas(
             slasRes.data.results.map((sla) => ({
               value: sla.id,
@@ -57,11 +79,11 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
           handleApiError(error);
         }
       };
-  
+
       fetchData();
     }
   }, [isOpen]);
-  
+
 
   const handlePriorityChange = (selectedOption) => {
     setPriority(selectedOption);
@@ -85,13 +107,13 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
     const taskData = {
       title: taskTitle,
       description: taskDescription,
-      assignees: assignees.map((agent) => agent.value), 
+      assignees: assignees.map((agent) => agent.value),
       due_date: dueDate,
-      sla_id: sla?.value, 
+      sla_id: sla?.value,
       priority: priority?.value,
       status: status?.value,
     };
-     
+
 
     try {
       const response = await axiosInstance.post(createTaskEndpoint, taskData);
