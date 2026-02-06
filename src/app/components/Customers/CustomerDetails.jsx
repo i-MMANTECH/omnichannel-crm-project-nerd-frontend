@@ -63,7 +63,6 @@ export default function CustomerDetails() {
     try {
       const { data } = await axiosInstance.get(`/customers/${id}/`);
       setCustomer(data.customer);
-      console.log(data.customer)
     } catch (error) {
       handleApiError(error);
     }
