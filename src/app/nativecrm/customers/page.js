@@ -42,7 +42,6 @@ const ModalController = ({ children }) => {
 };
 
 const CustomersContent = () => {
-    const [searchQuery, setSearchQuery] = useState("");
     const [customers, setCustomers] = useState([]);
     const [view, setView] = useState('table');
     const { handleApiError } = useError();
@@ -51,6 +50,13 @@ const CustomersContent = () => {
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
     const searchParams = useSearchParams();
+    const selectedTags = searchParams.get("tags");
+
+    const [searchQuery, setSearchQuery] = useState(
+        searchParams.get("search") || ""
+    );
+    const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+
     const router = useRouter();
     const pathname = usePathname();
 
@@ -70,7 +76,7 @@ const CustomersContent = () => {
 
     useEffect(() => {
         fetchCustomers();
-    }, [isSuccessModalOpen, currentPage, pageSize]);
+    }, [isSuccessModalOpen, currentPage, pageSize, debouncedSearch, selectedTags]);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -81,19 +87,60 @@ const CustomersContent = () => {
         }
     }, []);
 
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    useEffect(() => {
+        if (debouncedSearch !== searchParams.get("search")) {
+            const params = new URLSearchParams(searchParams);
+
+            if (debouncedSearch) {
+                params.set("search", debouncedSearch);
+            } else {
+                params.delete("search");
+            }
+
+            params.set("page", "1"); // reset pagination
+            router.push(`${pathname}?${params.toString()}`, { scroll: false });
+            setCurrentPage(1);
+        }
+    }, [debouncedSearch]);
+
     const closeSuccessModal = () => {
         setIsSuccessModalOpen(false);
     };
 
     const fetchCustomers = async () => {
         try {
-            const { data } = await axiosInstance.get(`/customers/?page_size=${pageSize}&page=${currentPage}`);
+            const params = new URLSearchParams();
+
+            params.set("page", currentPage.toString());
+            params.set("page_size", pageSize.toString());
+
+            if (debouncedSearch) {
+                params.set("search", debouncedSearch);
+            }
+
+            if (selectedTags) {
+                params.set("tags", selectedTags); // pass-through
+            }
+
+            const { data } = await axiosInstance.get(
+                `/customers/?${params.toString()}`
+            );
+
             setCustomers(data.results || []);
             setTotalPages(Math.ceil(data.count / pageSize));
         } catch (error) {
             handleApiError(error);
         }
     };
+
 
     const handlePageChange = (newPage) => {
         const params = new URLSearchParams(searchParams);
@@ -117,7 +164,7 @@ const CustomersContent = () => {
     };
 
     const handleImportSuccess = () => {
-        fetchCustomers(); // Refresh the customer list
+        fetchCustomers();
         setIsImportModalOpen(false);
     };
 
@@ -152,6 +199,30 @@ const CustomersContent = () => {
                                     </button>
                                 </div>
 
+                                <div className="relative">
+                                    <div className="flex items-center border border-gray-300 rounded-lg shadow-sm bg-white px-3 py-1.5">
+                                        <input
+                                            type="text"
+                                            placeholder="Search customers..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="outline-none bg-transparent text-sm w-48"
+                                        />
+                                        {searchQuery && (
+                                            <button
+                                                onClick={() => {
+                                                    setSearchQuery("");
+                                                    setDebouncedSearch("");
+                                                }}
+                                                className="ml-2 text-gray-400 hover:text-gray-600"
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+
                                 <div className="flex items-center space-x-3">
                                     <button
                                         onClick={() => setIsImportModalOpen(true)}
@@ -173,9 +244,9 @@ const CustomersContent = () => {
 
                                 {customers.length > 0 ? (
                                     view === 'table' ? (
-                                        <CustomerTable searchQuery={searchQuery} customers={customers} />
+                                        <CustomerTable customers={customers} />
                                     ) : (
-                                        <CustomerGrid searchQuery={searchQuery} customers={customers} />
+                                        <CustomerGrid customers={customers} />
                                     )
                                 ) : (
                                     <div className="min-h-96 flex items-center justify-center">
