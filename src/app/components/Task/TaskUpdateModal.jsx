@@ -38,15 +38,22 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
   const statusesEndpoint = "tasks/statuses/";
   const slaEndpoint = "/sla/";
 
+  const [loadingAgents, setLoadingAgents] = useState(false);
+  const [loadingPriorities, setLoadingPriorities] = useState(false);
+  const [loadingStatuses, setLoadingStatuses] = useState(false);
+  const [loadingSlas, setLoadingSlas] = useState(false);
+
+
   const fetchSlaPolicies = async () => {
-    setLoading(true);
+    setLoadingSlas(true);
+
     try {
       const response = await axiosInstance.get(slaEndpoint, { params: { plan_id: 1 } });
       setSlaData(response.data.results || []);
     } catch (err) {
       handleApiError(err);
     } finally {
-      setLoading(false);
+      setLoadingSlas(false);
     }
   };
 
@@ -83,31 +90,42 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
   useEffect(() => {
     if (isOpen) {
       const fetchPriorities = async () => {
+        setLoadingPriorities(true);
         try {
           const response = await axiosInstance.get(prioritiesEndpoint);
           setPriorities(response.data.priorities || []);
         } catch (error) {
           handleApiError(error);
+        } finally {
+          setLoadingPriorities(false);
         }
       };
 
+
       const fetchStatuses = async () => {
+        setLoadingStatuses(true);
         try {
           const response = await axiosInstance.get(statusesEndpoint);
           setStatuses(response.data.statuses || []);
         } catch (error) {
           handleApiError(error);
+        } finally {
+          setLoadingStatuses(false);
         }
       };
 
       const fetchAssignees = async () => {
+        setLoadingAgents(true);
         try {
           const response = await axiosInstance.get(getAssigneesEndpoint);
           setUsers(response.data.results || []);
         } catch (error) {
           handleApiError(error);
+        } finally {
+          setLoadingAgents(false);
         }
       };
+
 
       if (priorities.length === 0) fetchPriorities();
       if (statuses.length === 0) fetchStatuses();
@@ -288,7 +306,11 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
             value={sla}
             onChange={(selectedOption) => setSla(selectedOption)}
             styles={selectStyles}
+            isLoading={loadingSlas}
+            isDisabled={loadingSlas}
+            placeholder={loadingSlas ? "Loading SLA policies..." : "Select SLA"}
           />
+
         </div>
 
         <div className="mb-7">
@@ -298,7 +320,11 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
             value={priority}
             onChange={handlePriorityChange}
             styles={selectStyles}
+            isLoading={loadingPriorities}
+            isDisabled={loadingPriorities}
+            placeholder={loadingPriorities ? "Loading priorities..." : "Select priority"}
           />
+
         </div>
 
         <p className="mb-3">Select Agents</p>
@@ -309,7 +335,14 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
             value={agents}
             onChange={(selected) => setAgents(selected || [])}
             styles={selectStyles}
+            isLoading={loadingAgents}
+            isDisabled={loadingAgents}
+            placeholder={loadingAgents ? "Loading agents..." : "Select agents"}
+            noOptionsMessage={() =>
+              loadingAgents ? "Loading agents..." : "No agents found"
+            }
           />
+
         </div>
 
         <div className="mb-4">
@@ -329,7 +362,11 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
             value={status}
             onChange={handleStatusChange}
             styles={selectStyles}
+            isLoading={loadingStatuses}
+            isDisabled={loadingStatuses}
+            placeholder={loadingStatuses ? "Loading statuses..." : "Select status"}
           />
+
         </div>
       </form>
     </Modal>

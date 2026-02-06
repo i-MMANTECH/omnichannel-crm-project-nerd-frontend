@@ -27,6 +27,12 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
   const getAssigneesEndpoint = "/users/";
   const getSlasEndpoint = "/sla/";
 
+  const [loadingAgents, setLoadingAgents] = useState(false);
+  const [loadingPriorities, setLoadingPriorities] = useState(false);
+  const [loadingStatuses, setLoadingStatuses] = useState(false);
+  const [loadingSlas, setLoadingSlas] = useState(false);
+
+
   const getUserLabel = (user) => {
     const first = user.first_name?.trim();
     const last = user.last_name?.trim();
@@ -43,6 +49,11 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
   useEffect(() => {
     if (isOpen) {
       const fetchData = async () => {
+        setLoadingPriorities(true);
+        setLoadingStatuses(true);
+        setLoadingAgents(true);
+        setLoadingSlas(true);
+
         try {
           const [prioritiesRes, statusesRes, assigneesRes, slasRes] =
             await Promise.all([
@@ -57,18 +68,9 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
           setUsers(
             assigneesRes.data.results.map((user) => ({
               value: user.id,
-              label: (() => {
-                const first = user.first_name?.trim();
-                const last = user.last_name?.trim();
-                const fullName = [first, last].filter(Boolean).join(" ");
-
-                return fullName
-                  ? `${fullName} <${user.email}>`
-                  : user.email;
-              })(),
+              label: getUserLabel(user),
             }))
           );
-
           setSlas(
             slasRes.data.results.map((sla) => ({
               value: sla.id,
@@ -77,8 +79,14 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
           );
         } catch (error) {
           handleApiError(error);
+        } finally {
+          setLoadingPriorities(false);
+          setLoadingStatuses(false);
+          setLoadingAgents(false);
+          setLoadingSlas(false);
         }
       };
+
 
       fetchData();
     }
@@ -186,6 +194,12 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
             value={priority}
             onChange={handlePriorityChange}
             styles={selectStyles}
+            isLoading={loadingPriorities}
+            isDisabled={loadingPriorities}
+            placeholder={loadingPriorities ? "Loading priorities..." : "Select priority"}
+            noOptionsMessage={() =>
+              loadingPriorities ? "Loading priorities..." : "No priorities found"
+            }
           />
         </div>
 
@@ -199,7 +213,14 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
             value={status}
             onChange={handleStatusChange}
             styles={selectStyles}
+            isLoading={loadingStatuses}
+            isDisabled={loadingStatuses}
+            placeholder={loadingStatuses ? "Loading statuses..." : "Select status"}
+            noOptionsMessage={() =>
+              loadingStatuses ? "Loading statuses..." : "No statuses found"
+            }
           />
+
         </div>
 
         <div className="mb-7">
@@ -207,10 +228,17 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
           <Select
             isMulti
             options={users}
-            value={assignees} // Now correctly stores full objects { value, label }
+            value={assignees}
             onChange={handleAgentChange}
             styles={selectStyles}
+            isLoading={loadingAgents}
+            isDisabled={loadingAgents}
+            placeholder={loadingAgents ? "Loading agents..." : "Select agents"}
+            noOptionsMessage={() =>
+              loadingAgents ? "Loading agents..." : "No agents found"
+            }
           />
+
         </div>
 
         <div className="mb-4">
@@ -230,7 +258,14 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
             value={sla}
             onChange={handleSlaChange}
             styles={selectStyles}
+            isLoading={loadingSlas}
+            isDisabled={loadingSlas}
+            placeholder={loadingSlas ? "Loading SLA policies..." : "Select SLA"}
+            noOptionsMessage={() =>
+              loadingSlas ? "Loading SLA policies..." : "No SLA policies found"
+            }
           />
+
         </div>
       </form>
     </Modal>
