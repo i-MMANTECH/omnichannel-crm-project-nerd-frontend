@@ -94,6 +94,11 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
         e.preventDefault();
 
         try {
+            if (!formData.first_name?.trim() || !formData.email?.trim() || !formData.phone_number?.trim()) {
+                alert("First name, email, and phone number are required.");
+                return;
+            }
+
             const submissionData = {
                 ...formData,
                 tags: formData?.tags?.map(tag => tag.id),

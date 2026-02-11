@@ -5,6 +5,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import NoDataFound from "@/app/components/NoDataFound";
 import empty from "@/public/assets/empty.svg";
 import Pagination from "@/app/components/Pagination/Pagination";
+import LeadToCustomer from "@/app/components/admin/Message/LeadToCustomer";
+import SuccessModal from "@/app/components/SuccessModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 
@@ -23,6 +25,11 @@ const LeadsContent = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [serverCount, setServerCount] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
+  const [activeLeadId, setActiveLeadId] = useState(null);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [successModalMessage, setSuccessModalMessage] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const page = Number(searchParams.get("page")) || 1;
@@ -61,7 +68,14 @@ const LeadsContent = () => {
     fetchLeads();
     // axiosInstance and handleApiError can be unstable; avoid ref churn loops.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, pageSize, searchQuery]);
+  }, [currentPage, pageSize, searchQuery, refreshKey]);
+
+  useEffect(() => {
+    if (isSuccessModalOpen) {
+      setActiveLeadId(null);
+      setRefreshKey((prev) => prev + 1);
+    }
+  }, [isSuccessModalOpen]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -100,16 +114,24 @@ const LeadsContent = () => {
     return lead?.channel?.name || lead?.channel?.label || lead?.channel || "--";
   };
 
-  const handleConvertLead = async (leadId) => {
+  const handleOpenConvertModal = (leadId) => {
     if (!leadId) return;
-    try {
-      await axiosInstance.post(`/customers/leads/${leadId}/convert/`);
-      setLeads((prev) => (prev || []).filter((lead) => (lead?.id || lead?.unique_identifier) !== leadId));
-      setOpenMenuId(null);
-    } catch (error) {
-      handleApiError(error);
-      setOpenMenuId(null);
-    }
+    setActiveLeadId(leadId);
+    setIsConvertModalOpen(true);
+  };
+
+  const handleCloseConvertModal = () => {
+    setIsConvertModalOpen(false);
+    setActiveLeadId(null);
+  };
+
+  const handleCloseSuccessModal = () => {
+    setIsSuccessModalOpen(false);
+    setSuccessModalMessage("");
+  };
+
+  const toggleMenu = (leadId) => {
+    setOpenMenuId((prev) => (prev === leadId ? null : leadId));
   };
 
   const rows = useMemo(() => {
@@ -120,10 +142,6 @@ const LeadsContent = () => {
     }
     return safeLeads;
   }, [leads, serverCount, currentPage, pageSize]);
-
-  const toggleMenu = (leadId) => {
-    setOpenMenuId((prev) => (prev === leadId ? null : leadId));
-  };
 
   return (
     <div className="overflow-x-hidden flex flex-row body-theme min-h-[83vh]">
@@ -208,20 +226,26 @@ const LeadsContent = () => {
                               className="w-8 h-8 inline-flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                               aria-label="Row actions"
                             >
-                              <span className="text-xl leading-none">...</span>
+                              <span className="flex flex-col items-center justify-center gap-0.5">
+                                <span className="w-1 h-1 rounded-full bg-gray-500 dark:bg-gray-300"></span>
+                                <span className="w-1 h-1 rounded-full bg-gray-500 dark:bg-gray-300"></span>
+                                <span className="w-1 h-1 rounded-full bg-gray-500 dark:bg-gray-300"></span>
+                              </span>
                             </button>
-                            {openMenuId === (lead?.id || lead?.unique_identifier) && (
-                              <div className="absolute right-0 mt-2 w-44 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-20">
-                                <button
-                                  type="button"
-                                  onClick={() => handleConvertLead(lead?.id)}
-                                  disabled={!lead?.id}
-                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                >
-                                  Convert Lead
-                                </button>
-                              </div>
-                            )}
+                            <div
+                              className={`absolute right-0 mt-2 w-44 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-20 ${
+                                openMenuId === (lead?.id || lead?.unique_identifier) ? "block" : "hidden"
+                              }`}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => handleOpenConvertModal(lead?.id)}
+                                disabled={!lead?.id}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              >
+                                Convert Lead
+                              </button>
+                            </div>
                           </div>
                         </td>
                       </tr>
@@ -245,6 +269,22 @@ const LeadsContent = () => {
           />
         </div>
       </div>
+
+      <LeadToCustomer
+        isOpen={isConvertModalOpen}
+        onClose={handleCloseConvertModal}
+        leadId={activeLeadId}
+        setIsSuccessModalOpen={setIsSuccessModalOpen}
+        setSuccessModalMessage={setSuccessModalMessage}
+      />
+
+      <SuccessModal
+        isOpen={isSuccessModalOpen}
+        title="Success!"
+        message={successModalMessage || "Lead has been successfully converted to a customer."}
+        buttonText="Okay, thank you"
+        onClose={handleCloseSuccessModal}
+      />
     </div>
   );
 };
