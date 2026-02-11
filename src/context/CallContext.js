@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import JsSIP from 'jssip';
+import * as JsSIP from 'jssip';
 import { toast } from 'react-toastify';
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
