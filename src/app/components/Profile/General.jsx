@@ -22,7 +22,7 @@ const GeneralProfile = ({ onProfileChanged }) => {
 
   const inputClasses = "w-full border rounded-md p-2 focus:ring-blue-200";
   const disabledInputClasses = "w-full border rounded-md p-2 bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200";
-  
+
   useEffect(() => {
     fetchInitialData();
   }, []);
@@ -35,7 +35,7 @@ const GeneralProfile = ({ onProfileChanged }) => {
   );
 
   const fetchInitialData = async () => {
-    try {        
+    try {
       const [userResponse, rolesResponse, countriesResponse] = await Promise.all([
         axiosInstance.get(`/users/me`),
         axiosInstance.get("/users/roles/"),
@@ -49,7 +49,7 @@ const GeneralProfile = ({ onProfileChanged }) => {
       const formattedCountries = countriesData.map(country => ({
         value: country.id,
         label: `+${country.phonecode}`,
-        name: country.name,            
+        name: country.name,
         phonecode: country.phonecode
       }));
 
@@ -60,7 +60,7 @@ const GeneralProfile = ({ onProfileChanged }) => {
         label: role.name
       })));
       setCountries(formattedCountries);
-      
+
       // if (userData.country_id) {
       //   await fetchStates(userData.country_id);
       // }
@@ -70,7 +70,7 @@ const GeneralProfile = ({ onProfileChanged }) => {
       }
     } catch (error) {
       handleApiError(error);
-    } 
+    }
   };
 
   const formatCountryLabel = ({ label, phonecode }) => (
@@ -104,7 +104,7 @@ const GeneralProfile = ({ onProfileChanged }) => {
       setStates([]);
     }
   };
-  
+
 
   const handleSelectChange = async (selectedOption, { name }) => {
     if (name === 'role' && selectedOption) {
@@ -117,7 +117,7 @@ const GeneralProfile = ({ onProfileChanged }) => {
       setFormData(prev => ({
         ...prev,
         country_id: selectedOption.value,
-        state_id: null 
+        state_id: null
       }));
       await fetchStates(selectedOption.value);
     } else {
@@ -231,8 +231,8 @@ const GeneralProfile = ({ onProfileChanged }) => {
             name="email"
             value={formData.email || ''}
             onChange={handleChange}
-            disabled
-            className={disabledInputClasses}
+            // disabled
+            className={inputClasses}
           />
         </div>
 
@@ -310,11 +310,10 @@ const GeneralProfile = ({ onProfileChanged }) => {
           Cancel
         </button>
         <button
-          className={`px-4 py-2 rounded-md ${
-            hasChanges && !isSaving
-              ? 'bg-[#3EBF0F] text-white hover:bg-[#35a00d]'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          }`}
+          className={`px-4 py-2 rounded-md ${hasChanges && !isSaving
+            ? 'bg-[#3EBF0F] text-white hover:bg-[#35a00d]'
+            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
           onClick={handleSave}
           disabled={!hasChanges || isSaving}
         >

@@ -32,7 +32,7 @@ const LiveCalls = () => {
 
     // Create WebSocket URL based on company ID
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const wsUrl = company?.id ? `${protocol}://ws-staging.nativetalkcrm.com/ws/call/${company?.id}/` : null;
+    const wsUrl = company?.id ? `${protocol}://${process.env.NEXT_PUBLIC_WS_BASE_URL}/ws/call/${company?.id}/` : null;
 
     // Only call useWebSocket when we have a valid URL
     const handleWebSocketMessage = (data) => {

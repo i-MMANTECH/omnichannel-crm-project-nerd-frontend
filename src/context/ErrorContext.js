@@ -25,7 +25,7 @@ export const ErrorProvider = ({ children }) => {
                 }
             }
         } else {
-            const errorMessage = error?.response?.data?.message || error?.response?.data?.error ;
+            const errorMessage = error?.response?.data?.message || error?.response?.data?.error || error?.response?.data?.errors?.email[0] || "request failed";
             toast.error(errorMessage);
             setError(errorMessage);
             return

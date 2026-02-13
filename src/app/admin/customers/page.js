@@ -14,14 +14,16 @@ import filter from '@/public/assets/filter.svg';
 import NoDataFound from '@/app/components/NoDataFound';
 import empty from '@/public/assets/empty.svg';
 import CreateCustomerModal from '@/app/components/Customers/CreateCustomerModal';
+import ImportCustomersModal from '@/app/components/Customers/ImportCustomersModal';
 import SuccessModal from '@/app/components/SuccessModal';
 import Pagination from '@/app/components/Pagination/Pagination';
+import { Upload } from 'lucide-react';
 
 const ModalController = ({ children }) => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
-    
+
     const isModalOpen = searchParams.get('action') === 'new-customer';
 
     const openModal = () => {
@@ -40,14 +42,21 @@ const ModalController = ({ children }) => {
 };
 
 const CustomersContent = () => {
-    const [searchQuery, setSearchQuery] = useState("");
     const [customers, setCustomers] = useState([]);
     const [view, setView] = useState('table');
     const { handleApiError } = useError();
     const { axiosInstance, loading } = useApi();
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
     const searchParams = useSearchParams();
+    const selectedTags = searchParams.get("tags");
+
+    const [searchQuery, setSearchQuery] = useState(
+        searchParams.get("search") || ""
+    );
+    const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+
     const router = useRouter();
     const pathname = usePathname();
 
@@ -59,7 +68,7 @@ const CustomersContent = () => {
     useEffect(() => {
         const page = Number(searchParams.get('page')) || 1;
         const size = Number(searchParams.get('page_size')) || 10;
-        
+
         setCurrentPage(page);
         setPageSize(size);
     }, [searchParams]);
@@ -67,7 +76,7 @@ const CustomersContent = () => {
 
     useEffect(() => {
         fetchCustomers();
-    }, [isSuccessModalOpen, currentPage, pageSize]); 
+    }, [isSuccessModalOpen, currentPage, pageSize, debouncedSearch, selectedTags]);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -78,19 +87,60 @@ const CustomersContent = () => {
         }
     }, []);
 
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    useEffect(() => {
+        if (debouncedSearch !== searchParams.get("search")) {
+            const params = new URLSearchParams(searchParams);
+
+            if (debouncedSearch) {
+                params.set("search", debouncedSearch);
+            } else {
+                params.delete("search");
+            }
+
+            params.set("page", "1"); // reset pagination
+            router.push(`${pathname}?${params.toString()}`, { scroll: false });
+            setCurrentPage(1);
+        }
+    }, [debouncedSearch]);
+
     const closeSuccessModal = () => {
         setIsSuccessModalOpen(false);
     };
 
     const fetchCustomers = async () => {
         try {
-            const { data } = await axiosInstance.get(`/customers/?page_size=${pageSize}&page=${currentPage}`);
+            const params = new URLSearchParams();
+
+            params.set("page", currentPage.toString());
+            params.set("page_size", pageSize.toString());
+
+            if (debouncedSearch) {
+                params.set("search", debouncedSearch);
+            }
+
+            if (selectedTags) {
+                params.set("tags", selectedTags); // pass-through
+            }
+
+            const { data } = await axiosInstance.get(
+                `/customers/?${params.toString()}`
+            );
+
             setCustomers(data.results || []);
             setTotalPages(Math.ceil(data.count / pageSize));
         } catch (error) {
             handleApiError(error);
         }
     };
+
 
     const handlePageChange = (newPage) => {
         const params = new URLSearchParams(searchParams);
@@ -104,7 +154,7 @@ const CustomersContent = () => {
         params.set('page', '1'); // Reset to first page when changing page size
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
     };
-    
+
     const toggleView = () => {
         if (typeof window !== 'undefined') {
             const newView = view === 'grid' ? 'table' : 'grid';
@@ -113,29 +163,34 @@ const CustomersContent = () => {
         }
     };
 
+    const handleImportSuccess = () => {
+        fetchCustomers();
+        setIsImportModalOpen(false);
+    };
+
     return (
-        <Suspense fallback={<div>Loading...</div>}>    
+        <Suspense fallback={<div>Loading...</div>}>
             <ModalController>
                 {({ isModalOpen, openModal, closeModal }) => (
                     <div className="overflow-x-hidden flex flex-row body-theme min-h-[83vh]">
-                        <div className='relative body-theme flex-1 flex flex-col'>  
-                        <div className="w-[100%] max-w-[1200px] sm:max-w-full flex justify-between items-center mb-6 mx-auto">
+                        <div className='relative body-theme flex-1 flex flex-col'>
+                            <div className="w-[100%] max-w-[1200px] sm:max-w-full flex justify-between items-center mb-6 mx-auto">
 
                                 <div className="flex items-center space-x-4">
                                     <button
                                         onClick={toggleView}
                                         className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-50 hover:dark:bg-neutral-900 hover:bg-gray-100"
                                     >
-                                        {view === 'table' ? 
-                                            <Image src={table} alt='tbl' className='mr-2' width={15} height={15}  /> : 
-                                            <Image src={grid} alt='grd'  className='mr-2' width={15} height={15} />
+                                        {view === 'table' ?
+                                            <Image src={table} alt='tbl' className='mr-2' width={15} height={15} /> :
+                                            <Image src={grid} alt='grd' className='mr-2' width={15} height={15} />
                                         }
                                         <span className="text-sm font-medium">
                                             {view === 'table' ? 'Table View' : 'Grid View'}
                                         </span>
                                     </button>
                                     <button className="hidden flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
-                                        <Image src={sort} alt='sort' className='mr-2' width={15} height={15}  />
+                                        <Image src={sort} alt='sort' className='mr-2' width={15} height={15} />
                                         <span className="text-sm font-medium">Sort by</span>
                                     </button>
                                     <button className="hidden flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100">
@@ -143,20 +198,55 @@ const CustomersContent = () => {
                                         <span className="text-sm font-medium">Filter</span>
                                     </button>
                                 </div>
-                                <button 
-                                    onClick={openModal}
-                                    className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm">
-                                    New Customer
-                                </button>
+
+                                <div className="relative">
+                                    <div className="flex items-center border border-gray-300 rounded-lg shadow-sm bg-white px-3 py-1.5">
+                                        <input
+                                            type="text"
+                                            placeholder="Search customers..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="outline-none bg-transparent text-sm w-48"
+                                        />
+                                        {searchQuery && (
+                                            <button
+                                                onClick={() => {
+                                                    setSearchQuery("");
+                                                    setDebouncedSearch("");
+                                                }}
+                                                className="ml-2 text-gray-400 hover:text-gray-600"
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+
+                                <div className="flex items-center space-x-3">
+                                    <button
+                                        onClick={() => setIsImportModalOpen(true)}
+                                        className="flex items-center border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                                    >
+                                        <Upload size={16} className="mr-2" />
+                                        Import
+                                    </button>
+                                    <button
+                                        onClick={openModal}
+                                        className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm hover:bg-[#35a509] transition-colors"
+                                    >
+                                        New Customer
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="w-[90%] mx-auto sm:w-full">
 
                                 {customers.length > 0 ? (
                                     view === 'table' ? (
-                                        <CustomerTable searchQuery={searchQuery} customers={customers} />
+                                        <CustomerTable customers={customers} />
                                     ) : (
-                                        <CustomerGrid searchQuery={searchQuery} customers={customers} />
+                                        <CustomerGrid customers={customers} />
                                     )
                                 ) : (
                                     <div className="min-h-96 flex items-center justify-center">
@@ -165,9 +255,9 @@ const CustomersContent = () => {
                                 )}
                             </div>
                             <div className="mt-10">
-                                <Pagination 
-                                    currentPage={currentPage} 
-                                    totalPages={totalPages} 
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
                                     onPageChange={handlePageChange}
                                     onPageSizeChange={handlePageSizeChange}
                                     pageSize={pageSize}
@@ -175,10 +265,16 @@ const CustomersContent = () => {
                             </div>
                         </div>
 
-                        <CreateCustomerModal 
-                            isOpen={isModalOpen} 
+                        <CreateCustomerModal
+                            isOpen={isModalOpen}
                             onClose={closeModal}
                             setIsSuccessModalOpen={setIsSuccessModalOpen}
+                        />
+
+                        <ImportCustomersModal
+                            isOpen={isImportModalOpen}
+                            onClose={() => setIsImportModalOpen(false)}
+                            onSuccess={handleImportSuccess}
                         />
 
                         <SuccessModal

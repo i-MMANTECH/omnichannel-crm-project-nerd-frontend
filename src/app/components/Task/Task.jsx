@@ -210,7 +210,7 @@ export default function Task() {
         params.append('search', search);
       }
 
-      const { data } = await axiosInstance.get(`tasks/list/?${params.toString()}`);
+      const { data } = await axiosInstance.get(`/tasks/list/?${params.toString()}`);
 
       setTasks(data.tasks || data.results || []);
 

@@ -58,14 +58,14 @@ deploy_staging:
       ssh "$STAGING_SERVER_USER@$STAGING_SERVER_IP" "
         set -e
         echo 'Pulling latest code from dev branch...'
-        cd /var/www/omnichannel-crm/staging/newnativetalkcrm_frontend &&
-        git pull https://Jtobyy:glpat-90Swc4DOE0G_hqgOY3GqDW86MQp1OmJqaDU3Cw.01.120tcuu0f@gitlab.com/techf4mation/newnativetalkcrm_frontend.git dev &&
+        cd /var/www/omnichannel-crm/staging/omnicrm-frontend &&
+        git pull https://Jtobyy:glpat-90Swc4DOE0G_hqgOY3GqDW86MQp1OmJqaDU3Cw.01.120tcuu0f@gitlab.com/techf4mation/omnicrm-frontend.git dev &&
         echo 'Installing dependencies...' &&
         npm install --force &&
         echo 'Building project...' &&
         npm run build &&
         echo 'Restarting staging service...' &&
-        sudo systemctl restart omnichannel-crm-frontend-staging.service &&
+        sudo systemctl restart omnicrm-frontend-staging.service &&
         echo 'Staging deployment completed successfully!'
       "
   only:
