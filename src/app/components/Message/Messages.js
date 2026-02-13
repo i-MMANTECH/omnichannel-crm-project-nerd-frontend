@@ -353,7 +353,7 @@ export const MessagesContent = () => {
 	};
 
 	const wsUrl = company?.id
-		? `${window.location.protocol === "https:" ? "wss" : "ws"}://ws-staging.nativetalkcrm.com/ws/chat/?uuid=${company.id}&type=company`
+		? `${window.location.protocol === "https:" ? "wss" : "ws"}://${process.env.NEXT_PUBLIC_WS_BASE_URL}/ws/chat/?uuid=${company.id}&type=company`
 		: null;
 
 	const { wsRef: companyWsRef, reconnect: reconnectCompanyWs } = useWebSocket(
@@ -1084,7 +1084,7 @@ export const MessagesContent = () => {
 		}
 
 		for (let [key, value] of formData.entries()) {
-			console.log(`${key}:`, value);
+			// console.log(`${key}:`, value);
 		}
 
 		axiosInstance

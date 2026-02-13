@@ -21,11 +21,11 @@ export function NotificationProvider({ children }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
-  const { user, company,isAuthenticated } = useAuth();
+  const { user, company, isAuthenticated } = useAuth();
   const [socket, setSocket] = useState(null);
 
   const fetchNotifications = async () => {
-    
+
     try {
       const response = await axiosInstance.get('/notifications');
       if (response.data.success) {
@@ -41,7 +41,7 @@ export function NotificationProvider({ children }) {
     const initializeWebSocket = () => {
       if (user?.user_id) {
         const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-        const wsUrl = `${protocol}://ws-staging.nativetalkcrm.com/ws/notifications/?uuid=${company?.id}`;
+        const wsUrl = `${protocol}://${process.env.NEXT_PUBLIC_WS_BASE_URL}/ws/notifications/?uuid=${company?.id}`;
 
         const ws = new WebSocket(wsUrl);
 
@@ -128,7 +128,7 @@ export function NotificationProvider({ children }) {
       await axiosInstance.patch(`/notifications/${notificationId}/`, {
         is_read: true
       });
-      
+
       setNotifications(prev =>
         prev.map(notification =>
           notification.id === notificationId
