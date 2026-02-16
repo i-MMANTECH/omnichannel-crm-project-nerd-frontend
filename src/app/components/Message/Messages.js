@@ -353,7 +353,7 @@ export const MessagesContent = () => {
 	};
 
 	const wsUrl = company?.id
-		? `${window.location.protocol === "https:" ? "wss" : "ws"}://${process.env.NEXT_PUBLIC_WS_BASE_URL}/ws/chat/?uuid=${company.id}&type=company`
+		? `${window.location.protocol === "https:" ? "wss" : "ws"}://${process.env.NEXT_PUBLIC_WS_BASE_URL}/ws/chat/?uuid=${company?.id}&type=company`
 		: null;
 
 	const { wsRef: companyWsRef, reconnect: reconnectCompanyWs } = useWebSocket(
@@ -632,74 +632,75 @@ export const MessagesContent = () => {
 	};
 
 	const markConversationAsRead = async () => {
-		try {
-			const resp = await axiosInstance.patch(`/communication/conversations/${chatResponse?.conversation_id}/messages/status/`,
-				{ 'status': 'read' },
-				{ showLoader: false });
+		if (chatResponse) {
+			try {
+				const resp = await axiosInstance.patch(`/communication/conversations/${chatResponse?.conversation_id}/messages/status/`,
+					{ 'status': 'read' },
+					{ showLoader: false });
 
-			const userIndex = users?.results?.findIndex((user) => user.id === activeUser.id);
+				const userIndex = users?.results?.findIndex((user) => user.id === activeUser.id);
 
-			if (userIndex !== -1) {
-				const currentUnreadCount = users.results[userIndex].unreadCount || 0;
-				// const updatedCount = currentUnreadCount - (resp?.data?.data?.updated_count || 0);
-				const updatedCount = 0
+				if (userIndex !== -1) {
+					const currentUnreadCount = users.results[userIndex].unreadCount || 0;
+					// const updatedCount = currentUnreadCount - (resp?.data?.data?.updated_count || 0);
+					const updatedCount = 0
 
-				const updatedUser = { ...users.results[userIndex], unreadCount: updatedCount };
-				const updatedUsersResults = [
-					...users.results.slice(0, userIndex),
-					updatedUser,
-					...users.results.slice(userIndex + 1),
-				];
+					const updatedUser = { ...users.results[userIndex], unreadCount: updatedCount };
+					const updatedUsersResults = [
+						...users.results.slice(0, userIndex),
+						updatedUser,
+						...users.results.slice(userIndex + 1),
+					];
 
-				const updatedUsers = { ...users, results: updatedUsersResults };
-				setUsers(updatedUsers);
+					const updatedUsers = { ...users, results: updatedUsersResults };
+					setUsers(updatedUsers);
 
-				setCachedData((prevCachedData) => {
-					const cachedUsers = prevCachedData[chatType]?.users;
-					if (cachedUsers) {
-						const cachedUserIndex = cachedUsers.results.findIndex(
-							(user) => user.id === activeUser.id
-						);
+					setCachedData((prevCachedData) => {
+						const cachedUsers = prevCachedData[chatType]?.users;
+						if (cachedUsers) {
+							const cachedUserIndex = cachedUsers.results.findIndex(
+								(user) => user.id === activeUser.id
+							);
 
-						if (cachedUserIndex !== -1) {
-							// Update the user in the cached data
-							const updatedCachedUser = {
-								...cachedUsers.results[cachedUserIndex],
-								unreadCount: updatedCount,
-							};
+							if (cachedUserIndex !== -1) {
+								// Update the user in the cached data
+								const updatedCachedUser = {
+									...cachedUsers.results[cachedUserIndex],
+									unreadCount: updatedCount,
+								};
 
-							const updatedCachedResults = [
-								...cachedUsers.results.slice(0, cachedUserIndex),
-								updatedCachedUser,
-								...cachedUsers.results.slice(cachedUserIndex + 1),
-							];
+								const updatedCachedResults = [
+									...cachedUsers.results.slice(0, cachedUserIndex),
+									updatedCachedUser,
+									...cachedUsers.results.slice(cachedUserIndex + 1),
+								];
 
-							return {
-								...prevCachedData,
-								[chatType]: {
-									...prevCachedData[chatType],
-									users: {
-										...cachedUsers,
-										results: updatedCachedResults,
+								return {
+									...prevCachedData,
+									[chatType]: {
+										...prevCachedData[chatType],
+										users: {
+											...cachedUsers,
+											results: updatedCachedResults,
+										},
 									},
-								},
-							};
+								};
+							}
 						}
-					}
 
-					// If no cached data is found, return the previous state
-					return prevCachedData;
-				})
+						// If no cached data is found, return the previous state
+						return prevCachedData;
+					})
+				}
+			}
+			catch (error) {
+				if (isCancelError(error)) {
+					// console.log('cr');
+				} else {
+					handleApiError(error);
+				}
 			}
 		}
-		catch (error) {
-			if (isCancelError(error)) {
-				// console.log('cr');
-			} else {
-				handleApiError(error);
-			}
-		}
-
 	}
 
 	const fetchChatList = async ({ reset = false } = {}) => {
