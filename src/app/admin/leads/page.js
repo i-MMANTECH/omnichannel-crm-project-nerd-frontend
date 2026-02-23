@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useMemo, useState, Suspense } from "react";
+import React, { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import { toast } from "react-toastify";
 import NoDataFound from "@/app/components/NoDataFound";
 import empty from "@/public/assets/empty.svg";
 import Pagination from "@/app/components/Pagination/Pagination";
@@ -32,6 +33,8 @@ const LeadsContent = () => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successModalMessage, setSuccessModalMessage] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const page = Number(searchParams.get("page")) || 1;
@@ -92,6 +95,8 @@ const LeadsContent = () => {
   };
 
   const formatName = (lead) => {
+    const quotedMatch = String(lead?.name || "").match(/"([^"]+)"/);
+    if (quotedMatch?.[1]) return quotedMatch[1].trim();
     if (lead?.name) return lead.name;
     const first = lead?.first_name || "";
     const last = lead?.last_name || "";
@@ -100,16 +105,22 @@ const LeadsContent = () => {
   };
 
   const formatContact = (lead) => {
-    return (
-      lead?.email ||
-      lead?.phone_number ||
-      lead?.unique_identifier ||
-      lead?.whatsapp ||
-      lead?.instagram ||
-      lead?.facebook ||
-      lead?.tiktok ||
-      "--"
-    );
+    const contactCandidates = [
+      lead?.email,
+      lead?.phone_number,
+      lead?.unique_identifier,
+      lead?.whatsapp,
+      lead?.instagram,
+      lead?.facebook,
+      lead?.tiktok,
+    ].filter(Boolean);
+
+    for (const value of contactCandidates) {
+      const bracketMatch = String(value).match(/<([^<>]+)>/);
+      if (bracketMatch?.[1]) return bracketMatch[1].trim();
+    }
+
+    return contactCandidates[0] || "--";
   };
 
   const formatChannel = (lead) => {
@@ -136,6 +147,52 @@ const LeadsContent = () => {
     setOpenMenuId((prev) => (prev === leadId ? null : leadId));
   };
 
+  const handleImportButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImportLeads = async (file) => {
+    if (!file) return;
+
+    const isCsv = file.type === "text/csv" || file.name.toLowerCase().endsWith(".csv");
+    if (!isCsv) {
+      toast.error("Please select a CSV file.");
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const { data } = await axiosInstance.post("/customers/leads/import/?mode=skip", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const imported = Number(data?.imported ?? data?.created ?? data?.success_count ?? data?.successfully_imported ?? 0);
+      const skipped = Number(data?.skipped ?? data?.skipped_count ?? data?.duplicate_count ?? 0);
+      const failed = Number(data?.failed ?? data?.failed_count ?? data?.error_count ?? 0);
+
+      toast.success(`Import completed. Imported: ${imported}, skipped: ${skipped}, failed: ${failed}.`);
+      setRefreshKey((prev) => prev + 1);
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleImportFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    handleImportLeads(file);
+  };
+
   const rows = useMemo(() => {
     const safeLeads = leads || [];
     if (serverCount === null && safeLeads.length > pageSize) {
@@ -150,7 +207,8 @@ const LeadsContent = () => {
       <div className="relative body-theme flex-1 flex flex-col">
         
         <div className="w-[100%] max-w-[1200px] sm:max-w-full mx-auto mb-6">
-          <form onSubmit={handleSearchSubmit} className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <form onSubmit={handleSearchSubmit} className="flex items-center gap-3 w-full">
             <div className="relative w-1/4">
               <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
@@ -160,7 +218,24 @@ const LeadsContent = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-          </form>
+            </form>
+            <button
+              type="button"
+              onClick={handleImportButtonClick}
+              disabled={isImporting}
+              className="inline-flex items-center justify-center whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium bg-[#3EBF0F] hover:bg-[#35a509] text-white disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            >
+              {isImporting ? "Importing..." : "Import Leads"}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,text/csv,application/csv"
+              className="hidden"
+              onChange={handleImportFileChange}
+              disabled={isImporting}
+            />
+          </div>
         </div>
 
         <div className="w-[100%] max-w-[1200px] sm:max-w-full mx-auto">
