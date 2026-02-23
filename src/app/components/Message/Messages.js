@@ -581,7 +581,7 @@ export const MessagesContent = () => {
 			params.append('start_date', startDate);
 			params.append('end_date', endDate);
 
-			const response = await axiosInstance.get(`/tickets/export/?${params.toString()}`, {
+			const response = await axiosInstance.get(`/communication/conversations/export/?${params.toString()}`, {
 				responseType: 'blob',
 			});
 

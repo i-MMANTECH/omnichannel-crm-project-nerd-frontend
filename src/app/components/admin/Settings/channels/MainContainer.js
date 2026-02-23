@@ -7,6 +7,7 @@ import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import ComingSoonModal from "@/app/components/ComingSoonModal";
 import { ConnectWhatsAppModal } from "../../MainContainer/ConnectWhatsAppModal";
+import { ConnectInstagramModal } from "../../MainContainer/ConnectInstagramModal";
 
 
 export const MainContainer = () => {
@@ -20,14 +21,17 @@ export const MainContainer = () => {
   const [isWhatsApp, setIsWhatsApp] = useState(false);
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
   const [channels, setChannels] = useState([])
+  const [isInstagram, setIsInstagram] = useState(false);
 
 
   const handleConnectClick = (title, icon) => {
     const lowerCaseTitle = title.toLowerCase();
-    const comingSoonChannels = ["facebook", "instagram", "sms", "telegram"];
+    const comingSoonChannels = ["facebook", "sms", "telegram"];
 
     if (lowerCaseTitle === "whatsapp") {
       setIsWhatsApp(true);
+    } else if (lowerCaseTitle === "instagram") {
+      setIsInstagram(true);
     } else if (comingSoonChannels.includes(lowerCaseTitle)) {
       setModalTitle("Coming Soon");
       setModalContent("This feature is coming soon!");
@@ -50,6 +54,7 @@ export const MainContainer = () => {
     setIsLiveChat(false);
     setIsEmail(false);
     setIsWhatsApp(false);
+    setIsInstagram(false);
   };
 
   useEffect(() => {
@@ -118,6 +123,7 @@ export const MainContainer = () => {
         {isWhatsApp && <ConnectWhatsAppModal onCancel={closeModal} />}
         {isLiveChat && <ConnectLiveChatModal onCancel={closeModal} />}
         {isEmail && <ConnectEmailModal onCancel={closeModal} />}
+        {isInstagram && <ConnectInstagramModal onCancel={closeModal} />}
       </div>
     </div>
   );
