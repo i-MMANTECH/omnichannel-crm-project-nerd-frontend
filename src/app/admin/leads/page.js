@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState, Suspense } from "react";
+import React, { useEffect, useMemo, useState, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
-import { toast } from "react-toastify";
+import { Upload } from "lucide-react";
 import NoDataFound from "@/app/components/NoDataFound";
 import empty from "@/public/assets/empty.svg";
 import Pagination from "@/app/components/Pagination/Pagination";
 import LeadToCustomer from "@/app/components/admin/Message/LeadToCustomer";
+import ImportLeadsModal from "@/app/components/admin/Leads/ImportLeadsModal";
 import SuccessModal from "@/app/components/SuccessModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
@@ -33,8 +34,7 @@ const LeadsContent = () => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successModalMessage, setSuccessModalMessage] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
-  const [isImporting, setIsImporting] = useState(false);
-  const fileInputRef = useRef(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   useEffect(() => {
     const page = Number(searchParams.get("page")) || 1;
@@ -147,50 +147,9 @@ const LeadsContent = () => {
     setOpenMenuId((prev) => (prev === leadId ? null : leadId));
   };
 
-  const handleImportButtonClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleImportLeads = async (file) => {
-    if (!file) return;
-
-    const isCsv = file.type === "text/csv" || file.name.toLowerCase().endsWith(".csv");
-    if (!isCsv) {
-      toast.error("Please select a CSV file.");
-      return;
-    }
-
-    setIsImporting(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const { data } = await axiosInstance.post("/customers/leads/import/?mode=skip", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      const imported = Number(data?.imported ?? data?.created ?? data?.success_count ?? data?.successfully_imported ?? 0);
-      const skipped = Number(data?.skipped ?? data?.skipped_count ?? data?.duplicate_count ?? 0);
-      const failed = Number(data?.failed ?? data?.failed_count ?? data?.error_count ?? 0);
-
-      toast.success(`Import completed. Imported: ${imported}, skipped: ${skipped}, failed: ${failed}.`);
-      setRefreshKey((prev) => prev + 1);
-    } catch (error) {
-      handleApiError(error);
-    } finally {
-      setIsImporting(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    }
-  };
-
-  const handleImportFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    handleImportLeads(file);
+  const handleImportSuccess = () => {
+    setRefreshKey((prev) => prev + 1);
+    setIsImportModalOpen(false);
   };
 
   const rows = useMemo(() => {
@@ -221,20 +180,12 @@ const LeadsContent = () => {
             </form>
             <button
               type="button"
-              onClick={handleImportButtonClick}
-              disabled={isImporting}
-              className="inline-flex items-center justify-center whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium bg-[#3EBF0F] hover:bg-[#35a509] text-white disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+              onClick={() => setIsImportModalOpen(true)}
+              className="flex items-center border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
             >
-              {isImporting ? "Importing..." : "Import Leads"}
+              <Upload size={16} className="mr-2" />
+              Import
             </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv,text/csv,application/csv"
-              className="hidden"
-              onChange={handleImportFileChange}
-              disabled={isImporting}
-            />
           </div>
         </div>
 
@@ -345,6 +296,12 @@ const LeadsContent = () => {
         leadId={activeLeadId}
         setIsSuccessModalOpen={setIsSuccessModalOpen}
         setSuccessModalMessage={setSuccessModalMessage}
+      />
+
+      <ImportLeadsModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={handleImportSuccess}
       />
 
       <SuccessModal
