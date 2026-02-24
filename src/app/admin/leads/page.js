@@ -4,10 +4,12 @@ import React, { useEffect, useMemo, useState, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import { Upload } from "lucide-react";
 import NoDataFound from "@/app/components/NoDataFound";
 import empty from "@/public/assets/empty.svg";
 import Pagination from "@/app/components/Pagination/Pagination";
 import LeadToCustomer from "@/app/components/admin/Message/LeadToCustomer";
+import ImportLeadsModal from "@/app/components/admin/Leads/ImportLeadsModal";
 import SuccessModal from "@/app/components/SuccessModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
@@ -32,6 +34,7 @@ const LeadsContent = () => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successModalMessage, setSuccessModalMessage] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   useEffect(() => {
     const page = Number(searchParams.get("page")) || 1;
@@ -92,6 +95,8 @@ const LeadsContent = () => {
   };
 
   const formatName = (lead) => {
+    const quotedMatch = String(lead?.name || "").match(/"([^"]+)"/);
+    if (quotedMatch?.[1]) return quotedMatch[1].trim();
     if (lead?.name) return lead.name;
     const first = lead?.first_name || "";
     const last = lead?.last_name || "";
@@ -100,16 +105,22 @@ const LeadsContent = () => {
   };
 
   const formatContact = (lead) => {
-    return (
-      lead?.email ||
-      lead?.phone_number ||
-      lead?.unique_identifier ||
-      lead?.whatsapp ||
-      lead?.instagram ||
-      lead?.facebook ||
-      lead?.tiktok ||
-      "--"
-    );
+    const contactCandidates = [
+      lead?.email,
+      lead?.phone_number,
+      lead?.unique_identifier,
+      lead?.whatsapp,
+      lead?.instagram,
+      lead?.facebook,
+      lead?.tiktok,
+    ].filter(Boolean);
+
+    for (const value of contactCandidates) {
+      const bracketMatch = String(value).match(/<([^<>]+)>/);
+      if (bracketMatch?.[1]) return bracketMatch[1].trim();
+    }
+
+    return contactCandidates[0] || "--";
   };
 
   const formatChannel = (lead) => {
@@ -136,6 +147,11 @@ const LeadsContent = () => {
     setOpenMenuId((prev) => (prev === leadId ? null : leadId));
   };
 
+  const handleImportSuccess = () => {
+    setRefreshKey((prev) => prev + 1);
+    setIsImportModalOpen(false);
+  };
+
   const rows = useMemo(() => {
     const safeLeads = leads || [];
     if (serverCount === null && safeLeads.length > pageSize) {
@@ -150,7 +166,8 @@ const LeadsContent = () => {
       <div className="relative body-theme flex-1 flex flex-col">
         
         <div className="w-[100%] max-w-[1200px] sm:max-w-full mx-auto mb-6">
-          <form onSubmit={handleSearchSubmit} className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <form onSubmit={handleSearchSubmit} className="flex items-center gap-3 w-full">
             <div className="relative w-1/4">
               <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
@@ -160,7 +177,16 @@ const LeadsContent = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-          </form>
+            </form>
+            <button
+              type="button"
+              onClick={() => setIsImportModalOpen(true)}
+              className="flex items-center border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+            >
+              <Upload size={16} className="mr-2" />
+              Import
+            </button>
+          </div>
         </div>
 
         <div className="w-[100%] max-w-[1200px] sm:max-w-full mx-auto">
@@ -270,6 +296,12 @@ const LeadsContent = () => {
         leadId={activeLeadId}
         setIsSuccessModalOpen={setIsSuccessModalOpen}
         setSuccessModalMessage={setSuccessModalMessage}
+      />
+
+      <ImportLeadsModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={handleImportSuccess}
       />
 
       <SuccessModal
