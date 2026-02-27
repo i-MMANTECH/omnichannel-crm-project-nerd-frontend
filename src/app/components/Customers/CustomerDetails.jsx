@@ -16,25 +16,49 @@ import { useError } from "@/context/ErrorContext";
 import { useCall } from "@/context/CallContext";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { usePortalRouter } from "@/context/usePortalRouter";
+import { useCanViewContactInfo } from "@/hooks/useCanViewContactInfo";  // ✅ ADD THIS
+import { maskPhoneNumber, maskEmail } from "@/utils/maskContactInfo";  // ✅ ADD THIS
+
+const EDIT_CUSTOMER_MODAL_KEY = "openEditCustomerModal";
 
 const ModalController = ({ children }) => {
   const searchParams = useSearchParams();
-  const { navigateTo, buildRoute } = usePortalRouter(); // Use portal router
+  const { navigateTo } = usePortalRouter();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const isModalOpen = searchParams.get('action') === 'edit-customer';
+  useEffect(() => {
+    let shouldOpen = false;
+
+    if (typeof window !== "undefined") {
+      const flag = sessionStorage.getItem(EDIT_CUSTOMER_MODAL_KEY);
+      if (flag === "1") {
+        shouldOpen = true;
+        sessionStorage.removeItem(EDIT_CUSTOMER_MODAL_KEY);
+      }
+    }
+
+    if (searchParams.get('action') === 'edit-customer') {
+      shouldOpen = true;
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('action');
+      const query = params.toString();
+      if (typeof window !== "undefined") {
+        const currentRoute = window.location.pathname.split('/').slice(2).join('/');
+        navigateTo(query ? `${currentRoute}?${query}` : currentRoute, { scroll: false });
+      }
+    }
+
+    if (shouldOpen) {
+      setIsModalOpen(true);
+    }
+  }, [searchParams, navigateTo]);
 
   const openModal = () => {
-    const params = new URLSearchParams(searchParams);
-    params.set('action', 'edit-customer');
-    const currentRoute = window.location.pathname.split('/').slice(2).join('/'); // Get path after portal
-    navigateTo(`${currentRoute}?${params.toString()}`, { scroll: false });
+    setIsModalOpen(true);
   };
 
   const closeModal = () => {
-    const params = new URLSearchParams(searchParams);
-    params.delete('action');
-    const currentRoute = window.location.pathname.split('/').slice(2).join('/');
-    navigateTo(`${currentRoute}?${params.toString()}`, { scroll: false });
+    setIsModalOpen(false);
   };
 
   return children({ isModalOpen, openModal, closeModal });
@@ -44,7 +68,7 @@ export default function CustomerDetails() {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
   const { makeCall } = useCall();
-  const { navigateTo, buildRoute, goBack } = usePortalRouter(); // Use portal router
+  const { navigateTo, buildRoute, goBack } = usePortalRouter();
 
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
@@ -56,6 +80,8 @@ export default function CustomerDetails() {
   const [isLoading, setIsLoading] = useState(false);
   const [customer, setCustomer] = useState({})
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const canViewContactInfo = useCanViewContactInfo();  // ✅ ADD THIS
 
   const { id } = useParams();
 
@@ -69,7 +95,9 @@ export default function CustomerDetails() {
   };
 
   useEffect(() => {
-    getCustomer();
+    if (id) {  // ✅ ADD CHECK FOR ID
+      getCustomer();
+    }
   }, [id]);
 
   const handleChatSelect = async () => {
@@ -79,7 +107,6 @@ export default function CustomerDetails() {
       const messages = response.data?.results?.messages || [];
 
       if (messages.length > 0) {
-        // Use portal-aware navigation
         navigateTo(`messages?chat=customers&id=${customer.id}`);
       } else {
         setIsMessageModalOpen(true);
@@ -127,13 +154,12 @@ export default function CustomerDetails() {
       await axiosInstance.delete(`/customers/${id}/`);
       setIsDeleteModalOpen(false);
       setIsSuccessModalOpen(true);
-      goBack(); // Use portal router's goBack
+      goBack();
     } catch (error) {
       handleApiError(error);
     }
   };
 
-  // Build the messages route for SendMessageModal
   const messagesRoute = buildRoute(`messages?chat=customers&id=${customer.id}`);
 
   return (
@@ -154,7 +180,11 @@ export default function CustomerDetails() {
                   {!customer?.image && <UserAvatar name={customerUsername} width="w-20" height="h-20" />}
 
                   <p className="customer-left-name text-xl font-bold mt-1">{customerUsername.slice(0, 10)}</p>
-                  <p className="customer-left-email text-sm mt-1">{customer?.email}</p>
+                  {/* ✅ APPLY MASKING TO EMAIL IN AVATAR SECTION */}
+                  <p className="customer-left-email text-sm mt-1">
+                    {maskEmail(customer?.email, canViewContactInfo)}
+                  </p>
+
                   <div className="flex gap-6 mt-5">
                     <div
                       className=" flex flex-col items-center gap-2 cursor-pointer"
@@ -258,6 +288,7 @@ export default function CustomerDetails() {
                     </p>
                     <p className="customer-left-name font-bold">{customer?.gender || '--'}</p>
                   </div>
+
                   <div className="flex flex-row items-center justify-between mt-2 ">
                     <p className="flex-1">Categories</p>
                     {customer?.categories?.length <= 0 && (
@@ -275,6 +306,7 @@ export default function CustomerDetails() {
                       ))}
                     </div>
                   </div>
+
                   <div className="flex flex-row items-center justify-between mt-2 ">
                     <p className="flex-1">Tags</p>
                     {customer?.tags?.length <= 0 && (
@@ -293,18 +325,24 @@ export default function CustomerDetails() {
                     </div>
                   </div>
 
+                  {/* ✅ APPLY MASKING TO EMAIL */}
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-left">
                       Email
                     </p>
-                    <p className="customer-left-name font-bold">{customer?.email || '--'}</p>
+                    <p className="customer-left-name font-bold">
+                      {maskEmail(customer?.email, canViewContactInfo) || '--'}
+                    </p>
                   </div>
 
+                  {/* ✅ APPLY MASKING TO PHONE NUMBER */}
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-left">
                       Phone Number
                     </p>
-                    <p className="customer-left-name font-bold">{customer?.phone_number || '--'}</p>
+                    <p className="customer-left-name font-bold">
+                      {maskPhoneNumber(customer?.phone_number, canViewContactInfo) || '--'}
+                    </p>
                   </div>
 
                   <p className="text-left mt-6">
@@ -380,7 +418,8 @@ export default function CustomerDetails() {
                 </div>
 
                 <div className="mt-10 w-full ">
-                  {selected === "work-schedule" && (
+                  {/* ✅ CONDITIONAL RENDERING WITH ID CHECK */}
+                  {selected === "work-schedule" && customer?.id && (
                     <Notes customerId={customer.id} />
                   )}
                   {selected === "assigned-messages" && (
