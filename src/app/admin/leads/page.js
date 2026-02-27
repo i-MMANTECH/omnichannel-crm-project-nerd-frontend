@@ -8,7 +8,7 @@ import { Upload } from "lucide-react";
 import NoDataFound from "@/app/components/NoDataFound";
 import empty from "@/public/assets/empty.svg";
 import Pagination from "@/app/components/Pagination/Pagination";
-import LeadToCustomer from "@/app/components/admin/Message/LeadToCustomer";
+import LeadToCustomer from "@/app/components/Message/LeadToCustomer";
 import ImportLeadsModal from "@/app/components/admin/Leads/ImportLeadsModal";
 import SuccessModal from "@/app/components/SuccessModal";
 import { useApi } from "@/services/axiosConfig";
@@ -164,19 +164,19 @@ const LeadsContent = () => {
   return (
     <div className="overflow-x-hidden flex flex-row body-theme min-h-[83vh]">
       <div className="relative body-theme flex-1 flex flex-col">
-        
+
         <div className="w-[100%] max-w-[1200px] sm:max-w-full mx-auto mb-6">
           <div className="flex items-center justify-between gap-3">
             <form onSubmit={handleSearchSubmit} className="flex items-center gap-3 w-full">
-            <div className="relative w-1/4">
-              <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                className="w-full pl-10 body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-lg px-3 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow dark:text-slate-200"
-                placeholder="Search leads..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+              <div className="relative w-1/4">
+                <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  className="w-full pl-10 body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-lg px-3 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow dark:text-slate-200"
+                  placeholder="Search leads..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
             </form>
             <button
               type="button"
@@ -253,9 +253,8 @@ const LeadsContent = () => {
                               </span>
                             </button>
                             <div
-                              className={`absolute right-0 mt-2 w-44 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-20 ${
-                                openMenuId === (lead?.id || lead?.unique_identifier) ? "block" : "hidden"
-                              }`}
+                              className={`absolute right-0 mt-2 w-44 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-20 ${openMenuId === (lead?.id || lead?.unique_identifier) ? "block" : "hidden"
+                                }`}
                             >
                               <button
                                 type="button"

@@ -7,7 +7,7 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import NoDataFound from "@/app/components/NoDataFound";
 import empty from "@/public/assets/empty.svg";
 import Pagination from "@/app/components/Pagination/Pagination";
-import LeadToCustomer from "@/app/components/admin/Message/LeadToCustomer";
+import LeadToCustomer from "@/app/components/Message/LeadToCustomer";
 import SuccessModal from "@/app/components/SuccessModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
