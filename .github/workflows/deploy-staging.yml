@@ -23,11 +23,15 @@ jobs:
           node-version: '20.x'
           cache: 'npm'
       
-      # Step 3: Install dependencies
+      # Step 3: Clear npm cache (FIX FOR INTEGRITY ERROR)
+      - name: Clear npm cache
+        run: npm cache clean --force
+        
+      # Step 4: Install dependencies
       - name: Install dependencies
         run: npm install --force
       
-      # Step 4: Build the project
+      # Step 5: Build the project
       - name: Build for staging
         run: npm run build
         env:
@@ -36,7 +40,7 @@ jobs:
           NEXT_PUBLIC_WS_URL: ${{ secrets.STAGING_WS_URL }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       
-      # Step 5: Deploy to your staging server
+      # Step 6: Deploy to your staging server
       - name: Deploy to Staging Server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -47,7 +51,7 @@ jobs:
           target: /var/www/omnichannel-crm/staging/omnicrm-frontend
           strip_components: 0
       
-      # Step 6: Restart the application on the server
+      # Step 7: Restart the application on the server
       - name: Restart application
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -60,6 +64,6 @@ jobs:
             systemctl restart omnicrm-frontend-staging.service
             echo "✅ Staging deployment completed!"
       
-      # Step 7: Check if deployment was successful
+      # Step 8: Check if deployment was successful
       - name: Deployment notification
         run: echo "🚀 Staging deployment completed successfully!"
