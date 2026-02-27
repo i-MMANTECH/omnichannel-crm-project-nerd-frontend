@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import CustomerGrid from '@/app/components/Customers/CustomerGrid/CustomerGrid';
+import CustomerGrid from '@/app/components/Customers/CustomerGrid';
 import CustomerTable from '@/app/components/Customers/CustomerTable/CustomerTable';
 import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';

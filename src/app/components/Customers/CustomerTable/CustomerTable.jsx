@@ -4,11 +4,14 @@ import { useRouter } from 'next/navigation';
 import UserAvatar from '../../UserAvatar';
 import Image from 'next/image';
 import { getRoleStyle } from '@/utils/getRoleStyle';
+import { useCanViewContactInfo } from '@/hooks/useCanViewContactInfo';
+import { maskPhoneNumber, maskEmail } from '@/utils/maskContactInfo';
 
 const CustomerTable = ({ customers }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
-    const router = useRouter()
+    const router = useRouter();
+    const canViewContactInfo = useCanViewContactInfo();  // ✅ ADD THIS
 
     const handlePageChange = (page) => setCurrentPage(page);
 
@@ -111,8 +114,14 @@ const CustomerTable = ({ customers }) => {
                                     {customer?.username || "--"}
                                 </td>
                                 <td className="whitespace-nowrap py-3 px-4 border-b">{`${customer.first_name} ${customer.last_name}` || "--"}</td>
-                                <td className="whitespace-nowrap py-3 px-4 border-b">{customer.email}</td>
-                                <td className="whitespace-nowrap py-3 px-4 border-b ">{customer.phone_number}</td>
+                                {/* ✅ APPLY MASKING TO EMAIL */}
+                                <td className="whitespace-nowrap py-3 px-4 border-b">
+                                    {maskEmail(customer.email, canViewContactInfo)}
+                                </td>
+                                {/* ✅ APPLY MASKING TO PHONE */}
+                                <td className="whitespace-nowrap py-3 px-4 border-b">
+                                    {maskPhoneNumber(customer.phone_number, canViewContactInfo)}
+                                </td>
                                 <td className="whitespace-nowrap py-3 px-4 border-b">
                                     {(customer?.channels?.length <= 0 || !customers?.channels) &&
                                         <span className="customer-left-name font-bold mr-1">--</span>
