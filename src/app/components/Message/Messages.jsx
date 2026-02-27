@@ -1245,12 +1245,8 @@ export const MessagesContent = () => {
 		<div className="body-theme flex flex-col px-5 ">
 			<div className="flex p-4 items-center justify-between w-full ">
 				<div className="flex items-center gap-8">
-					<h1 className="font-bold ">
-						All Messages
-					</h1>
 					<div className="relative flex items-center">
 						{agents.map((assignee, index) => {
-							// ✅ Create a smart display name for tooltip
 							const tooltipName = (() => {
 								const fullName = `${assignee?.first_name || ""} ${assignee?.last_name || ""}`.trim();
 								if (fullName) return fullName;

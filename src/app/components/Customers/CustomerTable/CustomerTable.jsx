@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { getRoleStyle } from '@/utils/getRoleStyle';
 import { useCanViewContactInfo } from '@/hooks/useCanViewContactInfo';
 import { maskPhoneNumber, maskEmail } from '@/utils/maskContactInfo';
+import truncateText from '@/utils/truncateText';
 
 const CustomerTable = ({ customers }) => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -115,7 +116,7 @@ const CustomerTable = ({ customers }) => {
                                 </td>
                                 <td className="whitespace-nowrap py-3 px-4 border-b">{`${customer.first_name} ${customer.last_name}` || "--"}</td>
                                 <td className="whitespace-nowrap py-3 px-4 border-b">
-                                    {maskEmail(customer.email, canViewContactInfo)}
+                                    {maskEmail(truncateText(customer.email), canViewContactInfo)}
                                 </td>
                                 <td className="whitespace-nowrap py-3 px-4 border-b">
                                     {maskPhoneNumber(customer.phone_number, canViewContactInfo)}

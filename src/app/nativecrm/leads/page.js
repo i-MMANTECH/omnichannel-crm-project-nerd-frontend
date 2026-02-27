@@ -147,7 +147,7 @@ const LeadsContent = () => {
     }, [leads, serverCount, currentPage, pageSize]);
 
     return (
-        <div className="overflow-x-hidden flex flex-row body-theme min-h-[83vh]">
+        <div className="overflow-x-hidden flex flex-row body-theme min-h-[83vh] pl-10">
             <div className="relative body-theme flex-1 flex flex-col">
 
                 <div className="w-[100%] max-w-[1200px] sm:max-w-full mx-auto mb-6">

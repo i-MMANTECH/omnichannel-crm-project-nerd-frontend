@@ -113,7 +113,7 @@ const LeadsContent = () => {
   };
 
   return (
-    <div className="overflow-x-hidden flex flex-row body-theme min-h-[83vh]">
+    <div className="overflow-x-hidden flex flex-row body-theme min-h-[83vh] pl-10">
       <div className="relative body-theme flex-1 flex flex-col">
 
         {/* Search and Import Section */}
