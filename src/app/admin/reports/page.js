@@ -178,7 +178,7 @@ const Page = () => {
                   {assignee?.image ? (
                     <Image
                       alt="profile pic"
-                      className="w-9 h-9 rounded-full"
+                      className="w-8 h-8 rounded-full"
                       src={assignee.image}
                       width={36}
                       height={36}
@@ -190,7 +190,7 @@ const Page = () => {
                           ? `${assignee.first_name} ${assignee?.last_name}`
                           : assignee?.email || '--'
                       }
-                      className="w-9 h-9 rounded-full flex-shrink-0"
+                      className="w-8 h-8 rounded-full flex-shrink-0"
                     />
                   )}
 
@@ -209,9 +209,8 @@ const Page = () => {
             </div>
             <div className="flex gap-2">
               <div
-                className={`cursor-pointer flex h-[40px] px-3 items-center gap-2 rounded-[10px] border shadow-sm transition-all ${
-                  hasDateRange ? 'border-[#3EBF0F] bg-[#3EBF0F]/10' : 'border-[#DFE1E6]'
-                }`}
+                className={`cursor-pointer flex h-[40px] px-3 items-center gap-2 rounded-[10px] border shadow-sm transition-all ${hasDateRange ? 'border-[#3EBF0F] bg-[#3EBF0F]/10' : 'border-[#DFE1E6]'
+                  }`}
                 onClick={toggleDateFilter}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">

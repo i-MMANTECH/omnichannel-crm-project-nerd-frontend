@@ -125,12 +125,12 @@ const TicketsContent = () => {
 
   useEffect(() => {
     fetchTickets();
-  }, [currentPage, searchQuery, pageSize, statusFilterId]); 
+  }, [currentPage, searchQuery, pageSize, statusFilterId]);
 
   const fetchTickets = async () => {
     try {
       setLoading(true);
-  
+
       const response = await axiosInstance.get('/tickets/list/', {
         params: {
           page: currentPage,
@@ -140,18 +140,18 @@ const TicketsContent = () => {
           // priority: priorityFilterId || undefined, // (optional)
         },
       });
-  
+
       if (response.data.success) {
         setTickets(response.data.tickets);
         setPagination(response.data.pagination);
         setLastUpdated(new Date());
-  
+
         const counts = response.data.tickets.reduce((acc, ticket) => {
           const statusName = ticket.status?.name || 'open';
           acc[statusName] = (acc[statusName] || 0) + 1;
           return acc;
         }, { open: 0, in_progress: 0, resolved: 0, closed: 0 });
-  
+
         setStatusCounts(counts);
       }
     } catch (error) {
@@ -159,7 +159,7 @@ const TicketsContent = () => {
     } finally {
       setLoading(false);
     }
-  };  
+  };
 
   const fetchDropdownData = async () => {
     try {
@@ -320,7 +320,7 @@ const TicketsContent = () => {
 
   const handleStatusCardClick = (statusName) => {
     if (!allStatuses.length) return;
-  
+
     // If the same status is already active, clicking again clears the filter
     const current = allStatuses.find(s => s.id === statusFilterId);
     if (current && current.name === statusName) {
@@ -328,13 +328,13 @@ const TicketsContent = () => {
       setCurrentPage(1);
       return;
     }
-  
+
     const match = allStatuses.find(s => s.name === statusName);
     if (!match) return;
-  
+
     setStatusFilterId(match.id);
     setCurrentPage(1);
-  };  
+  };
 
   // Stats data using real counts
   const statsData = [
@@ -371,7 +371,7 @@ const TicketsContent = () => {
       borderColor: "black",
     }
   ];
-  
+
 
   const startIndex = (currentPage - 1) * pageSize + 1;
   const endIndex = Math.min(currentPage * pageSize, pagination.count);
@@ -578,7 +578,7 @@ const TicketsContent = () => {
                               className={`px-2 py-1 text-sm rounded font-medium cursor-pointer ${ticket.priority?.name === "low"
                                 ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
                                 : ticket.priority?.name === "medium"
-                                  ? "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400"
+                                  ? "bg-yellow-100 text-yellow-600 dark:bg-yellow-800/30 dark:text-yellow-400"
                                   : ticket.priority?.name === "high"
                                     ? "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
                                     : ticket.priority?.name === "urgent"

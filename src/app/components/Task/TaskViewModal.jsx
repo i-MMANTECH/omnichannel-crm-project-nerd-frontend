@@ -25,15 +25,6 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
   const [slaId, setSlaId] = useState(null);
   const [isReview, setIsReview] = useState(false);
 
-  const fetchActivities = async () => {
-    try {
-      const response = await axiosInstance.get(`/tasks/${taskId}/activities`);
-      setActivities(response.data.activities);
-    } catch (error) {
-      handleApiError(error);
-    }
-  };
-
   const fetchComments = async () => {
     try {
       const response = await axiosInstance.get(`/comments/?model=task&object_id=${taskId}`);
@@ -77,7 +68,6 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
   }
 
   useEffect(() => {
-    if (selectedTab === "activities") fetchActivities();
     if (selectedTab === "comments") fetchComments();
   }, [selectedTab, taskId]);
 
@@ -222,7 +212,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                       alt="profile pic"
                       width={32}
                       height={32}
-                      className="rounded-full"
+                      className="rounded-full w-8 h-8"
                       src={user.image}
                     />
                   ) : (
@@ -264,7 +254,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                       alt="profile pic"
                       width={32}
                       height={32}
-                      className="rounded-full"
+                      className="rounded-full w-8 h-8"
                       src={member.image}
                       style={{ objectFit: 'cover' }}
                     />
@@ -397,7 +387,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                           <Image
                             key={index}
                             alt={`Agent ${assignee.id}`}
-                            className="w-7 h-7 rounded-full border-2 border-white"
+                            className="w-9 h-9 rounded-full border-2 border-white"
                             src={assignee.image}
                             width={24}
                             height={24}
@@ -409,8 +399,8 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                             className="border-white border-2"
                             key={index}
                             name={assigneeName}
-                            width="w-7"
-                            height="h-7"
+                            width="w-9"
+                            height="h-9"
                           />
                         );
                       }

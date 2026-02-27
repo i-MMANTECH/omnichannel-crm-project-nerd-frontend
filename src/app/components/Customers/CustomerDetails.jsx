@@ -16,10 +16,12 @@ import { useError } from "@/context/ErrorContext";
 import { useCall } from "@/context/CallContext";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { usePortalRouter } from "@/context/usePortalRouter";
-import { useCanViewContactInfo } from "@/hooks/useCanViewContactInfo";  // ✅ ADD THIS
-import { maskPhoneNumber, maskEmail } from "@/utils/maskContactInfo";  // ✅ ADD THIS
+import { useCanViewContactInfo } from "@/hooks/useCanViewContactInfo";
+import { maskPhoneNumber, maskEmail } from "@/utils/maskContactInfo";
+import truncateText from "@/utils/truncateText";
 
 const EDIT_CUSTOMER_MODAL_KEY = "openEditCustomerModal";
+
 
 const ModalController = ({ children }) => {
   const searchParams = useSearchParams();
@@ -331,7 +333,7 @@ export default function CustomerDetails() {
                       Email
                     </p>
                     <p className="customer-left-name font-bold">
-                      {maskEmail(customer?.email, canViewContactInfo) || '--'}
+                      {maskEmail(truncateText(customer?.email), canViewContactInfo) || '--'}
                     </p>
                   </div>
 

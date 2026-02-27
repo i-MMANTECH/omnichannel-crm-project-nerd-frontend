@@ -234,7 +234,7 @@ export default function TableView({
                         <div key={index} className="flex items-center gap-2">
                           <Image
                             alt="profile pic"
-                            className="w-6 h-6 rounded-full border-2 border-white"
+                            className="w-9 h-9 rounded-full border-2 border-white"
                             src={assignee.image}
                             width={24}
                             height={24}
@@ -248,8 +248,6 @@ export default function TableView({
                           <UserAvatar
                             className="border-white border-2"
                             name={assigneeName}
-                            width="w-6"
-                            height="h-6"
                           />
                           <span className="text-sm">{truncatedName}</span>
                         </div>

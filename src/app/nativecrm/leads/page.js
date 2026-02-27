@@ -11,6 +11,7 @@ import LeadToCustomer from "@/app/components/Message/LeadToCustomer";
 import SuccessModal from "@/app/components/SuccessModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
+import LeadsTable from "@/app/components/Leads/LeadsTable";
 
 const LeadsContent = () => {
     const { axiosInstance } = useApi();
@@ -164,90 +165,14 @@ const LeadsContent = () => {
                 </div>
 
                 <div className="w-[100%] max-w-[1200px] sm:max-w-full mx-auto">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-                                    <tr>
-                                        <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Name
-                                        </th>
-                                        <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Contact
-                                        </th>
-                                        <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Channel
-                                        </th>
-                                        <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    {loading ? (
-                                        <tr>
-                                            <td colSpan="4" className="px-6 py-6 text-center">
-                                                <div className="flex justify-center">
-                                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : rows.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="4" className="px-6 py-10">
-                                                <div className="flex items-center justify-center">
-                                                    <NoDataFound message="You do not have any leads" icon={empty} />
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        rows.map((lead) => (
-                                            <tr key={lead?.id || lead?.unique_identifier} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                                    {formatName(lead)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                                    {formatContact(lead)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                                    {formatChannel(lead)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 text-right">
-                                                    <div className="relative inline-block text-left">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => toggleMenu(lead?.id || lead?.unique_identifier)}
-                                                            className="w-8 h-8 inline-flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                            aria-label="Row actions"
-                                                        >
-                                                            <span className="flex flex-col items-center justify-center gap-0.5">
-                                                                <span className="w-1 h-1 rounded-full bg-gray-500 dark:bg-gray-300"></span>
-                                                                <span className="w-1 h-1 rounded-full bg-gray-500 dark:bg-gray-300"></span>
-                                                                <span className="w-1 h-1 rounded-full bg-gray-500 dark:bg-gray-300"></span>
-                                                            </span>
-                                                        </button>
-                                                        <div
-                                                            className={`absolute right-0 mt-2 w-44 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-20 ${openMenuId === (lead?.id || lead?.unique_identifier) ? "block" : "hidden"
-                                                                }`}
-                                                        >
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleOpenConvertModal(lead?.id)}
-                                                                disabled={!lead?.id}
-                                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                            >
-                                                                Convert Lead
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <LeadsTable
+                        leads={leads}
+                        loading={loading}
+                        currentPage={currentPage}
+                        pageSize={pageSize}
+                        serverCount={serverCount}
+                        onConvertLead={handleOpenConvertModal}
+                    />
                 </div>
 
                 <div className="mt-8 w-[100%] max-w-[1200px] sm:max-w-full mx-auto">

@@ -1249,41 +1249,53 @@ export const MessagesContent = () => {
 						All Messages
 					</h1>
 					<div className="relative flex items-center">
-						{agents.map((assignee, index) => (
-							<div
-								key={index}
-								className={`cursor-pointer rounded-full transition-all duration-300
-							${selectedAgent === assignee.id ? 'ring-2 dark:ring-white ring-[#3EBF0F] z-10' : ''}`}
-								style={{ marginLeft: index !== 0 ? '-7px' : '0px' }}
-								onClick={() => handleAssigneeClick(assignee.id)}
-								onMouseEnter={(e) => e.currentTarget.classList.add("z-10")}
-								onMouseLeave={(e) => e.currentTarget.classList.remove("z-10")}
-								data-tooltip-id={`tooltip-${assignee.id}`} // Unique ID for each tooltip
-							>
-								{assignee?.image ? (
-									<Image
-										alt="profile pic"
-										className="w-9 h-9 rounded-full bg-gray-200"
-										src={assignee.image}
-										width={30}
-										height={30}
-									/>
-								) : (
-									<UserAvatar
-										name={assignee?.first_name ?
-											`${assignee.first_name} ${assignee?.last_name}` :
-											assignee?.email || '--'
-										}
-										className="w-10 h-10 rounded-full flex-shrink-0"
-										width="w-9"
-										height="h-9"
-									/>
-								)}
-								<Tooltip id={`tooltip-${assignee.id}`} place="top">
-									{assignee?.first_name} {assignee?.last_name || ""}
-								</Tooltip>
-							</div>
-						))}
+						{agents.map((assignee, index) => {
+							// ✅ Create a smart display name for tooltip
+							const tooltipName = (() => {
+								const fullName = `${assignee?.first_name || ""} ${assignee?.last_name || ""}`.trim();
+								if (fullName) return fullName;
+								if (assignee?.email) return assignee.email;
+								if (assignee?.phone_number) return assignee.phone_number;
+								return "User"; // Fallback
+							})();
+
+							return (
+								<div
+									key={index}
+									className={`cursor-pointer rounded-full transition-all duration-300
+                ${selectedAgent === assignee.id ? 'ring-2 dark:ring-white ring-[#3EBF0F] z-10' : ''}`}
+									style={{ marginLeft: index !== 0 ? '-7px' : '0px' }}
+									onClick={() => handleAssigneeClick(assignee.id)}
+									onMouseEnter={(e) => e.currentTarget.classList.add("z-10")}
+									onMouseLeave={(e) => e.currentTarget.classList.remove("z-10")}
+									data-tooltip-id={`tooltip-${assignee.id}`}
+								>
+									{assignee?.image ? (
+										<Image
+											alt="profile pic"
+											className="w-8 h-8 rounded-full bg-gray-200"
+											src={assignee.image}
+											width={30}
+											height={30}
+										/>
+									) : (
+										<UserAvatar
+											name={assignee?.first_name ?
+												`${assignee.first_name} ${assignee?.last_name}` :
+												assignee?.email || '--'
+											}
+											className="w-10 h-10 rounded-full flex-shrink-0"
+											width="w-8"
+											height="h-8"
+										/>
+									)}
+									{/* ✅ SMART TOOLTIP - Shows name, email, phone, or fallback */}
+									<Tooltip id={`tooltip-${assignee.id}`} place="top">
+										{tooltipName}
+									</Tooltip>
+								</div>
+							);
+						})}
 
 						{isFilterActive && (
 							<button
@@ -1625,7 +1637,7 @@ export const MessagesContent = () => {
 										fetchChatList({ reset: true });
 									}}
 								>
-									<UserAvatar name={name} width="w-9" height="h-9" />
+									<UserAvatar name={name} width="w-8" height="h-8" />
 									<div className="text-left">
 										<div className="font-medium">{name}</div>
 										<div className="text-xs text-gray-500">{u.email}</div>

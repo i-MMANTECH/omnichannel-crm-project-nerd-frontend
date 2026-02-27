@@ -36,7 +36,7 @@ const TaskCardListView = ({ tasks, handleDelete, openViewModal, openUpdateModal 
 
         return (
           <div key={index} className="mb-7">
-            <div className="w-full mb-4 flex h-9 p-2 gap-2 items-center rounded-lg bg-gray-100 dark:bg-neutral-900">
+            <div className="w-full mb-4 flex h-8 p-2 gap-2 items-center rounded-lg bg-gray-100 dark:bg-neutral-900">
               <div className="flex items-center gap-2">
                 {getStatusSvg(statusName)}
               </div>
@@ -178,7 +178,7 @@ const TaskCard = ({
                   <Image
                     key={index}
                     alt="profile pic"
-                    className="w-7 h-7 rounded-full border-2 border-white"
+                    className="w-8 h-8 rounded-full border-2 border-white"
                     src={assignee.image}
                     width={24}
                     height={24}
@@ -190,8 +190,8 @@ const TaskCard = ({
                     className="border-white border-2"
                     key={index}
                     name={assigneeName}
-                    width="w-7"
-                    height="h-7"
+                    width="w-8"
+                    height="h-8"
                   />
                 );
               }

@@ -74,10 +74,10 @@ const MultiSelectModal = ({
                   alt="User Profile"
                   width={70}
                   height={70}
-                  className="w-9 h-9 rounded-full"
+                  className="w-8 h-8 rounded-full"
                 />
               ) : (
-                <UserAvatar name={activeUser.name || "Unknown"} width="w-9" height="h-9" />
+                <UserAvatar name={activeUser.name || "Unknown"} width="w-8" height="h-8" />
               )}
               {activeUser.channel?.image && (
                 <Image

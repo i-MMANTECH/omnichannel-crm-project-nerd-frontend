@@ -249,7 +249,7 @@ const CustomersContent = () => {
                                         <CustomerGrid customers={customers} />
                                     )
                                 ) : (
-                                    <div className="min-h-96 flex items-center justify-center">
+                                    <div className="min-h-86 flex items-center justify-center">
                                         <NoDataFound message='You do not have any customers' icon={empty} />
                                     </div>
                                 )}

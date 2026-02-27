@@ -53,7 +53,7 @@ const UserTable = ({ searchQuery, users }) => {
                   <tr key={index} onClick={() => router.push(`users/${user.id}`)} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer">
                     <td className="py-3 px-4 border-b flex items-center space-x-3">
                       {user?.image && <Image
-                        className="user-left-image mt-2 w-10 h-10 rounded-full"
+                        className="user-left-image mt-2 w-8 h-8 rounded-full"
                         alt="bio"
                         src={user?.image}
                         width={50}

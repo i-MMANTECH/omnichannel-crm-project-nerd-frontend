@@ -107,12 +107,12 @@ const Users = () => {
                                         onClick={toggleView}
                                         className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-100 dark:hover:bg-neutral-900"
                                     >
-                                        {view === "grid" ?
-                                            <Image src={table} alt="table" className="mr-2" width={15} height={15} /> :
-                                            <Image src={grid} alt="grid" className="mr-2" width={15} height={15} />
+                                        {view === "table" ?
+                                            <Image src={table} alt="tbl" className="mr-2" width={15} height={15} /> :
+                                            <Image src={grid} alt="grd" className="mr-2" width={15} height={15} />
                                         }
                                         <span className="text-sm font-medium">
-                                            {view === "grid" ? "Grid View" : "Table View"}
+                                            {view === "table" ? "Table View" : "Grid View"}
                                         </span>
                                     </button>
 
@@ -166,7 +166,7 @@ const Users = () => {
                                         <UserGrid searchQuery="" users={users} />
                                     )
                                 ) : (
-                                    <div className="min-h-96 flex items-center justify-center">
+                                    <div className="min-h-86 flex items-center justify-center">
                                         <NoDataFound message="No users found." icon={empty} />
                                     </div>
                                 )}

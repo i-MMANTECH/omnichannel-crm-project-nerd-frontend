@@ -12,7 +12,7 @@ import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import { usePermissions } from "@/context/PermissionsContext";
 import UserAvatar from "../UserAvatar";
-import { Bell, House, Mail, Settings, SquareCheck, SquareKanban, UserPlus, Users, Phone, Ticket } from 'lucide-react';
+import { Bell, House, Mail, Settings, SquareCheck, SquareKanban, UserPlus, Users, Phone, Ticket, User } from 'lucide-react';
 
 function Sidebar() {
   const { logout } = useAuth();
@@ -28,6 +28,7 @@ function Sidebar() {
 
   const viewUser = checkPermission("view_user");
   const viewCustomer = checkPermission("view_customer");
+  const viewLead = checkPermission("view_lead");
   const viewTask = checkPermission("view_task");
 
   const pathname = usePathname();
@@ -179,6 +180,22 @@ function Sidebar() {
               </Link>
             )}
 
+            {viewLead && (
+              <Link
+                onClick={() => setIsOpen(false)}
+
+                href="/nativecrm/leads"
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/leads") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+              >
+                <User
+                  size={18}
+                />
+                <h3 className={`text-sm font-medium`}>
+                  Leads
+                </h3>
+              </Link>
+            )}
+
             <Link
               onClick={() => setIsOpen(false)}
               href="/nativecrm/call-center#call-detail-records"
@@ -188,7 +205,7 @@ function Sidebar() {
               <h3 className="text-sm font-medium">Call Center</h3>
             </Link>
 
-            <Link
+            {/* <Link
               onClick={() => setIsOpen(false)} // Close sidebar on navigation
 
               href="/nativecrm/notifications"
@@ -201,19 +218,19 @@ function Sidebar() {
               <h3 className={`text-sm font-medium ${isActive("/notifications") ? activeStyle : ""}`}>
                 Notifications
               </h3>
-            </Link>
+            </Link> */}
 
-            {/* <div
-                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/notifications") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
-                onClick={toggleNotification}
-              >
-                <Bell 
-                  size={18}
-                />
-                <h3 className={`text-sm font-medium`}>
-                  Notifications
-                </h3>
-              </div> */}
+            <div
+              className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/notifications") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+              onClick={toggleNotification}
+            >
+              <Bell
+                size={18}
+              />
+              <h3 className={`text-sm font-medium`}>
+                Notifications
+              </h3>
+            </div>
           </div>
 
           <div className="self-end mt-auto w-full">

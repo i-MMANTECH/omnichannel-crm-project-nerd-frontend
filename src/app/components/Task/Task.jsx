@@ -3,15 +3,15 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTh, faSort, faFilter, faSearch } from "@fortawesome/free-solid-svg-icons";
-import { Download } from "lucide-react"; // Add this import
+import { Download } from "lucide-react";
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import TableView from "./TableView";
+import TableView from "./TaskTableView";
 import TaskModal from "./AddTaskModal";
 import SuccessModal from "../SuccessModal";
 import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import TaskCardListView from "./TaskCardListView";
-import KanbanView from "./KanbanView";
+import KanbanView from "./TaskKanbanView";
 import TaskUpdateModal from "./TaskUpdateModal";
 import TaskViewModal from "./TaskViewModal";
 import useCustomAlert from "@/context/useCustomAlert";
@@ -21,6 +21,8 @@ import Image from "next/image";
 import { Tooltip } from "react-tooltip";
 import Pagination from "../Pagination/Pagination";
 import ExportTasksModal from "./ExportTaskModal";
+import table from '@/public/assets/table.svg';
+import grid from '@/public/assets/grid.svg';
 
 
 const ModalController = ({ children }) => {
@@ -400,7 +402,10 @@ export default function Task() {
                   onClick={toggleView}
                   className="flex items-center border border-gray-300 px-3 py-1.5 rounded-lg shadow-sm hover:dark:bg-neutral-900 hover:bg-gray-100"
                 >
-                  <FontAwesomeIcon icon={faTh} className="text-blue-500 mr-2" />
+                  {view === 'table' ?
+                    <Image src={table} alt='tbl' className='mr-2' width={15} height={15} /> :
+                    <Image src={grid} alt='grd' className='mr-2' width={15} height={15} />
+                  }
                   <span className="text-sm font-medium">
                     {view === "list" ? "List View" : view === "table" ? "Table View" : "Kanban View"}
                   </span>
@@ -429,41 +434,51 @@ export default function Task() {
 
                 <div className="relative">
                   <div className="relative flex items-center">
-                    {users.map((assignee, index) => (
-                      <div
-                        key={index}
-                        className={`cursor-pointer rounded-full transition-all duration-300
-                        ${selectedUser === assignee.id ? 'ring-2 dark:ring-white ring-gray-500 z-10' : ''}`}
-                        style={{ marginLeft: index !== 0 ? '-7px' : '0px' }}
-                        onClick={() => handleAssigneeClick(assignee.id)}
-                        onMouseEnter={(e) => e.currentTarget.classList.add("z-10")}
-                        onMouseLeave={(e) => e.currentTarget.classList.remove("z-10")}
-                        data-tooltip-id={`tooltip-${assignee.id}`}
-                      >
-                        {assignee?.image ? (
-                          <Image
-                            alt="profile pic"
-                            className="w-9 h-9 rounded-full border-2 border-white"
-                            src={assignee.image}
-                            width={30}
-                            height={30}
-                          />
-                        ) : (
-                          <UserAvatar
-                            name={assignee?.first_name ?
-                              `${assignee.first_name} ${assignee?.last_name}` :
-                              assignee?.email || '--'
-                            }
-                            className="w-10 h-10 rounded-full flex-shrink-0 border-2 border-white"
-                            width="w-9"
-                            height="h-9"
-                          />
-                        )}
-                        <Tooltip className="mt-1" id={`tooltip-${assignee.id}`} place="top">
-                          {assignee?.first_name} {assignee?.last_name || ""}
-                        </Tooltip>
-                      </div>
-                    ))}
+                    {users.map((assignee, index) => {
+                      const tooltipName = (() => {
+                        const fullName = `${assignee?.first_name || ""} ${assignee?.last_name || ""}`.trim();
+                        if (fullName) return fullName;
+                        if (assignee?.email) return assignee.email;
+                        if (assignee?.phone_number) return assignee.phone_number;
+                        return "User";
+                      })();
+
+                      return (
+                        <div
+                          key={index}
+                          className={`cursor-pointer rounded-full transition-all duration-300
+            ${selectedUser === assignee.id ? 'ring-2 dark:ring-white ring-gray-500 z-10' : ''}`}
+                          style={{ marginLeft: index !== 0 ? '-7px' : '0px' }}
+                          onClick={() => handleAssigneeClick(assignee.id)}
+                          onMouseEnter={(e) => e.currentTarget.classList.add("z-10")}
+                          onMouseLeave={(e) => e.currentTarget.classList.remove("z-10")}
+                          data-tooltip-id={`tooltip-${assignee.id}`}
+                        >
+                          {assignee?.image ? (
+                            <Image
+                              alt="profile pic"
+                              className="w-9 h-9 rounded-full border-2 border-white"
+                              src={assignee.image}
+                              width={30}
+                              height={30}
+                            />
+                          ) : (
+                            <UserAvatar
+                              name={assignee?.first_name ?
+                                `${assignee.first_name} ${assignee?.last_name}` :
+                                assignee?.email || '--'
+                              }
+                              className="w-9 h-9 rounded-full flex-shrink-0 border-2 border-white"
+                              width="w-9"
+                              height="h-9"
+                            />
+                          )}
+                          <Tooltip className="mt-1" id={`tooltip-${assignee.id}`} place="top">
+                            {tooltipName}
+                          </Tooltip>
+                        </div>
+                      );
+                    })}
 
                     {isFilterActive && (
                       <button

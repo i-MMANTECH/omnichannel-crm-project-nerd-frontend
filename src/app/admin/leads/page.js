@@ -1,16 +1,15 @@
 "use client";
 
-import React, { useEffect, useMemo, useState, Suspense } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { Upload } from "lucide-react";
-import NoDataFound from "@/app/components/NoDataFound";
-import empty from "@/public/assets/empty.svg";
 import Pagination from "@/app/components/Pagination/Pagination";
 import LeadToCustomer from "@/app/components/Message/LeadToCustomer";
 import ImportLeadsModal from "@/app/components/admin/Leads/ImportLeadsModal";
 import SuccessModal from "@/app/components/SuccessModal";
+import LeadsTable from "@/app/components/Leads/LeadsTable";  // ✅ IMPORT SHARED COMPONENT
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 
@@ -28,7 +27,6 @@ const LeadsContent = () => {
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [serverCount, setServerCount] = useState(null);
-  const [openMenuId, setOpenMenuId] = useState(null);
   const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
   const [activeLeadId, setActiveLeadId] = useState(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -71,7 +69,6 @@ const LeadsContent = () => {
     };
 
     fetchLeads();
-    // axiosInstance and handleApiError can be unstable; avoid ref churn loops.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, pageSize, searchQuery, refreshKey]);
 
@@ -94,39 +91,6 @@ const LeadsContent = () => {
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
-  const formatName = (lead) => {
-    const quotedMatch = String(lead?.name || "").match(/"([^"]+)"/);
-    if (quotedMatch?.[1]) return quotedMatch[1].trim();
-    if (lead?.name) return lead.name;
-    const first = lead?.first_name || "";
-    const last = lead?.last_name || "";
-    const full = `${first} ${last}`.trim();
-    return full || "--";
-  };
-
-  const formatContact = (lead) => {
-    const contactCandidates = [
-      lead?.email,
-      lead?.phone_number,
-      lead?.unique_identifier,
-      lead?.whatsapp,
-      lead?.instagram,
-      lead?.facebook,
-      lead?.tiktok,
-    ].filter(Boolean);
-
-    for (const value of contactCandidates) {
-      const bracketMatch = String(value).match(/<([^<>]+)>/);
-      if (bracketMatch?.[1]) return bracketMatch[1].trim();
-    }
-
-    return contactCandidates[0] || "--";
-  };
-
-  const formatChannel = (lead) => {
-    return lead?.channel?.name || lead?.channel?.label || lead?.channel || "--";
-  };
-
   const handleOpenConvertModal = (leadId) => {
     if (!leadId) return;
     setActiveLeadId(leadId);
@@ -143,28 +107,16 @@ const LeadsContent = () => {
     setSuccessModalMessage("");
   };
 
-  const toggleMenu = (leadId) => {
-    setOpenMenuId((prev) => (prev === leadId ? null : leadId));
-  };
-
   const handleImportSuccess = () => {
     setRefreshKey((prev) => prev + 1);
     setIsImportModalOpen(false);
   };
 
-  const rows = useMemo(() => {
-    const safeLeads = leads || [];
-    if (serverCount === null && safeLeads.length > pageSize) {
-      const start = (currentPage - 1) * pageSize;
-      return safeLeads.slice(start, start + pageSize);
-    }
-    return safeLeads;
-  }, [leads, serverCount, currentPage, pageSize]);
-
   return (
     <div className="overflow-x-hidden flex flex-row body-theme min-h-[83vh]">
       <div className="relative body-theme flex-1 flex flex-col">
 
+        {/* Search and Import Section */}
         <div className="w-[100%] max-w-[1200px] sm:max-w-full mx-auto mb-6">
           <div className="flex items-center justify-between gap-3">
             <form onSubmit={handleSearchSubmit} className="flex items-center gap-3 w-full">
@@ -189,93 +141,19 @@ const LeadsContent = () => {
           </div>
         </div>
 
+        {/* ✅ SHARED TABLE COMPONENT */}
         <div className="w-[100%] max-w-[1200px] sm:max-w-full mx-auto">
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-                  <tr>
-                    <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Contact
-                    </th>
-                    <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Channel
-                    </th>
-                    <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {loading ? (
-                    <tr>
-                      <td colSpan="4" className="px-6 py-6 text-center">
-                        <div className="flex justify-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : rows.length === 0 ? (
-                    <tr>
-                      <td colSpan="4" className="px-6 py-10">
-                        <div className="flex items-center justify-center">
-                          <NoDataFound message="You do not have any leads" icon={empty} />
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    rows.map((lead) => (
-                      <tr key={lead?.id || lead?.unique_identifier} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                          {formatName(lead)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {formatContact(lead)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {formatChannel(lead)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 text-right">
-                          <div className="relative inline-block text-left">
-                            <button
-                              type="button"
-                              onClick={() => toggleMenu(lead?.id || lead?.unique_identifier)}
-                              className="w-8 h-8 inline-flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                              aria-label="Row actions"
-                            >
-                              <span className="flex flex-col items-center justify-center gap-0.5">
-                                <span className="w-1 h-1 rounded-full bg-gray-500 dark:bg-gray-300"></span>
-                                <span className="w-1 h-1 rounded-full bg-gray-500 dark:bg-gray-300"></span>
-                                <span className="w-1 h-1 rounded-full bg-gray-500 dark:bg-gray-300"></span>
-                              </span>
-                            </button>
-                            <div
-                              className={`absolute right-0 mt-2 w-44 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-20 ${openMenuId === (lead?.id || lead?.unique_identifier) ? "block" : "hidden"
-                                }`}
-                            >
-                              <button
-                                type="button"
-                                onClick={() => handleOpenConvertModal(lead?.id)}
-                                disabled={!lead?.id}
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                              >
-                                Convert Lead
-                              </button>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <LeadsTable
+            leads={leads}
+            loading={loading}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            serverCount={serverCount}
+            onConvertLead={handleOpenConvertModal}
+          />
         </div>
 
+        {/* Pagination */}
         <div className="mt-8 w-[100%] max-w-[1200px] sm:max-w-full mx-auto">
           <Pagination
             currentPage={currentPage}
@@ -289,6 +167,7 @@ const LeadsContent = () => {
         </div>
       </div>
 
+      {/* Modals */}
       <LeadToCustomer
         isOpen={isConvertModalOpen}
         onClose={handleCloseConvertModal}

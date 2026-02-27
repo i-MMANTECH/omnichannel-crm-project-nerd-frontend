@@ -8,6 +8,7 @@ import UserAvatar from "../UserAvatar";
 import Image from "next/image";
 import { useRouter } from 'next/navigation';
 import { useNotification } from '@/context/NotificationContext';
+import { usePortalRouter } from '@/context/usePortalRouter';  // ✅ ADD THIS
 
 const NotificationModal = () => {
   const { axiosInstance, loading } = useApi();
@@ -17,6 +18,7 @@ const NotificationModal = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const router = useRouter();
   const { toggleNotification } = useNotification();
+  const { navigateTo } = usePortalRouter();  // ✅ ADD THIS
 
   const fetchNotifications = async () => {
     try {
@@ -75,11 +77,12 @@ const NotificationModal = () => {
       }
       toggleNotification();
 
+      // ✅ USE PORTAL-AWARE ROUTING
       if (notification.notification_type === 'task' && notification.metadata?.task_id) {
         const params = new URLSearchParams();
         params.set('action', 'view-task');
         params.set('taskId', notification.metadata.task_id);
-        router.push(`/nativecrm/tasks?${params.toString()}`);
+        navigateTo(`tasks?${params.toString()}`);  // ✅ CHANGED THIS LINE
       }
     } catch (error) {
       handleApiError(error);

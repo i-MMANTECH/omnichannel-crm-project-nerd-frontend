@@ -11,7 +11,7 @@ const CustomerTable = ({ customers }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const router = useRouter();
-    const canViewContactInfo = useCanViewContactInfo();  // ✅ ADD THIS
+    const canViewContactInfo = useCanViewContactInfo();
 
     const handlePageChange = (page) => setCurrentPage(page);
 
@@ -106,19 +106,17 @@ const CustomerTable = ({ customers }) => {
                                             alt="profile pic"
                                             width={10}
                                             height={10}
-                                            className="mt-2 w-10 h-10 rounded-full"
+                                            className="mt-2 w-8 h-8 rounded-full"
                                             src={customer.image}
                                         />}
-                                        {!customer?.image && <UserAvatar name={`${customer.first_name} ${customer.last_name}`} width="w-10" height="h-10" />}
+                                        {!customer?.image && <UserAvatar name={`${customer.first_name} ${customer.last_name}`} width="w-8" height="h-8" />}
                                     </div>
                                     {customer?.username || "--"}
                                 </td>
                                 <td className="whitespace-nowrap py-3 px-4 border-b">{`${customer.first_name} ${customer.last_name}` || "--"}</td>
-                                {/* ✅ APPLY MASKING TO EMAIL */}
                                 <td className="whitespace-nowrap py-3 px-4 border-b">
                                     {maskEmail(customer.email, canViewContactInfo)}
                                 </td>
-                                {/* ✅ APPLY MASKING TO PHONE */}
                                 <td className="whitespace-nowrap py-3 px-4 border-b">
                                     {maskPhoneNumber(customer.phone_number, canViewContactInfo)}
                                 </td>

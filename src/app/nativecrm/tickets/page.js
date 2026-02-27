@@ -542,7 +542,7 @@ const TicketsContent = () => {
                               className={`px-2 py-1 text-sm rounded font-medium cursor-pointer ${ticket.priority?.name === "low"
                                 ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
                                 : ticket.priority?.name === "medium"
-                                  ? "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400"
+                                  ? "bg-yellow-100 text-yellow-600 dark:bg-yellow-800/30 dark:text-yellow-400"
                                   : ticket.priority?.name === "high"
                                     ? "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
                                     : ticket.priority?.name === "urgent"
