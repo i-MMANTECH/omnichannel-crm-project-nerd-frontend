@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "react-toastify";
 import "../../Profile/agentProfile.css";
 import Link from "next/link";
 
@@ -23,6 +24,13 @@ export default function DeveloperSettings() {
   const [showPublicKey, setShowPublicKey] = useState(false);
   const [showSecretKey, setShowSecretKey] = useState(false);
   const [loadingPaymentKeys, setLoadingPaymentKeys] = useState(true);
+
+  // AI Settings State
+  const [loadingAiSettings, setLoadingAiSettings] = useState(true);
+  const [aiEnabled, setAiEnabled] = useState(false);
+  const [aiOffDuringBusinessHours, setAiOffDuringBusinessHours] = useState(false);
+  const [aiDisableStart, setAiDisableStart] = useState("");
+  const [aiDisableEnd, setAiDisableEnd] = useState("");
 
   useEffect(() => {
     const fetchWebhook = async () => {
@@ -63,9 +71,27 @@ export default function DeveloperSettings() {
       }
     };
 
+    const fetchAiSettings = async () => {
+      try {
+        const response = await axiosInstance.get("/companies/ai/settings/");
+        if (response.data?.success) {
+          const aiData = response.data.data;
+          setAiEnabled(aiData.ai_enabled || false);
+          setAiOffDuringBusinessHours(aiData.ai_off_during_business_hours || false);
+          setAiDisableStart(aiData.ai_disable_start || "");
+          setAiDisableEnd(aiData.ai_disable_end || "");
+        }
+      } catch (error) {
+        handleApiError(error);
+      } finally {
+        setLoadingAiSettings(false);
+      }
+    };
+
     fetchWebhook();
     fetchApiKey();
     fetchPaymentKeys();
+    fetchAiSettings();
   }, []);
 
   const fetchDocuments = async () => {
@@ -137,9 +163,47 @@ export default function DeveloperSettings() {
     }
   };
 
+  const handleSaveAiEnabled = async (newValue) => {
+    setAiEnabled(newValue);
+    try {
+      await axiosInstance.patch("/companies/ai/settings/", {
+        ai_enabled: newValue,
+      });
+      toast.success("AI Responses setting updated successfully.");
+    } catch (error) {
+      setAiEnabled(!newValue); // Revert on failure
+      handleApiError(error);
+    }
+  };
+
+  const handleSaveBusinessHoursToggle = async (newValue) => {
+    setAiOffDuringBusinessHours(newValue);
+    try {
+      await axiosInstance.patch("/companies/ai/business-hours/toggle/");
+      toast.success("Business hours AI setting updated successfully.");
+    } catch (error) {
+      setAiOffDuringBusinessHours(!newValue); // Revert on failure
+      handleApiError(error);
+    }
+  };
+
+  const handleSaveBusinessHoursWindow = async (start, end) => {
+    try {
+      await axiosInstance.patch("/companies/ai/business-hours/window/", {
+        ai_disable_start: start,
+        ai_disable_end: end,
+        ai_off_during_business_hours: aiOffDuringBusinessHours
+      });
+      toast.success("Business hours window updated successfully.");
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+
   const tabs = [
     { key: "webhook", label: "Webhook" },
     { key: "apiKey", label: "API Key" },
+    { key: "aiSettings", label: "AI Settings" },
     { key: "aiKnowledge", label: "AI Knowledge Base" },
     { key: "paymentKeys", label: "Payment Keys" },
   ];
@@ -206,6 +270,76 @@ export default function DeveloperSettings() {
               className="w-full max-w-md border border-gray-300 p-2 rounded"
               placeholder="Enter your API key"
             />
+          )}
+        </div>
+      )}
+
+      {selected === "aiSettings" && (
+        <div className="mt-6 ms-6 rounded-lg border border-gray-300 p-6 max-w-2xl">
+          <h2 className="text-lg font-semibold mb-4">AI Settings</h2>
+
+          {loadingAiSettings ? (
+            <p>Loading AI Settings...</p>
+          ) : (
+            <div className="flex flex-col gap-6">
+              {/* Enable AI Toggle */}
+              <div className="flex items-center justify-between max-w-md">
+                <span className="font-medium">Enable AI Responses Globally</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={aiEnabled}
+                    onChange={(e) => handleSaveAiEnabled(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className={`w-11 h-6 rounded-full transition-colors ${aiEnabled ? "bg-[#3EBF0F]" : "bg-gray-300"}`}>
+                    <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-transform ${aiEnabled ? "translate-x-5" : "translate-x-0"}`} />
+                  </div>
+                </label>
+              </div>
+
+              {/* Turn off during business hours Toggle */}
+              <div className="flex items-center justify-between max-w-md">
+                <span className="font-medium">Turn off during business hours</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={aiOffDuringBusinessHours}
+                    onChange={(e) => handleSaveBusinessHoursToggle(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className={`w-11 h-6 rounded-full transition-colors ${aiOffDuringBusinessHours ? "bg-[#3EBF0F]" : "bg-gray-300"}`}>
+                    <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-transform ${aiOffDuringBusinessHours ? "translate-x-5" : "translate-x-0"}`} />
+                  </div>
+                </label>
+              </div>
+
+              {/* Time inputs when business hours is turned off */}
+              {aiOffDuringBusinessHours && (
+                <div className="flex gap-4 max-w-md">
+                  <div className="flex-1">
+                    <label className="block mb-1 text-sm font-medium">Disable Start</label>
+                    <input
+                      type="time"
+                      value={aiDisableStart}
+                      onChange={(e) => setAiDisableStart(e.target.value)}
+                      onBlur={() => handleSaveBusinessHoursWindow(aiDisableStart, aiDisableEnd)}
+                      className="w-full border border-gray-300 p-2 rounded"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block mb-1 text-sm font-medium">Disable End</label>
+                    <input
+                      type="time"
+                      value={aiDisableEnd}
+                      onChange={(e) => setAiDisableEnd(e.target.value)}
+                      onBlur={() => handleSaveBusinessHoursWindow(aiDisableStart, aiDisableEnd)}
+                      className="w-full border border-gray-300 p-2 rounded"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}

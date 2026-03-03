@@ -80,6 +80,15 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInt
     // Fetch AI status
     const fetchAiStatus = async () => {
       try {
+        // Global AI Settings Check
+        const globalAiRes = await axiosInstance.get('/companies/ai/settings/', { showLoader: false });
+        const isGlobalAiEnabled = globalAiRes?.data?.data?.ai_enabled;
+
+        if (!isGlobalAiEnabled) {
+          setAiResponsesEnabled(false);
+          return;
+        }
+
         const res = await axiosInstance.get(`/communication/conversations/${conversationId}/ai-status/`, {
           showLoader: false
         });
@@ -120,7 +129,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInt
 
   const aiToggleMenuItem = (
     <div className="flex items-center justify-between px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
-      <span>Automated Responses (AI)</span>
+      <span>Automated Responses (NativeAI)</span>
       <label className="relative inline-flex items-center cursor-pointer">
         <input
           type="checkbox"

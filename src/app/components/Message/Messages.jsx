@@ -614,6 +614,14 @@ export const MessagesContent = () => {
 
 		if (conversationId) {
 			try {
+				// Global AI Settings Check
+				const globalAiRes = await axiosInstance.get('/companies/ai/settings/', { showLoader: false });
+				const isGlobalAiEnabled = globalAiRes?.data?.data?.ai_enabled;
+
+				if (!isGlobalAiEnabled) {
+					return; // Do not show prompt or fetch conversation AI status if globally disabled
+				}
+
 				const res = await axiosInstance.get(`/communication/conversations/${conversationId}/ai-status/`, {
 					showLoader: false
 				});

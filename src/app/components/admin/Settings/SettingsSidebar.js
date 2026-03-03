@@ -23,7 +23,7 @@ function SettingsSidebar({ onSidebarClick, currentSection }) {
     <div >
       <Disclosure as="nav" className="fixed">
         <div>
-          <div className="mb-2">
+          <div className="mb-2 pl-8">
             <h2 className="text-sm text-gray-500 dark:text-gray-400 pl-4 ">General Settings</h2>
 
             <div className="my-3 pb-3">
