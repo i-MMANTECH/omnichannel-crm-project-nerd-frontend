@@ -376,7 +376,7 @@ export const MessagesContent = () => {
 	};
 
 	const wsUrl = company?.id
-		? `${window.location.protocol === "https:" ? "wss" : "ws"}://${process.env.NEXT_PUBLIC_WS_BASE_URL}/ws/chat/?uuid=${company?.id}&type=company`
+		? `${window.location.protocol === "https:" ? "wss" : "wss"}://${process.env.NEXT_PUBLIC_WS_BASE_URL}/ws/chat/?uuid=${company?.id}&type=company`
 		: null;
 
 	const { wsRef: companyWsRef, reconnect: reconnectCompanyWs } = useWebSocket(
