@@ -49,7 +49,7 @@ const getSmartTimestamp = (messageDate) => {
   return `${shortDateWithYear}, ${timeString}`; // "2/11/22, 2:50 PM"
 };
 
-const MessageList = ({ chatHistory, inputIsEmailMode, loadMoreMessages, isFetchingMore, isScrolledUp, setIsScrolledUp, next, chatType, currentUserId }) => {
+const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMoreMessages, isFetchingMore, isScrolledUp, setIsScrolledUp, next, chatType, currentUserId }) => {
   const messageEndRef = useRef(null);
   const listRef = useRef(null);
   const router = useRouter();
@@ -252,6 +252,27 @@ const MessageList = ({ chatHistory, inputIsEmailMode, loadMoreMessages, isFetchi
   }
 
 
+
+  if (isLoadingHistory) {
+    return (
+      <div className={`message-list flex overflow-y-auto overflow-x-hidden flex-col relative scrollbar-hide ${inputIsEmailMode ? 'h-[50vh]' : 'h-[60vh]'} p-4 justify-end`}>
+        <div className="flex flex-col gap-4 w-full h-full justify-end pb-4">
+          <div className="flex w-full justify-start">
+            <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-10 w-[60%] rounded-tr-xl rounded-br-xl rounded-tl-xl border border-gray-100 dark:border-gray-600"></div>
+          </div>
+          <div className="flex w-full justify-end">
+            <div className="animate-pulse bg-[#e1f7d5] dark:bg-green-900/40 h-10 w-[50%] rounded-tl-xl rounded-bl-xl rounded-tr-xl border border-green-100 dark:border-green-800"></div>
+          </div>
+          <div className="flex w-full justify-start">
+            <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-14 w-[75%] rounded-tr-xl rounded-br-xl rounded-tl-xl border border-gray-100 dark:border-gray-600"></div>
+          </div>
+          <div className="flex w-full justify-end">
+            <div className="animate-pulse bg-[#e1f7d5] dark:bg-green-900/40 h-20 w-[65%] rounded-tl-xl rounded-bl-xl rounded-tr-xl border border-green-100 dark:border-green-800"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!chatHistory || chatHistory?.length === 0) return null;
 

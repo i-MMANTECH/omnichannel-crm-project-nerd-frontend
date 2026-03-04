@@ -20,6 +20,25 @@ import CreateTicketModal from "../Ticket/CreateTicketModal";
 import useWebSocket from "@/context/useWebsocket";
 import getBaseRoute from "@/utils/getBaseRoute";
 
+// --- GLOBAL CACHE START ---
+// These persist across Next.js component unmounts but reset on hard refresh.
+let globalChatCache = {
+	leads: { users: null, histories: {} },
+	customers: { users: null, histories: {} },
+	internal: { users: null, histories: {} },
+	archived: { users: null, histories: {} },
+};
+
+let globalPaginationCache = {
+	leads: { pageUsers: 1, nextUsers: null },
+	customers: { pageUsers: 1, nextUsers: null },
+	internal: { pageUsers: 1, nextUsers: null },
+	archived: { pageUsers: 1, nextUsers: null },
+};
+
+let globalMessagePaginationCache = {};
+// --- GLOBAL CACHE END ---
+
 const normalizeInternalChat = (chat, myUserId) => {
 	// chat.other_member exists in your POST response, and is usually returned on list too
 	const other = chat.other_member;
@@ -96,6 +115,7 @@ export const MessagesContent = () => {
 
 
 	const [loading, setLoading] = useState(true);
+	const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 	const [chatResponse, setChatResponse] = useState();
 
 	const [chatType, setChatType] = useState(searchParams.get("chat") || "leads");
@@ -136,12 +156,13 @@ export const MessagesContent = () => {
 	const isCancelError = (error) =>
 		error?.name === 'CanceledError' || error?.message === 'canceled' || error?.code === 'ERR_CANCELED';
 
-	const [cachedData, setCachedData] = useState({
-		leads: { users: null, histories: {} },
-		customers: { users: null, histories: {} },
-		internal: { users: null, histories: {} },
-		archived: { users: null, histories: {} },
-	});
+	// Initialize cachedData from the global module-level cache
+	const [cachedData, setCachedData] = useState(() => globalChatCache);
+
+	// Sync local cachedData back to globalChatCache whenever it changes
+	useEffect(() => {
+		globalChatCache = cachedData;
+	}, [cachedData]);
 
 	const currentTabRef = useRef(chatType);
 	const abortControllerRef = useRef(null);
@@ -163,6 +184,8 @@ export const MessagesContent = () => {
 		// Load cached data for the new tab if available
 		if (cachedData[newChatType]?.users) {
 			setUsers(cachedData[newChatType].users);
+			setPageUsers(globalPaginationCache[newChatType].pageUsers);
+			setNextUsers(globalPaginationCache[newChatType].nextUsers);
 			setLoading(false);
 		} else {
 			setLoading(true);
@@ -809,6 +832,15 @@ export const MessagesContent = () => {
 
 				setNextUsers(response.data.next);
 
+				// Sync pagination to global cache
+				globalPaginationCache[requestChatType] = {
+					pageUsers: reset ? 2 : pageUsers + 1,
+					nextUsers: response.data.next
+				};
+				if (reset) {
+					setPageUsers(1);
+				}
+
 				const foundUser = response.data.results?.find(
 					(user) => user.id.toString() === chatId
 				);
@@ -844,17 +876,25 @@ export const MessagesContent = () => {
 		const cachedHistory = cachedData[chatType]?.histories[activeUser.id];
 		if (cachedHistory) {
 			setChatHistory(cachedHistory);
+			// Restore message pagination from global cache
+			if (globalMessagePaginationCache[activeUser.id]) {
+				setPageMessages(globalMessagePaginationCache[activeUser.id].pageMessages);
+				setNextMessages(globalMessagePaginationCache[activeUser.id].nextMessages);
+			}
+			setIsLoadingHistory(false);
+		} else {
+			setIsLoadingHistory(true);
 		}
 
 		let endpoint;
 		if (chatType === "internal") {
 			endpoint = `/internal-messaging/chats/${activeUser.id}/messages/`;
 		} else if (chatType === "customers") {
-			endpoint = `/communication/customer-chat-history/${activeUser.id}?page=${page}`;
+			endpoint = `/communication/customer-chat-history/${activeUser.id}?page=${globalMessagePaginationCache[activeUser.id] ? globalMessagePaginationCache[activeUser.id].pageMessages : 1}`;
 		} else if (chatType === "leads") {
-			endpoint = `/communication/history/?lead_id=${activeUser.id}&page=${page}`;
+			endpoint = `/communication/history/?lead_id=${activeUser.id}&page=${globalMessagePaginationCache[activeUser.id] ? globalMessagePaginationCache[activeUser.id].pageMessages : 1}`;
 		} else if (chatType === "archived") {
-			endpoint = `/communication/conversations/${activeUser.id}/messages?status=ended&page=${page}`;
+			endpoint = `/communication/conversations/${activeUser.id}/messages?status=ended&page=${globalMessagePaginationCache[activeUser.id] ? globalMessagePaginationCache[activeUser.id].pageMessages : 1}`;
 		}
 
 		try {
@@ -863,6 +903,12 @@ export const MessagesContent = () => {
 			});
 
 			setNextMessages(response.data.next);
+
+			// Update global message pagination cache
+			globalMessagePaginationCache[activeUser.id] = {
+				pageMessages: (globalMessagePaginationCache[activeUser.id] ? globalMessagePaginationCache[activeUser.id].pageMessages : 1),
+				nextMessages: response.data.next
+			};
 
 			if (currentTabRef.current === requestChatType && activeUser?.id === requestUserId) {
 				if (requestChatType === "internal") {
@@ -909,6 +955,8 @@ export const MessagesContent = () => {
 			} else {
 				handleApiError(error);
 			}
+		} finally {
+			setIsLoadingHistory(false);
 		}
 	};
 
@@ -945,6 +993,9 @@ export const MessagesContent = () => {
 	};
 
 	const handleChatSelect = (user) => {
+		if (activeUser?.id !== user.id) {
+			setChatHistory([]);
+		}
 		setActiveUser(user);
 		setIsScrolledUp(false);
 		setPageMessages(1);
@@ -960,8 +1011,6 @@ export const MessagesContent = () => {
 		setActiveUser(null);
 		setChatHistory([]);
 		setIsScrolledUp(false);
-		setPageUsers(1);
-		setPageMessages(1);
 		router.push(`${baseRoute}/messages?chat=${tab}`, { scroll: false });
 
 		setTabUnreadFlags((prev) => ({
@@ -974,8 +1023,11 @@ export const MessagesContent = () => {
 
 		if (!cachedData[tab]?.users) {
 			setLoading(true);
+			setPageUsers(1);
 		} else {
 			setUsers(cachedData[tab].users);
+			setPageUsers(globalPaginationCache[tab].pageUsers);
+			setNextUsers(globalPaginationCache[tab].nextUsers);
 		}
 	};
 
@@ -1207,7 +1259,14 @@ export const MessagesContent = () => {
 				},
 			}));
 
-			setPageUsers((prevPage) => prevPage + 1);
+			const nextPageUsers = pageUsers + 1;
+			setPageUsers(nextPageUsers);
+
+			// Update global cache
+			globalPaginationCache[chatType] = {
+				pageUsers: nextPageUsers,
+				nextUsers: data.next
+			};
 		}
 		catch (error) {
 			if (isCancelError(error)) {
@@ -1237,8 +1296,31 @@ export const MessagesContent = () => {
 
 		try {
 			const response = await axiosInstance.get(nextMessages);  // Fetch next page
-			setChatHistory((prevHistory) => [...response.data.results.reverse(), ...prevHistory]); // Prepend new messages
+			const newHistory = [...response.data.results.reverse(), ...chatHistory];
+
+			setChatHistory(newHistory); // Prepend new messages
 			setNextMessages(response.data.next);  // Update the next page URL
+
+			// Update the cache so navigation back keeps the old messages loaded
+			setCachedData((prev) => ({
+				...prev,
+				[chatType]: {
+					...prev[chatType],
+					histories: {
+						...prev[chatType].histories,
+						[activeUser.id]: newHistory,
+					},
+				},
+			}));
+
+			const nextPageMessage = (globalMessagePaginationCache[activeUser.id]?.pageMessages || 1) + 1;
+			// Update pagination cache
+			globalMessagePaginationCache[activeUser.id] = {
+				pageMessages: nextPageMessage,
+				nextMessages: response.data.next
+			};
+			setPageMessages(nextPageMessage);
+
 		} catch (error) {
 			handleApiError(error);
 		} finally {
@@ -1488,6 +1570,7 @@ export const MessagesContent = () => {
 							<div className="flex items-center ">
 								<MessageList
 									chatHistory={chatHistory}
+									isLoadingHistory={isLoadingHistory}
 									inputIsEmailMode={inputIsEmailMode}
 									loadMoreMessages={loadMoreMessages}
 									isFetchingMore={isFetchingMoreMessages}
