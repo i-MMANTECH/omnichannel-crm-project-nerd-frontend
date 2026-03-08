@@ -6,7 +6,7 @@ import "./chatlist.css";
 import Image from "next/image";
 import UserAvatar from "../UserAvatar";
 
-const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading }) => {
+const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading, isFetchingMoreUsers, isAdmin }) => {
   const results = users?.results || [];
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
@@ -130,7 +130,7 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading 
                 </div>
                 <div className="content flex-1 min-w-0">
                   <div className="flex justify-between  w-full ">
-                    <div className="text-black dark:text-white user-name">
+                    <div className="text-black dark:text-white user-name truncate">
                       {user?.name ||
                         user?.lead_name ||
                         user?.lead?.name ||
@@ -138,7 +138,11 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading 
                         user?.customer?.first_name ||
                         user?.customer?.username ||
                         user?.customer?.email ||
-                        "Unknown "}</div>
+                        "Unknown "}
+                      {isAdmin && user?.phone_number && (
+                        <span className="text-[10px] text-gray-400 font-normal ml-1">· {user.phone_number}</span>
+                      )}
+                    </div>
                     <div className="relative flex items-center">
                       {/* Time Display */}
                       <div className="title-2 ">{formatChatTime(user?.lastMessageTime || user?.last_message_at)}</div>
@@ -190,6 +194,11 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading 
           );
         })
         }
+        {isFetchingMoreUsers && (
+          <div className="flex justify-center py-4 w-full">
+            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-l-2 border-[#3EBF0F]"></div>
+          </div>
+        )}
       </div>
     </div>
   );

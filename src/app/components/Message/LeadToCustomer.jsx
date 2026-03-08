@@ -48,7 +48,6 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
                 try {
                     const response = await axiosInstance.get(`/customers/leads/${leadId}`);
                     if (response?.data) {
-                        console.log('lead response ', response?.data)
                         const leadData = response.data.lead;
                         const [firstName, lastName] = leadData.name.split(' ');
 
@@ -58,11 +57,11 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
                             first_name: firstName || leadData.name || "",
                             last_name: lastName || "",
                             gender: leadData.gender || "",
-                            phone_number: leadData?.channel?.id == 2 ? leadData.unique_identifier : "",
+                            phone_number: (leadData?.channel?.id == 2 ? leadData.phone_number : leadData.unique_identifier) || "",
                             email: leadData.email || "",
                             instagram: leadData.instagram || "",
                             facebook: leadData.facebook || "",
-                            whatsapp: leadData?.channel?.id == 2 ? leadData.unique_identifier : "",
+                            whatsapp: (leadData?.channel?.id == 2 ? leadData.unique_identifier : leadData.phone_number) || "",
                             tiktok: leadData.tiktok || "",
                             tag: leadData.tag || [],
                             country: { id: 160, name: "Nigeria" },

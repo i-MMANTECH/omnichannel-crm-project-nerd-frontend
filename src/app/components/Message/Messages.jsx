@@ -1539,12 +1539,9 @@ export const MessagesContent = () => {
 						handleChatSelect={handleChatSelect}
 						loadMoreUsers={loadMoreUsers}
 						loading={loading}
+						isFetchingMoreUsers={isFetchingMoreUsers}
+						isAdmin={baseRoute === '/admin'}
 					/>
-					{isFetchingMoreUsers && (
-						<div className="flex justify-center py-4">
-							<div className="animate-spin rounded-full h-6 w-6 border-t-2 border-gray-400"></div>
-						</div>
-					)}
 				</div>
 
 				<div className="detail ">
