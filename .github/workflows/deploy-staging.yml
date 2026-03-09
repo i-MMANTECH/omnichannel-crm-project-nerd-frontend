@@ -21,7 +21,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.x'
-          cache: 'npm'
       
       # Step 3: Clear npm cache (FIX FOR INTEGRITY ERROR)
       - name: Clear npm cache
