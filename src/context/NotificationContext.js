@@ -40,7 +40,7 @@ export function NotificationProvider({ children }) {
   useEffect(() => {
     const initializeWebSocket = () => {
       if (user?.user_id) {
-        const protocol = window.location.protocol === "https:" ? "wss" : "wss";
+        const protocol = window.location.protocol === "https:" ? "wss" : "ws";
         const wsUrl = `${protocol}://${process.env.NEXT_PUBLIC_WS_BASE_URL}/ws/notifications/?uuid=${company?.id}`;
 
         const ws = new WebSocket(wsUrl);

@@ -376,7 +376,7 @@ export const MessagesContent = () => {
 	};
 
 	const wsUrl = company?.id
-		? `${window.location.protocol === "https:" ? "wss" : "wss"}://${process.env.NEXT_PUBLIC_WS_BASE_URL}/ws/chat/?uuid=${company?.id}&type=company`
+		? `${window.location.protocol === "https:" ? "wss" : "ws"}://${process.env.NEXT_PUBLIC_WS_BASE_URL}/ws/chat/?uuid=${company?.id}&type=company`
 		: null;
 
 	const { wsRef: companyWsRef, reconnect: reconnectCompanyWs } = useWebSocket(
@@ -588,7 +588,7 @@ export const MessagesContent = () => {
 	);
 
 	const internalWsUrl = userProfile?.id
-		? `wss://dev-core.nativetalkcrm.com/ws/internal-chat/?agent_uuid=${userProfile.id}`
+		? `${window.location.protocol === "https:" ? "wss" : "ws"}://${process.env.NEXT_PUBLIC_WS_BASE_URL}/ws/internal-chat/?agent_uuid=${userProfile.id}`
 		: null;
 
 	const { wsRef: internalWsRef, reconnect: reconnectInternalWs } = useWebSocket(
@@ -1593,6 +1593,7 @@ export const MessagesContent = () => {
 										chatType={chatType}
 										activeUser={activeUser}
 										setInputIsEmailMode={setInputIsEmailMode}
+										latestChannelId={chatHistory?.length > 0 ? chatHistory[chatHistory.length - 1]?.channel?.id : null}
 									/>
 								) : (
 									<h2 className="w-full absolute bottom-5 flex items-center justify-center fw-bold text-red-300 p-2">Chat ended</h2>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import "./messageInput.css";
@@ -6,8 +6,10 @@ import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import { MultiSelectModal } from "./MultiSelectModal";
 import EmailComposer from "./EmailComposer";
+import EmojiPicker from "emoji-picker-react";
+import { Smile } from "lucide-react";
 
-const MessageInput = ({ onSendMessage, activeUser, chatType, setInputIsEmailMode }) => {
+const MessageInput = ({ onSendMessage, activeUser, chatType, setInputIsEmailMode, latestChannelId }) => {
   const [message, setMessage] = useState("");
   const [channelDropdownOpen, setChannelDropdownOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState(null);
@@ -18,6 +20,18 @@ const MessageInput = ({ onSendMessage, activeUser, chatType, setInputIsEmailMode
   const [selectedImages, setSelectedImages] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (setInputIsEmailMode) {
@@ -29,7 +43,7 @@ const MessageInput = ({ onSendMessage, activeUser, chatType, setInputIsEmailMode
     if (chatType === "customers") {
       fetchChannels();
     }
-  }, [chatType]);
+  }, [chatType, latestChannelId]);
 
   // Reset everything when chat user or chat type changes
   useEffect(() => {
@@ -37,6 +51,7 @@ const MessageInput = ({ onSendMessage, activeUser, chatType, setInputIsEmailMode
     setSelectedImages([]);
     setSelectedFiles([]);
     setIsOpen(false);
+    setShowEmojiPicker(false);
     if (chatType === "customers") {
       fetchChannels();
     } else {
@@ -61,7 +76,12 @@ const MessageInput = ({ onSendMessage, activeUser, chatType, setInputIsEmailMode
       }));
       setChannels(mapped);
       if (mapped.length > 0) {
-        setSelectedChannel(mapped[0]);
+        if (latestChannelId) {
+          const lastChannel = mapped.find((ch) => ch.value === latestChannelId);
+          setSelectedChannel(lastChannel || mapped[0]);
+        } else {
+          setSelectedChannel(mapped[0]);
+        }
       }
     } catch (error) {
       handleApiError(error);
@@ -118,6 +138,10 @@ const MessageInput = ({ onSendMessage, activeUser, chatType, setInputIsEmailMode
     setIsOpen(false);
   };
 
+  const onEmojiClick = (emojiObject) => {
+    setMessage((prev) => prev + emojiObject.emoji);
+  };
+
   return (
     <div className={`body-theme type absolute bottom-0 w-full pr-6 pt-4 ${
       selectedChannel?.label !== "Email" ? 'pb-4' : ''
@@ -157,15 +181,25 @@ const MessageInput = ({ onSendMessage, activeUser, chatType, setInputIsEmailMode
         )}
 
         {selectedChannel?.label !== "Email" && (
-          <div className="attach-icon bg-white rounded-full pl-4" onClick={() => setIsOpen(true)}>
-            <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M17 7.75C11.8914 7.75 7.75 11.8914 7.75 17C7.75 22.1086 11.8914 26.25 17 26.25C22.1086 26.25 26.25 22.1086 26.25 17C26.25 11.8914 22.1086 7.75 17 7.75ZM6.25 17C6.25 11.0629 11.0629 6.25 17 6.25C22.9371 6.25 27.75 11.0629 27.75 17C27.75 22.9371 22.9371 27.75 17 27.75C11.0629 27.75 6.25 22.9371 6.25 17ZM14.6514 12.628C16.5129 10.7783 19.5165 10.7758 21.3704 12.6297L21.372 12.6314C23.2217 14.4929 23.2242 17.4965 21.3704 19.3503L19.1503 21.5703C18.0774 22.6432 16.3325 22.6432 15.2596 21.5703C14.1867 20.4974 14.1867 18.7525 15.2596 17.6796L16.6697 16.2696C16.9626 15.9767 17.4375 15.9768 17.7303 16.2697C18.0232 16.5625 18.0232 17.0374 17.7303 17.3303L16.3203 18.7403C15.8332 19.2274 15.8332 20.0226 16.3203 20.5097C16.8074 20.9968 17.6026 20.9968 18.0897 20.5097L20.3097 18.2897C21.5756 17.0238 21.5783 14.9679 20.3088 13.6895C19.0428 12.4244 16.9876 12.422 15.7094 13.6912L13.2903 16.1103C12.2432 17.1574 12.2432 18.8525 13.2903 19.8996C13.5832 20.1925 13.5832 20.6674 13.2903 20.9603C12.9974 21.2532 12.5226 21.2532 12.2297 20.9603C10.5968 19.3274 10.5968 16.6825 12.2297 15.0496L14.6514 12.628Z"
-                fill="#0D0D12"
-              />
-            </svg>
+          <div className="flex items-center gap-3 bg-white pl-4 pr-3 py-1 rounded-full h-fit">
+            <div className="attach-icon flex items-center justify-center m-0" onClick={() => setIsOpen(true)}>
+              <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M17 7.75C11.8914 7.75 7.75 11.8914 7.75 17C7.75 22.1086 11.8914 26.25 17 26.25C22.1086 26.25 26.25 22.1086 26.25 17C26.25 11.8914 22.1086 7.75 17 7.75ZM6.25 17C6.25 11.0629 11.0629 6.25 17 6.25C22.9371 6.25 27.75 11.0629 27.75 17C27.75 22.9371 22.9371 27.75 17 27.75C11.0629 27.75 6.25 22.9371 6.25 17ZM14.6514 12.628C16.5129 10.7783 19.5165 10.7758 21.3704 12.6297L21.372 12.6314C23.2217 14.4929 23.2242 17.4965 21.3704 19.3503L19.1503 21.5703C18.0774 22.6432 16.3325 22.6432 15.2596 21.5703C14.1867 20.4974 14.1867 18.7525 15.2596 17.6796L16.6697 16.2696C16.9626 15.9767 17.4375 15.9768 17.7303 16.2697C18.0232 16.5625 18.0232 17.0374 17.7303 17.3303L16.3203 18.7403C15.8332 19.2274 15.8332 20.0226 16.3203 20.5097C16.8074 20.9968 17.6026 20.9968 18.0897 20.5097L20.3097 18.2897C21.5756 17.0238 21.5783 14.9679 20.3088 13.6895C19.0428 12.4244 16.9876 12.422 15.7094 13.6912L13.2903 16.1103C12.2432 17.1574 12.2432 18.8525 13.2903 19.8996C13.5832 20.1925 13.5832 20.6674 13.2903 20.9603C12.9974 21.2532 12.5226 21.2532 12.2297 20.9603C10.5968 19.3274 10.5968 16.6825 12.2297 15.0496L14.6514 12.628Z"
+                  fill="#0D0D12"
+                />
+              </svg>
+            </div>
+            <div className="relative flex items-center justify-center cursor-pointer" ref={emojiPickerRef}>
+              <Smile size={28} color="#0D0D12" onClick={() => setShowEmojiPicker((val) => !val)} strokeWidth={1.5} />
+              {showEmojiPicker && (
+                <div className="absolute bottom-12 left-[-10px] z-[999]">
+                  <EmojiPicker onEmojiClick={onEmojiClick} autoFocusSearch={false} />
+                </div>
+              )}
+            </div>
           </div>
         )}
 

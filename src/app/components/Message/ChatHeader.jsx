@@ -217,6 +217,11 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInt
 
   const closeSuccessModal = () => {
     setIsSuccessModalOpen(false);
+    if (successModalMessage === 'Lead has been successfully converted to a customer.') {
+      if (typeof refreshChatList === 'function') {
+        refreshChatList();
+      }
+    }
   };
 
   const avatarUrl = activeUser?.profileImage || activeUser?.image;
