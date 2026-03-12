@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, act } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import "./chatHeader.css";
@@ -22,7 +22,7 @@ const ModalController = ({ children }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  
+
   const isModalOpen = searchParams.get('action') === 'lead-to-customer';
 
   const openModal = () => {
@@ -40,7 +40,7 @@ const ModalController = ({ children }) => {
   return children({ isModalOpen, openModal, closeModal });
 };
 
-const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => {
+const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInternal = false }) => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successModalMessage, setSuccessModalMessage] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -61,6 +61,8 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
   const { checkPermission } = usePermissions();
   const addCustomer = checkPermission('add_customer');
 
+  const isInternalChat = Boolean(isInternal || activeUser?.chat_type);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -72,16 +74,25 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
         setIsMenuOpen(false);
       }
     };
-  
+
     document.addEventListener("mousedown", handleClickOutside);
-  
+
     // Fetch AI status
     const fetchAiStatus = async () => {
       try {
+        // Global AI Settings Check
+        const globalAiRes = await axiosInstance.get('/companies/ai/settings/', { showLoader: false });
+        const isGlobalAiEnabled = globalAiRes?.data?.data?.ai_enabled;
+
+        if (!isGlobalAiEnabled) {
+          setAiResponsesEnabled(false);
+          return;
+        }
+
         const res = await axiosInstance.get(`/communication/conversations/${conversationId}/ai-status/`, {
           showLoader: false
         });
-  
+
         if (res?.data?.success) {
           setAiResponsesEnabled(res.data.data.ai_is_active);
         }
@@ -89,11 +100,15 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
         handleApiError(err, "Failed to fetch AI status");
       }
     };
-  
+
     if (conversationId) fetchAiStatus();
-  
+
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [conversationId]);  
+  }, [conversationId]);
+
+  useEffect(() => {
+    if (isInternal) setIsMenuOpen(false);
+  }, [isInternal]);
 
   if (!activeUser) return null;
 
@@ -114,7 +129,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
 
   const aiToggleMenuItem = (
     <div className="flex items-center justify-between px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
-      <span>Automated Responses (AI)</span>
+      <span>Automated Responses (NativeAI)</span>
       <label className="relative inline-flex items-center cursor-pointer">
         <input
           type="checkbox"
@@ -136,20 +151,18 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
         />
 
         <div
-          className={`w-11 h-6 rounded-full transition-colors ${
-            aiResponsesEnabled ? "bg-[#3EBF0F]" : "bg-gray-300"
-          }`}
+          className={`w-11 h-6 rounded-full transition-colors ${aiResponsesEnabled ? "bg-[#3EBF0F]" : "bg-gray-300"
+            }`}
         >
           <div
-            className={`w-6 h-6 body-theme rounded-full transition-transform ${
-              aiResponsesEnabled ? "translate-x-5" : "translate-x-0"
-            }`}
+            className={`w-6 h-6 body-theme rounded-full transition-transform ${aiResponsesEnabled ? "translate-x-5" : "translate-x-0"
+              }`}
           />
         </div>
       </label>
     </div>
   );
-  
+
   const leadMenuItems = [
     ...(addCustomer ? [{
       label: "Add as customer",
@@ -160,11 +173,11 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
       },
     }] : []),
     {
-      label: "Archived messages", 
+      label: "Archived messages",
       onClick: () => setIsArchivedModalOpen(true),
     },
     {
-      label: "Notes", 
+      label: "Notes",
       onClick: () => setIsNotesModalOpen(true),
     },
     {
@@ -182,10 +195,10 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
     {
       label: aiToggleMenuItem,
       isCustom: true,
-    }    
+    }
   ]
-  
-  
+
+
   const customerMenuItems = [
     {
       label: "Edit customer",
@@ -194,7 +207,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
       },
     },
     {
-      label: "Archived messages", 
+      label: "Archived messages",
       onClick: () => setIsArchivedModalOpen(true),
     },
     {
@@ -208,12 +221,19 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
     {
       label: aiToggleMenuItem,
       isCustom: true,
-    }    
+    }
   ];
 
   const closeSuccessModal = () => {
     setIsSuccessModalOpen(false);
+    if (successModalMessage === 'Lead has been successfully converted to a customer.') {
+      if (typeof refreshChatList === 'function') {
+        refreshChatList();
+      }
+    }
   };
+
+  const avatarUrl = activeUser?.profileImage || activeUser?.image;
 
   return (
     <>
@@ -222,17 +242,17 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
           <div className="header">
             <div className="relative">
               <div>
-                {activeUser?.profileImage ? (
+                {avatarUrl ? (
                   <Image
-                    loader={() => activeUser?.profileImage}
-                    src={activeUser?.profileImage}
+                    loader={() => avatarUrl}
+                    src={avatarUrl}
                     alt="User Profile"
                     width={70}
                     height={70}
-                    className="w-9 h-9 rounded-full"
+                    className="w-8 h-8 rounded-full"
                   />
                 ) : (
-                  <UserAvatar name={activeUser?.name || activeUser?.lead_name || activeUser?.name || activeUser?.customer_name || activeUser?.first_name || activeUser?.username || activeUser?.email || "Unknown "} width="w-9" height="h-9" />
+                  <UserAvatar name={activeUser?.name || activeUser?.lead_name || activeUser?.name || activeUser?.customer_name || activeUser?.first_name || activeUser?.username || activeUser?.email || "Unknown "} width="w-8" height="h-8" />
                 )}
               </div>
               {activeUser?.channel?.image && (
@@ -252,10 +272,10 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
               <div className="text-black dark:text-white">
                 {activeUser?.name || activeUser?.lead_name || "Unknown User"}
               </div>
-              <div className="title-4">Last Seen {formattedTime}</div>
+              <div className="title-4">Last Active {formattedTime}</div>
             </div>
             <div className="relative">
-              {!activeUser?.ended_at &&
+              {!isInternalChat && !activeUser?.ended_at && (
                 <button
                   ref={buttonRef}
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -263,17 +283,18 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
                 >
                   <FontAwesomeIcon icon={faEllipsisH} className="icon-instance-node" />
                 </button>
-              }
-              {isMenuOpen && (
+              )}
+
+              {!isInternalChat && isMenuOpen && (
                 <div
                   ref={menuRef}
                   className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
                 >
-                    <div className="py-1">
+                  <div className="py-1">
                     {(isLead ? leadMenuItems : customerMenuItems).map((item, index) => (
                       <div key={index}>
                         {item.isCustom ? (
-                          item.label // direct JSX like toggle
+                          item.label
                         ) : (
                           <button
                             onClick={() => {
@@ -287,9 +308,7 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
                         )}
                       </div>
                     ))}
-
                   </div>
-                  
                 </div>
               )}
             </div>
@@ -315,9 +334,9 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
             )}
 
             {isArchivedModalOpen && (
-               <ArchiveModal 
-               isOpen={isArchivedModalOpen} 
-               onClose={() => setIsArchivedModalOpen(false)} />
+              <ArchiveModal
+                isOpen={isArchivedModalOpen}
+                onClose={() => setIsArchivedModalOpen(false)} />
             )}
 
             {isNotesModalOpen && (
@@ -331,26 +350,26 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList }) => 
               />
             )}
 
-             {isAssignAgentModalOpen && (
-            <AssignAgentModal
-              isOpen={isAssignAgentModalOpen}
-              onClose={() => setIsAssignAgentModalOpen(false)}
-              userId={activeUser?.id}
-              conversationId={conversationId}
-              setIsSuccessModalOpen={setIsSuccessModalOpen}
-              setSuccessModalMessage={setSuccessModalMessage}
-            />
-          )}
-          
-          {isEndSessionModalOpen && (
-            <EndSessionModal
-              isOpen={isEndSessionModalOpen}
-              onClose={closeSessionModal}
-              conversationId={conversationId}
-              setIsSuccessModalOpen={setIsSuccessModalOpen}
-              setSuccessModalMessage={setSuccessModalMessage}
-            />
-          )}
+            {isAssignAgentModalOpen && (
+              <AssignAgentModal
+                isOpen={isAssignAgentModalOpen}
+                onClose={() => setIsAssignAgentModalOpen(false)}
+                userId={activeUser?.id}
+                conversationId={conversationId}
+                setIsSuccessModalOpen={setIsSuccessModalOpen}
+                setSuccessModalMessage={setSuccessModalMessage}
+              />
+            )}
+
+            {isEndSessionModalOpen && (
+              <EndSessionModal
+                isOpen={isEndSessionModalOpen}
+                onClose={closeSessionModal}
+                conversationId={conversationId}
+                setIsSuccessModalOpen={setIsSuccessModalOpen}
+                setSuccessModalMessage={setSuccessModalMessage}
+              />
+            )}
           </div>
         )}
       </ModalController>

@@ -53,7 +53,7 @@ const NotificationSettings = () => {
       setEscalationSettings(data);
       setTempThresholdMinutes(data.escalation_threshold_minutes);
     } catch (err) {
-        handleApiError(err)
+      handleApiError(err)
     } finally {
       setLoading(false);
     }
@@ -87,7 +87,7 @@ const NotificationSettings = () => {
       setEscalationSettings(data);
       return data;
     } catch (err) {
-        handleApiError(err)
+      handleApiError(err)
       throw err;
     } finally {
       setLoading(false);
@@ -114,7 +114,7 @@ const NotificationSettings = () => {
       setLoading(true);
       const response = await axiosInstance.patch(`/companies/escalation-levels/${levelId}/`, levelData);
       const updatedLevel = response.data.data;
-      setEscalationLevels(prev => 
+      setEscalationLevels(prev =>
         prev.map(level => level.id === levelId ? updatedLevel : level)
       );
       return updatedLevel;
@@ -142,11 +142,10 @@ const NotificationSettings = () => {
   const TabButton = ({ id, children, isActive, onClick }) => (
     <button
       onClick={() => onClick(id)}
-      className={`px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
-        isActive
-          ? 'border-[#3EBF0F] text-[#3EBF0F] dark:text-[#3EBF0F]'
-          : 'border-transparent text-gray-700 dark:text-gray-300 hover:text-[#3EBF0F] hover:border-gray-300'
-      }`}
+      className={`px-4 py-3 text-sm font-medium transition-colors border-b-2 ${isActive
+        ? 'border-[#3EBF0F] text-[#3EBF0F] dark:text-[#3EBF0F]'
+        : 'border-transparent text-gray-700 dark:text-gray-300 hover:text-[#3EBF0F] hover:border-gray-300'
+        }`}
     >
       {children}
     </button>
@@ -205,14 +204,15 @@ const NotificationSettings = () => {
     try {
       await updateEscalationSettings(updatedSettings);
     } catch (err) {
-        setTempThresholdMinutes(escalationSettings.escalation_threshold_minutes);
-        handleApiError(err)
+      setTempThresholdMinutes(escalationSettings.escalation_threshold_minutes);
+      handleApiError(err)
     }
   };
 
 
   return (
-    <div className="ms-10 mt-6">
+    <div className="ms-10">
+      <h2 className="text-lg font-semibold mb-2">Esclation Notification Settings</h2>
       <div className="flex gap-0 mb-8">
         {/* <TabButton
           id="general"
@@ -243,7 +243,7 @@ const NotificationSettings = () => {
           handleChannelToggle={handleChannelToggle}
         />
       )} */}
-      
+
       {activeTab === 'escalation' && (
         <EscalationSettings
           escalationSettings={escalationSettings}

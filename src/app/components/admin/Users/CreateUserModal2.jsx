@@ -4,7 +4,7 @@ import { useError } from "@/context/ErrorContext";
 import SuccessModal from "../SuccessModal";
 import { selectStyles } from "../selectStyles";
 import Select from "react-select";
-import Modal from "../Modal";
+import Modal from "../../Modal";
 
 const CreateUserModal2 = ({ isModalOpen, closeModal }) => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -179,9 +179,9 @@ const CreateUserModal2 = ({ isModalOpen, closeModal }) => {
               value={
                 formData.role_id
                   ? {
-                      value: formData.role_id,
-                      label: roles.find((role) => role.id === formData.role_id)?.name,
-                    }
+                    value: formData.role_id,
+                    label: roles.find((role) => role.id === formData.role_id)?.name,
+                  }
                   : null
               }
               placeholder="Select Role"

@@ -84,7 +84,7 @@ const RoleManagement = () => {
       <div className="body-theme pl-10 w-full min-h-80">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-lg font-semibold mb-2">Admin</h2>
+            <h2 className="text-lg font-semibold mb-2">Role Management</h2>
             <p className="text-md mb-3">Admins can create new roles and assign permissions to these roles</p>
           </div>
           <div className="flex gap-3">

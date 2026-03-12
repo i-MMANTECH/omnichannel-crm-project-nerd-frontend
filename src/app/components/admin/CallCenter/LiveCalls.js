@@ -10,7 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 import UserAvatar from "@/app/components/UserAvatar";
 import { getRoleStyle } from "@/utils/getRoleStyle";
 import PlayRecordingDrawer from "./PlayRecordingDrawer";
-import useWebSocket from "@/services/useWebsocket";
+import useWebSocket from "@/context/useWebsocket";
 
 // Main LiveCalls component
 const LiveCalls = () => {
@@ -32,7 +32,7 @@ const LiveCalls = () => {
 
     // Create WebSocket URL based on company ID
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-	const wsUrl = company?.id ? `${protocol}://ws-staging.nativetalkcrm.com/ws/call/${company?.id}/` : null;
+    const wsUrl = company?.id ? `${protocol}://${process.env.NEXT_PUBLIC_WS_BASE_URL}/ws/call/${company?.id}/` : null;
 
     // Only call useWebSocket when we have a valid URL
     const handleWebSocketMessage = (data) => {
@@ -48,7 +48,7 @@ const LiveCalls = () => {
 
     // Use WebSocket hook conditionally
     const wsRef = useWebSocket(
-        wsUrl, 
+        wsUrl,
         handleWebSocketMessage,
         () => console.log('WebSocket opened successfully'),
         () => console.log('WebSocket closed'),
@@ -73,7 +73,7 @@ const LiveCalls = () => {
     useEffect(() => {
         const page = parseInt(searchParams.get("page") || "1", 10);
         const pageSize = parseInt(searchParams.get("page_size") || "10", 10);
-    
+
         setCurrentPage(page);
         setPageSize(pageSize);
     }, [searchParams]);
@@ -83,18 +83,18 @@ const LiveCalls = () => {
         const hours = Math.floor(sec / 3600);
         const minutes = Math.floor((sec % 3600) / 60);
         const seconds = sec % 60;
-      
+
         if (hours > 0) {
-          return [
-            hours.toString().padStart(2, '0'),
+            return [
+                hours.toString().padStart(2, '0'),
+                minutes.toString().padStart(2, '0'),
+                seconds.toString().padStart(2, '0'),
+            ].join(':');
+        }
+
+        return [
             minutes.toString().padStart(2, '0'),
             seconds.toString().padStart(2, '0'),
-          ].join(':');
-        }
-      
-        return [
-          minutes.toString().padStart(2, '0'),
-          seconds.toString().padStart(2, '0'),
         ].join(':');
     };
 
@@ -111,24 +111,24 @@ const LiveCalls = () => {
             hour12: true,
         };
         return date.toLocaleString("en-US", options).replace(',', '');
-    };    
-    
+    };
+
     const getRelativeTime = (dateString) => {
         const date = new Date(dateString);
         date.setHours(date.getHours() + 1);
-    
+
         const now = new Date();
         const diffMs = now - date;
         const diffSec = Math.floor(diffMs / 1000);
         const diffMin = Math.floor(diffSec / 60);
         const diffHr = Math.floor(diffMin / 60);
         const diffDay = Math.floor(diffHr / 24);
-    
+
         if (diffSec < 60) return "Just now";
         if (diffMin < 60) return `${diffMin} minute${diffMin !== 1 ? 's' : ''} ago`;
         if (diffHr < 24) return `${diffHr} hour${diffHr !== 1 ? 's' : ''} ago`;
         if (diffDay < 7) return `${diffDay} day${diffDay !== 1 ? 's' : ''} ago`;
-    
+
         const weeks = Math.floor(diffDay / 7);
         return `${weeks} week${weeks !== 1 ? 's' : ''} ago`;
     };
@@ -143,12 +143,12 @@ const LiveCalls = () => {
         }
     };
 
-    const getAssignedAgent = (call) => {    
+    const getAssignedAgent = (call) => {
         const agentNumber =
             call.direction === "inbound"
                 ? call.callerIdNumber
                 : call.destinationNumber;
-    
+
         return agentNumber || "Unassigned";
     };
 
@@ -157,9 +157,9 @@ const LiveCalls = () => {
             call.direction === "outbound"
                 ? call.destinationNumber
                 : call.callerIdNumber;
-    
+
         return contactNumber || "Unknown";
-    };    
+    };
 
     return (
         <Suspense fallback={<div>Loading...</div>}>
@@ -211,14 +211,14 @@ const LiveCalls = () => {
                                 <tbody>
                                     {liveCalls.map((call, index) => (
                                         <tr key={index} onClick={() => {
-                                                setSelectedCall(call);
-                                                setIsDrawerOpen(true);
-                                            }} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer">
+                                            setSelectedCall(call);
+                                            setIsDrawerOpen(true);
+                                        }} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer">
                                             <td className="py-3 px-4 border-b flex items-center space-x-3">
-                                                <UserAvatar 
-                                                    name={getCustomerInfo(call)} 
-                                                    width="w-8" 
-                                                    height="h-8" 
+                                                <UserAvatar
+                                                    name={getCustomerInfo(call)}
+                                                    width="w-8"
+                                                    height="h-8"
                                                 />
                                                 <div className="flex flex-col">
                                                     <span className="font-medium">{call.caller_id_number}</span>
@@ -246,10 +246,10 @@ const LiveCalls = () => {
                                             </td>
                                             <td className="py-3 px-4 border-b">
                                                 <div className="flex items-center space-x-2">
-                                                    <UserAvatar 
-                                                        name={getAssignedAgent(call)} 
-                                                        width="w-6" 
-                                                        height="h-6" 
+                                                    <UserAvatar
+                                                        name={getAssignedAgent(call)}
+                                                        width="w-6"
+                                                        height="h-6"
                                                     />
                                                     <span style={{ color: "inherit", textDecoration: "none" }}>
                                                         {getAssignedAgent(call)}
@@ -269,9 +269,9 @@ const LiveCalls = () => {
                     </div>
 
                     <div className="mt-10">
-                        <Pagination 
-                            currentPage={currentPage} 
-                            totalPages={totalPages} 
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
                             onPageChange={(page) => {
                                 const params = new URLSearchParams(searchParams.toString());
                                 params.set("page", page);

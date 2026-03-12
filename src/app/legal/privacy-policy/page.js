@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen body-theme py-10 px-4 sm:px-8 md:px-16 lg:px-32">
@@ -72,12 +74,12 @@ export default function PrivacyPolicy() {
         <section className="mb-6">
           <h2 className="text-xl font-semibold  mb-2">11. Contact Us</h2>
           <p className="">
-            For questions, contact us at <a href="mailto:support@nativetalk.io" className="text-blue-600">support@nativetalk.io</a>.
+            For questions, contact us at <Link href="mailto:support@nativetalk.io" className="text-blue-600">support@nativetalk.io</Link>.
           </p>
         </section>
 
         <div className="text-center mt-8">
-          <a href="/" className="text-blue-600 hover:underline">Back to Home</a>
+          <Link href="/" className="text-blue-600 hover:underline">Back to Home</Link>
         </div>
       </div>
     </div>

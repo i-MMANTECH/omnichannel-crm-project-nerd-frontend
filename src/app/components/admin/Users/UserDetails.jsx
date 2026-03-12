@@ -21,21 +21,21 @@ const ModalController = ({ children }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  
+
   const isModalOpen = searchParams.get('action') === 'edit-customer';
 
   const openModal = () => {
-      const params = new URLSearchParams(searchParams);
-      params.set('action', 'edit-customer');
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    const params = new URLSearchParams(searchParams);
+    params.set('action', 'edit-customer');
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const closeModal = () => {
-      const params = new URLSearchParams(searchParams);
-      params.delete('action');
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    const params = new URLSearchParams(searchParams);
+    params.delete('action');
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
-  
+
 
   return children({ isModalOpen, openModal, closeModal });
 };
@@ -84,53 +84,53 @@ export default function UserDetails() {
   };
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>    
+    <Suspense fallback={<div>Loading...</div>}>
       <ModalController>
         {({ isModalOpen, openModal, closeModal }) => (
           <div className="flex justify-center mt-5">
             <div className="flex mb-5 flex-col max-w-[788px] p-8 items-center gap-6 flex-1 rounded-lg border border-gray-300 body-theme">
               <div className="user-top-content flex justify-between border w-full rounded-lg p-6 gap-3">
                 <div className="px-6 py-4 flex flex-col items-center gap-1 h-fit rounded-lg border border-gray-200 body-theme">
-                  {user?.image && <Image 
-                    className="user-left-image mt-2 w-10 h-10 rounded-full" 
+                  {user?.image && <Image
+                    className="user-left-image mt-2 w-10 h-10 rounded-full"
                     alt="bio"
-                    src={user?.image} 
+                    src={user?.image}
                     width={50}
                     height={50}
                   />}
-                  {!user?.image && 
-                    <UserAvatar 
-                      name={user?.first_name ? 
-                        `${user?.first_name} ${user?.last_name}` : 
+                  {!user?.image &&
+                    <UserAvatar
+                      name={user?.first_name ?
+                        `${user?.first_name} ${user?.last_name}` :
                         user?.email || '--'
-                      } 
-                      width="w-8" 
-                      height="h-8" 
+                      }
+                      width="w-8"
+                      height="h-8"
                     />
                   }
-                  
+
 
                   <p className="user-left-name">
-                    {user?.first_name ? 
-                        `${user?.first_name} ${user?.last_name}` : '--'
+                    {user?.first_name ?
+                      `${user?.first_name} ${user?.last_name}` : '--'
                     }
                   </p>
-                  <p className="user-left-email">{ user?.email }</p>
+                  <p className="user-left-email">{user?.email}</p>
                   <div className="flex w-full mt-4 items-center justify-center">
                     <p className="py-1 pl-2 pr-2 text-right text-[#40C4AA] -ml-1 font-medium text-[12px] font-normal rounded-sm">
                       {user?.roles?.map((role) => (
-                            <span
-                              key={role.id}
-                              className="px-2 py-1 rounded ml-1"
-                              style={getRoleStyle(role.name)}
-                            >
-                              {role.name}
-                            </span>
-                          ))}
+                        <span
+                          key={role.id}
+                          className="px-2 py-1 rounded ml-1"
+                          style={getRoleStyle(role.name)}
+                        >
+                          {role.name}
+                        </span>
+                      ))}
                     </p>
                     {user?.last_active &&
                       <p className="text-right font-medium text-sm bg-[#F8F9FB] dark:bg-gray-800 px-2 py-1 rounded">
-                        Last seen: {user?.last_active}
+                        Last active: {user?.last_active}
                       </p>
                     }
                   </div>
@@ -149,29 +149,29 @@ export default function UserDetails() {
                       </span>
                     </div>
                     <div className="relative">
-                    <div 
-                    className="pointer flex flex-col items-center gap-2"
-                    ref={buttonRef}
+                      <div
+                        className="pointer flex flex-col items-center gap-2"
+                        ref={buttonRef}
                         onClick={(e) => {
                           e.stopPropagation();
                           setMenuOpen(menuOpen === user?.id ? null : user?.id);
                         }}>
-                      <div className="flex w-8 h-8 p-2 justify-center items-center gap-2 rounded-md border border-gray-100 bg-white shadow-sm text-gray-600">
-                      <svg width="12" height="4" viewBox="0 0 12 4" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6.91665 1.99967C6.91665 2.36786 6.61817 2.66634 6.24998 2.66634C5.88179 2.66634 5.58331 2.36786 5.58331 1.99967C5.58331 1.63148 5.88179 1.33301 6.24998 1.33301C6.61817 1.33301 6.91665 1.63148 6.91665 1.99967Z" fill="#0D0D12"/>
-                        <path d="M2.91665 1.99967C2.91665 2.36786 2.61817 2.66634 2.24998 2.66634C1.88179 2.66634 1.58331 2.36786 1.58331 1.99967C1.58331 1.63148 1.88179 1.33301 2.24998 1.33301C2.61817 1.33301 2.91665 1.63148 2.91665 1.99967Z" fill="#0D0D12"/>
-                        <path d="M10.9166 1.99967C10.9166 2.36786 10.6182 2.66634 10.25 2.66634C9.88179 2.66634 9.58331 2.36786 9.58331 1.99967C9.58331 1.63148 9.88179 1.33301 10.25 1.33301C10.6182 1.33301 10.9166 1.63148 10.9166 1.99967Z" fill="#0D0D12"/>
-                        <path d="M6.91665 1.99967C6.91665 2.36786 6.61817 2.66634 6.24998 2.66634C5.88179 2.66634 5.58331 2.36786 5.58331 1.99967C5.58331 1.63148 5.88179 1.33301 6.24998 1.33301C6.61817 1.33301 6.91665 1.63148 6.91665 1.99967Z" stroke="#0D0D12" strokeWidth="2"/>
-                        <path d="M2.91665 1.99967C2.91665 2.36786 2.61817 2.66634 2.24998 2.66634C1.88179 2.66634 1.58331 2.36786 1.58331 1.99967C1.58331 1.63148 1.88179 1.33301 2.24998 1.33301C2.61817 1.33301 2.91665 1.63148 2.91665 1.99967Z" stroke="#0D0D12" strokeWidth="2"/>
-                        <path d="M10.9166 1.99967C10.9166 2.36786 10.6182 2.66634 10.25 2.66634C9.88179 2.66634 9.58331 2.36786 9.58331 1.99967C9.58331 1.63148 9.88179 1.33301 10.25 1.33301C10.6182 1.33301 10.9166 1.63148 10.9166 1.99967Z" stroke="#0D0D12" strokeWidth="2"/>
-                      </svg>
+                        <div className="flex w-8 h-8 p-2 justify-center items-center gap-2 rounded-md border border-gray-100 bg-white shadow-sm text-gray-600">
+                          <svg width="12" height="4" viewBox="0 0 12 4" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.91665 1.99967C6.91665 2.36786 6.61817 2.66634 6.24998 2.66634C5.88179 2.66634 5.58331 2.36786 5.58331 1.99967C5.58331 1.63148 5.88179 1.33301 6.24998 1.33301C6.61817 1.33301 6.91665 1.63148 6.91665 1.99967Z" fill="#0D0D12" />
+                            <path d="M2.91665 1.99967C2.91665 2.36786 2.61817 2.66634 2.24998 2.66634C1.88179 2.66634 1.58331 2.36786 1.58331 1.99967C1.58331 1.63148 1.88179 1.33301 2.24998 1.33301C2.61817 1.33301 2.91665 1.63148 2.91665 1.99967Z" fill="#0D0D12" />
+                            <path d="M10.9166 1.99967C10.9166 2.36786 10.6182 2.66634 10.25 2.66634C9.88179 2.66634 9.58331 2.36786 9.58331 1.99967C9.58331 1.63148 9.88179 1.33301 10.25 1.33301C10.6182 1.33301 10.9166 1.63148 10.9166 1.99967Z" fill="#0D0D12" />
+                            <path d="M6.91665 1.99967C6.91665 2.36786 6.61817 2.66634 6.24998 2.66634C5.88179 2.66634 5.58331 2.36786 5.58331 1.99967C5.58331 1.63148 5.88179 1.33301 6.24998 1.33301C6.61817 1.33301 6.91665 1.63148 6.91665 1.99967Z" stroke="#0D0D12" strokeWidth="2" />
+                            <path d="M2.91665 1.99967C2.91665 2.36786 2.61817 2.66634 2.24998 2.66634C1.88179 2.66634 1.58331 2.36786 1.58331 1.99967C1.58331 1.63148 1.88179 1.33301 2.24998 1.33301C2.61817 1.33301 2.91665 1.63148 2.91665 1.99967Z" stroke="#0D0D12" strokeWidth="2" />
+                            <path d="M10.9166 1.99967C10.9166 2.36786 10.6182 2.66634 10.25 2.66634C9.88179 2.66634 9.58331 2.36786 9.58331 1.99967C9.58331 1.63148 9.88179 1.33301 10.25 1.33301C10.6182 1.33301 10.9166 1.63148 10.9166 1.99967Z" stroke="#0D0D12" strokeWidth="2" />
+                          </svg>
 
+                        </div>
+                        <span className="text-center text-sm font-normal font-['Encode_Sans'] tracking-wide leading-[150%]">
+                          More
+                        </span>
                       </div>
-                      <span className="text-center text-sm font-normal font-['Encode_Sans'] tracking-wide leading-[150%]">
-                        More
-                      </span>
-                    </div>
-                    {menuOpen === user?.id && (
+                      {menuOpen === user?.id && (
                         <div
                           ref={menuRef}
                           className="absolute z-50 right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
@@ -217,9 +217,9 @@ export default function UserDetails() {
                       Name
                     </p>
                     <p className="user-left-name">
-                      {user?.first_name ? 
+                      {user?.first_name ?
                         `${user?.first_name} ${user.last_name}` : '--'
-                      } 
+                      }
                     </p>
                   </div>
 
@@ -229,14 +229,14 @@ export default function UserDetails() {
                     </p>
                     <p className="user-left-name -ml-1">
                       {user?.roles?.map((role) => (
-                            <span
-                              key={role.id}
-                              className="px-2 py-1 ml-1 rounded"
-                              style={getRoleStyle(role.name)}
-                            >
-                              {role.name}
-                            </span>
-                          ))}  
+                        <span
+                          key={role.id}
+                          className="px-2 py-1 ml-1 rounded"
+                          style={getRoleStyle(role.name)}
+                        >
+                          {role.name}
+                        </span>
+                      ))}
                     </p>
                   </div>
 
@@ -244,60 +244,60 @@ export default function UserDetails() {
                     <p className="font-medium text-[14px] font-normal text-left">
                       Email
                     </p>
-                    <p className="user-left-name">{ user?.email || '--'}</p>
+                    <p className="user-left-name">{user?.email || '--'}</p>
                   </div>
 
                   <div className="flex items-center justify-between mt-2">
                     <p className="font-medium text-[14px] font-normal text-left">
                       Phone Number
                     </p>
-                    <p className="user-left-name">{ user?.phone_number || '--' }</p>
+                    <p className="user-left-name">{user?.phone_number || '--'}</p>
                   </div>
 
-                  {user?.gender || user?.dob || user?.country || user?.state && 
-                  <div>
-                    <p className="mt-5 text-left">
-                      Other Information
-                    </p>
-                    <hr className="w-[318px] h-[1px] bg-[#DFE1E6] mt-2" />
+                  {user?.gender || user?.dob || user?.country || user?.state &&
+                    <div>
+                      <p className="mt-5 text-left">
+                        Other Information
+                      </p>
+                      <hr className="w-[318px] h-[1px] bg-[#DFE1E6] mt-2" />
 
-                    <div className="flex items-center justify-between mt-2">
-                      {user?.gender && (
-                        <>
-                          <p className="font-medium text-[14px] font-normal text-left">
-                            Gender
+                      <div className="flex items-center justify-between mt-2">
+                        {user?.gender && (
+                          <>
+                            <p className="font-medium text-[14px] font-normal text-left">
+                              Gender
+                            </p>
+                            <p className="user-left-name">{user.gender}</p>
+                          </>
+                        )}
+                      </div>
+
+                      {user?.dob && (
+                        <div className="flex items-center justify-between mt-2">
+                          <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
+                            DOB
                           </p>
-                          <p className="user-left-name">{user.gender}</p>
-                        </>
+                          <p className="user-left-name">{user.dob}</p>
+                        </div>
                       )}
-                    </div>
 
-                    {user?.dob && (
-                      <div className="flex items-center justify-between mt-2">
-                        <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
-                          DOB
-                        </p>
-                        <p className="user-left-name">{user.dob}</p>
-                      </div>
-                    )}
+                      {user?.country && (
+                        <div className="flex items-center justify-between mt-2">
+                          <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
+                            Country
+                          </p>
+                          <p className="user-left-name">{user.country}</p>
+                        </div>
+                      )}
 
-                    {user?.country && (
-                      <div className="flex items-center justify-between mt-2">
-                        <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
-                          Country
-                        </p>
-                        <p className="user-left-name">{user.country}</p>
-                      </div>
-                    )}
-
-                    {user?.state && (
-                      <div className="flex items-center justify-between mt-2">
-                        <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
-                          State
-                        </p>
-                        <p className="user-left-name">{user.state}</p>
-                      </div>
-                    )}
+                      {user?.state && (
+                        <div className="flex items-center justify-between mt-2">
+                          <p className="font-medium text-[14px] leading-[21px] tracking-[0.2px] font-normal text-left">
+                            State
+                          </p>
+                          <p className="user-left-name">{user.state}</p>
+                        </div>
+                      )}
                     </div>
                   }
 
@@ -323,7 +323,7 @@ export default function UserDetails() {
 
                 <div className="mt-6 w-full">
                   {selected === "work-schedule" && (
-                    <WorkSchedule/>
+                    <WorkSchedule />
                   )}
                   {selected === "assigned-messages" && (
                     // <AssignedMessages/>
@@ -336,26 +336,26 @@ export default function UserDetails() {
             </div>
 
             <EditUserModal
-                isOpen={isModalOpen} 
-                onClose={closeModal}
-                userId={user?.id}
-                setIsSuccessModalOpen={setIsSuccessModalOpen}
+              isOpen={isModalOpen}
+              onClose={closeModal}
+              userId={user?.id}
+              setIsSuccessModalOpen={setIsSuccessModalOpen}
             />
 
             <SuccessModal
-                isOpen={isSuccessModalOpen}
-                title="Success!"
-                message="User updated successfully"
-                buttonText="Okay, thank you"
-                onClose={closeSuccessModal}
+              isOpen={isSuccessModalOpen}
+              title="Success!"
+              message="User updated successfully"
+              buttonText="Okay, thank you"
+              onClose={closeSuccessModal}
             />
 
             <ConfirmationModal
-                isOpen={isDeleteModalOpen}
-                title="Confirm Delete"
-                message="Are you sure you want to delete this user?"
-                onConfirm={handleConfirmDelete}
-                onCancel={() => setIsDeleteModalOpen(false)}
+              isOpen={isDeleteModalOpen}
+              title="Confirm Delete"
+              message="Are you sure you want to delete this user?"
+              onConfirm={handleConfirmDelete}
+              onCancel={() => setIsDeleteModalOpen(false)}
             />
           </div>
         )}

@@ -21,7 +21,7 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+
   // Tasks state
   const [tasks, setTasks] = useState([]);
   const [loadingTasks, setLoadingTasks] = useState(false);
@@ -68,14 +68,14 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
 
   useEffect(() => {
     if (!ticket) return;
-  
+
     setNewTask(prev => ({
       ...prev,
       priority: ticket?.priority?.id ?? prev.priority,
       status: ticket?.status?.id ?? prev.status,
     }));
   }, [ticket?.priority?.id, ticket?.status?.id]);
-  
+
 
 
   const fetchTicket = async () => {
@@ -111,7 +111,7 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const fetchUsers = async () => {
     try {
       const response = await axiosInstance.get('/users/');
-      
+
       setAllUsers(response.data.results.map((user) => ({
         value: user.id,
         label: user.email,
@@ -124,7 +124,7 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const fetchTaskPriorities = async () => {
     try {
       const response = await axiosInstance.get('/tasks/priorities/');
-      
+
       setTaskPriorities(
         response.data.priorities.map(p => ({
           value: p.id,
@@ -139,7 +139,7 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const fetchTaskStatuses = async () => {
     try {
       const response = await axiosInstance.get('/tasks/statuses/');
-      
+
       setTaskStatuses(
         response.data.statuses.map(p => ({
           value: p.id,
@@ -193,8 +193,8 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
     if (!newTask.title.trim()) return;
 
     const isoDueDate = dueDate
-    ? new Date(dueDate).toISOString()
-    : null;
+      ? new Date(dueDate).toISOString()
+      : null;
 
     try {
       setSubmittingTask(true);
@@ -274,7 +274,7 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
       case 'low':
         return 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400';
+        return 'bg-yellow-100 text-yellow-600 dark:bg-yellow-800/30 dark:text-yellow-400';
       case 'high':
         return 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400';
       case 'urgent':
@@ -348,14 +348,14 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
             <p className="text-sm">{ticket.due_date ? formatDate(ticket.due_date) : 'Dec 24, 2025'}</p>
           </div>
           <div className='flex justify-between items-center w-full'>
-            <div className="flex items-center gap-2 mb-2">  
+            <div className="flex items-center gap-2 mb-2">
               <Grid className="w-4 h-4 text-gray-600 dark:text-gray-400" />
               <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Category</span>
             </div>
             <p className="text-sm">{ticket.category?.label || 'Billing'}</p>
           </div>
         </div>
-        
+
       </div>
     );
   };
@@ -387,7 +387,7 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
             {renderAssignedAgents()}
             <div className='pt-0.5'></div>
             {renderTicketInfo()}
-            
+
           </div>
         );
 
@@ -498,56 +498,57 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
             ) : (
               <div className="space-y-3">
                 {tasks.map((task) => {
-                return (
-                  <div
-                    key={task.id}
-                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      {task?.status?.name == 'done' && (
-                        <CheckCircle className="mt-1 self-center w-4 h-4 text-green-600" />
-                      )}
-                      {task?.status?.name !== 'done' && (
-                        <Circle className="mt-1 self-center w-4 h-4 text-grey-600" />
-                      )}
-                      
-                      <div className="flex-1">
-                        <h4 className={`text-sm font-medium ${task.status?.name === 'done' ? 'line-through text-gray-500' : ''}`}>
-                          {task.title}
-                        </h4>
-                        {task.description && (
-                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                            {task.description}
-                          </p>
+                  return (
+                    <div
+                      key={task.id}
+                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        {task?.status?.name == 'done' && (
+                          <CheckCircle className="mt-1 self-center w-4 h-4 text-green-600" />
                         )}
-                        <div className="flex items-center gap-3 mt-2">
-                          {task.assignees?.length > 0 && (
-                            <div className="flex items-center gap-1">
-                              <User className="w-3 h-3 text-gray-500" />
-                              <span className="text-xs text-gray-600 dark:text-gray-400">
-                                {getAssigneeName(task.assignees[0])}
-                              </span>
-                            </div>
+                        {task?.status?.name !== 'done' && (
+                          <Circle className="mt-1 self-center w-4 h-4 text-grey-600" />
+                        )}
+
+                        <div className="flex-1">
+                          <h4 className={`text-sm font-medium ${task.status?.name === 'done' ? 'line-through text-gray-500' : ''}`}>
+                            {task.title}
+                          </h4>
+                          {task.description && (
+                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                              {task.description}
+                            </p>
                           )}
-                          {task.created_at && (
-                            <div className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3 text-gray-500" />
-                              <span className="text-xs text-gray-600 dark:text-gray-400">
-                                {formatDate(task.created_at)}
-                              </span>
-                            </div>
-                          )}
-                          <span className={`text-xs px-2 py-0.5 rounded ${getPriorityColor(task.priority?.name)}`}>
-                            {task.priority?.label || 'Low'}
-                          </span>
+                          <div className="flex items-center gap-3 mt-2">
+                            {task.assignees?.length > 0 && (
+                              <div className="flex items-center gap-1">
+                                <User className="w-3 h-3 text-gray-500" />
+                                <span className="text-xs text-gray-600 dark:text-gray-400">
+                                  {getAssigneeName(task.assignees[0])}
+                                </span>
+                              </div>
+                            )}
+                            {task.created_at && (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3 text-gray-500" />
+                                <span className="text-xs text-gray-600 dark:text-gray-400">
+                                  {formatDate(task.created_at)}
+                                </span>
+                              </div>
+                            )}
+                            <span className={`text-xs px-2 py-0.5 rounded ${getPriorityColor(task.priority?.name)}`}>
+                              {task.priority?.label || 'Low'}
+                            </span>
+                          </div>
                         </div>
+                        <span className={`text-xs px-2 py-1 rounded font-medium ${task.status?.name === 'todo' ? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400' : task.status?.name === 'in_progress' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'}`}>
+                          {task.status?.label}
+                        </span>
                       </div>
-                      <span className={`text-xs px-2 py-1 rounded font-medium ${task.status?.name === 'todo' ? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400' : task.status?.name === 'in_progress' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'}`}>
-                        {task.status?.label}
-                      </span>
                     </div>
-                  </div>
-                )})}
+                  )
+                })}
               </div>
             )}
           </div>
@@ -707,17 +708,16 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
               <button
                 key={tab}
                 onClick={() => setSelectedTab(tab)}
-                className={`mr-4 pb-2 capitalize ${
-                  selectedTab === tab
+                className={`mr-4 pb-2 capitalize ${selectedTab === tab
                     ? 'border-b-2 border-[#3EBF0F] text-[#3EBF0F] font-medium'
                     : 'text-gray-500'
-                }`}
+                  }`}
               >
-                {tab === 'tasks' 
-                  ? `Tasks (${tasks.length})` 
-                  : tab === 'comments' 
-                  ? `Comments (${comments.length})` 
-                  : tab}
+                {tab === 'tasks'
+                  ? `Tasks (${tasks.length})`
+                  : tab === 'comments'
+                    ? `Comments (${comments.length})`
+                    : tab}
               </button>
             ))}
           </div>

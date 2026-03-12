@@ -1,0 +1,68 @@
+name: Deploy to Staging
+
+# This workflow runs when you push to the 'dev' branch
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:  # Allows you to manually trigger from GitHub Actions tab
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging Server
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Get the code from GitHub
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Step 2: Set up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+      
+      # Step 3: Clear npm cache (FIX FOR INTEGRITY ERROR)
+      - name: Clear npm cache
+        run: npm cache clean --force
+        
+      # Step 4: Install dependencies
+      - name: Install dependencies
+        run: npm install --force
+      
+      # Step 5: Build the project
+      - name: Build for staging
+        run: npm run build
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_API_URL: ${{ secrets.STAGING_API_URL }}
+          NEXT_PUBLIC_WS_URL: ${{ secrets.STAGING_WS_URL }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      
+      # Step 6: Deploy to your staging server
+      - name: Deploy to Staging Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 72.61.18.174
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: ".next,package.json,package-lock.json,public,next.config.js,app,components,context,services,utils"
+          target: /var/www/omnichannel-crm/staging/omnicrm-frontend
+          strip_components: 0
+      
+      # Step 7: Restart the application on the server
+      - name: Restart application
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 72.61.18.174
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /var/www/omnichannel-crm/staging/omnicrm-frontend
+            npm install --force
+            systemctl restart omnicrm-frontend-staging.service
+            echo "✅ Staging deployment completed!"
+      
+      # Step 8: Check if deployment was successful
+      - name: Deployment notification
+        run: echo "🚀 Staging deployment completed successfully!"

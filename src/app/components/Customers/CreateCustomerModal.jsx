@@ -26,7 +26,7 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
         whatsapp: "",
         tiktok: "",
         tags: [],
-        country: {id: 160, name: "Nigeria"},
+        country: { id: 160, name: "Nigeria" },
         state: {},
     });
 
@@ -124,8 +124,8 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
     // }, [formData.country]);
 
     const handleCountryChange = (selectedCountry) => {
-        setFormData(prev => ({ 
-            ...prev, 
+        setFormData(prev => ({
+            ...prev,
             country: selectedCountry,
             state: null
         }));
@@ -200,32 +200,32 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
             <div className="flex bg-white items-center justify-center gap-[12.8px] w-[64px] h-[64px] rounded-[1598.4px] border-[1.6px] border-[var(--Greyscale-100, #DFE1E6)] bg-[var(--Greyscale-0, #FFF)] shadow-[0px_1.6px_3.2px_0px_rgba(13,13,18,0.06)]">
                 {!imagePreview && (
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
-                        <path d="M18.6667 18.6667H13.3334C9.65146 18.6667 6.66669 21.6514 6.66669 25.3333V26.6667C6.66669 27.403 7.26364 28 8.00002 28H24C24.7364 28 25.3334 27.403 25.3334 26.6667V25.3333C25.3334 21.6514 22.3486 18.6667 18.6667 18.6667Z" stroke="#0D0D12" strokeWidth="2.66667"/>
-                        <path d="M16 14.6667C18.9455 14.6667 21.3334 12.2789 21.3334 9.33333C21.3334 6.38781 18.9455 4 16 4C13.0545 4 10.6667 6.38781 10.6667 9.33333C10.6667 12.2789 13.0545 14.6667 16 14.6667Z" stroke="#0D0D12" strokeWidth="2.66667"/>
+                        <path d="M18.6667 18.6667H13.3334C9.65146 18.6667 6.66669 21.6514 6.66669 25.3333V26.6667C6.66669 27.403 7.26364 28 8.00002 28H24C24.7364 28 25.3334 27.403 25.3334 26.6667V25.3333C25.3334 21.6514 22.3486 18.6667 18.6667 18.6667Z" stroke="#0D0D12" strokeWidth="2.66667" />
+                        <path d="M16 14.6667C18.9455 14.6667 21.3334 12.2789 21.3334 9.33333C21.3334 6.38781 18.9455 4 16 4C13.0545 4 10.6667 6.38781 10.6667 9.33333C10.6667 12.2789 13.0545 14.6667 16 14.6667Z" stroke="#0D0D12" strokeWidth="2.66667" />
                     </svg>
                 )}
                 {imagePreview && (
-                    <Image 
-                        src={imagePreview} 
-                        alt="Profile" 
-                        width={64} 
-                        height={64} 
+                    <Image
+                        src={imagePreview}
+                        alt="Profile"
+                        width={64}
+                        height={64}
                         className="rounded-full object-cover"
                     />
                 )}
             </div>
 
             <div className="flex bg-white cursor-pointer items-center justify-center gap-2 h-[40px] px-[12px] py-[8px] rounded-[10px] border border-[var(--Greyscale-100, #DFE1E6)] bg-[var(--Greyscale-0, #FFF)] shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">
-                <input 
-                    type="file" 
-                    accept="image/*" 
+                <input
+                    type="file"
+                    accept="image/*"
                     onChange={handleImageUpload}
-                    className="hidden" 
+                    className="hidden"
                     id="imageUpload"
                 />
                 <label htmlFor="imageUpload" className="flex items-center gap-2 cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M5.66669 7.33301H4.66669C3.56212 7.33301 2.66669 8.22844 2.66669 9.33301V10.6663C2.66669 11.7709 3.56212 12.6663 4.66669 12.6663H11.3334C12.4379 12.6663 13.3334 11.7709 13.3334 10.6663V9.33301C13.3334 8.22844 12.4379 7.33301 11.3334 7.33301H10.3334M8.00002 8.66634V3.33301M8.00002 3.33301L6.33335 4.99967M8.00002 3.33301L9.66669 4.99967" stroke="#0D0D12" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M5.66669 7.33301H4.66669C3.56212 7.33301 2.66669 8.22844 2.66669 9.33301V10.6663C2.66669 11.7709 3.56212 12.6663 4.66669 12.6663H11.3334C12.4379 12.6663 13.3334 11.7709 13.3334 10.6663V9.33301C13.3334 8.22844 12.4379 7.33301 11.3334 7.33301H10.3334M8.00002 8.66634V3.33301M8.00002 3.33301L6.33335 4.99967M8.00002 3.33301L9.66669 4.99967" stroke="#0D0D12" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                     <p className="text-black text-center text-[14px] font-semibold">
                         Add Image
@@ -264,7 +264,7 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
         >
             <form id="customerForm" className="grid grid-cols-2 gap-4 " onSubmit={handleSubmit}>
                 {renderImageUpload()}
-                
+
                 <div>
                     <label className="text-sm">Username</label>
                     <input

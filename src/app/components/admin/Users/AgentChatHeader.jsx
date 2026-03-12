@@ -38,7 +38,7 @@ const AgentChatHeader = ({ setSelectedChat }) => {
               Chioma Okere
             </p>
             <span className="text-[--Greyscale-400,#808897] font-encode-sans text-[12px] font-normal leading-[160%] tracking-[0.4px] self-stretch">
-              Last Seen 09:40
+              Last Active 09:40
             </span>
           </div>
         </div>

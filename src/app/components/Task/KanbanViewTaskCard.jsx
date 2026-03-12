@@ -123,10 +123,10 @@ const KanbanViewTaskCard = ({ task, handleDelete, openViewModal, openUpdateModal
       <div className="mb-3">
         <span
           className={`inline-block px-2 py-1 text-xs font-medium rounded ${task.priority?.label === "High"
-              ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
-              : task.priority?.label === "Medium"
-                ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-                : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
+            ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+            : task.priority?.label === "Medium"
+              ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+              : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
             }`}
         >
           {task.priority?.label || 'No Priority'}
@@ -146,7 +146,7 @@ const KanbanViewTaskCard = ({ task, handleDelete, openViewModal, openUpdateModal
                   {assignee?.image ? (
                     <Image
                       alt="profile pic"
-                      className="w-5 h-5 rounded-full border border-gray-200 dark:border-gray-700 flex-shrink-0"
+                      className="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-700 flex-shrink-0"
                       src={assignee?.image}
                       width={20}
                       height={20}
@@ -155,8 +155,6 @@ const KanbanViewTaskCard = ({ task, handleDelete, openViewModal, openUpdateModal
                     <UserAvatar
                       className="border border-gray-200 dark:border-gray-700 flex-shrink-0"
                       name={assigneeName}
-                      width="w-5"
-                      height="h-5"
                     />
                   )}
                   <span className="text-xs text-gray-600 dark:text-gray-400 truncate">

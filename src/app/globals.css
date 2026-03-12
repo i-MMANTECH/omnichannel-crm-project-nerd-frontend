@@ -37,33 +37,53 @@
   box-sizing: border-box;
   font-family: "Encode Sans", sans-serif;
 }
+
 .primary-bg {
   background-color: #3EBF0F
 }
+
 .primary-text {
   color: #3EBF0F
 }
+
 input {
   background-color: var(--input-background) !important;
 }
+
 .admin {
-  color: #F36F4A; 
+  color: #F36F4A;
   background-color: #FEF1ED;
 }
-.high, .inprogress {
+
+.high,
+.inprogress {
   @apply bg-red-100 text-red-600;
 }
-.medium, .pending {
+
+.medium,
+.pending {
   @apply bg-blue-100 text-blue-600;
 }
-.low, .todo {
+
+.low,
+.todo {
   @apply bg-gray-100 text-gray-600;
 }
-.completed, .done {
+
+.completed,
+.done {
   @apply bg-green-100 text-green-600;
 }
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 .body-theme {
@@ -88,44 +108,50 @@ input {
 .pointer {
   cursor: pointer;
 }
+
 .sidebar .active {
-  border-bottom: 2px solid var(--link-color); /* Example blue border */
+  border-bottom: 2px solid var(--link-color);
+  /* Example blue border */
   color: var(--link-color);
   font-weight: 600;
 }
+
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
 a {
   color: var(--link-color);
   transition: color 0.2s ease;
 }
+
 a:hover {
   color: var(--link-hover);
   text-decoration: underline;
 }
+
 footer a {
-  color: var(--footer-link);  
+  color: var(--footer-link);
 }
 
 .nav-item .nav.flex-column::-webkit-scrollbar {
-    width: 8px;
+  width: 8px;
 }
 
 .nav-item .nav.flex-column::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 8px;
+  background: #f1f1f1;
+  border-radius: 8px;
 }
 
 .nav-item .nav.flex-column::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 8px;
+  background: #c1c1c1;
+  border-radius: 8px;
 }
 
 .nav-item .nav.flex-column::-webkit-scrollbar-thumb:hover {
-    background: #888;
+  background: #888;
 }
 
 
@@ -137,15 +163,15 @@ footer a {
 .custom-phone-input {
   width: 100% !important;
   border: 1px solid #d1d5db;
-  border-radius: 0.375rem; 
-  padding: 0.5rem 0.75rem; 
-  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05); 
-  font-size: 0.875rem; 
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05);
+  font-size: 0.875rem;
 }
 
 #nprogress .bar {
-  background: #3EBF0F !important;  
-  height: 3px; 
+  background: #3EBF0F !important;
+  height: 3px;
 }
 
 #nprogress .peg {
@@ -155,7 +181,7 @@ footer a {
 #nprogress .spinner .spinner-icon {
   border-top-color: #3EBF0F;
   border-left-color: #3EBF0F;
-  
+
 }
 
 #nprogress {
@@ -193,10 +219,11 @@ footer a {
 
 @keyframes spin {
   from {
-      transform: rotate(0deg);
+    transform: rotate(0deg);
   }
+
   to {
-      transform: rotate(360deg);
+    transform: rotate(360deg);
   }
 }
 

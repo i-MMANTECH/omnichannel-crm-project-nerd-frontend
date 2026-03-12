@@ -52,9 +52,8 @@ const NetworkStatus = () => {
     <>
       {showOffline && (
         <div
-          className={`fixed bottom-5 left-5 p-3 rounded-lg shadow-lg w-96 z-[9999] flex items-center justify-between border ${
-            isDarkMode ? "bg-white text-black border-gray-400" : "bg-black text-white border-gray-600"
-          }`}
+          className={`fixed bottom-5 left-5 p-3 rounded-lg shadow-lg w-86 z-[9999] flex items-center justify-between border ${isDarkMode ? "bg-white text-black border-gray-400" : "bg-black text-white border-gray-600"
+            }`}
         >
           <div className="flex items-center gap-3">
             <WifiOff className="w-6 h-6 text-red-500" />
@@ -68,13 +67,12 @@ const NetworkStatus = () => {
 
       {showRestored && (
         <div
-          className={`fixed bottom-5 left-5 p-3 rounded-lg shadow-lg w-96 z-[9999] flex items-center justify-between border ${
-            isDarkMode ? "bg-white text-black border-gray-400" : "bg-black text-white border-gray-600"
-          }`}
+          className={`fixed bottom-5 left-5 p-3 rounded-lg shadow-lg w-86 z-[9999] flex items-center justify-between border ${isDarkMode ? "bg-white text-black border-gray-400" : "bg-black text-white border-gray-600"
+            }`}
         >
           <div className="flex items-center gap-3">
             <Wifi className="w-6 h-6 text-green-500" />
-            <p className="text-sm">Your Internet connection was <br/> restored.</p>
+            <p className="text-sm">Your Internet connection was <br /> restored.</p>
           </div>
           <button onClick={() => setShowRestored(false)} className="text-gray-600 hover:text-gray-900">
             <X className="w-5 h-5" />

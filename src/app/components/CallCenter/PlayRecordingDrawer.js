@@ -29,7 +29,7 @@ const PlayRecordingDrawer = ({ show, onClose, cdr }) => {
   // Safely parse call_start_time
   const timestamp = isValidTimestamp(call_start_time) ? new Date(call_start_time) : new Date();
 
-  
+
   const formatDuration = (totalSeconds) => {
     const sec = parseInt(totalSeconds, 10);
     const hours = Math.floor(sec / 3600);
@@ -96,8 +96,8 @@ const PlayRecordingDrawer = ({ show, onClose, cdr }) => {
           </div>
           <div className="text-right text-sm text-gray-500">
             <div className="font-semibold">
-              {isValidTimestamp(call_start_time) 
-                ? format(timestamp, "MMMM d, yyyy h:mmaaa") 
+              {isValidTimestamp(call_start_time)
+                ? format(timestamp, "MMMM d, yyyy h:mmaaa")
                 : "Invalid date"}
             </div>
             <div className="text-xs mt-1">{formatDuration(total_duration)}</div>

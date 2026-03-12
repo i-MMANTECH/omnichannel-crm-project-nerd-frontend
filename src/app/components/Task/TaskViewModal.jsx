@@ -8,6 +8,7 @@ import UserAvatar from "../UserAvatar";
 import { timeAgo } from "@/utils/timeUtils";
 import { useRouter } from "next/navigation";
 import SlaDetail from "../admin/Settings/sla-policies/SlaDetail";
+import Link from "next/link";
 
 
 const TaskViewModal = ({ isOpen, taskId, onClose }) => {
@@ -24,15 +25,6 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
   const [slaId, setSlaId] = useState(null);
   const [isReview, setIsReview] = useState(false);
 
-  const fetchActivities = async () => {
-    try {
-      const response = await axiosInstance.get(`/tasks/${taskId}/activities`);
-      setActivities(response.data.activities);
-    } catch (error) {
-      handleApiError(error);
-    }
-  };
-
   const fetchComments = async () => {
     try {
       const response = await axiosInstance.get(`/comments/?model=task&object_id=${taskId}`);
@@ -44,21 +36,21 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
 
   const addComment = async () => {
     if (!newComment.trim()) return;
-    
+
     try {
       const response = await axiosInstance.post(`/comments/`, {
-        model: "task", 
-        object_id: taskId, 
+        model: "task",
+        object_id: taskId,
         content: newComment,
       });
-  
+
       setComments([response.data.comment, ...comments]);
       setNewComment("");
     } catch (error) {
       handleApiError(error);
     }
   };
-  
+
   const getAssigneeName = (assignee) => {
     if (assignee?.username) return assignee?.username;
     if (assignee?.name) return assignee?.name;
@@ -76,16 +68,15 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
   }
 
   useEffect(() => {
-    if (selectedTab === "activities") fetchActivities();
     if (selectedTab === "comments") fetchComments();
   }, [selectedTab, taskId]);
 
   useEffect(() => {
     if (!isOpen || !taskId) return;
-  
+
     const abortController = new AbortController();
-    const { signal } = abortController; 
-  
+    const { signal } = abortController;
+
     const fetchTask = async () => {
       setLoading(true);
       try {
@@ -99,14 +90,14 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
         if (!signal.aborted) setLoading(false); // ✅ Update state only if not aborted
       }
     };
-  
+
     fetchTask();
-  
+
     return () => {
       abortController.abort();
     };
   }, [taskId, isOpen]);
-  
+
 
   useEffect(() => {
     const getActivityLogs = async () => {
@@ -127,13 +118,13 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
 
   const footer = (
     <>
-       <button
-          type="button"
-          onClick={onClose}
-          className="px-4 py-2 body-theme text-black rounded-md mr-2 border border-gray-300"
-        >
-          Cancel
-        </button>
+      <button
+        type="button"
+        onClick={onClose}
+        className="px-4 py-2 body-theme text-black rounded-md mr-2 border border-gray-300"
+      >
+        Cancel
+      </button>
     </>
   );
 
@@ -142,49 +133,50 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
       case "activities":
         return (
           <div className="flex mt-5 flex-col items-start gap-4 self-stretch rounded-lg ">
-          {activityLogs.map((log, index) => (
-            <div key={index} className="flex flex-row gap-2 p-3 justify-between items-center border-y  w-full mb-1">
-              <div className='flex flex-col  gap-3'>
-                {log?.metadata?.updated_fields?.length > 0 && ( 
-                  <>
-                    <p className="text-sm font-medium mt-1">
-                      Updated fields:
-                    </p>  
-                    <div className="flex flex-col gap-3">
-                      {log?.metadata?.updated_fields?.map((info, index) => {
-                        return (                      
-                          <div key={index} className="flex w-fit text-sm py-1 px-2 justify-center items-center gap-2 rounded-md bg-[#E7FEF8]">
-                            <p className="text-[#40C4AA] text-xs">{info}</p>
-                          </div>
-                        )})}
+            {activityLogs.map((log, index) => (
+              <div key={index} className="flex flex-row gap-2 p-3 justify-between items-center border-y  w-full mb-1">
+                <div className='flex flex-col  gap-3'>
+                  {log?.metadata?.updated_fields?.length > 0 && (
+                    <>
+                      <p className="text-sm font-medium mt-1">
+                        Updated fields:
+                      </p>
+                      <div className="flex flex-col gap-3">
+                        {log?.metadata?.updated_fields?.map((info, index) => {
+                          return (
+                            <div key={index} className="flex w-fit text-sm py-1 px-2 justify-center items-center gap-2 rounded-md bg-[#E7FEF8]">
+                              <p className="text-[#40C4AA] text-xs">{info}</p>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </>
+                  )}
+                  {(log?.metadata?.updated_fields?.length == 0 || !log?.metadata?.updated_fields) && (
+                    <>
+                      <p className="text-sm font-medium mt-1">
+                        {log?.description}
+                      </p>
+                    </>
+                  )}
+                  {log?.user && (
+                    <div className="flex mt-1 items-center gap-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 17 17" fill="none">
+                        <path d="M9.38208 9.87435H6.71541C4.87446 9.87435 3.38208 11.3667 3.38208 13.2077V13.8743C3.38208 14.2425 3.68056 14.541 4.04875 14.541H12.0487C12.4169 14.541 12.7154 14.2425 12.7154 13.8743V13.2077C12.7154 11.3667 11.223 9.87435 9.38208 9.87435Z" stroke="#808897" strokeWidth="1.5" />
+                        <path d="M8.04875 7.87435C9.52151 7.87435 10.7154 6.68044 10.7154 5.20768C10.7154 3.73492 9.52151 2.54102 8.04875 2.54102C6.57599 2.54102 5.38208 3.73492 5.38208 5.20768C5.38208 6.68044 6.57599 7.87435 8.04875 7.87435Z" stroke="#808897" strokeWidth="1.5" />
+                      </svg>
+
+                      <p className="text-[#808897] font-encodeSans text-sm font-medium">
+                        Agent: {log?.user?.email}
+                      </p>
                     </div>
-                  </>
-                )}
-                {(log?.metadata?.updated_fields?.length == 0 || !log?.metadata?.updated_fields) && ( 
-                  <>
-                    <p className="text-sm font-medium mt-1">
-                      {log?.description}
-                    </p>  
-                  </>
-                )}
-                {log?.user && (
-                <div className="flex mt-1 items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 17 17" fill="none">
-                    <path d="M9.38208 9.87435H6.71541C4.87446 9.87435 3.38208 11.3667 3.38208 13.2077V13.8743C3.38208 14.2425 3.68056 14.541 4.04875 14.541H12.0487C12.4169 14.541 12.7154 14.2425 12.7154 13.8743V13.2077C12.7154 11.3667 11.223 9.87435 9.38208 9.87435Z" stroke="#808897" strokeWidth="1.5"/>
-                    <path d="M8.04875 7.87435C9.52151 7.87435 10.7154 6.68044 10.7154 5.20768C10.7154 3.73492 9.52151 2.54102 8.04875 2.54102C6.57599 2.54102 5.38208 3.73492 5.38208 5.20768C5.38208 6.68044 6.57599 7.87435 8.04875 7.87435Z" stroke="#808897" strokeWidth="1.5"/>
-                  </svg>
-  
-                  <p className="text-[#808897] font-encodeSans text-sm font-medium">
-                    Agent: {log?.user?.email}
-                  </p>
+                  )}
                 </div>
-                )}
+                <p className="text-sm font-normal text-gray-500 mt-1">{timeAgo(log.created_at)}</p>
               </div>
-              <p className="text-sm font-normal text-gray-500 mt-1">{timeAgo(log.created_at)}</p>
-            </div>
-          ))}
-          {activityLogs.length === 0 && <p>No activity logs available for this task.</p>}
-        </div>
+            ))}
+            {activityLogs.length === 0 && <p>No activity logs available for this task.</p>}
+          </div>
         );
 
       case "comments":
@@ -204,9 +196,9 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                   }
                 }}
               />
-              <button 
-              onClick={addComment}
-              className="primary-bg mt-2 px-4 py-2  text-white rounded-md">
+              <button
+                onClick={addComment}
+                className="primary-bg mt-2 px-4 py-2  text-white rounded-md">
                 Comment
               </button>
             </div>
@@ -220,34 +212,34 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                       alt="profile pic"
                       width={32}
                       height={32}
-                      className="rounded-full"
+                      className="rounded-full w-8 h-8"
                       src={user.image}
                     />
                   ) : (
-                    <UserAvatar 
-                      name={userName} 
-                      width="w-8" 
-                      height="h-8" 
+                    <UserAvatar
+                      name={userName}
+                      width="w-8"
+                      height="h-8"
                     />
                   )}
-                  
+
                   <div className="flex-1">
-                  <p className="text-sm">
-                  <strong>
-                    {comment?.created_by?.first_name?.trim() || comment?.created_by?.last_name?.trim()
-                      ? `${comment?.created_by?.first_name || ''} ${comment?.created_by?.last_name || ''}`.trim()
-                      : '--'}
-                  </strong>
-                  <span className="ml-2 text-gray-500">
-                    {comment?.created_at ? timeAgo(comment.created_at) : '--'}
-                  </span>
-                </p>
-                <p className="text-sm mt-1">{comment?.content || '--'}</p>
+                    <p className="text-sm">
+                      <strong>
+                        {comment?.created_by?.first_name?.trim() || comment?.created_by?.last_name?.trim()
+                          ? `${comment?.created_by?.first_name || ''} ${comment?.created_by?.last_name || ''}`.trim()
+                          : '--'}
+                      </strong>
+                      <span className="ml-2 text-gray-500">
+                        {comment?.created_at ? timeAgo(comment.created_at) : '--'}
+                      </span>
+                    </p>
+                    <p className="text-sm mt-1">{comment?.content || '--'}</p>
 
                   </div>
                 </div>
-                )
-              })}
+              )
+            })}
           </div>
         );
 
@@ -262,24 +254,24 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                       alt="profile pic"
                       width={32}
                       height={32}
-                      className="rounded-full"
+                      className="rounded-full w-8 h-8"
                       src={member.image}
                       style={{ objectFit: 'cover' }}
                     />
                   ) : (
-                    <UserAvatar 
-                      name={member.first_name ? 
-                        `${member.first_name} ${member.last_name}` : 
+                    <UserAvatar
+                      name={member.first_name ?
+                        `${member.first_name} ${member.last_name}` :
                         member.email || '--'
-                      } 
-                      width="w-8" 
-                      height="h-8" 
+                      }
+                      width="w-8"
+                      height="h-8"
                     />
                   )}
                   <div>
                     <p className="font-medium">
-                      {member.first_name ? 
-                        `${member.first_name} ${member.last_name}` : 
+                      {member.first_name ?
+                        `${member.first_name} ${member.last_name}` :
                         '--'
                       }
                     </p>
@@ -288,8 +280,8 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                 </div>
                 <div className="flex items-center gap-2">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 13.3332C10.9455 13.3332 13.3333 10.9454 13.3333 7.99984C13.3333 5.05432 10.9455 2.6665 8 2.6665C5.05448 2.6665 2.66666 5.05432 2.66666 7.99984C2.66666 10.9454 5.05448 13.3332 8 13.3332Z" stroke="#808897" strokeWidth="1.5"/>
-                    <path d="M8 5.33317V7.99984L9.33333 9.33317" stroke="#808897" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M8 13.3332C10.9455 13.3332 13.3333 10.9454 13.3333 7.99984C13.3333 5.05432 10.9455 2.6665 8 2.6665C5.05448 2.6665 2.66666 5.05432 2.66666 7.99984C2.66666 10.9454 5.05448 13.3332 8 13.3332Z" stroke="#808897" strokeWidth="1.5" />
+                    <path d="M8 5.33317V7.99984L9.33333 9.33317" stroke="#808897" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   <span className="text-sm ">Added to task</span>
                 </div>
@@ -303,12 +295,12 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
   const handlereview = (id) => {
     setSlaId(id)
     setIsReview(true)
-  } 
+  }
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={onClose} 
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
       title={
         <div className="flex items-center gap-2">
           {task && getStatusSvg(task.status.name)}
@@ -341,12 +333,12 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                 <div className="flex justify-between items-center">
                   <div className="flex justify-between items-center gap-2">
                     <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M5.33333 2.5H3.33333C2.59695 2.5 2 3.09695 2 3.83333V5.83333C2 6.56971 2.59695 7.16667 3.33333 7.16667H5.33333C6.06971 7.16667 6.66667 6.56971 6.66667 5.83333V3.83333C6.66667 3.09695 6.06971 2.5 5.33333 2.5Z" stroke="#808897" strokeWidth="1.5"/>
-                      <path d="M12.6667 2.5H10.6667C9.93029 2.5 9.33333 3.09695 9.33333 3.83333V5.83333C9.33333 6.56971 9.93029 7.16667 10.6667 7.16667H12.6667C13.403 7.16667 14 6.56971 14 5.83333V3.83333C14 3.09695 13.403 2.5 12.6667 2.5Z" stroke="#808897" strokeWidth="1.5"/>
-                      <path d="M5.33333 9.83333H3.33333C2.59695 9.83333 2 10.4303 2 11.1667V13.1667C2 13.903 2.59695 14.5 3.33333 14.5H5.33333C6.06971 14.5 6.66667 13.903 6.66667 13.1667V11.1667C6.66667 10.4303 6.06971 9.83333 5.33333 9.83333Z" stroke="#808897" strokeWidth="1.5"/>
-                      <path d="M12.6667 9.83333H10.6667C9.93029 9.83333 9.33333 10.4303 9.33333 11.1667V13.1667C9.33333 13.903 9.93029 14.5 10.6667 14.5H12.6667C13.403 14.5 14 13.903 14 13.1667V11.1667C14 10.4303 13.403 9.83333 12.6667 9.83333Z" stroke="#808897" strokeWidth="1.5"/>
+                      <path d="M5.33333 2.5H3.33333C2.59695 2.5 2 3.09695 2 3.83333V5.83333C2 6.56971 2.59695 7.16667 3.33333 7.16667H5.33333C6.06971 7.16667 6.66667 6.56971 6.66667 5.83333V3.83333C6.66667 3.09695 6.06971 2.5 5.33333 2.5Z" stroke="#808897" strokeWidth="1.5" />
+                      <path d="M12.6667 2.5H10.6667C9.93029 2.5 9.33333 3.09695 9.33333 3.83333V5.83333C9.33333 6.56971 9.93029 7.16667 10.6667 7.16667H12.6667C13.403 7.16667 14 6.56971 14 5.83333V3.83333C14 3.09695 13.403 2.5 12.6667 2.5Z" stroke="#808897" strokeWidth="1.5" />
+                      <path d="M5.33333 9.83333H3.33333C2.59695 9.83333 2 10.4303 2 11.1667V13.1667C2 13.903 2.59695 14.5 3.33333 14.5H5.33333C6.06971 14.5 6.66667 13.903 6.66667 13.1667V11.1667C6.66667 10.4303 6.06971 9.83333 5.33333 9.83333Z" stroke="#808897" strokeWidth="1.5" />
+                      <path d="M12.6667 9.83333H10.6667C9.93029 9.83333 9.33333 10.4303 9.33333 11.1667V13.1667C9.33333 13.903 9.93029 14.5 10.6667 14.5H12.6667C13.403 14.5 14 13.903 14 13.1667V11.1667C14 10.4303 13.403 9.83333 12.6667 9.83333Z" stroke="#808897" strokeWidth="1.5" />
                     </svg>
-                    <span className="font-medium">                
+                    <span className="font-medium">
                       Priority
                     </span>
                   </div>
@@ -357,7 +349,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                 <div className="flex justify-between items-center">
                   <div className="flex justify-between items-center gap-2">
                     <svg width="16" height="15" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7.99992 11.5002V14.1668M5.17149 10.3286L3.28587 12.2142M3.99992 7.50016H1.33325M11.9999 7.50016H14.6666M10.8283 10.3286L12.714 12.2142M7.99992 3.50016V0.833496M10.8283 4.67174L12.714 2.78612M5.17149 4.67174L3.28587 2.78612" stroke="#808897" strokeWidth="1.5" strokeLineCap="round"/>
+                      <path d="M7.99992 11.5002V14.1668M5.17149 10.3286L3.28587 12.2142M3.99992 7.50016H1.33325M11.9999 7.50016H14.6666M10.8283 10.3286L12.714 12.2142M7.99992 3.50016V0.833496M10.8283 4.67174L12.714 2.78612M5.17149 4.67174L3.28587 2.78612" stroke="#808897" strokeWidth="1.5" strokeLineCap="round" />
                     </svg>
                     <span className="font-medium">Status</span>
                   </div>
@@ -366,23 +358,23 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                   </span>
                 </div>
                 {task.due_date && (
-                <div className="flex justify-between items-center">
-                  <div className="flex justify-between items-center gap-2">
-                    <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M5.33333 2.50016H4C2.89543 2.50016 2 3.39559 2 4.50016V6.50016M5.33333 2.50016V1.8335M5.33333 2.50016H10.6667M5.33333 2.50016V3.16683M10.6667 2.50016H12C13.1046 2.50016 14 3.39559 14 4.50016V6.50016M10.6667 2.50016V1.8335M10.6667 2.50016V3.16683M2 6.50016V13.1668C2 14.2714 2.89543 15.1668 4 15.1668H12C13.1046 15.1668 14 14.2714 14 13.1668V6.50016M2 6.50016H14M9 8.8335H11L9.33333 12.1668M7 9.8335V11.1668C7 11.7191 6.55228 12.1668 6 12.1668C5.44772 12.1668 5 11.7191 5 11.1668V9.8335C5 9.28121 5.44772 8.8335 6 8.8335C6.55228 8.8335 7 9.28121 7 9.8335Z" stroke="#808897" strokeWidth="1.5" strokeLineCap="round" strokeLinejoin="round"/>
-                    </svg>
+                  <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center gap-2">
+                      <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5.33333 2.50016H4C2.89543 2.50016 2 3.39559 2 4.50016V6.50016M5.33333 2.50016V1.8335M5.33333 2.50016H10.6667M5.33333 2.50016V3.16683M10.6667 2.50016H12C13.1046 2.50016 14 3.39559 14 4.50016V6.50016M10.6667 2.50016V1.8335M10.6667 2.50016V3.16683M2 6.50016V13.1668C2 14.2714 2.89543 15.1668 4 15.1668H12C13.1046 15.1668 14 14.2714 14 13.1668V6.50016M2 6.50016H14M9 8.8335H11L9.33333 12.1668M7 9.8335V11.1668C7 11.7191 6.55228 12.1668 6 12.1668C5.44772 12.1668 5 11.7191 5 11.1668V9.8335C5 9.28121 5.44772 8.8335 6 8.8335C6.55228 8.8335 7 9.28121 7 9.8335Z" stroke="#808897" strokeWidth="1.5" strokeLineCap="round" strokeLinejoin="round" />
+                      </svg>
 
-                    <span className="font-medium">Due Date</span>
+                      <span className="font-medium">Due Date</span>
+                    </div>
+                    <span>{new Date(task.due_date).toLocaleDateString()}</span>
+
                   </div>
-                  <span>{new Date(task.due_date).toLocaleDateString()}</span>
-                  
-                </div>
                 )}
                 <div className="flex justify-between items-center">
                   <div className="flex justify-between items-center gap-2">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9.33325 9.33333H6.66659C4.82564 9.33333 3.33325 10.8257 3.33325 12.6667V13.3333C3.33325 13.7015 3.63173 14 3.99992 14H11.9999C12.3681 14 12.6666 13.7015 12.6666 13.3333V12.6667C12.6666 10.8257 11.1742 9.33333 9.33325 9.33333Z" stroke="#808897" strokeWidth="1.5"/>
-                      <path d="M7.99992 7.33333C9.47268 7.33333 10.6666 6.13943 10.6666 4.66667C10.6666 3.19391 9.47268 2 7.99992 2C6.52716 2 5.33325 3.19391 5.33325 4.66667C5.33325 6.13943 6.52716 7.33333 7.99992 7.33333Z" stroke="#808897" strokeWidth="1.5"/>
+                      <path d="M9.33325 9.33333H6.66659C4.82564 9.33333 3.33325 10.8257 3.33325 12.6667V13.3333C3.33325 13.7015 3.63173 14 3.99992 14H11.9999C12.3681 14 12.6666 13.7015 12.6666 13.3333V12.6667C12.6666 10.8257 11.1742 9.33333 9.33325 9.33333Z" stroke="#808897" strokeWidth="1.5" />
+                      <path d="M7.99992 7.33333C9.47268 7.33333 10.6666 6.13943 10.6666 4.66667C10.6666 3.19391 9.47268 2 7.99992 2C6.52716 2 5.33325 3.19391 5.33325 4.66667C5.33325 6.13943 6.52716 7.33333 7.99992 7.33333Z" stroke="#808897" strokeWidth="1.5" />
                     </svg>
 
                     <span className="font-medium">Assigned Agents</span>
@@ -395,7 +387,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                           <Image
                             key={index}
                             alt={`Agent ${assignee.id}`}
-                            className="w-7 h-7 rounded-full border-2 border-white"
+                            className="w-9 h-9 rounded-full border-2 border-white"
                             src={assignee.image}
                             width={24}
                             height={24}
@@ -404,11 +396,11 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                       } else {
                         return (
                           <UserAvatar
-                            className="border-white border-2" 
-                            key={index} 
-                            name={assigneeName} 
-                            width="w-7" 
-                            height="h-7" 
+                            className="border-white border-2"
+                            key={index}
+                            name={assigneeName}
+                            width="w-9"
+                            height="h-9"
                           />
                         );
                       }
@@ -429,7 +421,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
 
                       <span className="font-medium">SLA</span>
                     </div>
-                    <span  
+                    <span
                       onClick={() => handlereview(task.sla?.id)}
                       className="cursor-pointer font-medium"
                     >
@@ -438,28 +430,27 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                   </div>
                 )}
 
-                
+
 
                 {task?.conversation &&
                   <div className="flex justify-between items-center">
-                    <a onClick={openConversation} className="font-medium pointer mt-5">View related conversation</a>
+                    <Link onClick={openConversation} className="font-medium pointer mt-5">View related conversation</Link>
                   </div>
                 }
-                
+
               </div>
-              
-      
+
+
               <div className="mt-6">
                 <div className="flex border-b">
                   {["activities", "comments", "members"].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setSelectedTab(tab)}
-                      className={`mr-4 pb-2 capitalize ${
-                        selectedTab === tab
-                          ? "border-b-2 border-green-500 primary-text font-medium"
-                          : ""
-                      }`}
+                      className={`mr-4 pb-2 capitalize ${selectedTab === tab
+                        ? "border-b-2 border-green-500 primary-text font-medium"
+                        : ""
+                        }`}
                     >
                       {tab}
                     </button>
@@ -474,11 +465,11 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
         </div>
       </div>
 
-      {isReview && 
-        <SlaDetail 
-        isOpen={isReview}
-        onClose={() => setIsReview(false)}
-        slaId={slaId} />
+      {isReview &&
+        <SlaDetail
+          isOpen={isReview}
+          onClose={() => setIsReview(false)}
+          slaId={slaId} />
       }
 
     </Modal>

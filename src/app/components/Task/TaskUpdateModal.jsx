@@ -5,6 +5,16 @@ import { useError } from "@/context/ErrorContext";
 import Select from "react-select";
 import { selectStyles } from "../selectStyles";
 
+const formatUserLabel = (user) => {
+  const fullName = [user.first_name, user.last_name]
+    .filter(Boolean)
+    .join(" ");
+
+  return fullName
+    ? `${fullName} <${user.email}>`
+    : user.email;
+};
+
 
 const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
   const { axiosInstance } = useApi();
@@ -28,19 +38,26 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
   const statusesEndpoint = "tasks/statuses/";
   const slaEndpoint = "/sla/";
 
+  const [loadingAgents, setLoadingAgents] = useState(false);
+  const [loadingPriorities, setLoadingPriorities] = useState(false);
+  const [loadingStatuses, setLoadingStatuses] = useState(false);
+  const [loadingSlas, setLoadingSlas] = useState(false);
+
+
   const fetchSlaPolicies = async () => {
-    setLoading(true);
+    setLoadingSlas(true);
+
     try {
       const response = await axiosInstance.get(slaEndpoint, { params: { plan_id: 1 } });
       setSlaData(response.data.results || []);
     } catch (err) {
       handleApiError(err);
     } finally {
-      setLoading(false);
+      setLoadingSlas(false);
     }
   };
 
-  
+
   const fetchSla = async () => {
     if (!task?.sla?.id) return;
 
@@ -59,45 +76,56 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
     fetchSla();
     fetchSlaPolicies();
   }, []);
-  
+
   useEffect(() => {
     if (task && slaData.length > 0) {
       const selectedSla = slaData.find((s) => s.id === task.sla?.id);
       setSla(selectedSla ? { value: selectedSla.id, label: selectedSla.title } : null);
     }
   }, [task, slaData]);
-  
-  
-  
+
+
+
 
   useEffect(() => {
     if (isOpen) {
       const fetchPriorities = async () => {
+        setLoadingPriorities(true);
         try {
           const response = await axiosInstance.get(prioritiesEndpoint);
           setPriorities(response.data.priorities || []);
         } catch (error) {
           handleApiError(error);
+        } finally {
+          setLoadingPriorities(false);
         }
       };
 
+
       const fetchStatuses = async () => {
+        setLoadingStatuses(true);
         try {
           const response = await axiosInstance.get(statusesEndpoint);
           setStatuses(response.data.statuses || []);
         } catch (error) {
           handleApiError(error);
+        } finally {
+          setLoadingStatuses(false);
         }
       };
 
       const fetchAssignees = async () => {
+        setLoadingAgents(true);
         try {
           const response = await axiosInstance.get(getAssigneesEndpoint);
           setUsers(response.data.results || []);
         } catch (error) {
           handleApiError(error);
+        } finally {
+          setLoadingAgents(false);
         }
       };
+
 
       if (priorities.length === 0) fetchPriorities();
       if (statuses.length === 0) fetchStatuses();
@@ -129,8 +157,15 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
       setDescription(task.description || "");
       setDueDate(task.due_date ? new Date(task.due_date).toISOString().split("T")[0] : "");
       setSla(task.sla || "");
-      setAgents(task.assignees.map((assignee) => assignee.id));
-  
+
+      setAgents(
+        task.assignees.map((assignee) => ({
+          value: assignee.id,
+          label: formatUserLabel(assignee),
+        }))
+      );
+
+
       setPriority(
         priorities.find((p) => p.id === task.priority.id) || null
       );
@@ -139,7 +174,7 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
       );
     }
   }, [task, priorities, statuses]);
-  
+
 
   const priorityOptions = priorities.map((p) => ({
     value: p.id,
@@ -153,8 +188,9 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
 
   const agentOptions = users.map((user) => ({
     value: user.id,
-    label: user.email,
+    label: formatUserLabel(user),
   }));
+
 
   const handlePriorityChange = (selectedOption) => {
     setPriority(selectedOption);
@@ -170,9 +206,9 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
 
   const handleUpdate = async () => {
     if (!task) return;
-  
+
     const updatedFields = {};
-  
+
     if (taskTitle !== task.title) updatedFields.title = taskTitle;
     if (description !== task.description) updatedFields.description = description;
     if (priority?.value !== task.priority.id) updatedFields.priority = priority?.value;
@@ -181,24 +217,27 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
 
     const formattedDueDate = new Date(dueDate).toISOString().split("T")[0];
     const originalDueDate = new Date(task.due_date).toISOString().split("T")[0];
-  
+
     if (formattedDueDate !== originalDueDate) updatedFields.due_date = dueDate;
     if (sla?.value !== task.sla?.id) updatedFields.sla = sla?.value;
-  
+
     // Fix: Ensure Assignees are included if changed
     const originalAgentIds = task.assignees.map((a) => a.id).sort((a, b) => a - b);
-    const selectedAgentIds = agents.map((id) => parseInt(id)).sort((a, b) => a - b);
+    const selectedAgentIds = agents
+      .map((agent) => agent.value)
+      .sort((a, b) => a - b);
+
 
     if (JSON.stringify(originalAgentIds) !== JSON.stringify(selectedAgentIds)) {
       updatedFields.assignees = selectedAgentIds.length > 0 ? selectedAgentIds : [];
     }
-  
+
     // Prevent sending an empty request if no fields were updated
     if (Object.keys(updatedFields).length === 0) {
       onClose();
       return;
     }
-  
+
     try {
       await axiosInstance.post(`tasks/${taskId}/update/`, updatedFields);
       onUpdate(taskId, updatedFields);
@@ -206,8 +245,8 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
     } catch (err) {
       handleApiError(err);
     }
-  };  
-  
+  };
+
 
   if (!isOpen) return null;
 
@@ -267,7 +306,11 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
             value={sla}
             onChange={(selectedOption) => setSla(selectedOption)}
             styles={selectStyles}
+            isLoading={loadingSlas}
+            isDisabled={loadingSlas}
+            placeholder={loadingSlas ? "Loading SLA policies..." : "Select SLA"}
           />
+
         </div>
 
         <div className="mb-7">
@@ -277,7 +320,11 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
             value={priority}
             onChange={handlePriorityChange}
             styles={selectStyles}
+            isLoading={loadingPriorities}
+            isDisabled={loadingPriorities}
+            placeholder={loadingPriorities ? "Loading priorities..." : "Select priority"}
           />
+
         </div>
 
         <p className="mb-3">Select Agents</p>
@@ -285,10 +332,17 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
           <Select
             isMulti
             options={agentOptions}
-            value={agentOptions.filter((option) => agents.includes(option.value))}
-            onChange={handleAgentChange}
+            value={agents}
+            onChange={(selected) => setAgents(selected || [])}
             styles={selectStyles}
+            isLoading={loadingAgents}
+            isDisabled={loadingAgents}
+            placeholder={loadingAgents ? "Loading agents..." : "Select agents"}
+            noOptionsMessage={() =>
+              loadingAgents ? "Loading agents..." : "No agents found"
+            }
           />
+
         </div>
 
         <div className="mb-4">
@@ -308,7 +362,11 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
             value={status}
             onChange={handleStatusChange}
             styles={selectStyles}
+            isLoading={loadingStatuses}
+            isDisabled={loadingStatuses}
+            placeholder={loadingStatuses ? "Loading statuses..." : "Select status"}
           />
+
         </div>
       </form>
     </Modal>

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./modalStyle.css";
 import Image from "next/image";
+import Link from "next/link";
 
 
 export const Modal = ({ show, onClose, title, icon }) => {
@@ -13,7 +14,7 @@ export const Modal = ({ show, onClose, title, icon }) => {
   };
 
   const togglePasswordVisibility = () => {
-    setIsPasswordVisible(!isPasswordVisible); 
+    setIsPasswordVisible(!isPasswordVisible);
   };
 
   if (!show) return null;
@@ -43,14 +44,14 @@ export const Modal = ({ show, onClose, title, icon }) => {
               onClick={togglePasswordVisibility}
             >
               <span role="img" aria-label={isPasswordVisible ? "show-password" : "hide-password"}>
-                
-              <Image
-                  src={isPasswordVisible ? "/assets/show-password.svg" :"/assets/hide-password.svg"}
+
+                <Image
+                  src={isPasswordVisible ? "/assets/show-password.svg" : "/assets/hide-password.svg"}
                   alt="Show Password"
                   width={24}
                   height={24}
                 />
-                
+
               </span>
             </button>
           </div>
@@ -60,8 +61,8 @@ export const Modal = ({ show, onClose, title, icon }) => {
 
         <p className="modal-terms">
           By connecting your channel, you agree to our{" "}
-          <a href="#">Terms and Conditions</a>, and
-          <a href="#"> Privacy Policy</a>
+          <Link href="#">Terms and Conditions</Link>, and
+          <Link href="#"> Privacy Policy</Link>
         </p>
       </div>
     </div>

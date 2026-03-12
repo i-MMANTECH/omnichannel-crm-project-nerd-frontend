@@ -7,6 +7,7 @@ import { useApi } from '@/services/axiosConfig';
 import { toast } from 'react-toastify';
 import Footer from '@/app/components/Footer';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const PasswordReset = () => {
     const router = useRouter();
@@ -24,7 +25,7 @@ const PasswordReset = () => {
                 const response = await axiosInstance.post('/auth/forgot-password/send-otp/', {
                     email: email
                 });
-    
+
                 if (response.data.success) {
                     sessionStorage.setItem('resetPwdData', JSON.stringify({ email }));
                     router.push("password-reset/verify-otp");
@@ -33,23 +34,23 @@ const PasswordReset = () => {
                 }
             } catch (error) {
                 handleApiError(error);
-            } 
+            }
         } else {
             toast.error("Please enter your email address.");
         }
     };
-    
+
 
     return (
         <div style={{ height: '100%', overflow: 'hidden' }} className="flex min-h-screen flex-col items-center justify-center">
             <div className="flex items-center justify-center mt-[100px]">
                 <div className="w-full max-w-md p-8">
                     <div className="flex justify-center mb-8">
-                        <Image src="/assets/nativetalk-logo.svg" 
-                            alt="Logo" 
+                        <Image src="/assets/nativetalk-logo.svg"
+                            alt="Logo"
                             width={100}
                             height={100}
-                            />
+                        />
                     </div>
                     <h2 className="text-2xl font-bold text-gray-800 text-center dark:text-gray-200  mb-2">
                         Forgot Password
@@ -80,9 +81,9 @@ const PasswordReset = () => {
                     </button>
 
                     <div className="text-center mt-5">
-                        <a href="/auth/sign-in" className="text-[#3EBF0F] hover:underline">
+                        <Link href="/auth/sign-in" className="text-[#3EBF0F] hover:underline">
                             Back to login
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>
