@@ -34,7 +34,7 @@ const MultiSelectModal = ({
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
-    const maxSize = 10 * 1024 * 1024;
+    const maxSize = 100 * 1024 * 1024;
     const filtered = files.filter(f => f.size <= maxSize);
     onFileSelect && onFileSelect(filtered);
     fileInputRef.current.value = null;

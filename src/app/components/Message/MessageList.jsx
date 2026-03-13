@@ -184,6 +184,19 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
     return faFile;
   };
 
+  const getFileExtension = (fileUrl = "") => {
+    const cleanUrl = String(fileUrl).split("?")[0];
+    const parts = cleanUrl.split(".");
+    return parts.length > 1 ? parts.pop().toLowerCase() : "";
+  };
+
+  const isVideoAttachment = (attachment) => {
+    if (!attachment) return false;
+    if (attachment.file_type === "video") return true;
+    const ext = getFileExtension(attachment.file);
+    return ["mp4", "webm", "ogg", "mov", "m4v"].includes(ext);
+  };
+
   function renderMessageContent(msg) {
     const contentType = msg.content_type || "text"; // ✅ fallback for internal messages
 
@@ -235,7 +248,7 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
     }
 
     // If you truly want "image"/"document" to still show msg.content as HTML text
-    if (contentType === "image" || contentType === "document") {
+    if (contentType === "image" || contentType === "document" || contentType === "video") {
       return msg.content ? (
         <div
           style={{
@@ -416,6 +429,16 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                               {msg.attachments.map((attachment, i) => {
                                 const fileType = attachment.file.split('.').pop(); // Extract file extension
                                 const fileName = attachment.file.split('/').pop(); // Extract file name
+                                if (isVideoAttachment(attachment)) {
+                                  return (
+                                    <video
+                                      key={i}
+                                      src={attachment.file}
+                                      className="max-w-[320px] max-h-[240px] rounded-lg"
+                                      controls
+                                    />
+                                  );
+                                }
                                 return (
                                   <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
                                     <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
@@ -447,7 +470,7 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                         {/* Show text content below images or documents if present */}
                         {renderMessageContent(msg)}
                         {/* If message contains documents, display them */}
-                        {msg.attachments && msg.attachments.length > 0 && (
+                          {msg.attachments && msg.attachments.length > 0 && (
                           <div className="flex flex-col gap-2">
                             <div className="mt-10 mb-2 font-semibold underline">{msg.attachments.length == 1 ? 'Attachment' : 'Attachments'}</div>
                             {msg.attachments.map((attachment, i) => {
@@ -467,6 +490,16 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                                     onClick={() => openImageModal(attachment.file)}
                                   />
                                 )
+                              }
+                              if (isVideoAttachment(attachment)) {
+                                return (
+                                  <video
+                                    key={i}
+                                    src={attachment.file}
+                                    className="max-w-[320px] max-h-[240px] rounded-lg mb-2"
+                                    controls
+                                  />
+                                );
                               }
                               else {
                                 return (

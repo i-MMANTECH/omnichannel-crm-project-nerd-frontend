@@ -12,7 +12,6 @@ import { usePermissions } from "@/context/PermissionsContext";
 import AssignAgentModal from "./AssignAgentModal";
 import EndSessionModal from "./EndSessionModal";
 import ArchiveModal from "./ArchiveModal";
-import TaskModel from "./TaskModel";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from '@/context/ErrorContext';
 
@@ -40,7 +39,7 @@ const ModalController = ({ children }) => {
   return children({ isModalOpen, openModal, closeModal });
 };
 
-const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInternal = false, baseRoute }) => {
+const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInternal = false, baseRoute, onCreateTicket }) => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successModalMessage, setSuccessModalMessage] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -48,7 +47,6 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInt
   const [isAssignAgentModalOpen, setIsAssignAgentModalOpen] = useState(false);
   const [isEndSessionModalOpen, setIsEndSessionModalOpen] = useState(false);
   const [isArchivedModalOpen, setIsArchivedModalOpen] = useState(false);
-  const [isTaskCreation, setIsTaskCreation] = useState(false)
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
   const router = useRouter();
@@ -180,8 +178,12 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInt
       onClick: () => setIsEndSessionModalOpen(true),
     },
     {
-      label: "Create a task",
-      onClick: () => setIsTaskCreation(true),
+      label: "Create a ticket",
+      onClick: () => {
+        if (typeof onCreateTicket === "function") {
+          onCreateTicket();
+        }
+      },
     },
     {
       label: aiToggleMenuItem,
@@ -303,16 +305,6 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInt
                 </div>
               )}
             </div>
-
-            {isTaskCreation && (
-              <TaskModel
-                isOpen={isTaskCreation}
-                onClose={() => setIsTaskCreation(false)}
-                conversationId={conversationId}
-                setIsSuccessModalOpen={setIsSuccessModalOpen}
-                setSuccessModalMessage={setSuccessModalMessage}
-              />
-            )}
 
             {isModalOpen && (
               <LeadToCustomer

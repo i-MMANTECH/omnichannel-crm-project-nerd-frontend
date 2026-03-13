@@ -34,7 +34,7 @@ const MultiSelectModal = ({
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
-    const maxSize = 10 * 1024 * 1024;
+    const maxSize = 100 * 1024 * 1024;
     const filtered = files.filter(f => f.size <= maxSize);
     onFileSelect && onFileSelect(filtered);
     fileInputRef.current.value = null;
@@ -180,7 +180,7 @@ const MultiSelectModal = ({
                 >
                   <div className="w-10 h-10 bg-[#3EBF0F] rounded flex items-center justify-center">
                     <span className="text-white text-xs font-semibold">
-                      {file.name.split('.').pop()?.toUpperCase().slice(0, 3) || 'FILE'}
+                      {file.type?.startsWith('video/') ? 'VID' : (file.name.split('.').pop()?.toUpperCase().slice(0, 3) || 'FILE')}
                     </span>
                   </div>
                   <button
@@ -222,7 +222,7 @@ const MultiSelectModal = ({
               />
               <input
                 type="file"
-                accept=".pdf,.doc,.docx,.txt,.zip"
+                accept=".pdf,.doc,.docx,.txt,.zip,.mp4,.mov,.webm,.ogg,.m4v,video/*"
                 ref={fileInputRef}
                 onChange={handleFileSelect}
                 multiple
@@ -269,3 +269,4 @@ const MultiSelectModal = ({
 };
 
 export { MultiSelectModal };
+
