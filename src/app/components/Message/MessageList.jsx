@@ -184,11 +184,36 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
     return faFile;
   };
 
+  const sanitizeHtml = (value = "") => {
+    if (typeof window === "undefined") return value;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(String(value), "text/html");
+    doc.querySelectorAll("script, style, iframe, object, embed, form").forEach(el => el.remove());
+    doc.body.querySelectorAll("*").forEach(el => {
+      Array.from(el.attributes).forEach(attr => {
+        if (
+          attr.name.startsWith("on") ||
+          (attr.name === "href" && attr.value.trim().toLowerCase().startsWith("javascript:"))
+        ) {
+          el.removeAttribute(attr.name);
+        }
+      });
+    });
+    return doc.body.innerHTML;
+  };
+
+  const containsHtml = (value = "") => /<[a-z][\s\S]*>/i.test(value);
+
   function renderMessageContent(msg) {
     const contentType = msg.content_type || "text"; // ✅ fallback for internal messages
 
     if (contentType === "html") {
-      return <div dangerouslySetInnerHTML={{ __html: msg.content }} />;
+      return (
+        <div
+          style={{ marginTop: msg.attachments?.length ? "8px" : "0" }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
+        />
+      );
     }
 
     // WhatsApp markdown formatting
@@ -222,6 +247,14 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
 
     // ✅ Normal text (internal messages will land here)
     if (contentType === "text") {
+      if (msg?.channel?.name === "Email" || containsHtml(msg.content)) {
+        return (
+          <div
+            style={{ marginTop: msg.attachments?.length ? "8px" : "0" }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
+          />
+        );
+      }
       return (
         <div
           style={{
