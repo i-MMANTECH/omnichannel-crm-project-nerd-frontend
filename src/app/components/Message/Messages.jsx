@@ -886,15 +886,19 @@ export const MessagesContent = () => {
 			setIsLoadingHistory(true);
 		}
 
+		// Always fetch page 1 on initial load — reset any stale pagination state
+		globalMessagePaginationCache[activeUser.id] = null;
+		setPageMessages(1);
+
 		let endpoint;
 		if (chatType === "internal") {
 			endpoint = `/internal-messaging/chats/${activeUser.id}/messages/`;
 		} else if (chatType === "customers") {
-			endpoint = `/communication/customer-chat-history/${activeUser.id}?page=${globalMessagePaginationCache[activeUser.id] ? globalMessagePaginationCache[activeUser.id].pageMessages : 1}`;
+			endpoint = `/communication/customer-chat-history/${activeUser.id}?page=1`;
 		} else if (chatType === "leads") {
-			endpoint = `/communication/history/?lead_id=${activeUser.id}&page=${globalMessagePaginationCache[activeUser.id] ? globalMessagePaginationCache[activeUser.id].pageMessages : 1}`;
+			endpoint = `/communication/history/?lead_id=${activeUser.id}&page=1`;
 		} else if (chatType === "archived") {
-			endpoint = `/communication/conversations/${activeUser.id}/messages?status=ended&page=${globalMessagePaginationCache[activeUser.id] ? globalMessagePaginationCache[activeUser.id].pageMessages : 1}`;
+			endpoint = `/communication/conversations/${activeUser.id}/messages?status=ended&page=1`;
 		}
 
 		try {
@@ -904,9 +908,9 @@ export const MessagesContent = () => {
 
 			setNextMessages(response.data.next);
 
-			// Update global message pagination cache
+			// Update global message pagination cache — reset to page 1
 			globalMessagePaginationCache[activeUser.id] = {
-				pageMessages: (globalMessagePaginationCache[activeUser.id] ? globalMessagePaginationCache[activeUser.id].pageMessages : 1),
+				pageMessages: 1,
 				nextMessages: response.data.next
 			};
 

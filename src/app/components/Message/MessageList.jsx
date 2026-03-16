@@ -184,19 +184,25 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
     return faFile;
   };
 
-  const stripHtml = (value = "") => {
-    const normalized = String(value)
-      .replace(/<\s*br\s*\/?>/gi, "\n")
-      .replace(/<\/\s*p\s*>/gi, "\n\n");
-
-    if (typeof window !== "undefined" && window.DOMParser) {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(normalized, "text/html");
-      return (doc.body.textContent || "").trim();
-    }
-
-    return normalized.replace(/<[^>]*>/g, "").trim();
+  const sanitizeHtml = (value = "") => {
+    if (typeof window === "undefined") return value;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(String(value), "text/html");
+    doc.querySelectorAll("script, style, iframe, object, embed, form").forEach(el => el.remove());
+    doc.body.querySelectorAll("*").forEach(el => {
+      Array.from(el.attributes).forEach(attr => {
+        if (
+          attr.name.startsWith("on") ||
+          (attr.name === "href" && attr.value.trim().toLowerCase().startsWith("javascript:"))
+        ) {
+          el.removeAttribute(attr.name);
+        }
+      });
+    });
+    return doc.body.innerHTML;
   };
+
+  const containsHtml = (value = "") => /<[a-z][\s\S]*>/i.test(value);
 
   function renderMessageContent(msg) {
     const contentType = msg.content_type || "text"; // ✅ fallback for internal messages
@@ -204,13 +210,9 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
     if (contentType === "html") {
       return (
         <div
-          style={{
-            whiteSpace: "pre-wrap",
-            marginTop: msg.attachments?.length ? "8px" : "0",
-          }}
-        >
-          {stripHtml(msg.content)}
-        </div>
+          style={{ marginTop: msg.attachments?.length ? "8px" : "0" }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
+        />
       );
     }
 
@@ -245,6 +247,14 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
 
     // ✅ Normal text (internal messages will land here)
     if (contentType === "text") {
+      if (msg?.channel?.name === "Email" || containsHtml(msg.content)) {
+        return (
+          <div
+            style={{ marginTop: msg.attachments?.length ? "8px" : "0" }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
+          />
+        );
+      }
       return (
         <div
           style={{
@@ -252,7 +262,7 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
             marginTop: msg.attachments?.length ? "8px" : "0",
           }}
         >
-          {msg?.channel?.name === "Email" ? stripHtml(msg.content) : msg.content}
+          {msg.content}
         </div>
       );
     }
