@@ -28,7 +28,7 @@ function PlanCard({ plan, colorIndex }) {
           <p className="text-xs text-gray-400 mt-0.5">{plan.duration_in_days}-day billing cycle</p>
         </div>
         <div className="text-right ml-3 flex-shrink-0">
-          <p className="text-xl font-bold text-gray-800">${Number(plan.price).toLocaleString()}</p>
+          <p className="text-xl font-bold text-gray-800">₦{Number(plan.price).toLocaleString()}</p>
           <p className="text-xs text-gray-400">/cycle</p>
         </div>
       </div>
@@ -39,12 +39,12 @@ function PlanCard({ plan, colorIndex }) {
           <p className="text-xs text-gray-400">Subscribers</p>
         </div>
         <div className="text-center border-x border-gray-100">
-          <p className="text-lg font-bold text-gray-800">${(plan.mrr / 1000).toFixed(1)}k</p>
+          <p className="text-lg font-bold text-gray-800">₦{(plan.mrr / 1000).toFixed(1)}k</p>
           <p className="text-xs text-gray-400">MRR</p>
         </div>
         <div className="text-center">
           <p className="text-lg font-bold text-gray-800">
-            ${(plan.subscriber_count * plan.price).toLocaleString()}
+            ₦{(plan.subscriber_count * plan.price).toLocaleString()}
           </p>
           <p className="text-xs text-gray-400">Revenue</p>
         </div>
@@ -140,7 +140,7 @@ export default function SuperAdminPlans() {
           </div>
           <div>
             <p className="text-xs text-gray-400">Total MRR</p>
-            <p className="text-xl font-bold text-gray-800">${Number(totalMRR).toLocaleString()}</p>
+            <p className="text-xl font-bold text-gray-800">₦{Number(totalMRR).toLocaleString()}</p>
           </div>
         </div>
         <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm flex items-center gap-3">

@@ -29,7 +29,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       <p className="font-medium text-gray-700 mb-1">{label}</p>
       {payload.map((entry) => (
         <p key={entry.name} style={{ color: entry.color }}>
-          {entry.name}: {entry.name.toLowerCase().includes('revenue') ? `$${Number(entry.value).toLocaleString()}` : entry.value}
+          {entry.name}: {entry.name.toLowerCase().includes('revenue') ? `₦${Number(entry.value).toLocaleString()}` : entry.value}
         </p>
       ))}
     </div>
@@ -116,7 +116,7 @@ export default function SuperAdminAnalytics() {
               <DollarSign className="w-4 h-4 text-purple-600" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-gray-800">${recentMonthRevenue.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-gray-800">₦{recentMonthRevenue.toLocaleString()}</p>
           {revenueChange !== null && (
             <div className={`flex items-center gap-1 mt-2 text-xs font-medium ${parseFloat(revenueChange) >= 0 ? 'text-green-600' : 'text-red-500'}`}>
               <ArrowUpRight className="w-3 h-3" />
@@ -177,7 +177,7 @@ export default function SuperAdminAnalytics() {
                 tick={{ fontSize: 11, fill: '#9ca3af' }}
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                tickFormatter={(v) => `₦${(v / 1000).toFixed(0)}k`}
               />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="revenue" fill="#3EBF0F" radius={[4, 4, 0, 0]} name="Revenue" />
