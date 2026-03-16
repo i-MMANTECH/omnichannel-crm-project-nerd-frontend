@@ -8,6 +8,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import { Download } from "lucide-react";
 import truncateText from "@/utils/truncateText";
+import UserAvatar from "@/app/components/UserAvatar";
+import Image from "next/image";
+import { Tooltip } from "react-tooltip";
 
 const TicketsTable = ({
     showExportButton = true,
@@ -44,16 +47,62 @@ const TicketsTable = ({
     const [allPriorities, setAllPriorities] = useState([]);
     const [allCategories, setAllCategories] = useState([]);
     const [statusFilterId, setStatusFilterId] = useState(null);
+    const [users, setUsers] = useState([]);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [isFilterActive, setIsFilterActive] = useState(false);
+    const [showMoreUsers, setShowMoreUsers] = useState(false);
+
+    const filterableUsers = users.filter(user => {
+        const email = user?.email || '';
+        return !email.match(/^system_user_\d+@nativetalk\.com$/i);
+    });
 
     const activeStatusName = allStatuses.find(s => s.id === statusFilterId)?.name || null;
 
     useEffect(() => {
         fetchDropdownData();
+        fetchUsers();
     }, []);
 
     useEffect(() => {
         fetchTickets();
-    }, [currentPage, searchQuery, pageSize, statusFilterId]);
+    }, [currentPage, searchQuery, pageSize, statusFilterId, selectedUser]);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (showMoreUsers && !event.target.closest('.relative')) {
+                setShowMoreUsers(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showMoreUsers]);
+
+    const fetchUsers = async () => {
+        try {
+            const { data } = await axiosInstance.get('/users');
+            setUsers(data.results || []);
+        } catch (error) {
+            handleApiError(error);
+        }
+    };
+
+    const handleAssigneeClick = (userId) => {
+        if (selectedUser === userId) {
+            setSelectedUser(null);
+            setIsFilterActive(false);
+        } else {
+            setSelectedUser(userId);
+            setIsFilterActive(true);
+        }
+        setCurrentPage(1);
+    };
+
+    const clearFilter = () => {
+        setSelectedUser(null);
+        setIsFilterActive(false);
+        setCurrentPage(1);
+    };
 
     const fetchTickets = async () => {
         try {
@@ -66,6 +115,10 @@ const TicketsTable = ({
 
             if (enableStatusFiltering && statusFilterId) {
                 params.status = statusFilterId;
+            }
+
+            if (selectedUser) {
+                params.assignee = selectedUser;
             }
 
             const response = await axiosInstance.get('/tickets/list/', { params });
@@ -274,26 +327,115 @@ const TicketsTable = ({
                 ))}
             </div>
 
-            {/* Search Bar */}
-            <div className="flex items-center justify-end gap-4 mb-6">
-                <div className="relative w-full sm:w-auto">
-                    <input
-                        className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow dark:text-slate-200"
-                        placeholder="Search tickets..."
-                        value={searchQuery}
-                        onChange={(e) => {
-                            setSearchQuery(e.target.value);
-                            setCurrentPage(1);
-                        }}
-                    />
-                    <button
-                        className="absolute top-1 right-1 flex items-center rounded py-1 px-2.5 text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 dark:active:bg-black hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
-                        type="button"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                            <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
-                        </svg>
-                    </button>
+            {/* Search Bar + Avatar Filters */}
+            <div className="flex items-center justify-between gap-4 mb-6">
+                {/* User Avatars */}
+                <div className="relative ms-2">
+                    <div className="relative flex items-center">
+                        {filterableUsers.slice(0, 8).map((assignee, index) => {
+                            const tooltipName = `${assignee?.first_name || ''} ${assignee?.last_name || ''}`.trim() || assignee?.email || 'User';
+                            return (
+                                <div
+                                    key={assignee.id}
+                                    className={`cursor-pointer rounded-full transition-all duration-300 flex-shrink-0
+                                        ${selectedUser === assignee.id ? 'ring-2 dark:ring-white ring-gray-500 z-10' : ''}`}
+                                    style={{ marginLeft: index !== 0 ? '-7px' : '0px' }}
+                                    onClick={() => handleAssigneeClick(assignee.id)}
+                                    onMouseEnter={(e) => e.currentTarget.classList.add('z-10')}
+                                    onMouseLeave={(e) => e.currentTarget.classList.remove('z-10')}
+                                    data-tooltip-id={`ticket-tooltip-${assignee.id}`}
+                                >
+                                    {assignee?.image ? (
+                                        <Image
+                                            alt="profile pic"
+                                            className="w-8 h-8 rounded-full border-2 border-white"
+                                            src={assignee.image}
+                                            width={32}
+                                            height={32}
+                                        />
+                                    ) : (
+                                        <UserAvatar
+                                            name={assignee?.first_name ? `${assignee.first_name} ${assignee?.last_name || ''}` : assignee?.email || '--'}
+                                            width="w-8"
+                                            height="h-8"
+                                        />
+                                    )}
+                                    <Tooltip className="mt-1" id={`ticket-tooltip-${assignee.id}`} place="top">
+                                        {tooltipName}
+                                    </Tooltip>
+                                </div>
+                            );
+                        })}
+
+                        {filterableUsers.length > 8 && (
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowMoreUsers(!showMoreUsers)}
+                                    className="ml-2 px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded-full flex-shrink-0 hover:bg-gray-300 dark:hover:bg-gray-600 transition cursor-pointer"
+                                >
+                                    +{filterableUsers.length - 8}
+                                </button>
+                                {showMoreUsers && (
+                                    <div className="absolute top-full left-0 mt-2 w-64 max-h-80 overflow-y-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                                        <div className="p-2">
+                                            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 px-2 py-1">
+                                                More Users ({filterableUsers.length - 8})
+                                            </div>
+                                            {filterableUsers.slice(8).map((assignee) => {
+                                                const tooltipName = `${assignee?.first_name || ''} ${assignee?.last_name || ''}`.trim() || assignee?.email || 'User';
+                                                return (
+                                                    <div
+                                                        key={assignee.id}
+                                                        onClick={() => { handleAssigneeClick(assignee.id); setShowMoreUsers(false); }}
+                                                        className={`flex items-center gap-2 px-2 py-2 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition
+                                                            ${selectedUser === assignee.id ? 'bg-green-50 dark:bg-green-900/20' : ''}`}
+                                                    >
+                                                        {assignee?.image ? (
+                                                            <Image alt="profile pic" className="w-8 h-8 rounded-full" src={assignee.image} width={32} height={32} />
+                                                        ) : (
+                                                            <UserAvatar name={tooltipName} width="w-8" height="h-8" />
+                                                        )}
+                                                        <span className="text-sm flex-1 truncate">{tooltipName}</span>
+                                                        {selectedUser === assignee.id && <span className="text-green-600 text-xs">✓</span>}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    {isFilterActive && (
+                        <button
+                            className="px-3 py-1.5 text-sm bg-gray-200 dark:bg-neutral-800 text-gray-700 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-neutral-700 transition whitespace-nowrap"
+                            onClick={clearFilter}
+                        >
+                            Clear Filter
+                        </button>
+                    )}
+                    <div className="relative w-full sm:w-auto">
+                        <input
+                            className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow dark:text-slate-200"
+                            placeholder="Search tickets..."
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                        />
+                        <button
+                            className="absolute top-1 right-1 flex items-center rounded py-1 px-2.5 text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 dark:active:bg-black hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
+                            type="button"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                                <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -311,6 +453,9 @@ const TicketsTable = ({
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Subject
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Assignee
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Category
@@ -359,6 +504,21 @@ const TicketsTable = ({
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-xs truncate">
                                             {truncateText(ticket.subject)}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                            {ticket.assignees && ticket.assignees.length > 0 ? (
+                                                <div className="flex flex-col gap-0.5">
+                                                    {ticket.assignees.map((a) => (
+                                                        <span key={a.id} className="text-xs">
+                                                            {a.first_name && a.last_name
+                                                                ? `${a.first_name} ${a.last_name}`
+                                                                : a.email}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <span className="text-gray-400">—</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                             <select

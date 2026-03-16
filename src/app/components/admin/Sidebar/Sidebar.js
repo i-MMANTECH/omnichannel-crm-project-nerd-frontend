@@ -202,7 +202,7 @@ function Sidebar() {
               onClick={() => setIsOpen(false)}
 
               href="/admin/team-productivity"
-              className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/team-productivity") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
+              className={`hidden flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/team-productivity") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
             >
               <SquareKanban size={18} />
               <h3 className={`text-sm font-medium`}>
