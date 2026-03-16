@@ -184,11 +184,34 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
     return faFile;
   };
 
+  const stripHtml = (value = "") => {
+    const normalized = String(value)
+      .replace(/<\s*br\s*\/?>/gi, "\n")
+      .replace(/<\/\s*p\s*>/gi, "\n\n");
+
+    if (typeof window !== "undefined" && window.DOMParser) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(normalized, "text/html");
+      return (doc.body.textContent || "").trim();
+    }
+
+    return normalized.replace(/<[^>]*>/g, "").trim();
+  };
+
   function renderMessageContent(msg) {
     const contentType = msg.content_type || "text"; // ✅ fallback for internal messages
 
     if (contentType === "html") {
-      return <div dangerouslySetInnerHTML={{ __html: msg.content }} />;
+      return (
+        <div
+          style={{
+            whiteSpace: "pre-wrap",
+            marginTop: msg.attachments?.length ? "8px" : "0",
+          }}
+        >
+          {stripHtml(msg.content)}
+        </div>
+      );
     }
 
     // WhatsApp markdown formatting
@@ -229,7 +252,7 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
             marginTop: msg.attachments?.length ? "8px" : "0",
           }}
         >
-          {msg.content}
+          {msg?.channel?.name === "Email" ? stripHtml(msg.content) : msg.content}
         </div>
       );
     }
