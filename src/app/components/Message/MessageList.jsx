@@ -56,6 +56,13 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
   const [hoveredUserId, setHoveredUserId] = useState(null);
   const [hoveredChannelId, setHoveredChannelId] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const videoRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
 
   const [pendingPrepend, setPendingPrepend] = useState(false);
   const [prevScrollHeight, setPrevScrollHeight] = useState(0);
@@ -169,6 +176,17 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
     setSelectedImage(null);
   };
 
+  const openVideoModal = (videoUrl) => {
+    setSelectedVideo(videoUrl);
+  };
+
+  const closeVideoModal = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+    setSelectedVideo(null);
+  };
+
   const downloadFile = (fileUrl, fileName) => {
     const link = document.createElement("a");
     link.href = fileUrl;
@@ -203,6 +221,89 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
   };
 
   const containsHtml = (value = "") => /<[a-z][\s\S]*>/i.test(value);
+
+  const getFileExtension = (fileUrl = "") => {
+    const cleanUrl = String(fileUrl).split("?")[0];
+    const parts = cleanUrl.split(".");
+    return parts.length > 1 ? parts.pop().toLowerCase() : "";
+  };
+
+  const isVideoAttachment = (attachment) => {
+    if (!attachment) return false;
+    if (attachment.file_type === "video") return true;
+    const ext = getFileExtension(attachment.file);
+    return ["mp4", "webm", "ogg", "mov", "m4v"].includes(ext);
+  };
+
+  const formatTime = (value) => {
+    if (!Number.isFinite(value)) return "0:00";
+    const minutes = Math.floor(value / 60);
+    const seconds = Math.floor(value % 60);
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    if (videoRef.current.paused) {
+      videoRef.current.play();
+      setIsPlaying(true);
+    } else {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  const handleSeek = (e) => {
+    const value = Number(e.target.value);
+    if (!videoRef.current) return;
+    videoRef.current.currentTime = value;
+    setCurrentTime(value);
+  };
+
+  const handleVolumeChange = (e) => {
+    const value = Number(e.target.value);
+    setVolume(value);
+    if (videoRef.current) {
+      videoRef.current.volume = value;
+    }
+    if (value > 0 && isMuted) {
+      setIsMuted(false);
+      if (videoRef.current) videoRef.current.muted = false;
+    }
+  };
+
+  const toggleMute = () => {
+    if (!videoRef.current) return;
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+    videoRef.current.muted = nextMuted;
+  };
+
+  useEffect(() => {
+    if (!selectedVideo) {
+      setIsPlaying(false);
+      setCurrentTime(0);
+      setDuration(0);
+      setVolume(1);
+      setIsMuted(false);
+      return;
+    }
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.volume = 1;
+      videoRef.current.muted = false;
+    }
+  }, [selectedVideo]);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key !== "Escape") return;
+      if (selectedImage) setSelectedImage(null);
+      if (selectedVideo) closeVideoModal();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [selectedImage, selectedVideo]);
 
   function renderMessageContent(msg) {
     const contentType = msg.content_type || "text"; // ✅ fallback for internal messages
@@ -449,6 +550,26 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                               {msg.attachments.map((attachment, i) => {
                                 const fileType = attachment.file.split('.').pop(); // Extract file extension
                                 const fileName = attachment.file.split('/').pop(); // Extract file name
+                                if (isVideoAttachment(attachment)) {
+                                  return (
+                                    <div key={i} className="relative max-w-[320px]">
+                                      <video
+                                        src={attachment.file}
+                                        className="max-w-[320px] max-h-[240px] rounded-lg cursor-pointer bg-black"
+                                        muted
+                                        playsInline
+                                        onClick={() => openVideoModal(attachment.file)}
+                                      />
+                                      <button
+                                        type="button"
+                                        className="absolute inset-0 flex items-center justify-center text-white text-sm bg-black/30 rounded-lg"
+                                        onClick={() => openVideoModal(attachment.file)}
+                                      >
+                                        Play
+                                      </button>
+                                    </div>
+                                  );
+                                }
                                 return (
                                   <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
                                     <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
@@ -501,6 +622,26 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                                   />
                                 )
                               }
+                              if (isVideoAttachment(attachment)) {
+                                return (
+                                  <div key={i} className="relative max-w-[320px] mb-2">
+                                    <video
+                                      src={attachment.file}
+                                      className="max-w-[320px] max-h-[240px] rounded-lg cursor-pointer bg-black"
+                                      muted
+                                      playsInline
+                                      onClick={() => openVideoModal(attachment.file)}
+                                    />
+                                    <button
+                                      type="button"
+                                      className="absolute inset-0 flex items-center justify-center text-white text-sm bg-black/30 rounded-lg"
+                                      onClick={() => openVideoModal(attachment.file)}
+                                    >
+                                      Play
+                                    </button>
+                                  </div>
+                                );
+                              }
                               else {
                                 return (
                                   <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-2">
@@ -547,6 +688,69 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
             <button className="mt-3 px-4 py-2 bg-white text-gray-800 rounded-lg shadow" onClick={() => downloadFile(selectedImage)}>
               <FontAwesomeIcon icon={faDownload} className="mr-2" /> Download
             </button>
+          </div>
+        </div>
+      )}
+
+      {selectedVideo && (
+        <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-80 z-50" onClick={closeVideoModal}>
+          <div className="relative p-4 w-[90vw] max-w-[960px]" onClick={(e) => e.stopPropagation()}>
+            <button className="absolute top-2 right-2 text-white text-xl" onClick={closeVideoModal}>
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+            <div className="bg-black rounded-lg overflow-hidden">
+              <video
+                ref={videoRef}
+                src={selectedVideo}
+                className="w-full max-h-[70vh] bg-black"
+                playsInline
+                onLoadedMetadata={(e) => {
+                  setDuration(e.currentTarget.duration || 0);
+                }}
+                onTimeUpdate={(e) => {
+                  setCurrentTime(e.currentTarget.currentTime || 0);
+                }}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+              />
+              <div className="flex items-center gap-3 px-3 py-2 bg-[#0D0D12] text-white">
+                <button
+                  type="button"
+                  className="text-sm px-2 py-1 rounded bg-white/10 hover:bg-white/20"
+                  onClick={togglePlay}
+                >
+                  {isPlaying ? "Pause" : "Play"}
+                </button>
+                <span className="text-xs tabular-nums">
+                  {formatTime(currentTime)} / {formatTime(duration)}
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 0}
+                  step="0.1"
+                  value={currentTime}
+                  onChange={handleSeek}
+                  className="flex-1"
+                />
+                <button
+                  type="button"
+                  className="text-sm px-2 py-1 rounded bg-white/10 hover:bg-white/20"
+                  onClick={toggleMute}
+                >
+                  {isMuted ? "Unmute" : "Mute"}
+                </button>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step="0.01"
+                  value={isMuted ? 0 : volume}
+                  onChange={handleVolumeChange}
+                  className="w-24"
+                />
+              </div>
+            </div>
           </div>
         </div>
       )}
