@@ -544,6 +544,30 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                             </div>
                           )}
 
+                          {/* If message contains videos, display them */}
+                          {msg.content_type === "video" && msg.attachments && msg.attachments.length > 0 && (
+                            <div className="flex flex-col gap-2">
+                              {msg.attachments.map((attachment, i) => (
+                                <div key={i} className="relative max-w-[320px]">
+                                  <video
+                                    src={attachment.file}
+                                    className="max-w-[320px] max-h-[240px] rounded-lg cursor-pointer bg-black"
+                                    muted
+                                    playsInline
+                                    onClick={() => openVideoModal(attachment.file)}
+                                  />
+                                  <button
+                                    type="button"
+                                    className="absolute inset-0 flex items-center justify-center text-white text-sm bg-black/30 rounded-lg"
+                                    onClick={() => openVideoModal(attachment.file)}
+                                  >
+                                    Play
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
                           {/* If message contains documents, display them */}
                           {msg.content_type === "document" && msg.attachments && msg.attachments.length > 0 && (
                             <div className="flex flex-col gap-2">
