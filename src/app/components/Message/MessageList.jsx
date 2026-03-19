@@ -369,7 +369,7 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
     }
 
     // If you truly want "image"/"document" to still show msg.content as HTML text
-    if (contentType === "image" || contentType === "document") {
+    if (contentType === "image" || contentType === "document" || contentType === "video") {
       return msg.content ? (
         <div
           style={{
