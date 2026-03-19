@@ -1,0 +1,69 @@
+name: Deploy to Prod
+
+# This workflow runs when you push to the 'main' branch
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # Allows you to manually trigger from GitHub Actions tab
+
+jobs:
+  deploy-prod:
+    name: Deploy to Prod Server
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Get the code from GitHub
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Step 2: Set up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+      
+      # Step 3: Clear npm cache (FIX FOR INTEGRITY ERROR)
+      - name: Clear npm cache
+        run: npm cache clean --force
+        
+      # Step 4: Install dependencies
+      - name: Install dependencies
+        run: npm install --force
+
+      # Step 5: Build the project
+      - name: Build for staging
+        run: npm run build
+        env:
+          NODE_ENV: production
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          NEXT_PUBLIC_WS_BASE_URL: ws-staging.nativetalkcrm.com
+          NEXT_PUBLIC_USER_DOMAIN: join
+          NEXT_PUBLIC_API_URL: https://core-staging.nativetalkcrm.com/api
+
+      # Step 6: Deploy to your staging server
+      - name: Deploy to Prod Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 92.113.26.141
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SERVER_SSH_KEY }}
+          source: ".next,package.json,package-lock.json,public,next.config.js,app,components,context,services,utils"
+          target: /root/omnichannel-crm/prod/omnicrm-frontend
+          strip_components: 0
+      
+      # Step 7: Restart the application on the server
+      - name: Restart application
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 92.113.26.141
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SERVER_SSH_KEY }}
+          script: |
+            cd /root/omnichannel-crm/prod/omnicrm-frontend
+            npm install --force
+            systemctl restart omnicrm-frontend.service 
+            echo "✅ Prod deployment completed!"
+      
+      # Step 8: Check if deployment was successful
+      - name: Deployment notification
+        run: echo "🚀 Prod deployment completed successfully!"
