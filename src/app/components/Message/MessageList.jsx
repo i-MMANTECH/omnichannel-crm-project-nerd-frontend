@@ -204,6 +204,48 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
 
   const containsHtml = (value = "") => /<[a-z][\s\S]*>/i.test(value);
 
+  const normalizePlainEmailContent = (value = "") => {
+    const normalized = String(value).replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
+    if (!normalized) return "";
+
+    return normalized
+      .split(/\n{2,}/)
+      .map((paragraph) =>
+        paragraph
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .join(" ")
+      )
+      .join("\n\n");
+  };
+
+  const renderPlainEmailContent = (content = "", msg) => {
+    const normalizedContent = normalizePlainEmailContent(content);
+
+    return (
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          p: ({ node, ...props }) => (
+            <p
+              style={{
+                whiteSpace: "pre-wrap",
+                marginTop: msg.attachments?.length ? "8px" : "0",
+                marginBottom: "0.75rem",
+              }}
+              {...props}
+            />
+          ),
+          strong: ({ node, ...props }) => <strong className="font-semibold" {...props} />,
+          em: ({ node, ...props }) => <em className="italic" {...props} />,
+        }}
+      >
+        {normalizedContent}
+      </ReactMarkdown>
+    );
+  };
+
   function renderMessageContent(msg) {
     const contentType = msg.content_type || "text"; // ✅ fallback for internal messages
 
@@ -247,13 +289,16 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
 
     // ✅ Normal text (internal messages will land here)
     if (contentType === "text") {
-      if (msg?.channel?.name === "Email" || containsHtml(msg.content)) {
+      if (containsHtml(msg.content)) {
         return (
           <div
             style={{ marginTop: msg.attachments?.length ? "8px" : "0" }}
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
           />
         );
+      }
+      if (msg?.channel?.name === "Email") {
+        return renderPlainEmailContent(msg.content, msg);
       }
       return (
         <div

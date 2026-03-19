@@ -5,6 +5,7 @@ import { useError } from "@/context/ErrorContext";
 import Select from 'react-select';
 import { selectStyles } from "../selectStyles";
 import Modal from "../Modal";
+import EmailComposer from "../Message/EmailComposer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPaperclip,
@@ -19,12 +20,24 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
   const [channels, setChannels] = useState([]);
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [message, setMessage] = useState("Hello! there!!, I'm reaching out to follow up on your recent interest.");
+  const [emailSubject, setEmailSubject] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
   const imageInputRef = useRef(null);
   const fileInputRef = useRef(null);
+  const isEmailChannel = selectedChannel?.label === "Email";
+
+  const resetModalState = () => {
+    setMessage("Hello! there!!, I'm reaching out to follow up on your recent interest.");
+    setEmailSubject("");
+    setSelectedImage(null);
+    setSelectedFile(null);
+    setSelectedChannel(null);
+    if (imageInputRef.current) imageInputRef.current.value = null;
+    if (fileInputRef.current) fileInputRef.current.value = null;
+  };
 
   const handleImageSelect = () => {
     imageInputRef.current?.click();
@@ -89,6 +102,8 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
   useEffect(() => {
     if (isOpen) {
       fetchChannels();
+    } else {
+      resetModalState();
     }
   }, [isOpen]);
 
@@ -105,7 +120,11 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
   };
 
   const handleSendMessage = async () => {
-    if (!selectedChannel || (!message.trim() && !selectedImage && !selectedFile)) return;
+    const plainTextMessage = isEmailChannel
+      ? message.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+      : message.trim();
+
+    if (!selectedChannel || (!plainTextMessage && !selectedImage && !selectedFile && !emailSubject.trim())) return;
   
     setIsLoading(true);
   
@@ -119,7 +138,8 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
   
     formData.append("customer_id", customerId);
     formData.append("channel_id", selectedChannel.value);
-    formData.append("content", message || ""); // fallback in case message is empty but a file is uploaded
+    formData.append("content", message || "");
+    formData.append("subject", isEmailChannel ? emailSubject : "");
     formData.append("content_type", contentType);
   
     if (selectedImage) {
@@ -142,12 +162,7 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
       if (response.status === 201) {
         setIsLoading(false);
         onMessageSent();
-  
-        // Reset UI
-        setMessage("Hello! there!!, I'm reaching out to follow up on your recent interest.");
-        setSelectedImage(null);
-        setSelectedFile(null);
-        setSelectedChannel(null);
+        resetModalState();
       }
     } catch (error) {
       handleApiError(error);
@@ -161,7 +176,7 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
       isOpen={isOpen}
       onClose={onClose}
       title="Initiate a Conversation"
-      width="500px"
+      width={isEmailChannel ? "900px" : "500px"}
       footer={
         <div className="flex gap-3 w-7/12">
           <button 
@@ -185,76 +200,95 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
         <p>Send a message to start a conversation with <strong>{customerName}</strong>.</p>
       </div>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium">Message</label>
-        <textarea
-          className="w-full border body-theme rounded-md p-2 mt-2"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
-      </div>
-
-      {/* Hidden Inputs */}
-      <input
-        type="file"
-        accept="image/*"
-        style={{ display: "none" }}
-        ref={imageInputRef}
-        onChange={handleImageChange}
-      />
-
-      {/* Hidden Inputs */}
-      <input
-        type="file"
-        accept=".pdf,.doc,.docx,.txt,.zip"
-        ref={fileInputRef}
-        style={{ display: "none" }}
-        onChange={handleDocumentChange}
-      />
-
-      {/* Icon Buttons */}
-      <div className="flex gap-3">
-        <div
-          onClick={selectedFile ? undefined : handleImageSelect}
-          className={`w-[50px] h-[50px] flex items-center justify-center rounded-full bg-[#0D0D12] shadow-md border border-gray-600 cursor-pointer ${
-            selectedFile ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-        >
-          <FontAwesomeIcon icon={faImage} className="text-white" />
+      {isEmailChannel ? (
+        <div className="mb-4 border body-theme rounded-md overflow-hidden">
+          <EmailComposer
+            selectedChannel={selectedChannel}
+            subject={emailSubject}
+            onSubjectChange={setEmailSubject}
+            message={message}
+            onMessageChange={setMessage}
+            selectedImages={selectedImage ? [selectedImage] : []}
+            onSelectedImagesChange={(images) => setSelectedImage(images[0] || null)}
+            selectedFiles={selectedFile ? [selectedFile] : []}
+            onSelectedFilesChange={(files) => setSelectedFile(files[0] || null)}
+            hideSendButton
+          />
         </div>
-
-        <div
-          onClick={selectedImage ? undefined : handleFileSelect}
-          className={`w-[50px] h-[50px] flex items-center justify-center rounded-full bg-[#0D0D12] shadow-md border border-gray-600 cursor-pointer ${
-            selectedImage ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-        >
-          <FontAwesomeIcon icon={faPaperclip} className="text-white" />
-        </div>
-      </div>
-
-      {selectedImage && (
-          <div className="image-preview-container">
-            <img
-              src={URL.createObjectURL(selectedImage)}
-              alt="Selected"
-              className="image-preview"
+      ) : (
+        <>
+          <div className="mb-4">
+            <label className="block text-sm font-medium">Message</label>
+            <textarea
+              className="w-full border body-theme rounded-md p-2 mt-2"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
             />
-            <FontAwesomeIcon icon={faTimes} className="remove-image" onClick={removeSelectedImage} />
           </div>
-        )}
 
-       {selectedFile && (
-        <div className="file-preview">
-          <p>
-            {selectedFile.name.length > 50
-              ? selectedFile.name.slice(0, 50) + '...'
-              : selectedFile.name}
-          </p>
-          <button onClick={removeSelectedFile} className="remove-file-btn" title="Remove File">
-            <FontAwesomeIcon icon={faTimes} className="text-red-500" />
-          </button>
-        </div>
+          {/* Hidden Inputs */}
+          <input
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            ref={imageInputRef}
+            onChange={handleImageChange}
+          />
+
+          {/* Hidden Inputs */}
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx,.txt,.zip"
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            onChange={handleDocumentChange}
+          />
+
+          {/* Icon Buttons */}
+          <div className="flex gap-3">
+            <div
+              onClick={selectedFile ? undefined : handleImageSelect}
+              className={`w-[50px] h-[50px] flex items-center justify-center rounded-full bg-[#0D0D12] shadow-md border border-gray-600 cursor-pointer ${
+                selectedFile ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              <FontAwesomeIcon icon={faImage} className="text-white" />
+            </div>
+
+            <div
+              onClick={selectedImage ? undefined : handleFileSelect}
+              className={`w-[50px] h-[50px] flex items-center justify-center rounded-full bg-[#0D0D12] shadow-md border border-gray-600 cursor-pointer ${
+                selectedImage ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              <FontAwesomeIcon icon={faPaperclip} className="text-white" />
+            </div>
+          </div>
+
+          {selectedImage && (
+            <div className="image-preview-container">
+              <img
+                src={URL.createObjectURL(selectedImage)}
+                alt="Selected"
+                className="image-preview"
+              />
+              <FontAwesomeIcon icon={faTimes} className="remove-image" onClick={removeSelectedImage} />
+            </div>
+          )}
+
+          {selectedFile && (
+            <div className="file-preview">
+              <p>
+                {selectedFile.name.length > 50
+                  ? selectedFile.name.slice(0, 50) + '...'
+                  : selectedFile.name}
+              </p>
+              <button onClick={removeSelectedFile} className="remove-file-btn" title="Remove File">
+                <FontAwesomeIcon icon={faTimes} className="text-red-500" />
+              </button>
+            </div>
+          )}
+        </>
       )}
 
 
