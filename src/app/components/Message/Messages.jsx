@@ -296,7 +296,8 @@ export const MessagesContent = () => {
 					(m) =>
 						typeof m.id === "string" &&
 						m.id.startsWith("temp-") &&
-						m.content === msg.content
+						m.status === "sending" &&
+						(m.content || "") === (msg.content || "")
 				);
 				if (tempIndex !== -1) {
 					const copy = [...prev];
@@ -493,10 +494,8 @@ export const MessagesContent = () => {
 						(msg) =>
 							typeof msg.id === "string" &&
 							msg.id.startsWith("temp-") &&
-							msg.content === message.content &&
-							msg.created_at &&
-							new Date(msg.created_at).getTime() <=
-							new Date(message.created_at).getTime() + 500
+							msg.status === "sending" &&
+							(msg.content || "") === (message.content || "")
 					);
 
 					if (alreadyExists) return prevHistory;
@@ -522,7 +521,8 @@ export const MessagesContent = () => {
 						(msg) =>
 							typeof msg.id === "string" &&
 							msg.id.startsWith("temp-") &&
-							msg.content === message.content
+							msg.status === "sending" &&
+							(msg.content || "") === (message.content || "")
 					);
 
 					let updatedHistory = [...existing];

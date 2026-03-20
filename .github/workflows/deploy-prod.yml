@@ -4,7 +4,7 @@ name: Deploy to Prod
 on:
   push:
     branches: [main]
-  workflow_dispatch:  # Allows you to manually trigger from GitHub Actions tab
+  workflow_dispatch:  # Allows to manually trigger from GitHub Actions tab
 
 jobs:
   deploy-prod:
@@ -31,7 +31,7 @@ jobs:
         run: npm install --force
 
       # Step 5: Build the project
-      - name: Build for staging
+      - name: Build for prod
         run: npm run build
         env:
           NODE_ENV: production
@@ -40,7 +40,7 @@ jobs:
           NEXT_PUBLIC_USER_DOMAIN: join
           NEXT_PUBLIC_API_URL: https://core-staging.nativetalkcrm.com/api
 
-      # Step 6: Deploy to your staging server
+      # Step 6: Deploy to prod server
       - name: Deploy to Prod Server
         uses: appleboy/scp-action@v0.1.7
         with:
