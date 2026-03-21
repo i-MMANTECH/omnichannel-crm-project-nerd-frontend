@@ -40,11 +40,23 @@ export const AuthProvider = ({ children }) => {
                 }
             }
 
-            const handleStorageChange = () => {
-                const storedUser = localStorage.getItem('user');
-                const storedCompany = localStorage.getItem('company');
-                setUser(storedUser ? JSON.parse(storedUser) : null);
-                setCompany(storedCompany ? JSON.parse(storedCompany) : null);
+            const handleStorageChange = (e) => {
+                if (e && e.key === 'user') {
+                    setUser(e.newValue ? JSON.parse(e.newValue) : null);
+                } else if (e && e.key === 'company') {
+                    setCompany(e.newValue ? JSON.parse(e.newValue) : null);
+                } else if (!e || !e.key) {
+                    const storedUser = localStorage.getItem('user');
+                    const storedCompany = localStorage.getItem('company');
+                    setUser((prev) => {
+                        const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+                        return JSON.stringify(prev) === JSON.stringify(parsedUser) ? prev : parsedUser;
+                    });
+                    setCompany((prev) => {
+                        const parsedCompany = storedCompany ? JSON.parse(storedCompany) : null;
+                        return JSON.stringify(prev) === JSON.stringify(parsedCompany) ? prev : parsedCompany;
+                    });
+                }
             };
 
             window.addEventListener('storage', handleStorageChange);

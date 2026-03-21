@@ -235,6 +235,13 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
     return ["mp4", "webm", "ogg", "mov", "m4v"].includes(ext);
   };
 
+  const isAudioAttachment = (attachment) => {
+    if (!attachment) return false;
+    if (attachment.file_type === "audio" || attachment.content_type === "audio") return true;
+    const ext = getFileExtension(attachment.file);
+    return ["mp3", "wav", "oga", "ogg", "m4a", "aac"].includes(ext);
+  };
+
   const formatTime = (value) => {
     if (!Number.isFinite(value)) return "0:00";
     const minutes = Math.floor(value / 60);
@@ -369,7 +376,7 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
     }
 
     // If you truly want "image"/"document" to still show msg.content as HTML text
-    if (contentType === "image" || contentType === "document" || contentType === "video") {
+    if (contentType === "image" || contentType === "document" || contentType === "video" || contentType === "audio") {
       return msg.content ? (
         <div
           style={{
@@ -594,6 +601,16 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                                     </div>
                                   );
                                 }
+                                if (isAudioAttachment(attachment)) {
+                                  return (
+                                    <audio
+                                      key={i}
+                                      controls
+                                      className="max-w-[250px] sm:max-w-[320px]"
+                                      src={attachment.file}
+                                    />
+                                  );
+                                }
                                 return (
                                   <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
                                     <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
@@ -607,6 +624,20 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                                   </div>
                                 );
                               })}
+                            </div>
+                          )}
+
+                          {/* If message contains audio, display them */}
+                          {msg.content_type === "audio" && msg.attachments && msg.attachments.length > 0 && (
+                            <div className="flex flex-col gap-2">
+                              {msg.attachments.map((attachment, i) => (
+                                <audio
+                                  key={i}
+                                  controls
+                                  className="max-w-[250px] sm:max-w-[320px]"
+                                  src={attachment.file}
+                                />
+                              ))}
                             </div>
                           )}
 
@@ -664,6 +695,16 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                                       Play
                                     </button>
                                   </div>
+                                );
+                              }
+                              if (isAudioAttachment(attachment)) {
+                                return (
+                                  <audio
+                                    key={i}
+                                    controls
+                                    className="max-w-[250px] sm:max-w-[320px] mb-2"
+                                    src={attachment.file}
+                                  />
                                 );
                               }
                               else {
