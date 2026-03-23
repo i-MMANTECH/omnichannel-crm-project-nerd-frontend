@@ -122,6 +122,13 @@ const EmailComposer = ({
       subject: subject.trim(),
       text: message.trim(),
       channel_id: selectedChannel?.value,
+      channel: selectedChannel
+        ? {
+            id: selectedChannel.value,
+            name: selectedChannel.label,
+            image: selectedChannel.image,
+          }
+        : null,
       file: selectedFiles.length > 0 ? selectedFiles : null,
       image: selectedImages.length > 0 ? selectedImages : null,
     };

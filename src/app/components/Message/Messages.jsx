@@ -1090,9 +1090,11 @@ export const MessagesContent = () => {
 		}
 
 		const formData = new FormData();
-		const contentType = messageContent?.file
+		const hasFiles = Array.isArray(messageContent?.file) && messageContent.file.length > 0;
+		const hasImages = Array.isArray(messageContent?.image) && messageContent.image.length > 0;
+		const contentType = hasFiles
 			? "document"
-			: messageContent?.image
+			: hasImages
 				? "image"
 				: "text";
 
@@ -1100,19 +1102,19 @@ export const MessagesContent = () => {
 		formData.append("subject", messageContent?.subject)
 		formData.append("content_type", contentType);
 
-		if (messageContent?.file?.length > 0) {
+		if (hasFiles) {
 			// Append files as 'document'
 			messageContent.file.forEach(file => {
 				formData.append('document', file);
 			});
 
 			// Also append images as 'document' when files are present
-			if (messageContent?.image?.length > 0) {
+			if (hasImages) {
 				messageContent.image.forEach(img => {
 					formData.append('document', img);
 				});
 			}
-		} else if (messageContent?.image?.length > 0) {
+		} else if (hasImages) {
 			// Only images, append them as 'image'
 			messageContent.image.forEach(img => {
 				formData.append('image', img);
@@ -1123,6 +1125,8 @@ export const MessagesContent = () => {
 			id: `temp-${new Date().getTime()}`,
 			content: messageContent.text,
 			content_type: contentType,
+			subject: messageContent?.subject,
+			channel: messageContent?.channel || null,
 			image: messageContent?.image,
 			document: messageContent?.file,
 			created_at: new Date().toISOString(),

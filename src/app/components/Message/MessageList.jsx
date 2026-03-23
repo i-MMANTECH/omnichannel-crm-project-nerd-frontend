@@ -184,6 +184,30 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
     return faFile;
   };
 
+  const getMessageAttachments = (msg) => {
+    if (Array.isArray(msg?.attachments) && msg.attachments.length > 0) {
+      return msg.attachments;
+    }
+
+    const imageAttachments = Array.isArray(msg?.image)
+      ? msg.image.map((file) => ({
+          file: typeof file === "string" ? file : URL.createObjectURL(file),
+          file_type: "image",
+          name: file?.name,
+        }))
+      : [];
+
+    const documentAttachments = Array.isArray(msg?.document)
+      ? msg.document.map((file) => ({
+          file: typeof file === "string" ? file : URL.createObjectURL(file),
+          file_type: "document",
+          name: file?.name,
+        }))
+      : [];
+
+    return [...imageAttachments, ...documentAttachments];
+  };
+
   const sanitizeHtml = (value = "") => {
     if (typeof window === "undefined") return value;
     const parser = new DOMParser();
@@ -203,6 +227,10 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
   };
 
   const containsHtml = (value = "") => /<[a-z][\s\S]*>/i.test(value);
+  const isEmailMessage = (msg) =>
+    msg?.channel?.name === "Email" ||
+    msg?.channel?.id === 7 ||
+    (typeof msg?.subject === "string" && msg.subject.trim().length > 0);
 
   const normalizePlainEmailContent = (value = "") => {
     const normalized = String(value).replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
@@ -222,6 +250,7 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
 
   const renderPlainEmailContent = (content = "", msg) => {
     const normalizedContent = normalizePlainEmailContent(content);
+    const attachmentCount = getMessageAttachments(msg).length;
 
     return (
       <ReactMarkdown
@@ -231,7 +260,7 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
             <p
               style={{
                 whiteSpace: "pre-wrap",
-                marginTop: msg.attachments?.length ? "8px" : "0",
+                marginTop: attachmentCount ? "8px" : "0",
                 marginBottom: "0.75rem",
               }}
               {...props}
@@ -247,12 +276,14 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
   };
 
   function renderMessageContent(msg) {
+    const isEmail = isEmailMessage(msg);
+    const contentHasHtml = containsHtml(msg.content);
     const contentType = msg.content_type || "text"; // ✅ fallback for internal messages
 
     if (contentType === "html") {
       return (
         <div
-          style={{ marginTop: msg.attachments?.length ? "8px" : "0" }}
+          style={{ marginTop: getMessageAttachments(msg).length ? "8px" : "0" }}
           dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
         />
       );
@@ -275,7 +306,7 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
               <p
                 style={{
                   whiteSpace: "pre-wrap",
-                  marginTop: msg.attachments?.length ? "8px" : "0",
+                  marginTop: getMessageAttachments(msg).length ? "8px" : "0",
                 }}
                 {...props}
               />
@@ -289,22 +320,22 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
 
     // ✅ Normal text (internal messages will land here)
     if (contentType === "text") {
-      if (containsHtml(msg.content)) {
+      if (contentHasHtml) {
         return (
           <div
-            style={{ marginTop: msg.attachments?.length ? "8px" : "0" }}
+            style={{ marginTop: getMessageAttachments(msg).length ? "8px" : "0" }}
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
           />
         );
       }
-      if (msg?.channel?.name === "Email") {
+      if (isEmail) {
         return renderPlainEmailContent(msg.content, msg);
       }
       return (
         <div
           style={{
             whiteSpace: "pre-wrap",
-            marginTop: msg.attachments?.length ? "8px" : "0",
+            marginTop: getMessageAttachments(msg).length ? "8px" : "0",
           }}
         >
           {msg.content}
@@ -314,11 +345,24 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
 
     // If you truly want "image"/"document" to still show msg.content as HTML text
     if (contentType === "image" || contentType === "document") {
+      if (isEmail) {
+        if (contentHasHtml) {
+          return (
+            <div
+              style={{ marginTop: getMessageAttachments(msg).length ? "8px" : "0" }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
+            />
+          );
+        }
+
+        return renderPlainEmailContent(msg.content, msg);
+      }
+
       return msg.content ? (
         <div
           style={{
             whiteSpace: "pre-wrap",
-            marginTop: msg.attachments?.length ? "8px" : "0",
+            marginTop: getMessageAttachments(msg).length ? "8px" : "0",
           }}
         >
           {msg.content}
@@ -362,6 +406,9 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
       onScroll={handleScroll}
     >
       {chatHistory.map((msg, index) => {
+        const attachments = getMessageAttachments(msg);
+        const imageAttachments = attachments.filter((attachment) => attachment?.file_type == 'image');
+        const documentAttachments = attachments.filter((attachment) => attachment?.file_type != 'image');
         const isSystemMessage = msg.is_system_message;
         const isOutgoing =
           chatType === "internal"
@@ -470,10 +517,9 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
 
                         {/* Handle Different Content Types */}
                         <div className="flex flex-col">
-                          {/* If message contains images, display them first */}
-                          {msg.content_type === "image" && msg.attachments && msg.attachments.length > 0 && (
+                          {imageAttachments.length > 0 && (
                             <div className="flex flex-wrap gap-2">
-                              {msg.attachments.map((attachment, i) => (
+                              {imageAttachments.map((attachment, i) => (
                                 <Image
                                   key={i}
                                   loader={() => attachment.file}
@@ -488,12 +534,11 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                             </div>
                           )}
 
-                          {/* If message contains documents, display them */}
-                          {msg.content_type === "document" && msg.attachments && msg.attachments.length > 0 && (
+                          {documentAttachments.length > 0 && (
                             <div className="flex flex-col gap-2">
-                              {msg.attachments.map((attachment, i) => {
+                              {documentAttachments.map((attachment, i) => {
                                 const fileType = attachment.file.split('.').pop(); // Extract file extension
-                                const fileName = attachment.file.split('/').pop(); // Extract file name
+                                const fileName = attachment.name || attachment.file.split('/').pop(); // Extract file name
                                 return (
                                   <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
                                     <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
@@ -524,13 +569,12 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                       <div>
                         {/* Show text content below images or documents if present */}
                         {renderMessageContent(msg)}
-                        {/* If message contains documents, display them */}
-                        {msg.attachments && msg.attachments.length > 0 && (
+                        {attachments.length > 0 && (
                           <div className="flex flex-col gap-2">
-                            <div className="mt-10 mb-2 font-semibold underline">{msg.attachments.length == 1 ? 'Attachment' : 'Attachments'}</div>
-                            {msg.attachments.map((attachment, i) => {
+                            <div className="mt-10 mb-2 font-semibold underline">{attachments.length == 1 ? 'Attachment' : 'Attachments'}</div>
+                            {attachments.map((attachment, i) => {
                               const fileType = attachment.file.split('.').pop();
-                              const fileName = attachment.file.split('/').pop();
+                              const fileName = attachment.name || attachment.file.split('/').pop();
 
                               if (attachment.file_type == 'image') {
                                 return (
