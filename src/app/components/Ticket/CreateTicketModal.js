@@ -205,9 +205,8 @@ const CreateTicketModal = ({
       const payload = {
         subject: subject.trim(),
         description: description.trim(),
-        // Use customer_id if a customer was selected, otherwise use customer_name
         ...(selectedCustomer
-          ? { contact_id: selectedCustomer.id }
+          ? { customer_name: selectedCustomer.name }
           : customer.trim()
             ? { customer_name: customer.trim() }
             : {}
