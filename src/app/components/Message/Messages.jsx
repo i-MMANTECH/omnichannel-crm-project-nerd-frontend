@@ -19,6 +19,11 @@ import Modal from "../Modal";
 import CreateTicketModal from "../Ticket/CreateTicketModal";
 import useWebSocket from "@/context/useWebsocket";
 import getBaseRoute from "@/utils/getBaseRoute";
+import {
+	deleteFailedMessageRecord,
+	getFailedMessageRecords,
+	saveFailedMessageRecord,
+} from "@/utils/failedMessagesStore";
 
 // --- GLOBAL CACHE START ---
 // These persist across Next.js component unmounts but reset on hard refresh.
@@ -38,6 +43,29 @@ let globalPaginationCache = {
 
 let globalMessagePaginationCache = {};
 // --- GLOBAL CACHE END ---
+
+const getFailedMessageChatKey = (chatType, userId) => `${chatType}:${userId}`;
+
+const mergeFailedMessagesIntoHistory = (history = [], failedRecords = []) => {
+	const merged = [...history];
+	const existingIds = new Set(history.map((message) => String(message.id)));
+
+	failedRecords.forEach((record) => {
+		const failedMessage = {
+			...record.message,
+			status: record.message?.status === "sending" ? "failed" : record.message?.status || "failed",
+		};
+
+		if (!existingIds.has(String(failedMessage.id))) {
+			merged.push(failedMessage);
+			existingIds.add(String(failedMessage.id));
+		}
+	});
+
+	return merged.sort(
+		(a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
+	);
+};
 
 const normalizeInternalChat = (chat, myUserId) => {
 	// chat.other_member exists in your POST response, and is usually returned on list too
@@ -170,6 +198,23 @@ export const MessagesContent = () => {
 
 	const [showInternalModal, setShowInternalModal] = useState(false);
 	const [internalUserSearch, setInternalUserSearch] = useState("");
+
+	const loadFailedMessagesForChat = async (type, userId, baseHistory = []) => {
+		if (!userId) {
+			return baseHistory;
+		}
+
+		const failedRecords = await getFailedMessageRecords(getFailedMessageChatKey(type, userId));
+		return mergeFailedMessagesIntoHistory(baseHistory, failedRecords);
+	};
+
+	const persistFailedMessage = async (record) => {
+		await saveFailedMessageRecord(record);
+	};
+
+	const removePersistedFailedMessage = async (messageId) => {
+		await deleteFailedMessageRecord(messageId);
+	};
 
 
 	useEffect(() => {
@@ -875,7 +920,8 @@ export const MessagesContent = () => {
 
 		const cachedHistory = cachedData[chatType]?.histories[activeUser.id];
 		if (cachedHistory) {
-			setChatHistory(cachedHistory);
+			const mergedCachedHistory = await loadFailedMessagesForChat(chatType, activeUser.id, cachedHistory);
+			setChatHistory(mergedCachedHistory);
 			// Restore message pagination from global cache
 			if (globalMessagePaginationCache[activeUser.id]) {
 				setPageMessages(globalMessagePaginationCache[activeUser.id].pageMessages);
@@ -917,7 +963,11 @@ export const MessagesContent = () => {
 			if (currentTabRef.current === requestChatType && activeUser?.id === requestUserId) {
 				if (requestChatType === "internal") {
 					const msgs = response?.data?.messages || [];
-					const newHistory = msgs.slice().reverse();
+					const newHistory = await loadFailedMessagesForChat(
+						requestChatType,
+						requestUserId,
+						msgs.slice().reverse()
+					);
 
 					setCachedData((prev) => ({
 						...prev,
@@ -932,7 +982,11 @@ export const MessagesContent = () => {
 					return;
 				}
 
-				const newHistory = response.data.results.reverse() || [];
+				const newHistory = await loadFailedMessagesForChat(
+					requestChatType,
+					requestUserId,
+					response.data.results.reverse() || []
+				);
 
 				setCachedData(prev => ({
 					...prev,
@@ -1035,36 +1089,62 @@ export const MessagesContent = () => {
 		}
 	};
 
-	const handleSendMessage = (messageContent) => {
+	const sendMessageRequest = async (messageContent, options = {}) => {
+		if (!activeUser?.id) {
+			return;
+		}
+
+		const messageId = options.messageId || `temp-${Date.now()}`;
+		const createdAt = options.createdAt || new Date().toISOString();
+		const failedRecord = {
+			id: messageId,
+			chatKey: getFailedMessageChatKey(chatType, activeUser.id),
+			request: messageContent,
+			message: null,
+		};
+
 		if (chatType === "internal") {
 			const tempMessage = {
-				id: `temp-${Date.now()}`,
+				id: messageId,
 				content: messageContent.text || "",
-				created_at: new Date().toISOString(),
-				sender: userProfile,          // matches backend response structure
+				created_at: createdAt,
+				sender: userProfile,
 				status: "sending",
 			};
 
-			setChatHistory((prev) => [...prev, tempMessage]);
+			failedRecord.message = tempMessage;
+			await persistFailedMessage(failedRecord);
+
+			setChatHistory((prev) => {
+				const exists = prev.some((message) => message.id === messageId);
+				if (exists) {
+					return prev.map((message) =>
+						message.id === messageId ? tempMessage : message
+					);
+				}
+
+				return [...prev, tempMessage];
+			});
 			setIsScrolledUp(false);
 
 			axiosInstance
 				.post(`/internal-messaging/chats/${activeUser.id}/messages/`, {
 					content: messageContent.text || "",
 				}, { showLoader: false })
-				.then((res) => {
+				.then(async (res) => {
 					const real = res?.data?.data;
 
 					if (!real) return;
 
+					await removePersistedFailedMessage(messageId);
+
 					setChatHistory((prev) =>
-						prev.map((m) => (m.id === tempMessage.id ? real : m))
+						prev.map((message) => (message.id === messageId ? real : message))
 					);
 
-					// update left list preview
 					setUsers((prev) => {
 						const current = prev?.results || [];
-						const idx = current.findIndex((c) => c.id === activeUser.id);
+						const idx = current.findIndex((chat) => chat.id === activeUser.id);
 						if (idx === -1) return prev;
 
 						const updated = [...current];
@@ -1074,15 +1154,22 @@ export const MessagesContent = () => {
 							lastMessageTime: real.created_at,
 						};
 
-						// move to top like WhatsApp
-						const moved = [updated[idx], ...updated.filter((x) => x.id !== activeUser.id)];
+						const moved = [updated[idx], ...updated.filter((chat) => chat.id !== activeUser.id)];
 						return { ...prev, results: moved };
 					});
 				})
-				.catch((error) => {
+				.catch(async (error) => {
+					const failedMessage = { ...tempMessage, status: "failed" };
+					await persistFailedMessage({ ...failedRecord, message: failedMessage });
+
 					setChatHistory((prev) =>
-						prev.map((m) => (m.id === tempMessage.id ? { ...m, status: "failed" } : m))
+						prev.map((message) =>
+							message.id === messageId ? failedMessage : message
+						)
 					);
+					if (isCancelError(error)) {
+						return;
+					}
 					handleApiError(error);
 				});
 
@@ -1097,35 +1184,34 @@ export const MessagesContent = () => {
 				: "text";
 
 		formData.append("content", messageContent.text || "");
-		formData.append("subject", messageContent?.subject)
+		formData.append("subject", messageContent?.subject || "");
 		formData.append("content_type", contentType);
 
 		if (messageContent?.file?.length > 0) {
-			// Append files as 'document'
-			messageContent.file.forEach(file => {
-				formData.append('document', file);
+			messageContent.file.forEach((file) => {
+				formData.append("document", file);
 			});
 
-			// Also append images as 'document' when files are present
 			if (messageContent?.image?.length > 0) {
-				messageContent.image.forEach(img => {
-					formData.append('document', img);
+				messageContent.image.forEach((img) => {
+					formData.append("document", img);
 				});
 			}
 		} else if (messageContent?.image?.length > 0) {
-			// Only images, append them as 'image'
-			messageContent.image.forEach(img => {
-				formData.append('image', img);
+			messageContent.image.forEach((img) => {
+				formData.append("image", img);
 			});
 		}
 
 		const tempMessage = {
-			id: `temp-${new Date().getTime()}`,
+			id: messageId,
 			content: messageContent.text,
 			content_type: contentType,
+			channel: messageContent?.channel || null,
+			subject: messageContent?.subject || "",
 			image: messageContent?.image,
 			document: messageContent?.file,
-			created_at: new Date().toISOString(),
+			created_at: createdAt,
 			status: "sending",
 			user_sender: userProfile?.id,
 			company: company,
@@ -1133,8 +1219,19 @@ export const MessagesContent = () => {
 			company_is_sender: true,
 		};
 
-		// Show temp message instantly in UI
-		setChatHistory((prevHistory) => [...prevHistory, tempMessage]);
+		failedRecord.message = tempMessage;
+		await persistFailedMessage(failedRecord);
+
+		setChatHistory((prevHistory) => {
+			const exists = prevHistory.some((message) => message.id === messageId);
+			if (exists) {
+				return prevHistory.map((message) =>
+					message.id === messageId ? tempMessage : message
+				);
+			}
+
+			return [...prevHistory, tempMessage];
+		});
 		setIsScrolledUp(false);
 
 		let url = "/communication/";
@@ -1148,32 +1245,52 @@ export const MessagesContent = () => {
 			formData.append("lead_id", activeUser.id);
 		}
 
-		for (let [key, value] of formData.entries()) {
-			// console.log(`${key}:`, value);
-		}
-
 		axiosInstance
 			.post(url, formData, {
 				headers: { "Content-Type": "multipart/form-data" },
 				showLoader: false,
 			})
-			.then(() => {
-				// No need to manually replace temp message.
-				// The WebSocket will handle the correct update.
+			.then(async () => {
+				await removePersistedFailedMessage(messageId);
 			})
-			.catch((error) => {
-				// Mark the temp message as failed
+			.catch(async (error) => {
+				const failedMessage = { ...tempMessage, status: "failed" };
+				await persistFailedMessage({ ...failedRecord, message: failedMessage });
+
 				setChatHistory((prevHistory) =>
-					prevHistory.map((msg) =>
-						msg.id === tempMessage.id ? { ...msg, status: "failed" } : msg
+					prevHistory.map((message) =>
+						message.id === messageId ? failedMessage : message
 					)
 				);
 				if (isCancelError(error)) {
-					// console.log('cr');
-				} else {
-					handleApiError(error);
+					return;
 				}
+				handleApiError(error);
 			});
+	};
+
+	const handleSendMessage = (messageContent) => {
+		sendMessageRequest(messageContent);
+	};
+
+	const handleRetryFailedMessage = async (message) => {
+		if (!activeUser?.id || !message?.id) {
+			return;
+		}
+
+		const failedRecords = await getFailedMessageRecords(
+			getFailedMessageChatKey(chatType, activeUser.id)
+		);
+		const failedRecord = failedRecords.find((record) => record.id === message.id);
+
+		if (!failedRecord?.request) {
+			return;
+		}
+
+		await sendMessageRequest(failedRecord.request, {
+			messageId: failedRecord.id,
+			createdAt: failedRecord.message?.created_at || message.created_at,
+		});
 	};
 
 	const fetchChannelsData = async () => {
@@ -1580,6 +1697,7 @@ export const MessagesContent = () => {
 									next={nextMessages}
 									chatType={chatType}
 									currentUserId={userProfile?.id}
+									onRetryFailedMessage={handleRetryFailedMessage}
 								/>
 
 								{/* Ticket Panel */}

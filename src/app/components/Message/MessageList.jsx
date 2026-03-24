@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Dot } from "lucide-react";
+import Modal from "../Modal";
 
 
 
@@ -49,7 +50,7 @@ const getSmartTimestamp = (messageDate) => {
   return `${shortDateWithYear}, ${timeString}`; // "2/11/22, 2:50 PM"
 };
 
-const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMoreMessages, isFetchingMore, isScrolledUp, setIsScrolledUp, next, chatType, currentUserId }) => {
+const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMoreMessages, isFetchingMore, isScrolledUp, setIsScrolledUp, next, chatType, currentUserId, onRetryFailedMessage }) => {
   const messageEndRef = useRef(null);
   const listRef = useRef(null);
   const router = useRouter();
@@ -57,6 +58,7 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
   const [hoveredChannelId, setHoveredChannelId] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [messageToRetry, setMessageToRetry] = useState(null);
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -165,6 +167,12 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
       default:
         return null;
     }
+  };
+
+  const handleRetryClick = (message, event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setMessageToRetry(message);
   };
 
 
@@ -733,7 +741,19 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                   <p className="message-time">
                     {getSmartTimestamp(msg.created_at)}
                   </p>
-                  {isOutgoing && getIconForStatus(msg.status)}
+                  {isOutgoing && msg.status === "failed" ? (
+                    <button
+                      type="button"
+                      className="ms-2 inline-flex items-center gap-1 rounded-full border border-red-300 bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-600 shadow-sm hover:bg-red-100"
+                      onClick={(event) => handleRetryClick(msg, event)}
+                      title="Message failed. Click to retry."
+                    >
+                      <FontAwesomeIcon style={{ fontSize: 12 }} icon={faCircleExclamation} />
+                      <span>Failed. Retry</span>
+                    </button>
+                  ) : (
+                    isOutgoing && getIconForStatus(msg.status)
+                  )}
                 </div>
               </div>
             }
@@ -819,6 +839,40 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={!!messageToRetry}
+        onClose={() => setMessageToRetry(null)}
+        title="Retry Message"
+        width="420px"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setMessageToRetry(null)}
+              className="px-4 py-2 body-theme rounded-md border border-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (messageToRetry && onRetryFailedMessage) {
+                  onRetryFailedMessage(messageToRetry);
+                }
+                setMessageToRetry(null);
+              }}
+              className="px-4 py-2 bg-[#3EBF0F] text-white rounded-md"
+            >
+              Retry
+            </button>
+          </>
+        }
+      >
+        <p className="text-sm leading-6">
+          This message could not be sent. Retry sending it now?
+        </p>
+      </Modal>
     </div>
   );
 };
