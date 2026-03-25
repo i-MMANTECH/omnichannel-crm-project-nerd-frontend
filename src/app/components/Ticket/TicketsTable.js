@@ -458,6 +458,9 @@ const TicketsTable = ({
                                     Assignee
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Followers
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Category
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -477,7 +480,7 @@ const TicketsTable = ({
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={showDueDateColumn ? "9" : "8"} className="px-6 py-4 text-center">
+                                    <td colSpan={showDueDateColumn ? "10" : "9"} className="px-6 py-4 text-center">
                                         <div className="flex justify-center">
                                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
                                         </div>
@@ -485,7 +488,7 @@ const TicketsTable = ({
                                 </tr>
                             ) : tickets.length === 0 ? (
                                 <tr>
-                                    <td colSpan={showDueDateColumn ? "9" : "8"} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                    <td colSpan={showDueDateColumn ? "10" : "9"} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                                         No tickets found
                                     </td>
                                 </tr>
@@ -513,6 +516,21 @@ const TicketsTable = ({
                                                             {a.first_name && a.last_name
                                                                 ? `${a.first_name} ${a.last_name}`
                                                                 : a.email}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <span className="text-gray-400">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                            {ticket.followers && ticket.followers.length > 0 ? (
+                                                <div className="flex flex-col gap-0.5">
+                                                    {ticket.followers.map((f, idx) => (
+                                                        <span key={f.id || idx} className="text-xs">
+                                                            {f.first_name && f.last_name
+                                                                ? `${f.first_name} ${f.last_name}`
+                                                                : f.email}
                                                         </span>
                                                     ))}
                                                 </div>

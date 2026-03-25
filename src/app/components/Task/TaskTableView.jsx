@@ -179,6 +179,28 @@ export default function TableView({
                   className="w-[16px] h-[16px] shrink-0"
                 >
                   <path
+                    d="M9.33337 9.33333H6.66671C4.82576 9.33333 3.33337 10.8257 3.33337 12.6667V13.3333C3.33337 13.7015 3.63185 14 4.00004 14H12C12.3682 14 12.6667 13.7015 12.6667 13.3333V12.6667C12.6667 10.8257 11.1743 9.33333 9.33337 9.33333Z"
+                    stroke="#808897"
+                  />
+                  <path
+                    d="M8.00004 7.33333C9.4728 7.33333 10.6667 6.13943 10.6667 4.66667C10.6667 3.19391 9.4728 2 8.00004 2C6.52728 2 5.33337 3.19391 5.33337 4.66667C5.33337 6.13943 6.52728 7.33333 8.00004 7.33333Z"
+                    stroke="#808897"
+                  />
+                </svg>
+                <span>Followers</span>
+              </div>
+            </th>
+            <th className="text-left font-medium leading-[21px] tracking-[0.2px]">
+              <div className="flex items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  className="w-[16px] h-[16px] shrink-0"
+                >
+                  <path
                     d="M5.33333 2.00016H4C2.89543 2.00016 2 2.89559 2 4.00016V6.00016M5.33333 2.00016V1.3335M5.33333 2.00016H10.6667M5.33333 2.00016V2.66683M10.6667 2.00016H12C13.1046 2.00016 14 2.89559 14 4.00016V6.00016M10.6667 2.00016V1.3335M10.6667 2.00016V2.66683M2 6.00016V12.6668C2 13.7714 2.89543 14.6668 4 14.6668H12C13.1046 14.6668 14 13.7714 14 12.6668V6.00016M2 6.00016H14M9 8.3335H11L9.33333 11.6668M7 9.3335V10.6668C7 11.2191 6.55228 11.6668 6 11.6668C5.44772 11.6668 5 11.2191 5 10.6668V9.3335C5 8.78121 5.44772 8.3335 6 8.3335C6.55228 8.3335 7 8.78121 7 9.3335Z"
                     stroke="#808897"
                     strokeLinecap="round"
@@ -225,35 +247,76 @@ export default function TableView({
               </td>
               <td className="px-4 py-2">
                 <div className="flex flex-col gap-1.5">
-                  {task.assignees && task.assignees.map((assignee, index) => {
-                    const assigneeName = getAssigneeName(assignee);
-                    const truncatedName = assigneeName.length > 12 ? `${assigneeName.substring(0, 12)}...` : assigneeName;
+                  {task.assignees && task.assignees.length > 0 ? (
+                    task.assignees.map((assignee, index) => {
+                      const assigneeName = getAssigneeName(assignee);
+                      const truncatedName = assigneeName.length > 12 ? `${assigneeName.substring(0, 12)}...` : assigneeName;
 
-                    if (assignee?.image) {
-                      return (
-                        <div key={index} className="flex items-center gap-2">
-                          <Image
-                            alt="profile pic"
-                            className="w-9 h-9 rounded-full border-2 border-white"
-                            src={assignee.image}
-                            width={24}
-                            height={24}
-                          />
-                          <span className="text-sm">{truncatedName}</span>
-                        </div>
-                      );
-                    } else {
-                      return (
-                        <div key={index} className="flex items-center gap-2">
-                          <UserAvatar
-                            className="border-white border-2"
-                            name={assigneeName}
-                          />
-                          <span className="text-sm">{truncatedName}</span>
-                        </div>
-                      );
-                    }
-                  })}
+                      if (assignee?.image) {
+                        return (
+                          <div key={index} className="flex items-center gap-2">
+                            <Image
+                              alt="profile pic"
+                              className="w-9 h-9 rounded-full border-2 border-white"
+                              src={assignee.image}
+                              width={24}
+                              height={24}
+                            />
+                            <span className="text-sm">{truncatedName}</span>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div key={index} className="flex items-center gap-2">
+                            <UserAvatar
+                              className="border-white border-2"
+                              name={assigneeName}
+                            />
+                            <span className="text-sm">{truncatedName}</span>
+                          </div>
+                        );
+                      }
+                    })
+                  ) : (
+                    <span className="text-gray-400">—</span>
+                  )}
+                </div>
+              </td>
+              <td className="px-4 py-2">
+                <div className="flex flex-col gap-1.5 min-w-[120px]">
+                  {task.followers && task.followers.length > 0 ? (
+                    task.followers.map((follower, index) => {
+                      const followerName = getAssigneeName(follower);
+                      const truncatedName = followerName.length > 12 ? `${followerName.substring(0, 12)}...` : followerName;
+
+                      if (follower?.image) {
+                        return (
+                          <div key={index} className="flex items-center gap-2">
+                            <Image
+                              alt="profile pic"
+                              className="w-9 h-9 rounded-full border-2 border-white"
+                              src={follower.image}
+                              width={24}
+                              height={24}
+                            />
+                            <span className="text-sm">{truncatedName}</span>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div key={index} className="flex items-center gap-2">
+                            <UserAvatar
+                              className="border-white border-2"
+                              name={followerName}
+                            />
+                            <span className="text-sm">{truncatedName}</span>
+                          </div>
+                        );
+                      }
+                    })
+                  ) : (
+                    <span className="text-gray-400">—</span>
+                  )}
                 </div>
               </td>
               <td className="px-4 py-2">
