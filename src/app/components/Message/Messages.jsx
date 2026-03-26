@@ -1685,29 +1685,30 @@ export const MessagesContent = () => {
 								showTicketPanel={!isInternalTab ? showTicketPanel : false}
 								baseRoute={baseRoute}
 							/>
-							<div className="flex items-center ">
-								<MessageList
-									chatHistory={chatHistory}
-									isLoadingHistory={isLoadingHistory}
-									inputIsEmailMode={inputIsEmailMode}
-									loadMoreMessages={loadMoreMessages}
-									isFetchingMore={isFetchingMoreMessages}
-									isScrolledUp={isScrolledUp}
-									setIsScrolledUp={setIsScrolledUp}
-									next={nextMessages}
-									chatType={chatType}
-									currentUserId={userProfile?.id}
-									onRetryFailedMessage={handleRetryFailedMessage}
-								/>
-
-								{/* Ticket Panel */}
-								{chatType !== "internal" && showTicketPanel && (
-									<TicketListPanel
-										conversationId={chatResponse?.conversation_id}
-										isVisible={showTicketPanel}
+							<div className="flex flex-col">
+								<div className="flex items-center">
+									<MessageList
+										chatHistory={chatHistory}
+										isLoadingHistory={isLoadingHistory}
+										inputIsEmailMode={inputIsEmailMode}
+										loadMoreMessages={loadMoreMessages}
+										isFetchingMore={isFetchingMoreMessages}
+										isScrolledUp={isScrolledUp}
+										setIsScrolledUp={setIsScrolledUp}
+										next={nextMessages}
+										chatType={chatType}
+										currentUserId={userProfile?.id}
+										onRetryFailedMessage={handleRetryFailedMessage}
 									/>
-								)}
 
+									{/* Ticket Panel */}
+									{chatType !== "internal" && showTicketPanel && (
+										<TicketListPanel
+											conversationId={chatResponse?.conversation_id}
+											isVisible={showTicketPanel}
+										/>
+									)}
+								</div>
 
 								{chatType != "archived" ? (
 									<MessageInput
@@ -1718,9 +1719,8 @@ export const MessagesContent = () => {
 										latestChannelId={chatHistory?.length > 0 ? chatHistory[chatHistory.length - 1]?.channel?.id : null}
 									/>
 								) : (
-									<h2 className="w-full absolute bottom-5 flex items-center justify-center fw-bold text-red-300 p-2">Chat ended</h2>
-								)
-								}
+									<h2 className="w-full flex items-center justify-center fw-bold text-red-300 p-2">Chat ended</h2>
+								)}
 							</div>
 						</div>
 					) : (

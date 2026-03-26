@@ -143,7 +143,7 @@ const MessageInput = ({ onSendMessage, activeUser, chatType, setInputIsEmailMode
   };
 
   return (
-    <div className={`body-theme type absolute bottom-0 w-full pr-6 pt-4 ${
+    <div className={`body-theme type w-full pr-6 pt-4 ${
       selectedChannel?.label !== "Email" ? 'pb-4' : ''
     }`}>
       <div className="write-area ">
