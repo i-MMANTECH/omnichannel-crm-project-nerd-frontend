@@ -9,7 +9,14 @@ import EmailComposer from "./EmailComposer";
 import EmojiPicker from "emoji-picker-react";
 import { Smile } from "lucide-react";
 
-const MessageInput = ({ onSendMessage, activeUser, chatType, setInputIsEmailMode, latestChannelId }) => {
+const MessageInput = ({
+  onSendMessage,
+  activeUser,
+  chatType,
+  setInputIsEmailMode,
+  latestChannelId,
+  onHeightChange,
+}) => {
   const [message, setMessage] = useState("");
   const [channelDropdownOpen, setChannelDropdownOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState(null);
@@ -22,6 +29,7 @@ const MessageInput = ({ onSendMessage, activeUser, chatType, setInputIsEmailMode
   const [isOpen, setIsOpen] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef(null);
+  const inputContainerRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -38,6 +46,23 @@ const MessageInput = ({ onSendMessage, activeUser, chatType, setInputIsEmailMode
       setInputIsEmailMode(selectedChannel?.label === "Email");
     }
   }, [selectedChannel]);
+
+  useEffect(() => {
+    if (!onHeightChange || !inputContainerRef.current) return;
+
+    const emitHeight = () => {
+      onHeightChange(inputContainerRef.current?.offsetHeight || 0);
+    };
+
+    emitHeight();
+
+    const observer = new ResizeObserver(() => {
+      emitHeight();
+    });
+
+    observer.observe(inputContainerRef.current);
+    return () => observer.disconnect();
+  }, [onHeightChange, selectedChannel, selectedImages.length, selectedFiles.length, message]);
 
   useEffect(() => {
     if (chatType === "customers") {
@@ -143,9 +168,12 @@ const MessageInput = ({ onSendMessage, activeUser, chatType, setInputIsEmailMode
   };
 
   return (
-    <div className={`body-theme type w-full pr-6 pt-4 ${
+    <div
+      ref={inputContainerRef}
+      className={`body-theme type absolute bottom-0 w-full pr-6 pt-4 ${
       selectedChannel?.label !== "Email" ? 'pb-4' : ''
-    }`}>
+    }`}
+    >
       <div className="write-area ">
         {chatType === "customers" && (
           <div className="relative ml-2">
