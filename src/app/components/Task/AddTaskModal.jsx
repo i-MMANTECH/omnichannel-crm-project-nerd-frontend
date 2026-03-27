@@ -20,6 +20,7 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
   const [statuses, setStatuses] = useState([]);
   const [users, setUsers] = useState([]);
   const [slas, setSlas] = useState([]);
+  const [followers, setFollowers] = useState([]);
 
   const prioritiesEndpoint = "tasks/priorities/";
   const statusesEndpoint = "tasks/statuses/";
@@ -105,6 +106,10 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
     setAssignees(selectedOptions || []);
   };
 
+  const handleFollowersChange = (selectedOptions) => {
+    setFollowers(selectedOptions || []);
+  };
+
   const handleSlaChange = (selectedOption) => {
     setSla(selectedOption);
   };
@@ -116,6 +121,7 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
       title: taskTitle,
       description: taskDescription,
       assignees: assignees.map((agent) => agent.value),
+      followers: followers.map((follower) => follower.value),
       due_date: dueDate,
       sla_id: sla?.value,
       priority: priority?.value,
@@ -129,6 +135,7 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
         setTaskTitle("");
         setTaskDescription("");
         setAssignees([]);
+        setFollowers([]);
         setDueDate("");
         setSla("");
         setPriority(null);
@@ -234,6 +241,24 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
             isLoading={loadingAgents}
             isDisabled={loadingAgents}
             placeholder={loadingAgents ? "Loading agents..." : "Select agents"}
+            noOptionsMessage={() =>
+              loadingAgents ? "Loading agents..." : "No agents found"
+            }
+          />
+
+        </div>
+
+        <div className="mb-7">
+          <label className="block text-sm font-medium mb-1">Followers</label>
+          <Select
+            isMulti
+            options={users}
+            value={followers}
+            onChange={handleFollowersChange}
+            styles={selectStyles}
+            isLoading={loadingAgents}
+            isDisabled={loadingAgents}
+            placeholder={loadingAgents ? "Loading agents..." : "Select followers"}
             noOptionsMessage={() =>
               loadingAgents ? "Loading agents..." : "No agents found"
             }
