@@ -167,6 +167,7 @@ export const MessagesContent = () => {
 	const [refreshChatHeader, setRefreshChatHeader] = useState(false)
 
 	const [inputIsEmailMode, setInputIsEmailMode] = useState(false);
+	const [inputBottomOffset, setInputBottomOffset] = useState(0);
 
 	const [tabUnreadFlags, setTabUnreadFlags] = useState({
 		leads: false,
@@ -1690,6 +1691,7 @@ export const MessagesContent = () => {
 									chatHistory={chatHistory}
 									isLoadingHistory={isLoadingHistory}
 									inputIsEmailMode={inputIsEmailMode}
+									inputBottomOffset={inputBottomOffset}
 									loadMoreMessages={loadMoreMessages}
 									isFetchingMore={isFetchingMoreMessages}
 									isScrolledUp={isScrolledUp}
@@ -1715,6 +1717,7 @@ export const MessagesContent = () => {
 										chatType={chatType}
 										activeUser={activeUser}
 										setInputIsEmailMode={setInputIsEmailMode}
+										onHeightChange={setInputBottomOffset}
 										latestChannelId={chatHistory?.length > 0 ? chatHistory[chatHistory.length - 1]?.channel?.id : null}
 									/>
 								) : (

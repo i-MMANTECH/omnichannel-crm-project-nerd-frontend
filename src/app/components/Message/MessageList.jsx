@@ -50,7 +50,20 @@ const getSmartTimestamp = (messageDate) => {
   return `${shortDateWithYear}, ${timeString}`; // "2/11/22, 2:50 PM"
 };
 
-const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMoreMessages, isFetchingMore, isScrolledUp, setIsScrolledUp, next, chatType, currentUserId, onRetryFailedMessage }) => {
+const MessageList = ({
+  chatHistory,
+  isLoadingHistory,
+  inputIsEmailMode,
+  inputBottomOffset = 0,
+  loadMoreMessages,
+  isFetchingMore,
+  isScrolledUp,
+  setIsScrolledUp,
+  next,
+  chatType,
+  currentUserId,
+  onRetryFailedMessage
+}) => {
   const messageEndRef = useRef(null);
   const listRef = useRef(null);
   const router = useRouter();
@@ -404,7 +417,10 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
 
   if (isLoadingHistory) {
     return (
-      <div className={`message-list flex overflow-y-auto overflow-x-hidden flex-col relative scrollbar-hide ${inputIsEmailMode ? 'h-[50vh]' : 'h-[60vh]'} p-4 justify-end`}>
+      <div
+        className={`message-list flex overflow-y-auto overflow-x-hidden flex-col relative scrollbar-hide ${inputIsEmailMode ? 'h-[50vh]' : 'h-[60vh]'} p-4 justify-end`}
+        style={inputIsEmailMode ? { paddingBottom: `${Math.max(inputBottomOffset - 40, 0)}px` } : undefined}
+      >
         <div className="flex flex-col gap-4 w-full h-full justify-end pb-4">
           <div className="flex w-full justify-start">
             <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-10 w-[60%] rounded-tr-xl rounded-br-xl rounded-tl-xl border border-gray-100 dark:border-gray-600"></div>
@@ -429,6 +445,7 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
     <div
       className={`message-list flex overflow-y-auto overflow-x-hidden flex-col relative scrollbar-hide ${inputIsEmailMode ? 'h-[50vh]' : 'h-[60vh]'
         }`}
+      style={inputIsEmailMode ? { paddingBottom: `${Math.max(inputBottomOffset - 40, 0)}px` } : undefined}
       ref={listRef}
       onScroll={handleScroll}
     >
