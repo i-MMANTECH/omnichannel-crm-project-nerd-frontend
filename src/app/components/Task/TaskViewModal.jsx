@@ -246,6 +246,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
       case "members":
         return (
           <div className="mt-4 space-y-4">
+            <h3 className="text-sm font-medium">Assignees</h3>
             {task?.assignees.map((member, index) => (
               <div key={index} className="flex items-center justify-between p-4 rounded-lg border border-[#DFE1E6]">
                 <div className="flex items-center gap-3">
@@ -287,6 +288,53 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                 </div>
               </div>
             ))}
+
+            {task?.followers?.length > 0 && (
+              <>
+                <h3 className="text-sm font-medium pt-2">Followers</h3>
+                {task.followers.map((member, index) => (
+                  <div key={`follower-${index}`} className="flex items-center justify-between p-4 rounded-lg border border-[#DFE1E6]">
+                    <div className="flex items-center gap-3">
+                      {member.image ? (
+                        <Image
+                          alt="profile pic"
+                          width={32}
+                          height={32}
+                          className="rounded-full w-8 h-8"
+                          src={member.image}
+                          style={{ objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <UserAvatar
+                          name={member.first_name ?
+                            `${member.first_name} ${member.last_name}` :
+                            member.email || '--'
+                          }
+                          width="w-8"
+                          height="h-8"
+                        />
+                      )}
+                      <div>
+                        <p className="font-medium">
+                          {member.first_name ?
+                            `${member.first_name} ${member.last_name}` :
+                            '--'
+                          }
+                        </p>
+                        <p className="text-sm ">{member.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9.33325 9.33333H6.66659C4.82564 9.33333 3.33325 10.8257 3.33325 12.6667V13.3333C3.33325 13.7015 3.63173 14 3.99992 14H11.9999C12.3681 14 12.6666 13.7015 12.6666 13.3333V12.6667C12.6666 10.8257 11.1742 9.33333 9.33325 9.33333Z" stroke="#808897" strokeWidth="1.5" />
+                        <path d="M7.99992 7.33333C9.47268 7.33333 10.6666 6.13943 10.6666 4.66667C10.6666 3.19391 9.47268 2 7.99992 2C6.52716 2 5.33325 3.19391 5.33325 4.66667C5.33325 6.13943 6.52716 7.33333 7.99992 7.33333Z" stroke="#808897" strokeWidth="1.5" />
+                      </svg>
+                      <span className="text-sm ">Following task</span>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         );
     }
@@ -407,6 +455,43 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                     })}
                   </div>
                 </div>
+                {task?.followers?.length > 0 && (
+                  <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center gap-2">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9.33325 9.33333H6.66659C4.82564 9.33333 3.33325 10.8257 3.33325 12.6667V13.3333C3.33325 13.7015 3.63173 14 3.99992 14H11.9999C12.3681 14 12.6666 13.7015 12.6666 13.3333V12.6667C12.6666 10.8257 11.1742 9.33333 9.33325 9.33333Z" stroke="#808897" strokeWidth="1.5" />
+                        <path d="M7.99992 7.33333C9.47268 7.33333 10.6666 6.13943 10.6666 4.66667C10.6666 3.19391 9.47268 2 7.99992 2C6.52716 2 5.33325 3.19391 5.33325 4.66667C5.33325 6.13943 6.52716 7.33333 7.99992 7.33333Z" stroke="#808897" strokeWidth="1.5" />
+                      </svg>
+                      <span className="font-medium">Followers</span>
+                    </div>
+                    <div className="flex -space-x-2">
+                      {task.followers.map((follower, index) => {
+                        const followerName = getAssigneeName(follower);
+                        if (follower?.image) {
+                          return (
+                            <Image
+                              key={index}
+                              alt={`Follower ${follower.id || index}`}
+                              className="w-9 h-9 rounded-full border-2 border-white"
+                              src={follower.image}
+                              width={24}
+                              height={24}
+                            />
+                          );
+                        }
+                        return (
+                          <UserAvatar
+                            className="border-white border-2"
+                            key={index}
+                            name={followerName}
+                            width="w-9"
+                            height="h-9"
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 {task.sla && (
                   <div className="flex justify-between items-center">
                     <div className="flex justify-between items-center gap-2">

@@ -329,6 +329,51 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
     );
   };
 
+  const renderFollowers = () => {
+    if (!ticket.followers || ticket.followers.length === 0) return null;
+
+    return (
+      <div className="rounded-lg mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            <span className="font-medium">Followers</span>
+          </div>
+        </div>
+        <div className="space-y-2">
+          {ticket.followers.map((follower, index) => {
+            const followerName = getAssigneeName(follower);
+            return (
+              <div key={index} className="flex items-center gap-3">
+                {follower?.image ? (
+                  <Image
+                    alt={followerName}
+                    className="w-8 h-8 rounded-full"
+                    src={follower.image}
+                    width={32}
+                    height={32}
+                  />
+                ) : (
+                  <UserAvatar
+                    name={followerName}
+                    width="w-8"
+                    height="h-8"
+                  />
+                )}
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{followerName}</p>
+                  {follower?.email && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{follower.email}</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderTicketInfo = () => {
     return (
       <div>
@@ -385,6 +430,7 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
             )}
 
             {renderAssignedAgents()}
+            {renderFollowers()}
             <div className='pt-0.5'></div>
             {renderTicketInfo()}
 
