@@ -16,6 +16,7 @@ const TicketsTable = ({
     showExportButton = true,
     showDueDateColumn = true,
     enableStatusFiltering = true,
+    actionButtons = null,
     openViewModal,
     openUpdateModal,
     menuOpen,
@@ -328,7 +329,27 @@ const TicketsTable = ({
             </div>
 
             {/* Search Bar + Avatar Filters */}
-            <div className="flex items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-4 mb-6">
+                <div className="relative w-full sm:w-auto">
+                    <input
+                        className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow dark:text-slate-200"
+                        placeholder="Search tickets..."
+                        value={searchQuery}
+                        onChange={(e) => {
+                            setSearchQuery(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                    />
+                    <button
+                        className="absolute top-1 right-1 flex items-center rounded py-1 px-2.5 text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 dark:active:bg-black hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
+                        type="button"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                            <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+
                 {/* User Avatars */}
                 <div className="relative ms-2">
                     <div className="relative flex items-center">
@@ -408,7 +429,8 @@ const TicketsTable = ({
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 ml-auto">
+                    {actionButtons}
                     {isFilterActive && (
                         <button
                             className="px-3 py-1.5 text-sm bg-gray-200 dark:bg-neutral-800 text-gray-700 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-neutral-700 transition whitespace-nowrap"
@@ -417,25 +439,6 @@ const TicketsTable = ({
                             Clear Filter
                         </button>
                     )}
-                    <div className="relative w-full sm:w-auto">
-                        <input
-                            className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow dark:text-slate-200"
-                            placeholder="Search tickets..."
-                            value={searchQuery}
-                            onChange={(e) => {
-                                setSearchQuery(e.target.value);
-                                setCurrentPage(1);
-                            }}
-                        />
-                        <button
-                            className="absolute top-1 right-1 flex items-center rounded py-1 px-2.5 text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 dark:active:bg-black hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
-                            type="button"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                                <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
-                            </svg>
-                        </button>
-                    </div>
                 </div>
             </div>
 
