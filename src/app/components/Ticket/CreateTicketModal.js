@@ -196,6 +196,18 @@ const CreateTicketModal = ({
       toast.warning('Please enter a description');
       return;
     }
+    if (!category?.value) {
+      toast.warning('Please select a category');
+      return;
+    }
+    if (!priority?.value) {
+      toast.warning('Please select a priority');
+      return;
+    }
+    if (!assignedTo?.length) {
+      toast.warning('Please select at least one assignee');
+      return;
+    }
 
     const isoDueDate = dueDate
     ? new Date(dueDate).toISOString()
@@ -266,7 +278,7 @@ const CreateTicketModal = ({
     }
   };
 
-  const isFormValid = subject.trim() && description.trim();
+  const isFormValid = subject.trim() && description.trim() && category?.value && priority?.value && assignedTo?.length > 0;
 
   return (
     <Modal
@@ -401,7 +413,7 @@ const CreateTicketModal = ({
           {/* Priority */}
           <div className="mb-7">
             <label className="block text-sm font-medium mb-1">
-              Priority
+              Priority <span className="text-red-500">*</span>
             </label>
             <Select
               value={priority}
@@ -431,7 +443,7 @@ const CreateTicketModal = ({
           {/* Category */}
           <div className="mb-7">
             <label className="block text-sm font-medium mb-1">
-              Category
+              Category <span className="text-red-500">*</span>
             </label>
             <Select
               value={category}
@@ -446,7 +458,7 @@ const CreateTicketModal = ({
           {/* Assign To */}
           <div className="mb-7">
             <label className="block text-sm font-medium mb-1">
-              Assign To
+              Assign To <span className="text-red-500">*</span>
             </label>
             <Select
               value={assignedTo}
