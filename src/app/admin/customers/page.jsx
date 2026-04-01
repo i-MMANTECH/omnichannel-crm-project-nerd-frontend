@@ -174,7 +174,7 @@ const CustomersContent = () => {
                 {({ isModalOpen, openModal, closeModal }) => (
                     <div className="overflow-x-hidden flex flex-row body-theme min-h-[83vh] pl-10">
                         <div className='relative body-theme flex-1 flex flex-col'>
-                            <div className="w-[100%] max-w-[1200px] sm:max-w-full flex justify-between items-center mb-6 mx-auto">
+                            <div className="w-[100%] max-w-[1200px] sm:max-w-full flex items-center gap-4 mb-6 mx-auto">
 
                                 <div className="flex items-center space-x-4">
                                     <button
@@ -223,7 +223,7 @@ const CustomersContent = () => {
                                 </div>
 
 
-                                <div className="flex items-center space-x-3">
+                                <div className="flex items-center space-x-3 ml-auto">
                                     <button
                                         onClick={() => setIsImportModalOpen(true)}
                                         className="flex items-center border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
