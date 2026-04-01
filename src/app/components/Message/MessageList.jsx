@@ -518,7 +518,7 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                         {/* Handle Different Content Types */}
                         <div className="flex flex-col">
                           {imageAttachments.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
+                            <div className={`flex flex-wrap gap-2 ${imageAttachments.length > 4 ? "image-attachments-scroll" : ""}`}>
                               {imageAttachments.map((attachment, i) => (
                                 <Image
                                   key={i}
@@ -572,38 +572,38 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                         {attachments.length > 0 && (
                           <div className="flex flex-col gap-2">
                             <div className="mt-10 mb-2 font-semibold underline">{attachments.length == 1 ? 'Attachment' : 'Attachments'}</div>
-                            {attachments.map((attachment, i) => {
-                              const fileType = attachment.file.split('.').pop();
-                              const fileName = attachment.name || attachment.file.split('/').pop();
-
-                              if (attachment.file_type == 'image') {
-                                return (
+                            {imageAttachments.length > 0 && (
+                              <div className={`flex flex-wrap gap-2 ${imageAttachments.length > 4 ? "image-attachments-scroll" : ""}`}>
+                                {imageAttachments.map((attachment, i) => (
                                   <Image
                                     key={i}
                                     loader={() => attachment.file}
                                     src={attachment.file}
                                     alt="Sent Image"
-                                    className="image-message max-w-[250px] max-h-[250px] pointer mb-2"
+                                    className="image-message max-w-[250px] max-h-[250px] pointer"
                                     width={300}
                                     height={300}
                                     onClick={() => openImageModal(attachment.file)}
                                   />
-                                )
-                              }
-                              else {
-                                return (
-                                  <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-2">
-                                    <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
-                                    <span className="text-sm truncate ">{fileName}</span>
-                                    <button
-                                      className="ml-auto text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
-                                      onClick={() => downloadFile(attachment.file, fileName)}
-                                    >
-                                      <FontAwesomeIcon icon={faDownload} />
-                                    </button>
-                                  </div>
-                                );
-                              }
+                                ))}
+                              </div>
+                            )}
+                            {documentAttachments.map((attachment, i) => {
+                              const fileType = attachment.file.split('.').pop();
+                              const fileName = attachment.name || attachment.file.split('/').pop();
+
+                              return (
+                                <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-2">
+                                  <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
+                                  <span className="text-sm truncate ">{fileName}</span>
+                                  <button
+                                    className="ml-auto text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
+                                    onClick={() => downloadFile(attachment.file, fileName)}
+                                  >
+                                    <FontAwesomeIcon icon={faDownload} />
+                                  </button>
+                                </div>
+                              );
                             })}
                           </div>
                         )}
