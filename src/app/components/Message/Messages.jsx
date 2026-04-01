@@ -182,6 +182,10 @@ export const MessagesContent = () => {
 	const [showTicketPanel, setShowTicketPanel] = useState(false);
 	const [isCreateTicketModalOpen, setIsCreateTicketModalOpen] = useState(false);
 
+	// Suggested customer linking
+	const [suggestedCustomer, setSuggestedCustomer] = useState(null);
+	const [isLinkingCustomer, setIsLinkingCustomer] = useState(false);
+
 	const isCancelError = (error) =>
 		error?.name === 'CanceledError' || error?.message === 'canceled' || error?.code === 'ERR_CANCELED';
 
@@ -247,6 +251,22 @@ export const MessagesContent = () => {
 	}, [activeUser]);
 
 	useEffect(() => { setIsScrolledUp(false); }, [activeUser?.id]);
+
+	useEffect(() => {
+		if (chatType !== "leads" || !activeUser?.id) {
+			setSuggestedCustomer(null);
+			return;
+		}
+		const fetchSuggestedCustomer = async () => {
+			try {
+				const { data } = await axiosInstance.get(`/customers/leads/${activeUser.id}`, { showLoader: false });
+				setSuggestedCustomer(data?.lead?.suggested_customer || null);
+			} catch {
+				setSuggestedCustomer(null);
+			}
+		};
+		fetchSuggestedCustomer();
+	}, [activeUser?.id, chatType]);
 
 	useEffect(() => {
 		if (chatId) {
@@ -1274,6 +1294,23 @@ export const MessagesContent = () => {
 		sendMessageRequest(messageContent);
 	};
 
+	const handleLinkLeadToCustomer = async () => {
+		if (!suggestedCustomer || !activeUser?.id) return;
+		setIsLinkingCustomer(true);
+		try {
+			await axiosInstance.post(`/customers/leads/${activeUser.id}/link-customer/`, {
+				customer_id: suggestedCustomer.id,
+			});
+			const linkedCustomerId = suggestedCustomer.id;
+			setSuggestedCustomer(null);
+			router.push(`${baseRoute}/customers/${linkedCustomerId}`);
+		} catch (error) {
+			handleApiError(error);
+		} finally {
+			setIsLinkingCustomer(false);
+		}
+	};
+
 	const handleRetryFailedMessage = async (message) => {
 		if (!activeUser?.id || !message?.id) {
 			return;
@@ -1686,6 +1723,22 @@ export const MessagesContent = () => {
 								showTicketPanel={!isInternalTab ? showTicketPanel : false}
 								baseRoute={baseRoute}
 							/>
+
+							{chatType === "leads" && suggestedCustomer && (
+								<div className="mx-4 my-2 p-3 bg-blue-50 border border-blue-200 rounded-md flex items-center justify-between gap-4">
+									<p className="text-sm text-blue-800">
+										This lead matches an existing customer: <strong>{suggestedCustomer.name}</strong>. Link them to merge their records.
+									</p>
+									<button
+										onClick={handleLinkLeadToCustomer}
+										disabled={isLinkingCustomer}
+										className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap flex-shrink-0"
+									>
+										{isLinkingCustomer ? "Linking..." : "Link to Customer"}
+									</button>
+								</div>
+							)}
+
 							<div className="flex items-center ">
 								<MessageList
 									chatHistory={chatHistory}

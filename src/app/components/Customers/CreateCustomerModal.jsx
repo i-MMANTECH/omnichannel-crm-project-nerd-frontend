@@ -342,7 +342,6 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
                         onChange={handleChange}
                         className="w-full border border-gray-300 rounded-md p-2 mt-2"
                         placeholder="johndoe@mail.com"
-                        required
                     />
                 </div>
                 <div>
