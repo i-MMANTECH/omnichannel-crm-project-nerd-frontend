@@ -23,6 +23,7 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState(null);
   const [agents, setAgents] = useState([]);
+  const [followers, setFollowers] = useState([]);
   const [dueDate, setDueDate] = useState("");
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -164,6 +165,12 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
           label: formatUserLabel(assignee),
         }))
       );
+      setFollowers(
+        (task.followers || []).map((follower) => ({
+          value: follower.id,
+          label: formatUserLabel(follower),
+        }))
+      );
 
 
       setPriority(
@@ -230,6 +237,15 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
 
     if (JSON.stringify(originalAgentIds) !== JSON.stringify(selectedAgentIds)) {
       updatedFields.assignees = selectedAgentIds.length > 0 ? selectedAgentIds : [];
+    }
+
+    const originalFollowerIds = (task.followers || []).map((f) => f.id).sort((a, b) => a - b);
+    const selectedFollowerIds = followers
+      .map((follower) => follower.value)
+      .sort((a, b) => a - b);
+
+    if (JSON.stringify(originalFollowerIds) !== JSON.stringify(selectedFollowerIds)) {
+      updatedFields.followers = selectedFollowerIds;
     }
 
     // Prevent sending an empty request if no fields were updated
@@ -343,6 +359,23 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
             }
           />
 
+        </div>
+
+        <p className="mb-3">Followers</p>
+        <div className="mb-7">
+          <Select
+            isMulti
+            options={agentOptions}
+            value={followers}
+            onChange={(selected) => setFollowers(selected || [])}
+            styles={selectStyles}
+            isLoading={loadingAgents}
+            isDisabled={loadingAgents}
+            placeholder={loadingAgents ? "Loading agents..." : "Select followers"}
+            noOptionsMessage={() =>
+              loadingAgents ? "Loading agents..." : "No agents found"
+            }
+          />
         </div>
 
         <div className="mb-4">
