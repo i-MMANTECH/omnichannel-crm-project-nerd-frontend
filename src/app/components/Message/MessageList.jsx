@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Dot } from "lucide-react";
+import Modal from "../Modal";
 
 
 
@@ -49,13 +50,34 @@ const getSmartTimestamp = (messageDate) => {
   return `${shortDateWithYear}, ${timeString}`; // "2/11/22, 2:50 PM"
 };
 
-const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMoreMessages, isFetchingMore, isScrolledUp, setIsScrolledUp, next, chatType, currentUserId }) => {
+const MessageList = ({
+  chatHistory,
+  isLoadingHistory,
+  inputIsEmailMode,
+  inputBottomOffset = 0,
+  loadMoreMessages,
+  isFetchingMore,
+  isScrolledUp,
+  setIsScrolledUp,
+  next,
+  chatType,
+  currentUserId,
+  onRetryFailedMessage
+}) => {
   const messageEndRef = useRef(null);
   const listRef = useRef(null);
   const router = useRouter();
   const [hoveredUserId, setHoveredUserId] = useState(null);
   const [hoveredChannelId, setHoveredChannelId] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [messageToRetry, setMessageToRetry] = useState(null);
+  const videoRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
 
   const [pendingPrepend, setPendingPrepend] = useState(false);
   const [prevScrollHeight, setPrevScrollHeight] = useState(0);
@@ -160,6 +182,12 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
     }
   };
 
+  const handleRetryClick = (message, event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setMessageToRetry(message);
+  };
+
 
   const openImageModal = (imageUrl) => {
     setSelectedImage(imageUrl);
@@ -167,6 +195,17 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
 
   const closeImageModal = () => {
     setSelectedImage(null);
+  };
+
+  const openVideoModal = (videoUrl) => {
+    setSelectedVideo(videoUrl);
+  };
+
+  const closeVideoModal = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+    setSelectedVideo(null);
   };
 
   const downloadFile = (fileUrl, fileName) => {
@@ -191,18 +230,18 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
 
     const imageAttachments = Array.isArray(msg?.image)
       ? msg.image.map((file) => ({
-          file: typeof file === "string" ? file : URL.createObjectURL(file),
-          file_type: "image",
-          name: file?.name,
-        }))
+        file: typeof file === "string" ? file : URL.createObjectURL(file),
+        file_type: "image",
+        name: file?.name,
+      }))
       : [];
 
     const documentAttachments = Array.isArray(msg?.document)
       ? msg.document.map((file) => ({
-          file: typeof file === "string" ? file : URL.createObjectURL(file),
-          file_type: "document",
-          name: file?.name,
-        }))
+        file: typeof file === "string" ? file : URL.createObjectURL(file),
+        file_type: "document",
+        name: file?.name,
+      }))
       : [];
 
     return [...imageAttachments, ...documentAttachments];
@@ -275,6 +314,96 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
     );
   };
 
+  const getFileExtension = (fileUrl = "") => {
+    const cleanUrl = String(fileUrl).split("?")[0];
+    const parts = cleanUrl.split(".");
+    return parts.length > 1 ? parts.pop().toLowerCase() : "";
+  };
+
+  const isVideoAttachment = (attachment) => {
+    if (!attachment) return false;
+    if (attachment.file_type === "video") return true;
+    const ext = getFileExtension(attachment.file);
+    return ["mp4", "webm", "ogg", "mov", "m4v"].includes(ext);
+  };
+
+  const isAudioAttachment = (attachment) => {
+    if (!attachment) return false;
+    if (attachment.file_type === "audio" || attachment.content_type === "audio") return true;
+    const ext = getFileExtension(attachment.file);
+    return ["mp3", "wav", "oga", "ogg", "m4a", "aac"].includes(ext);
+  };
+
+  const formatTime = (value) => {
+    if (!Number.isFinite(value)) return "0:00";
+    const minutes = Math.floor(value / 60);
+    const seconds = Math.floor(value % 60);
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    if (videoRef.current.paused) {
+      videoRef.current.play();
+      setIsPlaying(true);
+    } else {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  const handleSeek = (e) => {
+    const value = Number(e.target.value);
+    if (!videoRef.current) return;
+    videoRef.current.currentTime = value;
+    setCurrentTime(value);
+  };
+
+  const handleVolumeChange = (e) => {
+    const value = Number(e.target.value);
+    setVolume(value);
+    if (videoRef.current) {
+      videoRef.current.volume = value;
+    }
+    if (value > 0 && isMuted) {
+      setIsMuted(false);
+      if (videoRef.current) videoRef.current.muted = false;
+    }
+  };
+
+  const toggleMute = () => {
+    if (!videoRef.current) return;
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+    videoRef.current.muted = nextMuted;
+  };
+
+  useEffect(() => {
+    if (!selectedVideo) {
+      setIsPlaying(false);
+      setCurrentTime(0);
+      setDuration(0);
+      setVolume(1);
+      setIsMuted(false);
+      return;
+    }
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.volume = 1;
+      videoRef.current.muted = false;
+    }
+  }, [selectedVideo]);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key !== "Escape") return;
+      if (selectedImage) setSelectedImage(null);
+      if (selectedVideo) closeVideoModal();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [selectedImage, selectedVideo]);
+
   function renderMessageContent(msg) {
     const isEmail = isEmailMessage(msg);
     const contentHasHtml = containsHtml(msg.content);
@@ -343,7 +472,6 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
       );
     }
 
-    // If you truly want "image"/"document" to still show msg.content as HTML text
     if (contentType === "image" || contentType === "document") {
       if (isEmail) {
         if (contentHasHtml) {
@@ -377,7 +505,10 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
 
   if (isLoadingHistory) {
     return (
-      <div className={`message-list flex overflow-y-auto overflow-x-hidden flex-col relative scrollbar-hide ${inputIsEmailMode ? 'h-[50vh]' : 'h-[60vh]'} p-4 justify-end`}>
+      <div
+        className={`message-list flex overflow-y-auto overflow-x-hidden flex-col relative scrollbar-hide ${inputIsEmailMode ? 'h-[50vh]' : 'h-[60vh]'} p-4 justify-end`}
+        style={inputIsEmailMode ? { paddingBottom: `${Math.max(inputBottomOffset - 40, 0)}px` } : undefined}
+      >
         <div className="flex flex-col gap-4 w-full h-full justify-end pb-4">
           <div className="flex w-full justify-start">
             <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-10 w-[60%] rounded-tr-xl rounded-br-xl rounded-tl-xl border border-gray-100 dark:border-gray-600"></div>
@@ -402,6 +533,7 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
     <div
       className={`message-list flex overflow-y-auto overflow-x-hidden flex-col relative scrollbar-hide ${inputIsEmailMode ? 'h-[50vh]' : 'h-[60vh]'
         }`}
+      style={inputIsEmailMode ? { paddingBottom: `${Math.max(inputBottomOffset - 40, 0)}px` } : undefined}
       ref={listRef}
       onScroll={handleScroll}
     >
@@ -534,11 +666,66 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                             </div>
                           )}
 
-                          {documentAttachments.length > 0 && (
+                          {/* If message contains videos, display them */}
+                          {msg.content_type === "video" && msg.attachments && msg.attachments.length > 0 && (
+                            <div className="flex flex-col gap-2">
+                              {msg.attachments.map((attachment, i) => (
+                                <div key={i} className="relative max-w-[320px]">
+                                  <video
+                                    src={attachment.file}
+                                    className="max-w-[320px] max-h-[240px] rounded-lg cursor-pointer bg-black"
+                                    muted
+                                    playsInline
+                                    onClick={() => openVideoModal(attachment.file)}
+                                  />
+                                  <button
+                                    type="button"
+                                    className="absolute inset-0 flex items-center justify-center text-white text-sm bg-black/30 rounded-lg"
+                                    onClick={() => openVideoModal(attachment.file)}
+                                  >
+                                    Play
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* If message contains documents, display them */}
+                          {msg.content_type === "document" && msg.attachments && msg.attachments.length > 0 && (
                             <div className="flex flex-col gap-2">
                               {documentAttachments.map((attachment, i) => {
                                 const fileType = attachment.file.split('.').pop(); // Extract file extension
-                                const fileName = attachment.name || attachment.file.split('/').pop(); // Extract file name
+                                const fileName = attachment.file.split('/').pop(); // Extract file name
+                                if (isVideoAttachment(attachment)) {
+                                  return (
+                                    <div key={i} className="relative max-w-[320px]">
+                                      <video
+                                        src={attachment.file}
+                                        className="max-w-[320px] max-h-[240px] rounded-lg cursor-pointer bg-black"
+                                        muted
+                                        playsInline
+                                        onClick={() => openVideoModal(attachment.file)}
+                                      />
+                                      <button
+                                        type="button"
+                                        className="absolute inset-0 flex items-center justify-center text-white text-sm bg-black/30 rounded-lg"
+                                        onClick={() => openVideoModal(attachment.file)}
+                                      >
+                                        Play
+                                      </button>
+                                    </div>
+                                  );
+                                }
+                                if (isAudioAttachment(attachment)) {
+                                  return (
+                                    <audio
+                                      key={i}
+                                      controls
+                                      className="max-w-[250px] sm:max-w-[320px]"
+                                      src={attachment.file}
+                                    />
+                                  );
+                                }
                                 return (
                                   <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
                                     <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
@@ -552,6 +739,20 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                                   </div>
                                 );
                               })}
+                            </div>
+                          )}
+
+                          {/* If message contains audio, display them */}
+                          {msg.content_type === "audio" && msg.attachments && msg.attachments.length > 0 && (
+                            <div className="flex flex-col gap-2">
+                              {msg.attachments.map((attachment, i) => (
+                                <audio
+                                  key={i}
+                                  controls
+                                  className="max-w-[250px] sm:max-w-[320px]"
+                                  src={attachment.file}
+                                />
+                              ))}
                             </div>
                           )}
 
@@ -590,6 +791,36 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                                   />
                                 )
                               }
+                              if (isVideoAttachment(attachment)) {
+                                return (
+                                  <div key={i} className="relative max-w-[320px] mb-2">
+                                    <video
+                                      src={attachment.file}
+                                      className="max-w-[320px] max-h-[240px] rounded-lg cursor-pointer bg-black"
+                                      muted
+                                      playsInline
+                                      onClick={() => openVideoModal(attachment.file)}
+                                    />
+                                    <button
+                                      type="button"
+                                      className="absolute inset-0 flex items-center justify-center text-white text-sm bg-black/30 rounded-lg"
+                                      onClick={() => openVideoModal(attachment.file)}
+                                    >
+                                      Play
+                                    </button>
+                                  </div>
+                                );
+                              }
+                              if (isAudioAttachment(attachment)) {
+                                return (
+                                  <audio
+                                    key={i}
+                                    controls
+                                    className="max-w-[250px] sm:max-w-[320px] mb-2"
+                                    src={attachment.file}
+                                  />
+                                );
+                              }
                               else {
                                 return (
                                   <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-2">
@@ -616,7 +847,19 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
                   <p className="message-time">
                     {getSmartTimestamp(msg.created_at)}
                   </p>
-                  {isOutgoing && getIconForStatus(msg.status)}
+                  {isOutgoing && msg.status === "failed" ? (
+                    <button
+                      type="button"
+                      className="ms-2 inline-flex items-center gap-1 rounded-full border border-red-300 bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-600 shadow-sm hover:bg-red-100"
+                      onClick={(event) => handleRetryClick(msg, event)}
+                      title="Message failed. Click to retry."
+                    >
+                      <FontAwesomeIcon style={{ fontSize: 12 }} icon={faCircleExclamation} />
+                      <span>Failed. Retry</span>
+                    </button>
+                  ) : (
+                    isOutgoing && getIconForStatus(msg.status)
+                  )}
                 </div>
               </div>
             }
@@ -639,6 +882,103 @@ const MessageList = ({ chatHistory, isLoadingHistory, inputIsEmailMode, loadMore
           </div>
         </div>
       )}
+
+      {selectedVideo && (
+        <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-80 z-50" onClick={closeVideoModal}>
+          <div className="relative p-4 w-[90vw] max-w-[960px]" onClick={(e) => e.stopPropagation()}>
+            <button className="absolute top-2 right-2 text-white text-xl" onClick={closeVideoModal}>
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+            <div className="bg-black rounded-lg overflow-hidden">
+              <video
+                ref={videoRef}
+                src={selectedVideo}
+                className="w-full max-h-[70vh] bg-black"
+                playsInline
+                onLoadedMetadata={(e) => {
+                  setDuration(e.currentTarget.duration || 0);
+                }}
+                onTimeUpdate={(e) => {
+                  setCurrentTime(e.currentTarget.currentTime || 0);
+                }}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+              />
+              <div className="flex items-center gap-3 px-3 py-2 bg-[#0D0D12] text-white">
+                <button
+                  type="button"
+                  className="text-sm px-2 py-1 rounded bg-white/10 hover:bg-white/20"
+                  onClick={togglePlay}
+                >
+                  {isPlaying ? "Pause" : "Play"}
+                </button>
+                <span className="text-xs tabular-nums">
+                  {formatTime(currentTime)} / {formatTime(duration)}
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 0}
+                  step="0.1"
+                  value={currentTime}
+                  onChange={handleSeek}
+                  className="flex-1"
+                />
+                <button
+                  type="button"
+                  className="text-sm px-2 py-1 rounded bg-white/10 hover:bg-white/20"
+                  onClick={toggleMute}
+                >
+                  {isMuted ? "Unmute" : "Mute"}
+                </button>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step="0.01"
+                  value={isMuted ? 0 : volume}
+                  onChange={handleVolumeChange}
+                  className="w-24"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Modal
+        isOpen={!!messageToRetry}
+        onClose={() => setMessageToRetry(null)}
+        title="Retry Message"
+        width="420px"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setMessageToRetry(null)}
+              className="px-4 py-2 body-theme rounded-md border border-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (messageToRetry && onRetryFailedMessage) {
+                  onRetryFailedMessage(messageToRetry);
+                }
+                setMessageToRetry(null);
+              }}
+              className="px-4 py-2 bg-[#3EBF0F] text-white rounded-md"
+            >
+              Retry
+            </button>
+          </>
+        }
+      >
+        <p className="text-sm leading-6">
+          This message could not be sent. Retry sending it now?
+        </p>
+      </Modal>
     </div>
   );
 };

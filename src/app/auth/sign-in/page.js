@@ -60,6 +60,17 @@ const SignIn = () => {
                 }, 200);
             }
         } catch (error) {
+            const errorMessage =
+                error?.response?.data?.detail ||
+                error?.response?.data?.message ||
+                error?.response?.data?.error ||
+                '';
+
+            if (typeof errorMessage === 'string' && errorMessage.toLowerCase().includes('disabled')) {
+                toast.error('Your Account is Disabled. Contact Admin');
+                return;
+            }
+
             handleApiError(error)
             toast.error('Login failed. Please check your credentials.');
         }

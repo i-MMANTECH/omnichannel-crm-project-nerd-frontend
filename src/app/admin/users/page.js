@@ -125,10 +125,6 @@ const Users = () => {
                                         <Image src={filter} alt="filter" className="mr-2" width={15} height={15} />
                                         <span className="text-sm font-medium">Filter</span>
                                     </button>
-                                </div>
-
-                                {/* Search and Invite User */}
-                                <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto sm:flex-nowrap">
                                     <div className="relative w-full sm:w-auto">
                                         <input
                                             className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
@@ -145,6 +141,10 @@ const Users = () => {
                                             </svg>
                                         </button>
                                     </div>
+                                </div>
+
+                                {/* Search and Invite User */}
+                                <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto sm:flex-nowrap sm:ml-auto">
                                     <button
                                         onClick={openModal}
                                         className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm w-full sm:w-auto">

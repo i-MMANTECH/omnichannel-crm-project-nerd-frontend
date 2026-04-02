@@ -51,6 +51,10 @@ export default function UserDetails() {
   const [user, setUser] = useState({})
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isToggleActiveModalOpen, setIsToggleActiveModalOpen] = useState(false);
+  const [actionSuccessMessage, setActionSuccessMessage] = useState("");
+  const [isActionSuccessOpen, setIsActionSuccessOpen] = useState(false);
+  const router = useRouter();
 
   const { id } = useParams();
 
@@ -72,12 +76,34 @@ export default function UserDetails() {
     getUser()
   };
 
+  const closeActionSuccessModal = () => {
+    setIsActionSuccessOpen(false);
+    setActionSuccessMessage("");
+    getUser();
+  };
+
   const handleConfirmDelete = async () => {
     try {
       await axiosInstance.delete(`/users/${id}/`);
       setIsDeleteModalOpen(false);
       setIsSuccessModalOpen(true);
       router.push("/nativecrm/users");
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+
+  const handleToggleActiveStatus = async () => {
+    try {
+      const nextActive = !user?.is_active;
+      const endpoint = nextActive
+        ? `/users/account/${id}/enable/`
+        : `/users/account/${id}/disable/`;
+      await axiosInstance.post(endpoint);
+      setIsToggleActiveModalOpen(false);
+      setActionSuccessMessage(nextActive ? "User enabled successfully" : "User disabled successfully");
+      setIsActionSuccessOpen(true);
+      setUser((prev) => ({ ...prev, is_active: nextActive }));
     } catch (error) {
       handleApiError(error);
     }
@@ -186,6 +212,18 @@ export default function UserDetails() {
                               className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                             >
                               Edit user
+                            </button>
+                          </div>
+                          <div className="py-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIsToggleActiveModalOpen(true);
+                                setMenuOpen(null);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            >
+                              {user?.is_active ? "Disable User" : "Enable User"}
                             </button>
                           </div>
                           <div className="py-1">
@@ -350,12 +388,32 @@ export default function UserDetails() {
               onClose={closeSuccessModal}
             />
 
+            <SuccessModal
+              isOpen={isActionSuccessOpen}
+              title="Success!"
+              message={actionSuccessMessage}
+              buttonText="Okay, thank you"
+              onClose={closeActionSuccessModal}
+            />
+
             <ConfirmationModal
               isOpen={isDeleteModalOpen}
               title="Confirm Delete"
               message="Are you sure you want to delete this user?"
               onConfirm={handleConfirmDelete}
               onCancel={() => setIsDeleteModalOpen(false)}
+            />
+
+            <ConfirmationModal
+              isOpen={isToggleActiveModalOpen}
+              title={user?.is_active ? "Disable User" : "Enable User"}
+              message={
+                user?.is_active
+                  ? "Are you sure you want to disable this user?"
+                  : "Are you sure you want to enable this user?"
+              }
+              onConfirm={handleToggleActiveStatus}
+              onCancel={() => setIsToggleActiveModalOpen(false)}
             />
           </div>
         )}

@@ -7,11 +7,11 @@ import Image from 'next/image';
 import { getRoleStyle } from '@/utils/getRoleStyle';
 import { useCanViewContactInfo } from '@/hooks/useCanViewContactInfo';
 import { maskPhoneNumber, maskEmail } from '@/utils/maskContactInfo';
-import { usePortalRouter } from '@/context/usePortalRouter';  // ✅ ADD THIS
+import { usePortalRouter } from '@/context/usePortalRouter';
 
 const CustomerGrid = ({ customers }) => {
   const canViewContactInfo = useCanViewContactInfo();
-  const { buildRoute } = usePortalRouter();  // ✅ ADD THIS
+  const { buildRoute } = usePortalRouter();
 
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -19,7 +19,7 @@ const CustomerGrid = ({ customers }) => {
         <Link
           key={customer.id}
           style={{ color: "inherit", textDecoration: "none" }}
-          href={buildRoute(`customers/${customer.id}`)}  // ✅ USE DYNAMIC ROUTE
+          href={buildRoute(`customers/${customer.id}`)}
         >
           <div className="bg-theme border rounded-lg">
             <div className='flex justify-between items-center p-2 border-b'>

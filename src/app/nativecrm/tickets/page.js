@@ -97,24 +97,22 @@ const TicketsContent = () => {
         closeUpdateModal
       }) => (
         <div className="w-full body-theme pl-10">
-          {/* Top Controls */}
-          <div className="flex justify-end items-center gap-2 mb-6">
-            <button
-              onClick={openCreateModal}
-              className="px-4 py-2 bg-[#3EBF0F] text-white rounded-lg hover:bg-[#35a50d] flex items-center gap-2"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M8 3V13M3 8H13" stroke="white" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-              New Ticket
-            </button>
-          </div>
-
           {/* ✅ Shared Table Component - Agent Configuration */}
           <TicketsTable
             showExportButton={false}
             showDueDateColumn={false}
             enableStatusFiltering={false}
+            actionButtons={
+              <button
+                onClick={openCreateModal}
+                className="px-4 py-2 bg-[#3EBF0F] text-white rounded-lg hover:bg-[#35a50d] flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 3V13M3 8H13" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                New Ticket
+              </button>
+            }
             openViewModal={openViewModal}
             openUpdateModal={openUpdateModal}
             menuOpen={menuOpen}

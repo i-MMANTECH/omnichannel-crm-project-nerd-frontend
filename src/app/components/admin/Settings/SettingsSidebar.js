@@ -4,7 +4,7 @@ import React, { useState, useRef } from "react";
 import { Disclosure } from "@headlessui/react";
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
-import { AlarmClock, Bell, CodeXml, FileText, Link, TrendingUp, UserPlus } from "lucide-react";
+import { AlarmClock, Bell, CodeXml, FileText, FolderOpen, Link, TrendingUp, UserPlus } from "lucide-react";
 
 
 function SettingsSidebar({ onSidebarClick, currentSection }) {
@@ -163,6 +163,16 @@ function SettingsSidebar({ onSidebarClick, currentSection }) {
                 <TrendingUp size={18} />
                 <h3 className={`text-sm font-medium`}>
                   Automations
+                </h3>
+              </button>
+
+              <button
+                onClick={() => onSidebarClick('categories')}
+                className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${currentSection === 'categories' ? activeStyle : "text-gray-800 dark:text-gray-200"}`}
+              >
+                <FolderOpen size={18} />
+                <h3 className={`text-sm font-medium`}>
+                  Categories
                 </h3>
               </button>
             </div>

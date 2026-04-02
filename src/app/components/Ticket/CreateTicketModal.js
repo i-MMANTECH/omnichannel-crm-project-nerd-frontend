@@ -37,6 +37,7 @@ const CreateTicketModal = ({
   const [statuses, setStatuses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [agents, setAgents] = useState([]);
+  const [followers, setFollowers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [dueDate, setDueDate] = useState("")
@@ -196,6 +197,12 @@ const CreateTicketModal = ({
       return;
     }
 
+
+    if (!priority?.value) {
+      toast.warning('Please select a priority');
+      return;
+    }
+
     const isoDueDate = dueDate
     ? new Date(dueDate).toISOString()
     : null;
@@ -205,14 +212,14 @@ const CreateTicketModal = ({
       const payload = {
         subject: subject.trim(),
         description: description.trim(),
-        // Use customer_id if a customer was selected, otherwise use customer_name
         ...(selectedCustomer
-          ? { contact_id: selectedCustomer.id }
+          ? { customer_name: selectedCustomer.name }
           : customer.trim()
             ? { customer_name: customer.trim() }
             : {}
         ),
         assignee_ids: assignedTo.length > 0 ? assignedTo.map(a => a.value) : undefined,
+        followers: followers.length > 0 ? followers.map(f => f.value) : undefined,
         status_id: status?.value || undefined,
         priority_id: priority?.value || undefined,
         category_id: category?.value || undefined,
@@ -249,6 +256,7 @@ const CreateTicketModal = ({
         setStatus(null);
         setCategory(null);
         setAssignedTo([]);
+        setFollowers([]);
 
         // Call parent callback
         if (onSubmit) {
@@ -264,7 +272,7 @@ const CreateTicketModal = ({
     }
   };
 
-  const isFormValid = subject.trim() && description.trim();
+  const isFormValid = subject.trim() && description.trim() && priority?.value;
 
   return (
     <Modal
@@ -399,7 +407,7 @@ const CreateTicketModal = ({
           {/* Priority */}
           <div className="mb-7">
             <label className="block text-sm font-medium mb-1">
-              Priority
+              Priority <span className="text-red-500">*</span>
             </label>
             <Select
               value={priority}
@@ -452,6 +460,21 @@ const CreateTicketModal = ({
               options={agents}
               styles={selectStyles}
               placeholder="Select agents"
+              isMulti
+              isClearable
+            />
+          </div>
+
+          <div className="mb-7">
+            <label className="block text-sm font-medium mb-1">
+              Followers
+            </label>
+            <Select
+              value={followers}
+              onChange={setFollowers}
+              options={agents}
+              styles={selectStyles}
+              placeholder="Select followers"
               isMulti
               isClearable
             />

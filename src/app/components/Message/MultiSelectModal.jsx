@@ -34,7 +34,7 @@ const MultiSelectModal = ({
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
-    const maxSize = 10 * 1024 * 1024;
+    const maxSize = 100 * 1024 * 1024;
     const filtered = files.filter(f => f.size <= maxSize);
     onFileSelect && onFileSelect(filtered);
     fileInputRef.current.value = null;
@@ -180,7 +180,7 @@ const MultiSelectModal = ({
                 >
                   <div className="w-10 h-10 bg-[#3EBF0F] rounded flex items-center justify-center">
                     <span className="text-white text-xs font-semibold">
-                      {file.name.split('.').pop()?.toUpperCase().slice(0, 3) || 'FILE'}
+                      {file.type?.startsWith('video/') ? 'VID' : (file.name.split('.').pop()?.toUpperCase().slice(0, 3) || 'FILE')}
                     </span>
                   </div>
                   <button
@@ -211,7 +211,7 @@ const MultiSelectModal = ({
           </div>
 
           <div className="flex items-center justify-between">
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               <input
                 type="file"
                 ref={imageInputRef}
@@ -222,32 +222,38 @@ const MultiSelectModal = ({
               />
               <input
                 type="file"
-                accept=".pdf,.doc,.docx,.txt,.zip"
+                accept=".pdf,.doc,.docx,.txt,.zip,.mp4,.mov,.webm,.ogg,.m4v,video/*"
                 ref={fileInputRef}
                 onChange={handleFileSelect}
                 multiple
                 className="hidden"
               />
 
-              <button
-                onClick={() => imageInputRef.current?.click()}
-                className="relative w-12 h-12 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-[#3EBF0F] hover:bg-[#3EBF0F1A]"
-              >
-                <ImageIcon size={20} className="text-gray-400" />
-                <div className="absolute -top-1 -right-1 bg-white rounded-full shadow w-4 h-4 flex items-center justify-center">
-                  <Plus size={10} style={{ color: '#3EBF0F' }} />
-                </div>
-              </button>
+              <div className="flex flex-col items-center gap-1">
+                <button
+                  onClick={() => imageInputRef.current?.click()}
+                  className="relative w-12 h-12 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-[#3EBF0F] hover:bg-[#3EBF0F1A]"
+                >
+                  <ImageIcon size={20} className="text-gray-400" />
+                  <div className="absolute -top-1 -right-1 bg-white rounded-full shadow w-4 h-4 flex items-center justify-center">
+                    <Plus size={10} style={{ color: '#3EBF0F' }} />
+                  </div>
+                </button>
+                <span className="text-xs text-gray-500">Images</span>
+              </div>
 
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="relative w-12 h-12 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-[#3EBF0F] hover:bg-[#3EBF0F1A]"
-              >
-                <File size={20} className="text-gray-400" />
-                <div className="absolute -top-1 -right-1 bg-white rounded-full shadow w-4 h-4 flex items-center justify-center">
-                  <Plus size={10} style={{ color: '#3EBF0F' }} />
-                </div>
-              </button>
+              <div className="flex flex-col items-center gap-1">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="relative w-12 h-12 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-[#3EBF0F] hover:bg-[#3EBF0F1A]"
+                >
+                  <File size={20} className="text-gray-400" />
+                  <div className="absolute -top-1 -right-1 bg-white rounded-full shadow w-4 h-4 flex items-center justify-center">
+                    <Plus size={10} style={{ color: '#3EBF0F' }} />
+                  </div>
+                </button>
+                <span className="text-xs text-gray-500">videos/files</span>
+              </div>
             </div>
 
             {/* Send button */}
@@ -269,3 +275,4 @@ const MultiSelectModal = ({
 };
 
 export { MultiSelectModal };
+

@@ -18,6 +18,7 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const [priority, setPriority] = useState(null);
   const [category, setCategory] = useState(null);
   const [assignedAgents, setAssignedAgents] = useState([]);
+  const [followers, setFollowers] = useState([]);
 
   // Dropdown options
   const [statuses, setStatuses] = useState([]);
@@ -120,6 +121,18 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
             agentOptions.find(a => a.value === assignee.id)
           ).filter(Boolean);
           setAssignedAgents(currentAgents);
+        } else {
+          setAssignedAgents([]);
+        }
+
+        // Set current followers
+        if (ticketRes.data.success && ticketRes.data.ticket.followers && ticketRes.data.ticket.followers.length > 0) {
+          const currentFollowers = ticketRes.data.ticket.followers.map(follower =>
+            agentOptions.find(a => a.value === follower.id)
+          ).filter(Boolean);
+          setFollowers(currentFollowers);
+        } else {
+          setFollowers([]);
         }
       }
       
@@ -141,6 +154,10 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
       alert('Description cannot be empty');
       return;
     }
+    if (!priority?.value) {
+      alert('Priority is required');
+      return;
+    }
 
     const isoDueDate = dueDate
     ? new Date(dueDate).toISOString()
@@ -158,6 +175,7 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
         priority_id: priority?.value || null,
         category_id: category?.value || null,
         assignee_ids: assignedAgents.map(a => a.value),
+        followers: (followers || []).map(f => f.value),
         due_date: isoDueDate
       };
 
@@ -250,10 +268,26 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Followers
+              </label>
+              <Select
+                isMulti
+                value={followers}
+                onChange={(selectedOptions) => setFollowers(selectedOptions || [])}
+                options={agents}
+                styles={selectStyles}
+                placeholder="Select followers..."
+                isDisabled={saving}
+              />
+            </div>
+
             {/* Priority */}
             <div>
               <label className="block text-sm font-medium mb-1">
                 Priority
+                <span className="text-red-500"> *</span>
               </label>
               <Select
                 value={priority}
@@ -315,7 +349,7 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
             </button>
             <button
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || !priority?.value}
               className="px-4 py-2 bg-[#3EBF0F] text-white rounded-lg hover:bg-[#35a50d] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
               {saving ? (
