@@ -31,7 +31,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className="light">
       <head>
-        <Script src="https://js.paystack.co/v1/inline.js" />
+        <Script src="https://js.paystack.co/v1/inline.js" strategy="lazyOnload" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>

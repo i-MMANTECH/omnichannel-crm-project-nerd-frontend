@@ -8,6 +8,7 @@ import SlaPolicies from '@/app/components/admin/Settings/sla-policies/SlaPolicie
 import DeveloperSettings from '@/app/components/admin/Settings/developer-settings/DeveloperSettings';
 import NotificationSettings from '@/app/components/admin/Settings/notification-settings/NotificationSettings';
 import AutomationsTemplates from '@/app/components/admin/Settings/automations/AutomationsTemplates';
+import Categories from '@/app/components/admin/Settings/categories/Categories';
 
 export default function Settings() {
   const [currentSection, setCurrentSection] = useState('default');
@@ -53,6 +54,8 @@ export default function Settings() {
         return <DeveloperSettings />;
       case 'automations':
         return <AutomationsTemplates />;
+      case 'categories':
+        return <Categories />;
       default:
         return <div>Select a setting from the sidebar</div>;
     }
