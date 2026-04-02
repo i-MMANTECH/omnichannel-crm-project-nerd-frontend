@@ -14,6 +14,7 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
     const { handleApiError } = useError();
     const searchParams = useSearchParams();
     const [tags, setTags] = useState([]);
+    const [categories, setCategories] = useState([]);
     const canViewContactInfo = useCanViewContactInfo();  // ✅ ADD THIS
 
     const [image, setImage] = useState(null);
@@ -33,14 +34,29 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
         tag: [],
         country: { id: 160, name: "Nigeria" },
         state: {},
+        category: null,
     });
 
     useEffect(() => {
         console.log('customer id is', customerId)
         if (isOpen && customerId) {
             fetchCustomerData();
+            fetchCategories();
         }
     }, [isOpen, customerId]);
+
+    const fetchCategories = async () => {
+        try {
+            const [tagsRes, catRes] = await Promise.all([
+                axiosInstance.get("/tags/"),
+                axiosInstance.get("/customers/categories/")
+            ]);
+            setTags(tagsRes.data.tags || []);
+            setCategories(catRes.data.categories || []);
+        } catch (error) {
+            handleApiError(error);
+        }
+    };
 
     // ✅ PREVENT NON-ADMINS FROM EDITING PHONE FIELDS
     const handleChange = (e) => {
@@ -68,7 +84,10 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
     };
 
     const handleTagChange = (selectedTags) => {
-        setFormData(prev => ({ ...prev, tags: selectedTags }));
+        setFormData(prev => ({ 
+            ...prev, 
+            tags: selectedTags ? selectedTags.map(t => ({ id: t.value, name: t.label })) : [] 
+        }));
     };
 
     const fetchCustomerData = async () => {
@@ -90,6 +109,7 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
                 tags: customer.tags || [],
                 country: customer.country || { id: 160, name: "Nigeria" },
                 state: customer.state || {},
+                category: customer.category || null,
             });
 
             setImagePreview(customer.image || null);
@@ -104,9 +124,11 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
             const submissionData = {
                 ...formData,
                 tags: formData?.tags?.map(tag => tag.id),
+                categories: formData.category ? [formData.category.label || formData.category.name] : undefined,
                 country: formData.country?.id,
                 state: formData.state?.id
             };
+            delete submissionData.category;
 
             const formDataToSubmit = new FormData();
             Object.keys(submissionData).forEach(key => {
@@ -366,13 +388,36 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
                         name="tags"
                         options={tags?.map(tag => ({
                             value: tag.id,
-                            label: tag.name
+                            label: tag.name || tag.label
                         }))}
                         classNamePrefix="select"
                         onChange={handleTagChange}
-                        value={formData?.tags}
+                        value={formData?.tags?.map(t => ({ value: t.id, label: t.name || t.label }))}
                         placeholder="Select tags"
                         styles={selectStyles}
+                    />
+                </div>
+
+                <div>
+                    <label className="text-sm">Category</label>
+                    <Select
+                        name="category"
+                        options={categories.map(cat => ({ 
+                            value: cat.id, 
+                            label: cat.label || cat.name 
+                        }))}
+                        classNamePrefix="select"
+                        onChange={(selectedOption) => setFormData(prev => ({ 
+                            ...prev, 
+                            category: selectedOption ? { id: selectedOption.value, label: selectedOption.label } : null 
+                        }))}
+                        value={formData.category ? { 
+                            value: formData.category.id, 
+                            label: formData.category.label || formData.category.name 
+                        } : null}
+                        placeholder="Select category"
+                        styles={selectStyles}
+                        isClearable
                     />
                 </div>
             </form>

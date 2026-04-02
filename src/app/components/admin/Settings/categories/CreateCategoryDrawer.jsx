@@ -4,9 +4,8 @@ import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
 import { toast } from 'react-toastify';
 
-const CreateCategoryDrawer = ({ show, onClose, onCategoryCreated }) => {
+const CreateCategoryDrawer = ({ show, onClose, onCategoryCreated, moduleType = "tickets" }) => {
   const [categoryName, setCategoryName] = useState("");
-  const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
@@ -21,9 +20,8 @@ const CreateCategoryDrawer = ({ show, onClose, onCategoryCreated }) => {
 
     try {
       setSubmitting(true);
-      await axiosInstance.post('/tickets/categories/', {
-        label: categoryName.trim(),
-        description: description.trim(),
+      await axiosInstance.post(`/${moduleType}/categories/`, {
+        name: categoryName.trim(),
       });
 
       toast.success("Category created successfully");
@@ -38,7 +36,6 @@ const CreateCategoryDrawer = ({ show, onClose, onCategoryCreated }) => {
 
   const handleClose = () => {
     setCategoryName("");
-    setDescription("");
     onClose();
   };
 
@@ -83,21 +80,6 @@ const CreateCategoryDrawer = ({ show, onClose, onCategoryCreated }) => {
             onChange={(e) => setCategoryName(e.target.value)}
             required
           />
-        </div>
-
-        <div className="mb-5">
-          <label className="block text-sm font-medium mb-2">Description</label>
-          <textarea
-            className="w-full border border-gray-300 body-theme rounded-lg p-2"
-            placeholder="Give a short description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            maxLength={100}
-            rows={4}
-          />
-          <div className="text-right text-sm text-gray-400">
-            {description.length}/100
-          </div>
         </div>
       </form>
     </Drawer>

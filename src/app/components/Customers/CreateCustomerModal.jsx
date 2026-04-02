@@ -13,6 +13,7 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
     const { axiosInstance } = useApi();
     const { handleApiError } = useError();
     const [tags, setTags] = useState([]);
+    const [categories, setCategories] = useState([]);
 
     const [formData, setFormData] = useState({
         username: "",
@@ -28,6 +29,7 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
         tags: [],
         country: { id: 160, name: "Nigeria" },
         state: {},
+        category: null,
     });
 
     const [image, setImage] = useState(null);
@@ -41,8 +43,12 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
 
     const fetchTags = async () => {
         try {
-            const response = await axiosInstance.get("/tags/");
-            setTags(response.data.tags || []);
+            const [tagsRes, catRes] = await Promise.all([
+                axiosInstance.get("/tags/"),
+                axiosInstance.get("/customers/categories/")
+            ]);
+            setTags(tagsRes.data.tags || []);
+            setCategories(catRes.data.categories || []);
         } catch (error) {
             handleApiError(error);
         }
@@ -141,9 +147,11 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
             const submissionData = {
                 ...formData,
                 tags: formData.tags, // Send raw tag names, not IDs
+                categories: formData.category?.label ? [formData.category.label] : undefined,
                 country: formData.country?.id,
                 state: formData.state?.id,
             };
+            delete submissionData.category;
 
             const formDataToSubmit = new FormData();
             Object.keys(submissionData).forEach((key) => {
@@ -182,6 +190,7 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
                     whatsapp: "",
                     tiktok: "",
                     tags: [],
+                    category: null,
                     country: { id: 160, name: "Nigeria" },
                     state: {},
                 });
@@ -394,8 +403,8 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
                         isMulti
                         name="tags"
                         options={tags.map((tag) => ({
-                            value: tag.value,
-                            label: tag.label,
+                            value: tag.name,
+                            label: tag.name,
                         }))}
                         classNamePrefix="select"
                         onChange={handleTagChange}
@@ -403,6 +412,23 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
                         value={formData.tags.map(tag => ({ value: tag, label: tag }))}
                         placeholder="Select or create tags"
                         styles={selectStyles}
+                    />
+                </div>
+
+                <div>
+                    <label className="text-sm">Category</label>
+                    <Select
+                        name="category"
+                        options={categories.map(cat => ({ 
+                            value: cat.id, 
+                            label: cat.label || cat.name 
+                        }))}
+                        classNamePrefix="select"
+                        onChange={(selectedOption) => setFormData(prev => ({ ...prev, category: selectedOption }))}
+                        value={formData.category}
+                        placeholder="Select category"
+                        styles={selectStyles}
+                        isClearable
                     />
                 </div>
 

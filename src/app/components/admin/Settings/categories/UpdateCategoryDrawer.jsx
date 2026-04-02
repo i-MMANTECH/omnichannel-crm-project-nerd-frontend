@@ -4,9 +4,8 @@ import { useError } from '@/context/ErrorContext';
 import { useApi } from '@/services/axiosConfig';
 import { toast } from 'react-toastify';
 
-const UpdateCategoryDrawer = ({ show, onClose, categoryId, onCategoryUpdated }) => {
+const UpdateCategoryDrawer = ({ show, onClose, categoryId, onCategoryUpdated, moduleType = "tickets" }) => {
   const [categoryName, setCategoryName] = useState("");
-  const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
   const { axiosInstance } = useApi();
@@ -21,10 +20,9 @@ const UpdateCategoryDrawer = ({ show, onClose, categoryId, onCategoryUpdated }) 
   const fetchCategory = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`/tickets/categories/${categoryId}/`);
+      const response = await axiosInstance.get(`/${moduleType}/categories/${categoryId}/`);
       const category = response.data;
       setCategoryName(category.label || "");
-      setDescription(category.description || "");
     } catch (error) {
       handleApiError(error);
     } finally {
@@ -42,9 +40,8 @@ const UpdateCategoryDrawer = ({ show, onClose, categoryId, onCategoryUpdated }) 
 
     try {
       setSubmitting(true);
-      await axiosInstance.patch(`/tickets/categories/${categoryId}/`, {
-        label: categoryName.trim(),
-        description: description.trim(),
+      await axiosInstance.patch(`/${moduleType}/categories/${categoryId}/`, {
+        name: categoryName.trim(),
       });
 
       toast.success("Category updated successfully");
@@ -59,7 +56,6 @@ const UpdateCategoryDrawer = ({ show, onClose, categoryId, onCategoryUpdated }) 
 
   const handleClose = () => {
     setCategoryName("");
-    setDescription("");
     onClose();
   };
 
@@ -109,21 +105,6 @@ const UpdateCategoryDrawer = ({ show, onClose, categoryId, onCategoryUpdated }) 
               onChange={(e) => setCategoryName(e.target.value)}
               required
             />
-          </div>
-
-          <div className="mb-5">
-            <label className="block text-sm font-medium mb-2">Description</label>
-            <textarea
-              className="w-full border border-gray-300 body-theme rounded-lg p-2"
-              placeholder="Give a short description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              maxLength={100}
-              rows={4}
-            />
-            <div className="text-right text-sm text-gray-400">
-              {description.length}/100
-            </div>
           </div>
         </form>
       )}
