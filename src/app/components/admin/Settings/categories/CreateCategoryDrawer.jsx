@@ -21,7 +21,7 @@ const CreateCategoryDrawer = ({ show, onClose, onCategoryCreated }) => {
 
     try {
       setSubmitting(true);
-      await axiosInstance.post('/tickets/categories/', {
+      await axiosInstance.post('/categories/', {
         label: categoryName.trim(),
         description: description.trim(),
       });

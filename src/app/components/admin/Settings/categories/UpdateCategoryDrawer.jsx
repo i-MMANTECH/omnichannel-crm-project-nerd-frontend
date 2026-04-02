@@ -21,7 +21,7 @@ const UpdateCategoryDrawer = ({ show, onClose, categoryId, onCategoryUpdated }) 
   const fetchCategory = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`/tickets/categories/${categoryId}/`);
+      const response = await axiosInstance.get(`/categories/${categoryId}/`);
       const category = response.data;
       setCategoryName(category.label || "");
       setDescription(category.description || "");
@@ -42,7 +42,7 @@ const UpdateCategoryDrawer = ({ show, onClose, categoryId, onCategoryUpdated }) 
 
     try {
       setSubmitting(true);
-      await axiosInstance.patch(`/tickets/categories/${categoryId}/`, {
+      await axiosInstance.patch(`/categories/${categoryId}/`, {
         label: categoryName.trim(),
         description: description.trim(),
       });
