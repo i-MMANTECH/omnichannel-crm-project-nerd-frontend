@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+﻿import React, { useEffect, useRef, useState, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import { formatChatTime } from "@/utils/timeUtils";
 import "./chatlist.css";
 import Image from "next/image";
 import UserAvatar from "../UserAvatar";
+import { getRoleStyle } from "@/utils/getRoleStyle";
 
 const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading, isFetchingMoreUsers, isAdmin }) => {
   const results = users?.results || [];
@@ -93,6 +94,16 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading,
       <div ref={chatListRef}
         className="chat-list-container flex flex-col overflow-y-auto h-[60vh] w-full">
         {results.map((user) => {
+          const userCategories = Array.isArray(user?.categories)
+            ? user.categories
+                .map((category) =>
+                  typeof category === "string"
+                    ? category
+                    : category?.label || category?.name
+                )
+                .filter(Boolean)
+            : [];
+
           return (
             <div
               key={user?.id}
@@ -130,26 +141,35 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading,
                 </div>
                 <div className="content flex-1 min-w-0">
                   <div className="flex justify-between  w-full ">
-                    <div className="text-black dark:text-white user-name truncate">
-                      {user?.name ||
-                        user?.lead_name ||
-                        user?.lead?.name ||
-                        user?.customer_name ||
-                        user?.customer?.first_name ||
-                        user?.customer?.username ||
-                        user?.customer?.email ||
-                        "Unknown "}
-                      {isAdmin && user?.phone_number && (
-                        <span className="text-[10px] text-gray-400 font-normal ml-1">· {user.phone_number}</span>
+                    <div className="chat-name-row">
+                      <div className="text-black dark:text-white user-name truncate">
+                        {user?.name ||
+                          user?.lead_name ||
+                          user?.lead?.name ||
+                          user?.customer_name ||
+                          user?.customer?.first_name ||
+                          user?.customer?.username ||
+                          user?.customer?.email ||
+                          "Unknown "}
+                        {isAdmin && user?.phone_number && (
+                          <span className="text-[10px] text-gray-400 font-normal ml-1">- {user.phone_number}</span>
+                        )}
+                      </div>
+                      {userCategories.length > 0 && (
+                        <span
+                          className="chat-category-inline"
+                          style={getRoleStyle(userCategories[0])}
+                        >
+                          {userCategories[0]}
+                          {userCategories.length > 1 ? ` +${userCategories.length - 1}` : ""}
+                        </span>
                       )}
                     </div>
-                    <div className="relative flex items-center">
-                      {/* Time Display */}
+                    <div className="chat-meta">
                       <div className="title-2 ">{formatChatTime(user?.lastMessageTime || user?.last_message_at)}</div>
 
-                      {/* Unread Message Indicator */}
                       {user?.unreadCount > 0 && (
-                        <div className="absolute -bottom-7 right-0 flex items-center justify-center w-5 h-5 bg-green-600 text-white text-xs font-bold rounded-full shadow-md">
+                        <div className="chat-unread-badge">
                           {user?.unreadCount}
                         </div>
                       )}
@@ -205,3 +225,5 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading,
 };
 
 export default ChatList;
+
+

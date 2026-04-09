@@ -1081,6 +1081,92 @@ export const MessagesContent = () => {
 		router.push(`${baseRoute}/messages?chat=${chatType}&id=${user.id}`, { scroll: false });
 	};
 
+	const handleLeadCategoryUpdated = ({ leadId, categories }) => {
+		if (!leadId) return;
+		const nextCategories = Array.isArray(categories) ? categories : [];
+
+		setActiveUser((prev) =>
+			String(prev?.id) === String(leadId)
+				? { ...prev, categories: nextCategories }
+				: prev
+		);
+
+		setUsers((prevUsers) => {
+			if (!prevUsers?.results) return prevUsers;
+			return {
+				...prevUsers,
+				results: prevUsers.results.map((chatUser) =>
+					String(chatUser.id) === String(leadId)
+						? { ...chatUser, categories: nextCategories }
+						: chatUser
+				),
+			};
+		});
+
+		setCachedData((prev) => {
+			const leadUsers = prev?.leads?.users;
+			if (!leadUsers?.results) return prev;
+
+			return {
+				...prev,
+				leads: {
+					...prev.leads,
+					users: {
+						...leadUsers,
+						results: leadUsers.results.map((chatUser) =>
+							String(chatUser.id) === String(leadId)
+								? { ...chatUser, categories: nextCategories }
+								: chatUser
+						),
+					},
+				},
+			};
+		});
+	};
+
+	const handleCustomerCategoryUpdated = ({ customerId, categories }) => {
+		if (!customerId) return;
+		const nextCategories = Array.isArray(categories) ? categories : [];
+
+		setActiveUser((prev) =>
+			String(prev?.id) === String(customerId)
+				? { ...prev, categories: nextCategories }
+				: prev
+		);
+
+		setUsers((prevUsers) => {
+			if (!prevUsers?.results) return prevUsers;
+			return {
+				...prevUsers,
+				results: prevUsers.results.map((chatUser) =>
+					String(chatUser.id) === String(customerId)
+						? { ...chatUser, categories: nextCategories }
+						: chatUser
+				),
+			};
+		});
+
+		setCachedData((prev) => {
+			const customerUsers = prev?.customers?.users;
+			if (!customerUsers?.results) return prev;
+
+			return {
+				...prev,
+				customers: {
+					...prev.customers,
+					users: {
+						...customerUsers,
+						results: customerUsers.results.map((chatUser) =>
+							String(chatUser.id) === String(customerId)
+								? { ...chatUser, categories: nextCategories }
+								: chatUser
+						),
+					},
+				},
+			};
+		});
+	};
+
 	const handleTabChange = (tab) => {
 		// Cancel any ongoing requests
 		if (abortControllerRef.current) {
@@ -1727,6 +1813,8 @@ export const MessagesContent = () => {
 								onToggleTicketPanel={!isInternalTab ? () => setShowTicketPanel(!showTicketPanel) : undefined}
 								showTicketPanel={!isInternalTab ? showTicketPanel : false}
 								baseRoute={baseRoute}
+								onLeadCategoryUpdated={handleLeadCategoryUpdated}
+								onCustomerCategoryUpdated={handleCustomerCategoryUpdated}
 							/>
 
 							{chatType === "leads" && suggestedCustomer && (
