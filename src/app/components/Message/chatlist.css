@@ -152,9 +152,7 @@
 .last-message {
     overflow: hidden;
     text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    white-space: nowrap;
     font-size: 0.875rem;
     flex: 1;
     min-width: 0;
@@ -163,14 +161,15 @@
 .chat-name-row {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     min-width: 0;
     flex: 1;
+    overflow: hidden;
 }
 
 .chat-preview-row {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     gap: 8px;
     width: 100%;
