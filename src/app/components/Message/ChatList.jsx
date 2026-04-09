@@ -155,15 +155,6 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading,
                           <span className="text-[10px] text-gray-400 font-normal ml-1">- {user.phone_number}</span>
                         )}
                       </div>
-                      {userCategories.length > 0 && (
-                        <span
-                          className="chat-category-inline"
-                          style={getRoleStyle(userCategories[0])}
-                        >
-                          {userCategories[0]}
-                          {userCategories.length > 1 ? ` +${userCategories.length - 1}` : ""}
-                        </span>
-                      )}
                     </div>
                     <div className="chat-meta">
                       <div className="title-2 ">{formatChatTime(user?.lastMessageTime || user?.last_message_at)}</div>
@@ -175,8 +166,17 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading,
                       )}
                     </div>
                   </div>
-                  <div className="flex justify-between w-full ">
+                  <div className="chat-preview-row">
                     <p className="label last-message ">{truncateMessage(user?.lastMessageData?.content || user?.lastMessage || user?.end_reason, 27)}</p>
+                    {userCategories.length > 0 && (
+                      <span
+                        className="chat-category-inline"
+                        style={getRoleStyle(userCategories[0])}
+                      >
+                        {userCategories[0]}
+                        {userCategories.length > 1 ? ` +${userCategories.length - 1}` : ""}
+                      </span>
+                    )}
                     <div className="hidden">
                       {user?.unreadCount > 0 && (
                         <div className="title-wrapper">
@@ -225,5 +225,3 @@ const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading,
 };
 
 export default ChatList;
-
-
