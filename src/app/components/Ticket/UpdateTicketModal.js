@@ -31,6 +31,8 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const [saving, setSaving] = useState(false);
   const [ticket, setTicket] = useState(null);
   const [dueDate, setDueDate] = useState("")
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [existingAttachments, setExistingAttachments] = useState([]);
 
 
   useEffect(() => {
@@ -59,6 +61,7 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
         setSubject(ticketData.subject || '');
         setDescription(ticketData.description || '');
         setCustomerName(ticketData.customer_name || '');
+        setExistingAttachments(ticketData.attachments || []);
       }
 
       // Map priorities
@@ -179,9 +182,24 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
         due_date: isoDueDate
       };
 
-      const response = await axiosInstance.patch(`/tickets/${ticketId}/update/`, payload);
+      const formData = new FormData();
+      Object.entries(payload).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach((item) => formData.append(key, item));
+        } else if (value !== null && value !== "") {
+          formData.append(key, value);
+        }
+      });
+      selectedImages.forEach((image) => formData.append('images', image));
+
+      const response = await axiosInstance.patch(`/tickets/${ticketId}/update/`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       if (response.data.success) {
+        setSelectedImages([]);
         if (onUpdate) onUpdate();
         onClose();
       }
@@ -190,6 +208,18 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const imageFiles = files.filter((file) => file.type.startsWith('image/'));
+    setSelectedImages((prev) => [...prev, ...imageFiles]);
+    e.target.value = null;
+  };
+
+  const removeNewImage = (index) => {
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -335,6 +365,62 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg body-theme focus:outline-none focus:ring-2 focus:ring-[#3EBF0F]"
                 disabled={saving}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Existing Images
+              </label>
+              {existingAttachments.length === 0 ? (
+                <p className="text-sm text-gray-500">No images attached.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {existingAttachments.map((attachment) => (
+                    <a
+                      key={attachment.id}
+                      href={attachment.image_url || attachment.image}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 underline"
+                    >
+                      Image {attachment.id}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Add Images
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg body-theme"
+                disabled={saving}
+              />
+              {selectedImages.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {selectedImages.map((file, index) => (
+                    <div
+                      key={`${file.name}-${index}`}
+                      className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 flex items-center gap-2"
+                    >
+                      <span className="max-w-[160px] truncate">{file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeNewImage(index)}
+                        className="text-red-500"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
