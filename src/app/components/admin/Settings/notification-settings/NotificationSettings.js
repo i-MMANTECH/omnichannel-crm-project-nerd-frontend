@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import EscalationSettings from './EscalationSettings';
+import DailyAnalysisSettings from './DailyAnalysisSettings';
 import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
 
@@ -38,11 +39,27 @@ const NotificationSettings = () => {
   const [tempThresholdMinutes, setTempThresholdMinutes] = useState(5);
   const [escalationLevels, setEscalationLevels] = useState([]);
   const [users, setUsers] = useState([]);
+  const [dailyAnalysisSettings, setDailyAnalysisSettings] = useState({
+    daily_analysis_enabled: false,
+    daily_analysis_time: '20:00:00',
+    daily_analysis_timezone: 'Africa/Lagos',
+    daily_analysis_extra_emails: [],
+    daily_analysis_connector_id: '',
+    llm_email: '',
+    llm_password: '',
+    llm_password_masked: '',
+    next_daily_analysis_run_at: null,
+    last_daily_analysis_window_end: null,
+    last_daily_analysis_status: null,
+    last_daily_analysis_error: null,
+  });
+  const [dailyAnalysisConnectors, setDailyAnalysisConnectors] = useState([]);
 
   useEffect(() => {
     fetchEscalationSettings();
     fetchEscalationLevels();
     fetchUsers();
+    fetchDailyAnalysisSettings();
   }, []);
 
   const fetchEscalationSettings = async () => {
@@ -74,6 +91,21 @@ const NotificationSettings = () => {
       const response = await axiosInstance.get('/users/');
       const data = response.data.results || [];
       setUsers(data);
+    } catch (err) {
+      handleApiError(err);
+    }
+  };
+
+  const fetchDailyAnalysisSettings = async () => {
+    try {
+      const response = await axiosInstance.get('/companies/daily-analysis-settings/');
+      const data = response.data.data;
+      setDailyAnalysisSettings(prev => ({
+        ...prev,
+        ...data,
+        daily_analysis_connector_id: data.daily_analysis_connector_id || '',
+        llm_password: '',
+      }));
     } catch (err) {
       handleApiError(err);
     }
@@ -131,6 +163,58 @@ const NotificationSettings = () => {
       setLoading(true);
       await axiosInstance.delete(`/companies/escalation-levels/${levelId}/`);
       setEscalationLevels(prev => prev.filter(level => level.id !== levelId));
+    } catch (err) {
+      handleApiError(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateDailyAnalysisSettings = async (updatedSettings) => {
+    try {
+      setLoading(true);
+      const payload = {
+        ...updatedSettings,
+        daily_analysis_connector_id: updatedSettings.daily_analysis_connector_id || null,
+      };
+      if (!payload.llm_password) {
+        delete payload.llm_password;
+      }
+
+      const response = await axiosInstance.patch('/companies/daily-analysis-settings/', payload);
+      const data = response.data.data;
+      setDailyAnalysisSettings(prev => ({
+        ...prev,
+        ...data,
+        daily_analysis_connector_id: data.daily_analysis_connector_id || '',
+        llm_password: '',
+      }));
+      return data;
+    } catch (err) {
+      handleApiError(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const testDailyAnalysisAuth = async (settingsOverride) => {
+    try {
+      setLoading(true);
+      const payload = {
+        ...settingsOverride,
+        daily_analysis_connector_id: settingsOverride.daily_analysis_connector_id || null,
+      };
+      const response = await axiosInstance.post('/companies/daily-analysis-settings/test-llm-auth/', payload);
+      const data = response.data.data || {};
+      setDailyAnalysisConnectors(data.connectors || []);
+      setDailyAnalysisSettings(prev => ({
+        ...prev,
+        last_daily_analysis_status: 'pending',
+        last_daily_analysis_error: null,
+      }));
+      return data;
     } catch (err) {
       handleApiError(err);
       throw err;
@@ -228,6 +312,13 @@ const NotificationSettings = () => {
         >
           Escalation Settings
         </TabButton>
+        <TabButton
+          id="daily-analysis"
+          isActive={activeTab === 'daily-analysis'}
+          onClick={setActiveTab}
+        >
+          Daily Analysis
+        </TabButton>
       </div>
 
       {/* {activeTab === 'general' && (
@@ -257,6 +348,17 @@ const NotificationSettings = () => {
           onCreateLevel={createEscalationLevel}
           onUpdateLevel={updateEscalationLevel}
           onDeleteLevel={deleteEscalationLevel}
+        />
+      )}
+
+      {activeTab === 'daily-analysis' && (
+        <DailyAnalysisSettings
+          settings={dailyAnalysisSettings}
+          setSettings={setDailyAnalysisSettings}
+          onSave={updateDailyAnalysisSettings}
+          onTestAuth={testDailyAnalysisAuth}
+          connectors={dailyAnalysisConnectors}
+          loading={loading}
         />
       )}
     </div>
