@@ -581,27 +581,40 @@ const MessageList = ({
       context_metadata.quoted_text ||
       null;
 
+    const quotedType = context_metadata.quoted_type || null;
+
+    // Human-readable label for the content type when there's no text to show
+    const mediaLabel = {
+      image: "📷 Photo",
+      video: "🎥 Video",
+      audio: "🎵 Audio",
+      document: "📄 Document",
+      sticker: "🎭 Sticker",
+    }[quotedType] || null;
+
     return (
       <div className={`rounded-md px-2 py-1 mb-2 flex items-start gap-2 text-sm max-w-full overflow-hidden ${wrapperCls}`}>
+        {/* Thumbnail — shown on the LEFT for media-only statuses so it fills the space nicely */}
+        {context_thumbnail && (
+          <img
+            src={context_thumbnail}
+            alt="Status thumbnail"
+            className="w-14 h-14 rounded object-cover flex-shrink-0"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+          />
+        )}
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-0.5 truncate">
             {isStatusReply ? "Replied to your status" : "Replied to"}
           </p>
           {quotedText ? (
             <p className="text-gray-700 dark:text-gray-200 line-clamp-2 break-words">{quotedText}</p>
+          ) : mediaLabel ? (
+            <p className="text-gray-500 dark:text-gray-400 italic">{mediaLabel}</p>
           ) : (
-            <p className="text-gray-400 dark:text-gray-500 italic">
-              {isStatusReply ? "Status" : "Message"}
-            </p>
+            <p className="text-gray-400 dark:text-gray-500 italic">Status</p>
           )}
         </div>
-        {context_thumbnail && (
-          <img
-            src={context_thumbnail}
-            alt="Status thumbnail"
-            className="w-12 h-12 rounded object-cover flex-shrink-0"
-          />
-        )}
       </div>
     );
   }
