@@ -26,6 +26,8 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
   const [followers, setFollowers] = useState([]);
   const [dueDate, setDueDate] = useState("");
   const [status, setStatus] = useState(null);
+  const [category, setCategory] = useState(null);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [task, setTask] = useState(null);
   const [priorities, setPriorities] = useState([]);
@@ -38,11 +40,13 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
   const prioritiesEndpoint = "tasks/priorities/";
   const statusesEndpoint = "tasks/statuses/";
   const slaEndpoint = "/sla/";
+  const categoriesEndpoint = "tasks/categories/";
 
   const [loadingAgents, setLoadingAgents] = useState(false);
   const [loadingPriorities, setLoadingPriorities] = useState(false);
   const [loadingStatuses, setLoadingStatuses] = useState(false);
   const [loadingSlas, setLoadingSlas] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(false);
 
 
   const fetchSlaPolicies = async () => {
@@ -127,10 +131,28 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
         }
       };
 
+      const fetchCategories = async () => {
+        setLoadingCategories(true);
+        try {
+          const response = await axiosInstance.get(categoriesEndpoint);
+          setCategories(
+            (response.data.categories || []).map((cat) => ({
+              value: cat.id,
+              label: cat.label,
+            }))
+          );
+        } catch (error) {
+          handleApiError(error);
+        } finally {
+          setLoadingCategories(false);
+        }
+      };
+
 
       if (priorities.length === 0) fetchPriorities();
       if (statuses.length === 0) fetchStatuses();
       if (users.length === 0) fetchAssignees();
+      if (categories.length === 0) fetchCategories();
     }
   }, [isOpen]);
 
@@ -179,6 +201,11 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
       setStatus(
         statuses.find((s) => s.id === task.status.id) || null
       );
+      setCategory(
+        task.category
+          ? { value: task.category.id, label: task.category.name }
+          : null
+      );
     }
   }, [task, priorities, statuses]);
 
@@ -207,6 +234,10 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
     setStatus(selectedOption);
   };
 
+  const handleCategoryChange = (selectedOption) => {
+    setCategory(selectedOption);
+  };
+
   const handleAgentChange = (selectedOptions) => {
     setAgents(selectedOptions.map((option) => option.value));
   };
@@ -220,6 +251,7 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
     if (description !== task.description) updatedFields.description = description;
     if (priority?.value !== task.priority.id) updatedFields.priority = priority?.value;
     if (status?.value !== task.status.id) updatedFields.status = status?.value;
+    if (category?.value !== task.category?.id) updatedFields.category_id = category?.value;
     if (sla?.id !== task.sla?.id) updatedFields.sla = String(sla?.id);
 
     const formattedDueDate = new Date(dueDate).toISOString().split("T")[0];
@@ -400,6 +432,19 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
             placeholder={loadingStatuses ? "Loading statuses..." : "Select status"}
           />
 
+        </div>
+
+        <div className="mb-7">
+          <label className="block text-sm font-medium mb-1">Category</label>
+          <Select
+            options={categories}
+            value={category}
+            onChange={handleCategoryChange}
+            styles={selectStyles}
+            isLoading={loadingCategories}
+            isDisabled={loadingCategories}
+            placeholder={loadingCategories ? "Loading categories..." : "Select category"}
+          />
         </div>
       </form>
     </Modal>

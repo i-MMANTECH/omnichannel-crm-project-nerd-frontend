@@ -405,6 +405,17 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                     {task.status.label}
                   </span>
                 </div>
+                <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center gap-2">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M2.66666 4.33333V3.66667C2.66666 3.11438 3.11437 2.66667 3.66666 2.66667H6.10452C6.37 2.66667 6.62459 2.77202 6.81223 2.95966L7.85414 4.00157C8.04178 4.18921 8.29637 4.29456 8.56185 4.29456H12.3333C12.8856 4.29456 13.3333 4.74227 13.3333 5.29456V12.3333C13.3333 12.8856 12.8856 13.3333 12.3333 13.3333H3.66666C3.11437 13.3333 2.66666 12.8856 2.66666 12.3333V5.66667" stroke="#808897" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="font-medium">Category</span>
+                  </div>
+                  <span className="bg-gray-100 dark:bg-neutral-800 px-2 py-1 rounded">
+                    {task.category?.name || "No category"}
+                  </span>
+                </div>
                 {task.due_date && (
                   <div className="flex justify-between items-center">
                     <div className="flex justify-between items-center gap-2">
