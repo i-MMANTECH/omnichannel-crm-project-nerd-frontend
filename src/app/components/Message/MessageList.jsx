@@ -527,6 +527,85 @@ const MessageList = ({
     );
   }
 
+  /**
+   * Renders the WhatsApp reply/status-reply quoted-context preview bubble.
+   *
+   * Two cases:
+   *  1. reply_to_details — the quoted message exists in our DB (regular reply).
+   *     Shows the parent message text + optional media thumbnail.
+   *  2. context_metadata only — the quoted content is a WhatsApp Status/Story
+   *     that was never stored as a conversation message.
+   *     Shows the status caption and the thumbnail extracted by the bridge.
+   */
+  function renderQuotedContext(msg, isOutgoing) {
+    const { reply_to_details, context_metadata, context_thumbnail } = msg;
+
+    if (!reply_to_details && !context_metadata) return null;
+
+    const isStatusReply = context_metadata?.is_status_reply === true;
+
+    // Outgoing bubbles have a green tint; incoming have a grey tint.
+    const wrapperCls = isOutgoing
+      ? "border-l-[3px] border-green-400 bg-green-100 dark:bg-green-900/30"
+      : "border-l-[3px] border-gray-400 bg-gray-100 dark:bg-gray-700/50";
+
+    // ── Case 1: Regular reply (parent message is in the DB) ──────────────────
+    if (reply_to_details) {
+      const { content, content_type, attachment_url } = reply_to_details;
+      const isMedia = ["image", "video", "audio", "document"].includes(content_type);
+      const displayText = content || (isMedia ? `[${content_type}]` : "");
+
+      return (
+        <div className={`rounded-md px-2 py-1 mb-2 flex items-start gap-2 text-sm max-w-full overflow-hidden ${wrapperCls}`}>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-0.5 truncate">
+              {isOutgoing ? "You replied to" : "Reply to"}
+            </p>
+            <p className="text-gray-700 dark:text-gray-200 line-clamp-2 break-words">{displayText}</p>
+          </div>
+          {attachment_url && content_type === "image" && (
+            <img
+              src={attachment_url}
+              alt="Quoted"
+              className="w-12 h-12 rounded object-cover flex-shrink-0"
+            />
+          )}
+        </div>
+      );
+    }
+
+    // ── Case 2: Status reply (original status not stored as a message) ───────
+    const quotedText =
+      context_metadata.text ||
+      context_metadata.caption ||
+      context_metadata.quoted_text ||
+      null;
+
+    return (
+      <div className={`rounded-md px-2 py-1 mb-2 flex items-start gap-2 text-sm max-w-full overflow-hidden ${wrapperCls}`}>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-0.5 truncate">
+            {isStatusReply ? "Replied to your status" : "Replied to"}
+          </p>
+          {quotedText ? (
+            <p className="text-gray-700 dark:text-gray-200 line-clamp-2 break-words">{quotedText}</p>
+          ) : (
+            <p className="text-gray-400 dark:text-gray-500 italic">
+              {isStatusReply ? "Status" : "Message"}
+            </p>
+          )}
+        </div>
+        {context_thumbnail && (
+          <img
+            src={context_thumbnail}
+            alt="Status thumbnail"
+            className="w-12 h-12 rounded object-cover flex-shrink-0"
+          />
+        )}
+      </div>
+    );
+  }
+
   if (!chatHistory || chatHistory?.length === 0) return null;
 
   return (
@@ -607,6 +686,8 @@ const MessageList = ({
                     {msg?.channel?.id == 7 &&
                       <div className="text-lg font-semibold mb-5"><span>{msg?.subject ?? "__"}</span></div>
                     }
+
+                    {renderQuotedContext(msg, isOutgoing)}
 
                     {isOutgoing ? (
                       <div className="flex items-center relative">
