@@ -4,6 +4,7 @@ import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import { getSmartTimestamp } from "@/utils/timeUtils";
+import { getRoleStyle } from "@/utils/getRoleStyle";
 
 export default function TableView({
   tasks,
@@ -212,6 +213,11 @@ export default function TableView({
             </th>
             <th className="text-left font-medium leading-[21px] tracking-[0.2px]">
               <div className="flex items-center gap-2">
+                <span>Categories</span>
+              </div>
+            </th>
+            <th className="text-left font-medium leading-[21px] tracking-[0.2px]">
+              <div className="flex items-center gap-2">
                 <span>Actions</span>
               </div>
             </th>
@@ -322,6 +328,22 @@ export default function TableView({
               <td className="px-4 py-2">
                 <div className="space-x-2">
                   <span>{getSmartTimestamp(task.created_at)}</span>
+                </div>
+              </td>
+              <td className="px-4 py-2">
+                <div className="flex flex-wrap gap-1">
+                  {(task.categories || []).slice(0, 3).map((cat, index) => (
+                    <span
+                      key={`${task.id}-cat-${index}`}
+                      className="px-2 py-0.5 text-xs rounded"
+                      style={getRoleStyle(cat.name || cat.label)}
+                    >
+                      {cat.name || cat.label}
+                    </span>
+                  ))}
+                  {(task.categories || []).length > 3 && (
+                    <span className="text-xs font-bold">+{task.categories.length - 3}</span>
+                  )}
                 </div>
               </td>
               <td className="px-4 py-2">

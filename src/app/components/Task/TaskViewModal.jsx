@@ -412,9 +412,17 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                     </svg>
                     <span className="font-medium">Category</span>
                   </div>
-                  <span className="bg-gray-100 dark:bg-neutral-800 px-2 py-1 rounded">
-                    {task.category?.name || "No category"}
-                  </span>
+                  <div className="flex flex-wrap gap-1 justify-end">
+                    {task.categories && task.categories.length > 0 ? (
+                      task.categories.map((cat, index) => (
+                        <span key={index} className="bg-gray-100 dark:bg-neutral-800 px-2 py-1 rounded text-sm">
+                          {cat.name || cat.label}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="bg-gray-100 dark:bg-neutral-800 px-2 py-1 rounded">No category</span>
+                    )}
+                  </div>
                 </div>
                 {task.due_date && (
                   <div className="flex justify-between items-center">

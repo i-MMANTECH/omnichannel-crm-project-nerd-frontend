@@ -21,7 +21,7 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
   const [users, setUsers] = useState([]);
   const [slas, setSlas] = useState([]);
   const [followers, setFollowers] = useState([]);
-  const [category, setCategory] = useState(null);
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [categories, setCategories] = useState([]);
 
   const prioritiesEndpoint = "tasks/priorities/";
@@ -127,8 +127,8 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
     setSla(selectedOption);
   };
 
-  const handleCategoryChange = (selectedOption) => {
-    setCategory(selectedOption);
+  const handleCategoryChange = (selectedOptions) => {
+    setSelectedCategories(selectedOptions || []);
   };
 
   const handleSubmit = async (e) => {
@@ -143,7 +143,7 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
       sla_id: sla?.value,
       priority: priority?.value,
       status: status?.value,
-      category_id: category?.value,
+      categories: selectedCategories.map((c) => c.value),
     };
 
 
@@ -156,7 +156,7 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
         setFollowers([]);
         setDueDate("");
         setSla(null);
-        setCategory(null);
+        setSelectedCategories([]);
         setPriority(null);
         setStatus(null);
         onClose();
@@ -252,13 +252,14 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
         <div className="mb-7">
           <label className="block text-sm font-medium mb-1">Category</label>
           <Select
+            isMulti
             options={categories}
-            value={category}
+            value={selectedCategories}
             onChange={handleCategoryChange}
             styles={selectStyles}
             isLoading={loadingCategories}
             isDisabled={loadingCategories}
-            placeholder={loadingCategories ? "Loading categories..." : "Select category"}
+            placeholder={loadingCategories ? "Loading categories..." : "Select categories"}
             noOptionsMessage={() =>
               loadingCategories ? "Loading categories..." : "No categories found"
             }

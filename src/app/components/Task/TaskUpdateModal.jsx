@@ -26,7 +26,7 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
   const [followers, setFollowers] = useState([]);
   const [dueDate, setDueDate] = useState("");
   const [status, setStatus] = useState(null);
-  const [category, setCategory] = useState(null);
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [task, setTask] = useState(null);
@@ -201,10 +201,8 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
       setStatus(
         statuses.find((s) => s.id === task.status.id) || null
       );
-      setCategory(
-        task.category
-          ? { value: task.category.id, label: task.category.name }
-          : null
+      setSelectedCategories(
+        (task.categories || []).map((cat) => ({ value: cat.id, label: cat.name || cat.label }))
       );
     }
   }, [task, priorities, statuses]);
@@ -234,8 +232,8 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
     setStatus(selectedOption);
   };
 
-  const handleCategoryChange = (selectedOption) => {
-    setCategory(selectedOption);
+  const handleCategoryChange = (selectedOptions) => {
+    setSelectedCategories(selectedOptions || []);
   };
 
   const handleAgentChange = (selectedOptions) => {
@@ -251,9 +249,11 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
     if (description !== task.description) updatedFields.description = description;
     if (priority?.value !== task.priority.id) updatedFields.priority = priority?.value;
     if (status?.value !== task.status.id) updatedFields.status = status?.value;
-    if (category?.value !== task.category?.id) updatedFields.category_id = category?.value;
-    if (sla?.id !== task.sla?.id) updatedFields.sla = String(sla?.id);
-
+    const originalCategoryIds = (task.categories || []).map((c) => c.id).sort((a, b) => a - b);
+    const selectedCategoryIds = selectedCategories.map((c) => c.value).sort((a, b) => a - b);
+    if (JSON.stringify(originalCategoryIds) !== JSON.stringify(selectedCategoryIds)) {
+      updatedFields.categories = selectedCategoryIds;
+    }
     const formattedDueDate = new Date(dueDate).toISOString().split("T")[0];
     const originalDueDate = new Date(task.due_date).toISOString().split("T")[0];
 
@@ -437,13 +437,14 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
         <div className="mb-7">
           <label className="block text-sm font-medium mb-1">Category</label>
           <Select
+            isMulti
             options={categories}
-            value={category}
+            value={selectedCategories}
             onChange={handleCategoryChange}
             styles={selectStyles}
             isLoading={loadingCategories}
             isDisabled={loadingCategories}
-            placeholder={loadingCategories ? "Loading categories..." : "Select category"}
+            placeholder={loadingCategories ? "Loading categories..." : "Select categories"}
           />
         </div>
       </form>
