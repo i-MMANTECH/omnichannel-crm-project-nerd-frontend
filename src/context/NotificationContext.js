@@ -41,7 +41,7 @@ export function NotificationProvider({ children }) {
     const initializeWebSocket = () => {
       if (user?.user_id) {
         const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-        const wsUrl = `${protocol}://${process.env.NEXT_PUBLIC_WS_BASE_URL}/ws/notifications/?uuid=${company?.id}`;
+        const wsUrl = `${protocol}://${process.env.NEXT_PUBLIC_WS_BASE_URL}/ws/notifications/?agent_uuid=${user?.user_id}`;
 
         const ws = new WebSocket(wsUrl);
 
