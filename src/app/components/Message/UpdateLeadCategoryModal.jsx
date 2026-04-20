@@ -225,7 +225,13 @@ const UpdateLeadCategoryModal = ({
           onChange={(selected) => setSelectedCategories(selected || [])}
           onCreateOption={handleCreateCategory}
           placeholder={isFetching ? "Loading categories..." : "Select category"}
-          styles={selectStyles}
+          styles={{
+            ...selectStyles,
+            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+          }}
+          menuPortalTarget={document.body}
+          menuPosition="fixed"
+          maxMenuHeight={240}
           isDisabled={isFetching || isSaving || isCreatingCategory}
           isClearable={false}
         />
