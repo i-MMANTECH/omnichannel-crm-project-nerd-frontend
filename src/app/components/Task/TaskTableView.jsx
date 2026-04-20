@@ -85,7 +85,7 @@ export default function TableView({
                 className="w-[16px] h-[16px] shrink-0 rounded-[4.8px] border border-[#DFE1E6] bg-white"
               />
             </th>
-            <th className="text-left font-medium leading-[21px] tracking-[0.2px]">
+            <th className="text-left font-medium leading-[21px] uppercase tracking-wider">
               <div className="flex items-center gap-2">
                 <span>Task ID</span>
               </div>
@@ -229,7 +229,9 @@ export default function TableView({
               <td className="px-4 py-2 hidden">
                 <input type="checkbox" className="form-checkbox" />
               </td>
-              <td className="px-4 py-2">{task.task_id ?? `TSK-${task.id}`}</td>
+              <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-[#3EBF0F]">
+                {task.task_id ?? `TSK-${task.id}`}
+              </td>
               <td className="px-4 py-2">{task.title}</td>
               <td className="px-4 py-2">
                 <select
