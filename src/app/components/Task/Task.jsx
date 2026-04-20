@@ -226,7 +226,10 @@ export default function Task() {
       }
 
       if (search) {
-        params.append('search', search);
+        const normalizedSearch = /^tsk-?\d+$/i.test(search.trim())
+          ? search.trim().replace(/^tsk-?/i, '')
+          : search;
+        params.append('search', normalizedSearch);
       }
 
       const { data } = await axiosInstance.get(`/tasks/list/?${params.toString()}`);

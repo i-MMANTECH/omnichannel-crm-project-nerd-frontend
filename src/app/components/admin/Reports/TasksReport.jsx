@@ -617,7 +617,7 @@ const TasksReport = ({ filters, selectedUser, refreshKey }) => {
                   onClick={() => handleTaskClick(task)}
                 >
                   <td className="py-2 px-3">
-                    <div className="font-medium">#{task.id}</div>
+                    <div className="font-medium">{task.task_id ?? `TSK-${task.id}`}</div>
                   </td>
                   <td className="py-2 px-3">
                     <div className="font-medium">{task.title}</div>
