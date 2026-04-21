@@ -1,16 +1,16 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
-import { Ticket as TicketIcon } from "lucide-react";
+import { Ticket as TicketIcon, Filter, X } from "lucide-react";
 import StatCard from "@/app/components/StatCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
-import { Download } from "lucide-react";
 import truncateText from "@/utils/truncateText";
 import UserAvatar from "@/app/components/UserAvatar";
 import Image from "next/image";
 import { Tooltip } from "react-tooltip";
+import TicketsFiltersPanel, { EMPTY_FILTERS } from "@/app/components/Ticket/TicketsFiltersPanel";
 
 const TicketsTable = ({
     showExportButton = true,
@@ -52,6 +52,8 @@ const TicketsTable = ({
     const [selectedUser, setSelectedUser] = useState(null);
     const [isFilterActive, setIsFilterActive] = useState(false);
     const [showMoreUsers, setShowMoreUsers] = useState(false);
+    const [filters, setFilters] = useState(EMPTY_FILTERS);
+    const [showFiltersPanel, setShowFiltersPanel] = useState(false);
 
     const filterableUsers = users.filter(user => {
         const email = user?.email || '';
@@ -67,7 +69,7 @@ const TicketsTable = ({
 
     useEffect(() => {
         fetchTickets();
-    }, [currentPage, searchQuery, pageSize, statusFilterId, selectedUser]);
+    }, [currentPage, searchQuery, pageSize, filters, statusFilterId, selectedUser]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -105,6 +107,114 @@ const TicketsTable = ({
         setCurrentPage(1);
     };
 
+    const handleStatusCardClick = (statusName) => {
+        if (!enableStatusFiltering || !allStatuses.length) return;
+
+        const current = allStatuses.find(s => s.id === statusFilterId);
+        if (current && current.name === statusName) {
+            setStatusFilterId(null);
+            setCurrentPage(1);
+            return;
+        }
+
+        const match = allStatuses.find(s => s.name === statusName);
+        if (!match) return;
+
+        setStatusFilterId(match.id);
+        setCurrentPage(1);
+    };
+
+    const applyFilters = (next) => {
+        setFilters(next);
+        setCurrentPage(1);
+    };
+
+    const resetFilters = () => {
+        setFilters(EMPTY_FILTERS);
+        setCurrentPage(1);
+    };
+
+    const activeFilterCount = useMemo(() => {
+        let count = 0;
+        count += filters.statusIds.length;
+        count += filters.priorityIds.length;
+        count += filters.categoryIds.length;
+        count += filters.assigneeIds.length;
+        count += filters.followerIds.length;
+        if (filters.createdAfter) count += 1;
+        if (filters.createdBefore) count += 1;
+        if (filters.dueAfter) count += 1;
+        if (filters.dueBefore) count += 1;
+        return count;
+    }, [filters]);
+
+    const removeFilter = (patch) => {
+        setFilters((prev) => ({ ...prev, ...patch }));
+        setCurrentPage(1);
+    };
+
+    const lookupLabel = (list, id) => {
+        const item = list.find((i) => i.id === id);
+        return item?.label || item?.name || `#${id}`;
+    };
+
+    const lookupUserLabel = (id) => {
+        const user = users.find((u) => u.id === id);
+        if (!user) return `User ${id}`;
+        const full = [user.first_name, user.last_name].filter(Boolean).join(' ').trim();
+        return full || user.email || `User ${id}`;
+    };
+
+    const filterChips = useMemo(() => {
+        const chips = [];
+        filters.statusIds.forEach((id) => chips.push({
+            key: `status-${id}`,
+            label: `Status: ${lookupLabel(allStatuses, id)}`,
+            onRemove: () => removeFilter({ statusIds: filters.statusIds.filter((v) => v !== id) }),
+        }));
+        filters.priorityIds.forEach((id) => chips.push({
+            key: `priority-${id}`,
+            label: `Priority: ${lookupLabel(allPriorities, id)}`,
+            onRemove: () => removeFilter({ priorityIds: filters.priorityIds.filter((v) => v !== id) }),
+        }));
+        filters.categoryIds.forEach((id) => chips.push({
+            key: `category-${id}`,
+            label: `Category: ${lookupLabel(allCategories, id)}`,
+            onRemove: () => removeFilter({ categoryIds: filters.categoryIds.filter((v) => v !== id) }),
+        }));
+        filters.assigneeIds.forEach((id) => chips.push({
+            key: `assignee-${id}`,
+            label: `Assignee: ${lookupUserLabel(id)}`,
+            onRemove: () => removeFilter({ assigneeIds: filters.assigneeIds.filter((v) => v !== id) }),
+        }));
+        filters.followerIds.forEach((id) => chips.push({
+            key: `follower-${id}`,
+            label: `Follower: ${lookupUserLabel(id)}`,
+            onRemove: () => removeFilter({ followerIds: filters.followerIds.filter((v) => v !== id) }),
+        }));
+        if (filters.createdAfter) chips.push({
+            key: 'created-after',
+            label: `Created ≥ ${filters.createdAfter}`,
+            onRemove: () => removeFilter({ createdAfter: '' }),
+        });
+        if (filters.createdBefore) chips.push({
+            key: 'created-before',
+            label: `Created ≤ ${filters.createdBefore}`,
+            onRemove: () => removeFilter({ createdBefore: '' }),
+        });
+        if (filters.dueAfter) chips.push({
+            key: 'due-after',
+            label: `Due ≥ ${filters.dueAfter}`,
+            onRemove: () => removeFilter({ dueAfter: '' }),
+        });
+        if (filters.dueBefore) chips.push({
+            key: 'due-before',
+            label: `Due ≤ ${filters.dueBefore}`,
+            onRemove: () => removeFilter({ dueBefore: '' }),
+        });
+        return chips;
+    }, [filters, allStatuses, allPriorities, allCategories, users]);
+
     const fetchTickets = async () => {
         try {
             setLoading(true);
@@ -114,13 +224,23 @@ const TicketsTable = ({
                 search: searchQuery || undefined,
             };
 
-            if (enableStatusFiltering && statusFilterId) {
-                params.status = statusFilterId;
-            }
+            const statusIds = new Set(filters.statusIds.map(String));
+            if (enableStatusFiltering && statusFilterId) statusIds.add(String(statusFilterId));
+            if (statusIds.size) params.status = Array.from(statusIds).join(',');
 
-            if (selectedUser) {
-                params.assignee = selectedUser;
-            }
+            const assigneeIds = new Set(filters.assigneeIds.map(String));
+            if (selectedUser) assigneeIds.add(String(selectedUser));
+            if (assigneeIds.size) params.assignee = Array.from(assigneeIds).join(',');
+
+            if (filters.priorityIds.length) params.priority = filters.priorityIds.join(',');
+            if (filters.categoryIds.length) params.category = filters.categoryIds.join(',');
+            if (filters.followerIds.length) params.follower = filters.followerIds.join(',');
+            if (filters.createdAfter) params.created_after = filters.createdAfter;
+            if (filters.createdBefore) params.created_before = filters.createdBefore;
+            if (filters.dueAfter) params.due_after = filters.dueAfter;
+            if (filters.dueBefore) params.due_before = filters.dueBefore;
+            if (filters.sort) params.sort = filters.sort;
+            if (filters.order) params.order = filters.order;
 
             const response = await axiosInstance.get('/tickets/list/', { params });
 
@@ -257,23 +377,6 @@ const TicketsTable = ({
         fetchTickets();
     };
 
-    const handleStatusCardClick = (statusName) => {
-        if (!enableStatusFiltering || !allStatuses.length) return;
-
-        const current = allStatuses.find(s => s.id === statusFilterId);
-        if (current && current.name === statusName) {
-            setStatusFilterId(null);
-            setCurrentPage(1);
-            return;
-        }
-
-        const match = allStatuses.find(s => s.name === statusName);
-        if (!match) return;
-
-        setStatusFilterId(match.id);
-        setCurrentPage(1);
-    };
-
     const statsData = [
         {
             key: "open",
@@ -320,7 +423,7 @@ const TicketsTable = ({
                     <div
                         key={stat.key}
                         onClick={() => handleStatusCardClick(stat.key)}
-                        className={`rounded-xl ${enableStatusFiltering ? 'cursor-pointer' : ''} transition 
+                        className={`rounded-xl ${enableStatusFiltering ? 'cursor-pointer' : ''} transition
               ${enableStatusFiltering && activeStatusName === stat.key ? "ring-2 ring-[#3EBF0F]" : ""}`}
                     >
                         <StatCard {...stat} />
@@ -328,11 +431,11 @@ const TicketsTable = ({
                 ))}
             </div>
 
-            {/* Search Bar + Avatar Filters */}
-            <div className="flex items-center gap-4 mb-6">
-                <div className="relative w-full sm:w-auto">
+            {/* Search + Filters Toolbar */}
+            <div className="flex items-center gap-4 mb-4 flex-wrap">
+                <div className="relative w-full sm:w-auto sm:flex-1 sm:max-w-md">
                     <input
-                        className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow dark:text-slate-200"
+                        className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-10 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow dark:text-slate-200"
                         placeholder="Search tickets..."
                         value={searchQuery}
                         onChange={(e) => {
@@ -340,14 +443,11 @@ const TicketsTable = ({
                             setCurrentPage(1);
                         }}
                     />
-                    <button
-                        className="absolute top-1 right-1 flex items-center rounded py-1 px-2.5 text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 dark:active:bg-black hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
-                        type="button"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <div className="absolute top-1 right-1 flex items-center py-1 px-2.5 text-sm pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-gray-400">
                             <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
                         </svg>
-                    </button>
+                    </div>
                 </div>
 
                 {/* User Avatars */}
@@ -429,6 +529,20 @@ const TicketsTable = ({
                     </div>
                 </div>
 
+                <button
+                    type="button"
+                    onClick={() => setShowFiltersPanel(true)}
+                    className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                    <Filter className="w-4 h-4" />
+                    Filters
+                    {activeFilterCount > 0 && (
+                        <span className="ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-medium bg-[#3EBF0F] text-white rounded-full">
+                            {activeFilterCount}
+                        </span>
+                    )}
+                </button>
+
                 <div className="flex items-center gap-3 ml-auto">
                     {actionButtons}
                     {isFilterActive && (
@@ -436,11 +550,40 @@ const TicketsTable = ({
                             className="px-3 py-1.5 text-sm bg-gray-200 dark:bg-neutral-800 text-gray-700 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-neutral-700 transition whitespace-nowrap"
                             onClick={clearFilter}
                         >
-                            Clear Filter
+                            Clear Assignee
                         </button>
                     )}
                 </div>
             </div>
+
+            {/* Active Filter Chips */}
+            {filterChips.length > 0 && (
+                <div className="flex items-center gap-2 mb-4 flex-wrap">
+                    {filterChips.map((chip) => (
+                        <span
+                            key={chip.key}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full"
+                        >
+                            {chip.label}
+                            <button
+                                type="button"
+                                onClick={chip.onRemove}
+                                className="hover:text-red-500"
+                                aria-label={`Remove ${chip.label}`}
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        </span>
+                    ))}
+                    <button
+                        type="button"
+                        onClick={resetFilters}
+                        className="text-xs text-gray-600 dark:text-gray-400 underline hover:text-gray-900 dark:hover:text-white ml-1"
+                    >
+                        Clear all
+                    </button>
+                </div>
+            )}
 
             {/* Tickets Table */}
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -735,6 +878,18 @@ const TicketsTable = ({
                     </div>
                 )}
             </div>
+
+            <TicketsFiltersPanel
+                show={showFiltersPanel}
+                onClose={() => setShowFiltersPanel(false)}
+                filters={filters}
+                onApply={applyFilters}
+                onReset={resetFilters}
+                statuses={allStatuses}
+                priorities={allPriorities}
+                categories={allCategories}
+                users={users}
+            />
         </div>
     );
 };
