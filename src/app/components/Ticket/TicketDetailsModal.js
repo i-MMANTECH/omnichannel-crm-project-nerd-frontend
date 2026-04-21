@@ -374,6 +374,37 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
     );
   };
 
+  const renderAttachments = () => {
+    if (!ticket.attachments || ticket.attachments.length === 0) return null;
+
+    return (
+      <div className="mt-6">
+        <h3 className="text-md font-medium mb-2">Attachments</h3>
+        <div className="flex flex-wrap gap-2">
+          {ticket.attachments.map((attachment) => {
+            const url = attachment.image_url || attachment.image;
+            if (!url) return null;
+            return (
+              <a
+                key={attachment.id}
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="block w-24 h-24 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:opacity-80 transition-opacity"
+              >
+                <img
+                  src={url}
+                  alt={`Attachment ${attachment.id}`}
+                  className="w-full h-full object-cover"
+                />
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderTicketInfo = () => {
     return (
       <div>
@@ -429,6 +460,7 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
               </div>
             )}
 
+            {renderAttachments()}
             {renderAssignedAgents()}
             {renderFollowers()}
             <div className='pt-0.5'></div>
