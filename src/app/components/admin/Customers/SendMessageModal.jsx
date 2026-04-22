@@ -40,7 +40,7 @@ const SendMessageModal = ({ isOpen, onClose, customerId, customerName, onMessage
     if (fileInputRef.current) fileInputRef.current.value = null;
 
     if (file) {
-      const maxSizeInMB = 10;
+      const maxSizeInMB = 30;
       const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
 
       if (file.size > maxSizeInBytes) {
