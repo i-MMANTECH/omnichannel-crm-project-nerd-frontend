@@ -199,6 +199,7 @@ export const MessagesContent = () => {
 
 	const currentTabRef = useRef(chatType);
 	const abortControllerRef = useRef(null);
+	const isFetchingMoreUsersRef = useRef(false);
 	const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
 	const [showInternalModal, setShowInternalModal] = useState(false);
@@ -883,7 +884,9 @@ export const MessagesContent = () => {
 								...response.data,
 								results: [
 									...(prev[requestChatType]?.users?.results || []),
-									...response.data.results,
+									...response.data.results.filter(
+										u => !(prev[requestChatType]?.users?.results || []).some(e => e.id === u.id)
+									),
 								],
 							},
 					}
@@ -893,7 +896,12 @@ export const MessagesContent = () => {
 					...response.data,
 					results: reset
 						? response.data.results
-						: [...(prevUsers?.results || []), ...response.data.results],
+						: [
+							...(prevUsers?.results || []),
+							...response.data.results.filter(
+								u => !(prevUsers?.results || []).some(e => e.id === u.id)
+							),
+						],
 				}));
 
 				setNextUsers(response.data.next);
@@ -1078,7 +1086,7 @@ export const MessagesContent = () => {
 		setActiveUser(user);
 		setIsScrolledUp(false);
 		setPageMessages(1);
-		router.push(`${baseRoute}/messages?chat=${chatType}&id=${user.id}`, { scroll: false });
+		router.push(`${baseRoute}/messages?chat=${currentTabRef.current}&id=${user.id}`, { scroll: false });
 	};
 
 	const handleLeadCategoryUpdated = ({ leadId, categories }) => {
@@ -1168,6 +1176,8 @@ export const MessagesContent = () => {
 	};
 
 	const handleTabChange = (tab) => {
+		currentTabRef.current = tab;
+
 		// Cancel any ongoing requests
 		if (abortControllerRef.current) {
 			abortControllerRef.current.abort();
@@ -1176,15 +1186,17 @@ export const MessagesContent = () => {
 		setActiveUser(null);
 		setChatHistory([]);
 		setIsScrolledUp(false);
+		// Reset pagination guards so a stale nextUsers URL from the previous tab can't
+		// bleed into loadMoreUsers on the new tab.
+		setNextUsers(null);
+		isFetchingMoreUsersRef.current = false;
+		setIsFetchingMoreUsers(false);
 		router.push(`${baseRoute}/messages?chat=${tab}`, { scroll: false });
 
 		setTabUnreadFlags((prev) => ({
 			...prev,
 			[tab]: false,
 		}));
-
-		// Update current tab reference
-		currentTabRef.current = tab;
 
 		if (!cachedData[tab]?.users) {
 			setLoading(true);
@@ -1461,7 +1473,11 @@ export const MessagesContent = () => {
 	];
 
 	const loadMoreUsers = async () => {
-		if (isFetchingMoreUsers || !nextUsers) return;
+		if (isFetchingMoreUsersRef.current || isFetchingMoreUsers || !nextUsers) return;
+
+		// Capture the tab at call-time so we can discard stale results if the user switches tabs
+		// before the fetch completes (leads/customers IDs overlap — mixing them corrupts the list).
+		const requestChatType = currentTabRef.current;
 
 		const endpointMap = {
 			leads: `/communication/contacts/?page=${pageUsers}&page_size=${15}`,
@@ -1469,12 +1485,17 @@ export const MessagesContent = () => {
 			archived: `/communication/conversations/?page=${pageUsers}&page_size=${15}`,
 		};
 
-		const endpoint = nextUsers || endpointMap[chatType];
+		const endpoint = nextUsers || endpointMap[requestChatType];
 		if (!endpoint) return;
+		isFetchingMoreUsersRef.current = true;
 		setIsFetchingMoreUsers(true);
 
 		try {
 			const { data } = await axiosInstance.get(endpoint, { showLoader: false });
+
+			// Discard if the user has switched to a different tab while the request was in flight.
+			if (currentTabRef.current !== requestChatType) return;
+
 			const newContacts = data.results;
 			setNextUsers(data.next);
 
@@ -1492,15 +1513,15 @@ export const MessagesContent = () => {
 
 			setCachedData((prev) => ({
 				...prev,
-				[chatType]: {
-					...prev[chatType],
+				[requestChatType]: {
+					...prev[requestChatType],
 					users: {
 						...data,
 						results: [
-							...(prev[chatType]?.users?.results || []),
+							...(prev[requestChatType]?.users?.results || []),
 							...newContacts.filter(
 								(user) =>
-									!(prev[chatType]?.users?.results || []).some(
+									!(prev[requestChatType]?.users?.results || []).some(
 										(existingUser) => existingUser.id === user.id
 									)
 							),
@@ -1513,7 +1534,7 @@ export const MessagesContent = () => {
 			setPageUsers(nextPageUsers);
 
 			// Update global cache
-			globalPaginationCache[chatType] = {
+			globalPaginationCache[requestChatType] = {
 				pageUsers: nextPageUsers,
 				nextUsers: data.next
 			};
@@ -1526,6 +1547,7 @@ export const MessagesContent = () => {
 			}
 		}
 		finally {
+			isFetchingMoreUsersRef.current = false;
 			setIsFetchingMoreUsers(false);
 		}
 	};
