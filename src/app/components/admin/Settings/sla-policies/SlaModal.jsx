@@ -45,6 +45,11 @@ const SlaModal = ({ isOpen, onClose, fetchSlaPolicies }) => {
     }));
   };
 
+  const getUserLabel = (user) => {
+    const fullName = `${user.first_name || ""} ${user.last_name || ""}`.trim();
+    return fullName || user.email || `User #${user.id}`;
+  };
+
    const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -109,7 +114,7 @@ const SlaModal = ({ isOpen, onClose, fetchSlaPolicies }) => {
                     name={item.hourKey}
                     value={formData[item.hourKey] === 0 ? "" : formData[item.hourKey]}
                     onChange={handleChange}
-                    className="w-[90px] h-[42px] p-3 rounded-[10px] border border-[#DFE1E6] bg-white shadow-sm dark:bg-gray-700 dark:text-white"
+                    className="w-[90px] h-[42px] p-3 rounded-[10px] border border-[#DFE1E6] bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
                     placeholder="0 hrs"
                     min="0"
                   />
@@ -118,7 +123,7 @@ const SlaModal = ({ isOpen, onClose, fetchSlaPolicies }) => {
                     name={item.minKey}
                     value={formData[item.minKey] === 0 ? "" : formData[item.minKey]}
                     onChange={handleChange}
-                    className="w-[90px] h-[42px] p-3 rounded-[10px] border border-[#DFE1E6] bg-white shadow-sm dark:bg-gray-700 dark:text-white"
+                    className="w-[90px] h-[42px] p-3 rounded-[10px] border border-[#DFE1E6] bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
                     placeholder="0 mins"
                     min="0"
                     max="59"
@@ -131,33 +136,33 @@ const SlaModal = ({ isOpen, onClose, fetchSlaPolicies }) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h3 className="font-medium text-gray-900 dark:text-white mb-2">Not Started Staff</h3>
-              <select name="not_started_staff_1" value={formData.not_started_staff_1} onChange={handleChange} className="w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white shadow-sm dark:bg-gray-700 dark:text-white">
-                <option value="">Select Level 1 Staff</option>
-                {users.map(user => <option key={user.id} value={user.id}>{user.first_name} {user.last_name}</option>)}
+              <select name="not_started_staff_1" value={formData.not_started_staff_1} onChange={handleChange} className="w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white">
+                <option value="" className="bg-white text-gray-900 dark:bg-gray-700 dark:text-white">Select Level 1 Staff</option>
+                {users.map(user => <option key={user.id} value={user.id} className="bg-white text-gray-900 dark:bg-gray-700 dark:text-white">{getUserLabel(user)}</option>)}
               </select>
-              <select name="not_started_staff_2" value={formData.not_started_staff_2} onChange={handleChange} className="mt-2 w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white shadow-sm dark:bg-gray-700 dark:text-white">
-                <option value="">Select Level 2 Staff</option>
-                {users.map(user => <option key={user.id} value={user.id}>{user.first_name} {user.last_name}</option>)}
+              <select name="not_started_staff_2" value={formData.not_started_staff_2} onChange={handleChange} className="mt-2 w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white">
+                <option value="" className="bg-white text-gray-900 dark:bg-gray-700 dark:text-white">Select Level 2 Staff</option>
+                {users.map(user => <option key={user.id} value={user.id} className="bg-white text-gray-900 dark:bg-gray-700 dark:text-white">{getUserLabel(user)}</option>)}
               </select>
-              <select name="not_started_staff_3" value={formData.not_started_staff_3} onChange={handleChange} className="mt-2 w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white shadow-sm dark:bg-gray-700 dark:text-white">
-                <option value="">Select Level 3 Staff</option>
-                {users.map(user => <option key={user.id} value={user.id}>{user.first_name} {user.last_name}</option>)}
+              <select name="not_started_staff_3" value={formData.not_started_staff_3} onChange={handleChange} className="mt-2 w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white">
+                <option value="" className="bg-white text-gray-900 dark:bg-gray-700 dark:text-white">Select Level 3 Staff</option>
+                {users.map(user => <option key={user.id} value={user.id} className="bg-white text-gray-900 dark:bg-gray-700 dark:text-white">{getUserLabel(user)}</option>)}
               </select>
             </div>
 
             <div>
               <h3 className="font-medium text-gray-900 dark:text-white mb-2">Overdue Staff</h3>
-              <select name="overdue_staff_1" value={formData.overdue_staff_1} onChange={handleChange} className="w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white shadow-sm dark:bg-gray-700 dark:text-white">
-                <option value="">Select Level 1 Staff</option>
-                {users.map(user => <option key={user.id} value={user.id}>{user.first_name} {user.last_name}</option>)}
+              <select name="overdue_staff_1" value={formData.overdue_staff_1} onChange={handleChange} className="w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white">
+                <option value="" className="bg-white text-gray-900 dark:bg-gray-700 dark:text-white">Select Level 1 Staff</option>
+                {users.map(user => <option key={user.id} value={user.id} className="bg-white text-gray-900 dark:bg-gray-700 dark:text-white">{getUserLabel(user)}</option>)}
               </select>
-              <select name="overdue_staff_2" value={formData.overdue_staff_2} onChange={handleChange} className="mt-2 w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white shadow-sm dark:bg-gray-700 dark:text-white">
-                <option value="">Select Level 2 Staff</option>
-                {users.map(user => <option key={user.id} value={user.id}>{user.first_name} {user.last_name}</option>)}
+              <select name="overdue_staff_2" value={formData.overdue_staff_2} onChange={handleChange} className="mt-2 w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white">
+                <option value="" className="bg-white text-gray-900 dark:bg-gray-700 dark:text-white">Select Level 2 Staff</option>
+                {users.map(user => <option key={user.id} value={user.id} className="bg-white text-gray-900 dark:bg-gray-700 dark:text-white">{getUserLabel(user)}</option>)}
               </select>
-              <select name="overdue_staff_3" value={formData.overdue_staff_3} onChange={handleChange} className="mt-2 w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white shadow-sm dark:bg-gray-700 dark:text-white">
-                <option value="">Select Level 3 Staff</option>
-                {users.map(user => <option key={user.id} value={user.id}>{user.first_name} {user.last_name}</option>)}
+              <select name="overdue_staff_3" value={formData.overdue_staff_3} onChange={handleChange} className="mt-2 w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white">
+                <option value="" className="bg-white text-gray-900 dark:bg-gray-700 dark:text-white">Select Level 3 Staff</option>
+                {users.map(user => <option key={user.id} value={user.id} className="bg-white text-gray-900 dark:bg-gray-700 dark:text-white">{getUserLabel(user)}</option>)}
               </select>
             </div>
           </div>
