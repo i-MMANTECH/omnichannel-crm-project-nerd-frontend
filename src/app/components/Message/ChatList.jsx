@@ -8,7 +8,9 @@ import UserAvatar from "../UserAvatar";
 import { getRoleStyle } from "@/utils/getRoleStyle";
 
 const ChatList = ({ users, activeUser, handleChatSelect, loadMoreUsers, loading, isFetchingMoreUsers, isAdmin }) => {
-  const results = users?.results || [];
+  const results = Array.from(
+    new Map((users?.results || []).map((u) => [u?.id, u])).values()
+  );
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
   const chatListRef = useRef(null);

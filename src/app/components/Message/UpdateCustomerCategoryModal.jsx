@@ -55,8 +55,13 @@ const UpdateCustomerCategoryModal = ({
           label: category.label || category.name,
         }));
 
+        const getCatLabel = (cat) =>
+          typeof cat === "string" ? cat : (cat?.label || cat?.name || "");
+        const getCatId = (cat) =>
+          typeof cat === "object" && cat !== null ? cat?.id : null;
+
         const normalizedCategories = customerCategories.map((cat) =>
-          String(cat).toLowerCase()
+          getCatLabel(cat).toLowerCase()
         );
 
         const preselected = fetchedOptions.filter((option) =>
@@ -69,12 +74,12 @@ const UpdateCustomerCategoryModal = ({
               !preselected.some(
                 (option) =>
                   String(option.label).toLowerCase() ===
-                  String(cat).toLowerCase()
+                  getCatLabel(cat).toLowerCase()
               )
           )
           .map((category) => ({
-            value: `existing-${category}`,
-            label: category,
+            value: getCatId(category) ?? `existing-${getCatLabel(category)}`,
+            label: getCatLabel(category),
           }));
 
         setSelectedCategories([...preselected, ...uncaptured]);
