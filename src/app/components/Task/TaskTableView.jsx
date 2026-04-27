@@ -86,7 +86,7 @@ export default function TableView({
                 className="w-[16px] h-[16px] shrink-0 rounded-[4.8px] border border-[#DFE1E6] bg-white"
               />
             </th>
-            <th className="text-left font-medium leading-[21px] uppercase tracking-wider">
+            <th className="px-4 text-left font-medium leading-[21px] uppercase tracking-wider">
               <div className="flex items-center gap-2">
                 <span>Task ID</span>
               </div>
