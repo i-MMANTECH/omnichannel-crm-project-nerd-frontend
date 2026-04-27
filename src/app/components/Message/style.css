@@ -50,13 +50,15 @@
 
 .messages .detail {
   align-self: stretch;
-  border-color: var(--greyscale-100);
-  border-left-style: solid;
-  border-left-width: 1px;
-  display: flex;
-  flex: 1;
-  flex-direction: column;
   position: relative;
+}
+
+@media (min-width: 768px) {
+  .messages .detail {
+    border-color: var(--greyscale-100);
+    border-left-style: solid;
+    border-left-width: 1px;
+  }
 }
 
 .messages .overlap-group-4 {

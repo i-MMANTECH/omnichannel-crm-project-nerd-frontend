@@ -70,14 +70,23 @@ function Sidebar() {
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="hamburger-btn absolute top-4 right-4 inline-flex items-center justify-center rounded-md p-2 text-gray-800 dark:text-white hover:bg-gray-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+        aria-label="Toggle menu"
+        className="lg:hidden fixed top-3 left-3 z-40 inline-flex items-center justify-center rounded-md p-2 text-gray-800 dark:text-white bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#3EBF0F]"
       >
-        <GiHamburgerMenu className="block md:hidden h-6 w-6" aria-hidden="true" />
+        <GiHamburgerMenu className="h-5 w-5" aria-hidden="true" />
       </button>
 
+      {isOpen && (
+        <div
+          onClick={() => setIsOpen(false)}
+          className="lg:hidden fixed inset-0 bg-black/40 z-20"
+          aria-hidden="true"
+        />
+      )}
+
       <div
-        className={`body-theme sidebar z-20 p-6 pt-3 w-1/2 h-screen fixed top-0 ${isOpen ? "left-0" : "-left-96"
-          } lg:left-0 lg:w-60 transition-all duration-300 ease-in-out`}
+        className={`body-theme sidebar z-30 p-6 pt-3 w-72 max-w-[85vw] h-screen fixed top-0 ${isOpen ? "left-0" : "-left-96"
+          } lg:left-0 lg:w-60 lg:max-w-none transition-all duration-300 ease-in-out`}
       >
         <div className="flex flex-col justify-start items-start h-full relative">
           <Link href="/nativecrm" legacyBehavior>
