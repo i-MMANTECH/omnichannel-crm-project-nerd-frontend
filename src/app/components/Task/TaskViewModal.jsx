@@ -352,6 +352,11 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
       title={
         <div className="flex items-center gap-2">
           {task && getStatusSvg(task.status.name)}
+          {task && (
+            <span className="text-sm font-medium text-gray-500">
+              {task.task_id ?? `TSK-${task.id}`}
+            </span>
+          )}
           {task?.title}
         </div>
       }
