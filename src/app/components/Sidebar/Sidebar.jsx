@@ -12,7 +12,8 @@ import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
 import { usePermissions } from "@/context/PermissionsContext";
 import UserAvatar from "../UserAvatar";
-import { Bell, House, Mail, Settings, SquareCheck, SquareKanban, UserPlus, Users, Phone, Ticket, User } from 'lucide-react';
+import { Bell, House, Mail, Settings, SquareCheck, SquareKanban, UserPlus, Users, Phone, Ticket, User, PlayCircle } from 'lucide-react';
+import { useOnboarding } from "../Onboarding/OnboardingContext";
 
 function Sidebar() {
   const { logout } = useAuth();
@@ -37,6 +38,13 @@ function Sidebar() {
 
   const isActive = (path) => pathname.includes(path);
   const { toggleNotification } = useNotification();
+  const { replay: replayOnboarding } = useOnboarding();
+
+  useEffect(() => {
+    const openHandler = () => setIsOpen(true);
+    window.addEventListener("onboarding:open-sidebar", openHandler);
+    return () => window.removeEventListener("onboarding:open-sidebar", openHandler);
+  }, []);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -104,6 +112,7 @@ function Sidebar() {
             <Link
               onClick={() => setIsOpen(false)} // Close sidebar on navigation
 
+              data-tour="nav-dashboard"
               href="/nativecrm/dashboard"
               className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/dashboard") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
             >
@@ -119,6 +128,7 @@ function Sidebar() {
               <Link
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation
 
+                data-tour="nav-users"
                 href="/nativecrm/users"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/users") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
               >
@@ -134,6 +144,7 @@ function Sidebar() {
             <Link
               onClick={() => setIsOpen(false)} // Close sidebar on navigation
 
+              data-tour="nav-messages"
               href="/nativecrm/messages?chat=leads"
               className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/messages") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
 
@@ -150,6 +161,7 @@ function Sidebar() {
               <Link
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation
 
+                data-tour="nav-tasks"
                 href="/nativecrm/tasks"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/tasks") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
               >
@@ -165,6 +177,7 @@ function Sidebar() {
             <Link
               onClick={() => setIsOpen(false)} // Close sidebar on navigation
 
+              data-tour="nav-tickets"
               href="/nativecrm/tickets"
               className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/tickets") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
             >
@@ -178,6 +191,7 @@ function Sidebar() {
               <Link
                 onClick={() => setIsOpen(false)} // Close sidebar on navigation
 
+                data-tour="nav-customers"
                 href="/nativecrm/customers"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/customers") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
               >
@@ -193,6 +207,7 @@ function Sidebar() {
               <Link
                 onClick={() => setIsOpen(false)}
 
+                data-tour="nav-leads"
                 href="/nativecrm/leads"
                 className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/leads") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
               >
@@ -207,6 +222,7 @@ function Sidebar() {
 
             <Link
               onClick={() => setIsOpen(false)}
+              data-tour="nav-call-center"
               href="/nativecrm/call-center#call-detail-records"
               className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/call-center") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
             >
@@ -230,6 +246,7 @@ function Sidebar() {
             </Link> */}
 
             <div
+              data-tour="nav-notifications"
               className={`flex mb-3 items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive("/notifications") ? activeStyle : "text-gray-600 dark:text-gray-400"}`}
               onClick={toggleNotification}
             >
@@ -263,7 +280,7 @@ function Sidebar() {
               </Link>
             </div>
 
-            <div className="w-full border-t border-gray-200 dark:border-gray-600 pt-4 pointer" onClick={openModal}>
+            <div data-tour="profile" className="w-full border-t border-gray-200 dark:border-gray-600 pt-4 pointer" onClick={openModal}>
               <div className="flex items-center gap-3 pl-4 p-1 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700">
                 {userProfile?.image ? (
                   <Image
@@ -351,6 +368,20 @@ function Sidebar() {
                     )}
                     <h3 className="text-gray-800 dark:text-gray-200 font-medium">View Profile</h3>
                   </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      replayOnboarding();
+                    }}
+                    className="flex items-center gap-3 pointer rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-[#3EBF0F]/10 flex items-center justify-center text-[#3EBF0F] flex-shrink-0">
+                      <PlayCircle size={18} />
+                    </div>
+                    <h3 className="text-gray-800 dark:text-gray-200 font-medium">Replay tour</h3>
+                  </button>
 
                   <div
                     onClick={logout}

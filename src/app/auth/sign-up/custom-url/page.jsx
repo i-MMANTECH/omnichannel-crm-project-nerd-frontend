@@ -49,6 +49,11 @@ const CustomUrlForm = () => {
                     enable_call_center: enableCallCenter ? "1" : "0",
                 }
             );
+            // Hand the auth payload (tokens, roles, company_username) to the
+            // success page so it can log the user in without re-calling signin.
+            // Clearing signUpData also drops the password from sessionStorage.
+            sessionStorage.setItem('signUpAuthPayload', JSON.stringify(response.data));
+            sessionStorage.removeItem('signUpData');
             router.push('success');
         } catch (error) {
             handleApiError(error)

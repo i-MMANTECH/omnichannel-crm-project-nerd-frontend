@@ -7,6 +7,7 @@ import Navbar from "../components/Navbar/Navbar";
 import NotificationModalContainer from "../components/Notification/NotificationModalContainer";
 import NetworkStatus from "../components/NetworkStatus";
 import CallModalContainer from "../components/CallCenter/CallModalContainer";
+import OnboardingTour from "../components/Onboarding/OnboardingTour";
 
 export default function RootLayout({ children }) {
   return (
@@ -23,6 +24,7 @@ export default function RootLayout({ children }) {
         </div>
         <NotificationModalContainer />
         <CallModalContainer />
+        <OnboardingTour />
       </div>
     </div>
   );

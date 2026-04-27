@@ -97,6 +97,9 @@ export const AuthProvider = ({ children }) => {
     const login = async (userData) => {
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
+        if (userData?.company_username) {
+            localStorage.setItem('userDomain', userData.company_username);
+        }
         toast.success('Login Successful');
 
         setLoading(false);

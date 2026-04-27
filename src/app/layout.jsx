@@ -8,6 +8,7 @@ import { NotificationProvider } from "@/context/NotificationContext";
 import { PermissionsProvider } from "@/context/PermissionsContext";
 import Script from "next/script";
 import { CallProvider } from "@/context/CallContext";
+import { OnboardingProvider } from "@/app/components/Onboarding/OnboardingContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -39,17 +40,19 @@ export default function RootLayout({ children }) {
             <PermissionsProvider>
                 <NotificationProvider>
                   <CallProvider>
-                  {children}
-                  <ToastContainer
-                      position="bottom-left"
-                      autoClose={5000}
-                      hideProgressBar={false}
-                      newestOnTop={false}
-                      closeOnClick
-                      rtl={false}
-                      draggable
-                      pauseOnHover
-                  />
+                    <OnboardingProvider>
+                      {children}
+                      <ToastContainer
+                          position="bottom-left"
+                          autoClose={5000}
+                          hideProgressBar={false}
+                          newestOnTop={false}
+                          closeOnClick
+                          rtl={false}
+                          draggable
+                          pauseOnHover
+                      />
+                    </OnboardingProvider>
                   </CallProvider>
                 </NotificationProvider>
             </PermissionsProvider>
