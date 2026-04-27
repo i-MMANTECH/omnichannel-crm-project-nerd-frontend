@@ -46,6 +46,82 @@ let globalMessagePaginationCache = {};
 
 const getFailedMessageChatKey = (chatType, userId) => `${chatType}:${userId}`;
 
+const TEMP_MESSAGE_RECOVERABLE_STATUSES = new Set(["sending", "failed"]);
+
+const getTimestampMs = (value) => {
+	if (!value) return null;
+	const date = new Date(value);
+	const ms = date.getTime();
+	return Number.isFinite(ms) ? ms : null;
+};
+
+const isTempMessageId = (value) => typeof value === "string" && value.startsWith("temp-");
+
+const isRecoverableTempMessage = (message) =>
+	isTempMessageId(message?.id) &&
+	TEMP_MESSAGE_RECOVERABLE_STATUSES.has((message?.status || "").toLowerCase());
+
+const isLikelySameOutgoingMessage = (tempMessage, incomingMessage, options = {}) => {
+	const { requireCompanySender = false, currentUserId = null } = options;
+
+	if (!tempMessage || !incomingMessage) return false;
+	if (isTempMessageId(incomingMessage?.id)) return false;
+
+	const tempContent = String(tempMessage?.content || "").trim();
+	const incomingContent = String(incomingMessage?.content || "").trim();
+	if (tempContent !== incomingContent) return false;
+
+	const tempSubject = String(tempMessage?.subject || "").trim();
+	const incomingSubject = String(incomingMessage?.subject || "").trim();
+	if ((tempSubject || incomingSubject) && tempSubject !== incomingSubject) return false;
+
+	if (
+		tempMessage?.content_type &&
+		incomingMessage?.content_type &&
+		tempMessage.content_type !== incomingMessage.content_type
+	) {
+		return false;
+	}
+
+	const tempChannelId = tempMessage?.channel?.id;
+	const incomingChannelId = incomingMessage?.channel?.id;
+	if (
+		tempChannelId != null &&
+		incomingChannelId != null &&
+		String(tempChannelId) !== String(incomingChannelId)
+	) {
+		return false;
+	}
+
+	if (requireCompanySender && !tempMessage?.company_is_sender) {
+		return false;
+	}
+
+	if (currentUserId != null && incomingMessage?.sender?.id != null) {
+		if (String(incomingMessage.sender.id) !== String(currentUserId)) {
+			return false;
+		}
+	}
+
+	const tempCreatedAt = getTimestampMs(tempMessage?.created_at);
+	const incomingCreatedAt = getTimestampMs(incomingMessage?.created_at);
+	if (tempCreatedAt != null && incomingCreatedAt != null) {
+		const maxDriftMs = 10 * 60 * 1000; // 10 minutes
+		if (Math.abs(tempCreatedAt - incomingCreatedAt) > maxDriftMs) {
+			return false;
+		}
+	}
+
+	return true;
+};
+
+const findRecoverableTempMatchIndex = (messages = [], incomingMessage, options = {}) =>
+	messages.findIndex(
+		(message) =>
+			isRecoverableTempMessage(message) &&
+			isLikelySameOutgoingMessage(message, incomingMessage, options)
+	);
+
 const mergeFailedMessagesIntoHistory = (history = [], failedRecords = []) => {
 	const merged = [...history];
 	const existingIds = new Set(history.map((message) => String(message.id)));
@@ -211,7 +287,35 @@ export const MessagesContent = () => {
 		}
 
 		const failedRecords = await getFailedMessageRecords(getFailedMessageChatKey(type, userId));
-		return mergeFailedMessagesIntoHistory(baseHistory, failedRecords);
+		const recordsToMerge = [];
+		const resolvedRecordIds = [];
+
+		failedRecords.forEach((record) => {
+			const failedMessage = record?.message;
+			const hasServerEquivalent = baseHistory.some((historyMessage) =>
+				isLikelySameOutgoingMessage(failedMessage, historyMessage, {
+					requireCompanySender: type !== "internal",
+					currentUserId: type === "internal" ? userProfile?.id : null,
+				})
+			);
+
+			if (hasServerEquivalent) {
+				resolvedRecordIds.push(record.id);
+				return;
+			}
+
+			recordsToMerge.push(record);
+		});
+
+		if (resolvedRecordIds.length > 0) {
+			await Promise.all(
+				resolvedRecordIds.map((recordId) =>
+					deleteFailedMessageRecord(recordId).catch(() => undefined)
+				)
+			);
+		}
+
+		return mergeFailedMessagesIntoHistory(baseHistory, recordsToMerge);
 	};
 
 	const persistFailedMessage = async (record) => {
@@ -354,26 +458,28 @@ export const MessagesContent = () => {
 			String(activeUser.id) === String(incomingChatId);
 
 		if (isViewingThisInternalChat) {
+			let matchedTempId = null;
 			setChatHistory((prev) => {
 				const exists = prev.some((m) => String(m.id) === String(msg.id));
 				if (exists) return prev;
 
 				// temp replacement (optional)
-				const tempIndex = prev.findIndex(
-					(m) =>
-						typeof m.id === "string" &&
-						m.id.startsWith("temp-") &&
-						m.status === "sending" &&
-						(m.content || "") === (msg.content || "")
-				);
+				const tempIndex = findRecoverableTempMatchIndex(prev, msg, {
+					currentUserId: userProfile?.id,
+				});
 				if (tempIndex !== -1) {
 					const copy = [...prev];
+					matchedTempId = copy[tempIndex]?.id;
 					copy[tempIndex] = msg;
 					return copy;
 				}
 
 				return [...prev, msg];
 			});
+
+			if (matchedTempId) {
+				removePersistedFailedMessage(matchedTempId).catch(() => undefined);
+			}
 		}
 
 		// Update internal cache always
@@ -554,27 +660,29 @@ export const MessagesContent = () => {
 					markConversationAsRead(activeUser.id);
 				}
 
+				let matchedTempId = null;
 				setChatHistory((prevHistory) => {
 					const alreadyExists = prevHistory.some((msg) => msg.id === message.id);
 
-					const tempMatchIndex = prevHistory.findIndex(
-						(msg) =>
-							typeof msg.id === "string" &&
-							msg.id.startsWith("temp-") &&
-							msg.status === "sending" &&
-							(msg.content || "") === (message.content || "")
-					);
+					const tempMatchIndex = findRecoverableTempMatchIndex(prevHistory, message, {
+						requireCompanySender: true,
+					});
 
 					if (alreadyExists) return prevHistory;
 
 					if (tempMatchIndex !== -1) {
 						const newHistory = [...prevHistory];
+						matchedTempId = newHistory[tempMatchIndex]?.id;
 						newHistory[tempMatchIndex] = message;
 						return newHistory;
 					}
 
 					return [...prevHistory, message];
 				});
+
+				if (matchedTempId) {
+					removePersistedFailedMessage(matchedTempId).catch(() => undefined);
+				}
 
 				if (!activeUser || !activeUser.id) return;
 
@@ -584,13 +692,9 @@ export const MessagesContent = () => {
 
 					if (messageExists) return prev;
 
-					const tempMatchIndex = existing.findIndex(
-						(msg) =>
-							typeof msg.id === "string" &&
-							msg.id.startsWith("temp-") &&
-							msg.status === "sending" &&
-							(msg.content || "") === (message.content || "")
-					);
+					const tempMatchIndex = findRecoverableTempMatchIndex(existing, message, {
+						requireCompanySender: true,
+					});
 
 					let updatedHistory = [...existing];
 					if (tempMatchIndex !== -1) {
