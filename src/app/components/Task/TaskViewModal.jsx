@@ -350,7 +350,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
       isOpen={isOpen}
       onClose={onClose}
       title={
-        <div className="flex items-center gap-2">
+        <span className="flex items-center gap-2">
           {task && getStatusSvg(task.status.name)}
           {task && (
             <span className="text-sm font-medium text-gray-500">
@@ -358,7 +358,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
             </span>
           )}
           {task?.title}
-        </div>
+        </span>
       }
       footer={footer} width="600px">
       <div>
