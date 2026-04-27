@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useError } from "@/context/ErrorContext";
 import { useApi } from "@/services/axiosConfig";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Copy, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import "../../Profile/agentProfile.css";
 import Link from "next/link";
@@ -14,6 +14,9 @@ export default function DeveloperSettings() {
   const [webhook, setWebhook] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [loadingApiKey, setLoadingApiKey] = useState(true);
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [generatingApiKey, setGeneratingApiKey] = useState(false);
+  const [revokingApiKey, setRevokingApiKey] = useState(false);
   const [loadingWebhook, setLoadingWebhook] = useState(true)
   const [documents, setDocuments] = useState([]);
   const [loadingDocuments, setLoadingDocuments] = useState(true);
@@ -140,6 +143,40 @@ export default function DeveloperSettings() {
     fetchDocuments();
   }, []);
 
+  const handleCopyApiKey = () => {
+    if (!apiKey) return;
+    navigator.clipboard.writeText(apiKey);
+    toast.success("API key copied to clipboard.");
+  };
+
+  const handleGenerateApiKey = async () => {
+    setGeneratingApiKey(true);
+    try {
+      const response = await axiosInstance.post("/companies/api-key/");
+      setApiKey(response.data?.api_key || "");
+      setShowApiKey(true);
+      toast.success(response.data?.message || "API key generated.");
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setGeneratingApiKey(false);
+    }
+  };
+
+  const handleRevokeApiKey = async () => {
+    if (!confirm("Revoke your API key? Any integrations using it will stop working immediately.")) return;
+    setRevokingApiKey(true);
+    try {
+      await axiosInstance.delete("/companies/api-key/");
+      setApiKey("");
+      toast.success("API key revoked.");
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setRevokingApiKey(false);
+    }
+  };
+
   const handleSaveWebhook = async () => {
     try {
       await axiosInstance.patch("/companies/webhook-url/", { webhook_url: webhook });
@@ -258,18 +295,72 @@ export default function DeveloperSettings() {
 
       {selected === "apiKey" && (
         <div className="mt-6 ms-6 rounded-lg border border-gray-300 p-6 max-w-2xl">
-          <label htmlFor="apiKey" className="block mb-2 font-medium">API Key</label>
+          <h2 className="text-lg font-semibold mb-1">Your NativeTalk CRM API Key</h2>
+          <p className="text-sm text-gray-500 mb-5">
+            Use this key to authenticate external services and integrations that need
+            programmatic access to your CRM account. Treat it like a password — do not
+            share it publicly.
+          </p>
+
           {loadingApiKey ? (
-            <p>Loading API Key...</p>
+            <p>Loading…</p>
+          ) : apiKey ? (
+            <>
+              <div className="flex items-center gap-2 mb-4">
+                <input
+                  id="apiKey"
+                  type={showApiKey ? "text" : "password"}
+                  value={apiKey}
+                  readOnly
+                  className="flex-1 border border-gray-300 p-2 rounded font-mono text-sm bg-gray-50"
+                />
+                <button
+                  onClick={() => setShowApiKey(!showApiKey)}
+                  className="p-2 text-gray-500 hover:text-gray-700"
+                  title={showApiKey ? "Hide" : "Reveal"}
+                >
+                  {showApiKey ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+                <button
+                  onClick={handleCopyApiKey}
+                  className="p-2 text-gray-500 hover:text-gray-700"
+                  title="Copy to clipboard"
+                >
+                  <Copy size={18} />
+                </button>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleGenerateApiKey}
+                  disabled={generatingApiKey}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#3EBF0F] text-white rounded disabled:opacity-50"
+                >
+                  <RefreshCw size={15} />
+                  {generatingApiKey ? "Regenerating…" : "Regenerate"}
+                </button>
+                <button
+                  onClick={handleRevokeApiKey}
+                  disabled={revokingApiKey}
+                  className="flex items-center gap-2 px-4 py-2 border border-red-400 text-red-500 rounded hover:bg-red-50 disabled:opacity-50"
+                >
+                  <Trash2 size={15} />
+                  {revokingApiKey ? "Revoking…" : "Revoke"}
+                </button>
+              </div>
+            </>
           ) : (
-            <input
-              id="apiKey"
-              type="text"
-              value={apiKey}
-              readOnly
-              className="w-full max-w-md border border-gray-300 p-2 rounded"
-              placeholder="Enter your API key"
-            />
+            <>
+              <p className="text-sm text-gray-500 mb-4">No API key has been generated yet.</p>
+              <button
+                onClick={handleGenerateApiKey}
+                disabled={generatingApiKey}
+                className="flex items-center gap-2 px-4 py-2 bg-[#3EBF0F] text-white rounded disabled:opacity-50"
+              >
+                <RefreshCw size={15} />
+                {generatingApiKey ? "Generating…" : "Generate API Key"}
+              </button>
+            </>
           )}
         </div>
       )}

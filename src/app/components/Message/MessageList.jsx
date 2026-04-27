@@ -713,12 +713,12 @@ const MessageList = ({
                             <Image
                               loader={() => msg.user_sender_details.image}
                               src={msg.user_sender_details.image}
-                              alt={`${msg.user_sender_details.name} Profile`}
+                              alt={`${(msg.user_sender_details?.first_name || msg.user_sender_details?.last_name ? `${msg.user_sender_details?.first_name || ''} ${msg.user_sender_details?.last_name || ''}`.trim() : msg.user_sender_details?.email) || 'Agent'} Profile`}
                               className="w-8 h-8 rounded-full mr-3"
                               width={30}
                               height={30}
                               // onClick={() => router.push(`/nativecrm/users/${msg.user_sender_details?.id}`)}
-                              title={msg.user_sender_details.name}
+                              title={(msg.user_sender_details?.first_name || msg.user_sender_details?.last_name ? `${msg.user_sender_details?.first_name || ''} ${msg.user_sender_details?.last_name || ''}`.trim() : msg.user_sender_details?.email) || 'Agent'}
                             />
                           ) : msg.user_sender_details?.first_name || msg.user_sender_details?.last_name || msg.user_sender_details?.email ? (
                             <UserAvatar
