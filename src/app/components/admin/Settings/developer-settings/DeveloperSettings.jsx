@@ -34,6 +34,8 @@ export default function DeveloperSettings() {
   const [aiOffDuringBusinessHours, setAiOffDuringBusinessHours] = useState(false);
   const [aiDisableStart, setAiDisableStart] = useState("");
   const [aiDisableEnd, setAiDisableEnd] = useState("");
+  const [aiEscalationAssignAgent, setAiEscalationAssignAgent] = useState(true);
+  const [aiEscalationCreateTicket, setAiEscalationCreateTicket] = useState(false);
 
   useEffect(() => {
     const fetchWebhook = async () => {
@@ -83,6 +85,8 @@ export default function DeveloperSettings() {
           setAiOffDuringBusinessHours(aiData.ai_off_during_business_hours || false);
           setAiDisableStart(aiData.ai_disable_start || "");
           setAiDisableEnd(aiData.ai_disable_end || "");
+          setAiEscalationAssignAgent(aiData.ai_escalation_assign_agent ?? true);
+          setAiEscalationCreateTicket(aiData.ai_escalation_create_ticket ?? false);
         }
       } catch (error) {
         handleApiError(error);
@@ -233,6 +237,20 @@ export default function DeveloperSettings() {
       });
       toast.success("Business hours window updated successfully.");
     } catch (error) {
+      handleApiError(error);
+    }
+  };
+
+  const handleSaveEscalationSettings = async (field, newValue) => {
+    const prev = field === "ai_escalation_assign_agent" ? aiEscalationAssignAgent : aiEscalationCreateTicket;
+    if (field === "ai_escalation_assign_agent") setAiEscalationAssignAgent(newValue);
+    else setAiEscalationCreateTicket(newValue);
+    try {
+      await axiosInstance.patch("/companies/ai/escalation-settings/", { [field]: newValue });
+      toast.success("Escalation setting updated.");
+    } catch (error) {
+      if (field === "ai_escalation_assign_agent") setAiEscalationAssignAgent(prev);
+      else setAiEscalationCreateTicket(prev);
       handleApiError(error);
     }
   };
@@ -430,6 +448,49 @@ export default function DeveloperSettings() {
                   </div>
                 </div>
               )}
+
+              {/* Escalation Settings */}
+              <div className="pt-4 border-t border-gray-200">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">When AI Escalates a Conversation</h3>
+
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-start justify-between max-w-md gap-4">
+                    <div>
+                      <span className="font-medium text-sm">Auto-assign human agent</span>
+                      <p className="text-xs text-gray-500 mt-0.5">Find an available agent and send them the handoff message automatically</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={aiEscalationAssignAgent}
+                        onChange={(e) => handleSaveEscalationSettings("ai_escalation_assign_agent", e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className={`w-11 h-6 rounded-full transition-colors ${aiEscalationAssignAgent ? "bg-[#3EBF0F]" : "bg-gray-300"}`}>
+                        <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-transform ${aiEscalationAssignAgent ? "translate-x-5" : "translate-x-0"}`} />
+                      </div>
+                    </label>
+                  </div>
+
+                  <div className="flex items-start justify-between max-w-md gap-4">
+                    <div>
+                      <span className="font-medium text-sm">Auto-create support ticket</span>
+                      <p className="text-xs text-gray-500 mt-0.5">Automatically log a ticket so the issue is tracked even if no agent is immediately available</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={aiEscalationCreateTicket}
+                        onChange={(e) => handleSaveEscalationSettings("ai_escalation_create_ticket", e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className={`w-11 h-6 rounded-full transition-colors ${aiEscalationCreateTicket ? "bg-[#3EBF0F]" : "bg-gray-300"}`}>
+                        <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-transform ${aiEscalationCreateTicket ? "translate-x-5" : "translate-x-0"}`} />
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
