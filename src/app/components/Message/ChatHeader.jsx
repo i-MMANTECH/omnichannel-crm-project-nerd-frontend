@@ -234,6 +234,14 @@ const ChatHeader = ({
       onClick: () => setIsEndSessionModalOpen(true),
     },
     {
+      label: "Create a ticket",
+      onClick: () => {
+        if (typeof onCreateTicket === "function") {
+          onCreateTicket();
+        }
+      },
+    },
+    {
       label: aiToggleMenuItem,
       isCustom: true,
     }
