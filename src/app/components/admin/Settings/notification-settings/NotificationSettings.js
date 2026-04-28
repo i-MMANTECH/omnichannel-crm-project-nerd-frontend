@@ -45,6 +45,7 @@ const NotificationSettings = () => {
     daily_analysis_timezone: 'Africa/Lagos',
     daily_analysis_extra_emails: [],
     daily_analysis_connector_id: '',
+    daily_analysis_template_id: '',
     llm_email: '',
     llm_password: '',
     llm_password_masked: '',
@@ -54,6 +55,7 @@ const NotificationSettings = () => {
     last_daily_analysis_error: null,
   });
   const [dailyAnalysisConnectors, setDailyAnalysisConnectors] = useState([]);
+  const [dailyAnalysisTemplates, setDailyAnalysisTemplates] = useState([]);
 
   useEffect(() => {
     fetchEscalationSettings();
@@ -209,6 +211,7 @@ const NotificationSettings = () => {
       const response = await axiosInstance.post('/companies/daily-analysis-settings/test-llm-auth/', payload);
       const data = response.data.data || {};
       setDailyAnalysisConnectors(data.connectors || []);
+      setDailyAnalysisTemplates(data.templates || []);
       setDailyAnalysisSettings(prev => ({
         ...prev,
         last_daily_analysis_status: 'pending',
@@ -358,6 +361,7 @@ const NotificationSettings = () => {
           onSave={updateDailyAnalysisSettings}
           onTestAuth={testDailyAnalysisAuth}
           connectors={dailyAnalysisConnectors}
+          templates={dailyAnalysisTemplates}
           loading={loading}
         />
       )}

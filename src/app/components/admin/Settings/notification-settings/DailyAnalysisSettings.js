@@ -18,7 +18,7 @@ const Toggle = ({ isToggled, onToggle }) => (
   </button>
 );
 
-const DailyAnalysisSettings = ({ settings, setSettings, onSave, onTestAuth, connectors, loading }) => {
+const DailyAnalysisSettings = ({ settings, setSettings, onSave, onTestAuth, connectors, templates, loading }) => {
   const [savedMessage, setSavedMessage] = useState('');
   const [testingMessage, setTestingMessage] = useState('');
 
@@ -180,6 +180,25 @@ const DailyAnalysisSettings = ({ settings, setSettings, onSave, onTestAuth, conn
               {(connectors || []).map(connector => (
                 <option key={connector.id} value={connector.id}>
                   {connector.label} (ID: {connector.id})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium dark:text-white mb-2">Report Template</label>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+              Choose a template to shape how the daily report is written. Test the AI service connection first to load available templates.
+            </p>
+            <select
+              value={settings.daily_analysis_template_id || ''}
+              onChange={(e) => handleChange('daily_analysis_template_id', e.target.value || null)}
+              className="w-full md:w-1/2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white text-sm"
+            >
+              <option value="">No template (default analysis)</option>
+              {(templates || []).map(template => (
+                <option key={template.id} value={template.id}>
+                  {template.name}
                 </option>
               ))}
             </select>
