@@ -4,7 +4,7 @@ import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import './calendar-theme.css';
 
-const DateFilter = ({ onDateChange }) => {
+const DateFilter = ({ onDateChange, onClose }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [range, setRange] = useState([
     {
@@ -20,6 +20,9 @@ const DateFilter = ({ onDateChange }) => {
     const handleClickOutside = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
         setIsOpen(false);
+        if (typeof onClose === 'function') {
+          onClose();
+        }
       }
     };
 
@@ -27,7 +30,7 @@ const DateFilter = ({ onDateChange }) => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [onClose]);
 
   const onRangeChange = ({ selection }) => {
     setRange([selection]);
