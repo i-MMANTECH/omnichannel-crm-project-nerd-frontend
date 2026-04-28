@@ -254,12 +254,7 @@ const CreateTicketModal = ({
       });
 
       if (response.data.success) {
-        // Show success toast
-        if (!conversationId) {
-          const message = 'Ticket created successfully';
-          toast.success(message);
-        }
-
+        toast.success('Ticket created successfully');
 
         // Reset form
         setSubject('');
