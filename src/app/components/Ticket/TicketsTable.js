@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
-import { Ticket as TicketIcon, Filter, X } from "lucide-react";
+import { Ticket as TicketIcon, Filter, X, Paperclip } from "lucide-react";
 import StatCard from "@/app/components/StatCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
@@ -651,8 +651,13 @@ const TicketsTable = ({
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                             {ticket?.contact?.name || ticket?.customer_name || '-'}
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-xs truncate">
-                                            {truncateText(ticket.subject)}
+                                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-xs">
+                                            <div className="flex items-center gap-2">
+                                                <span className="truncate">{truncateText(ticket.subject)}</span>
+                                                {ticket.attachments && ticket.attachments.length > 0 && (
+                                                    <Paperclip className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                             {ticket.assignees && ticket.assignees.length > 0 ? (
