@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTh, faSort, faFilter, faSearch } from "@fortawesome/free-solid-svg-icons";
-import { Download } from "lucide-react";
+import { Download, Filter, X } from "lucide-react";
+import TasksFiltersPanel, { EMPTY_TASK_FILTERS } from "./TasksFiltersPanel";
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import TableView from "./TaskTableView";
 import TaskModal from "./AddTaskModal";
@@ -114,7 +115,11 @@ export default function Task() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isFilterActive, setIsFilterActive] = useState(false);
   const [allStatuses, setAllStatuses] = useState([]);
+  const [allPriorities, setAllPriorities] = useState([]);
+  const [allCategories, setAllCategories] = useState([]);
   const [showMoreUsers, setShowMoreUsers] = useState(false);
+  const [filters, setFilters] = useState(EMPTY_TASK_FILTERS);
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false);
 
   const filterableUsers = users.filter(user => {
     const email = user?.email || '';
@@ -206,24 +211,41 @@ export default function Task() {
 
   const fetchStatuses = async () => {
     try {
-      const { data } = await axiosInstance.get('/tasks/statuses/');
-      setAllStatuses(data.statuses || []);
+      const [statusesRes, prioritiesRes, categoriesRes] = await Promise.all([
+        axiosInstance.get('/tasks/statuses/'),
+        axiosInstance.get('/tasks/priorities/'),
+        axiosInstance.get('/tasks/categories/'),
+      ]);
+      setAllStatuses(statusesRes.data.statuses || []);
+      setAllPriorities(prioritiesRes.data.priorities || []);
+      setAllCategories(categoriesRes.data.categories || []);
     } catch (error) {
       handleApiError(error);
     }
   };
 
 
-  const fetchTasks = async (assignee = null, page = currentPage, page_size = pageSize, search = debouncedSearch) => {
+  const fetchTasks = async (assignee = null, page = currentPage, page_size = pageSize, search = debouncedSearch, currentFilters = filters) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       params.append('page', page);
       params.append('page_size', page_size);
 
-      if (assignee) {
-        params.append('assignee', assignee);
-      }
+      const assigneeIds = new Set(currentFilters.assigneeIds.map(String));
+      if (assignee) assigneeIds.add(String(assignee));
+      if (assigneeIds.size) params.append('assignee', Array.from(assigneeIds).join(','));
+
+      if (currentFilters.statusIds.length) params.append('status', currentFilters.statusIds.join(','));
+      if (currentFilters.priorityIds.length) params.append('priority', currentFilters.priorityIds.join(','));
+      if (currentFilters.categoryIds.length) params.append('category', currentFilters.categoryIds.join(','));
+      if (currentFilters.followerIds.length) params.append('follower', currentFilters.followerIds.join(','));
+      if (currentFilters.createdAfter) params.append('start_date', currentFilters.createdAfter);
+      if (currentFilters.createdBefore) params.append('end_date', currentFilters.createdBefore);
+      if (currentFilters.dueAfter) params.append('due_after', currentFilters.dueAfter);
+      if (currentFilters.dueBefore) params.append('due_before', currentFilters.dueBefore);
+      if (currentFilters.sort) params.append('sort', currentFilters.sort);
+      if (currentFilters.order) params.append('order', currentFilters.order);
 
       if (search) {
         const normalizedSearch = /^tsk-?\d+$/i.test(search.trim())
@@ -316,6 +338,101 @@ export default function Task() {
     setCurrentPage(1);
     fetchTasks(null, 1, pageSize, debouncedSearch);
   };
+
+  const applyFilters = (next) => {
+    setFilters(next);
+    setCurrentPage(1);
+    fetchTasks(selectedUser, 1, pageSize, debouncedSearch, next);
+  };
+
+  const resetFilters = () => {
+    setFilters(EMPTY_TASK_FILTERS);
+    setCurrentPage(1);
+    fetchTasks(selectedUser, 1, pageSize, debouncedSearch, EMPTY_TASK_FILTERS);
+  };
+
+  const removeFilter = (patch) => {
+    const next = { ...filters, ...patch };
+    setFilters(next);
+    setCurrentPage(1);
+    fetchTasks(selectedUser, 1, pageSize, debouncedSearch, next);
+  };
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    count += filters.statusIds.length;
+    count += filters.priorityIds.length;
+    count += filters.categoryIds.length;
+    count += filters.assigneeIds.length;
+    count += filters.followerIds.length;
+    if (filters.createdAfter) count += 1;
+    if (filters.createdBefore) count += 1;
+    if (filters.dueAfter) count += 1;
+    if (filters.dueBefore) count += 1;
+    return count;
+  }, [filters]);
+
+  const lookupLabel = (list, id) => {
+    const item = list.find((i) => i.id === id);
+    return item?.label || item?.name || `#${id}`;
+  };
+
+  const lookupUserLabel = (id) => {
+    const user = users.find((u) => u.id === id);
+    if (!user) return `User ${id}`;
+    const full = [user.first_name, user.last_name].filter(Boolean).join(' ').trim();
+    return full || user.email || `User ${id}`;
+  };
+
+  const filterChips = useMemo(() => {
+    const chips = [];
+    filters.statusIds.forEach((id) => chips.push({
+      key: `status-${id}`,
+      label: `Status: ${lookupLabel(allStatuses, id)}`,
+      onRemove: () => removeFilter({ statusIds: filters.statusIds.filter((v) => v !== id) }),
+    }));
+    filters.priorityIds.forEach((id) => chips.push({
+      key: `priority-${id}`,
+      label: `Priority: ${lookupLabel(allPriorities, id)}`,
+      onRemove: () => removeFilter({ priorityIds: filters.priorityIds.filter((v) => v !== id) }),
+    }));
+    filters.categoryIds.forEach((id) => chips.push({
+      key: `category-${id}`,
+      label: `Category: ${lookupLabel(allCategories, id)}`,
+      onRemove: () => removeFilter({ categoryIds: filters.categoryIds.filter((v) => v !== id) }),
+    }));
+    filters.assigneeIds.forEach((id) => chips.push({
+      key: `assignee-${id}`,
+      label: `Assignee: ${lookupUserLabel(id)}`,
+      onRemove: () => removeFilter({ assigneeIds: filters.assigneeIds.filter((v) => v !== id) }),
+    }));
+    filters.followerIds.forEach((id) => chips.push({
+      key: `follower-${id}`,
+      label: `Follower: ${lookupUserLabel(id)}`,
+      onRemove: () => removeFilter({ followerIds: filters.followerIds.filter((v) => v !== id) }),
+    }));
+    if (filters.createdAfter) chips.push({
+      key: 'created-after',
+      label: `Created ≥ ${filters.createdAfter}`,
+      onRemove: () => removeFilter({ createdAfter: '' }),
+    });
+    if (filters.createdBefore) chips.push({
+      key: 'created-before',
+      label: `Created ≤ ${filters.createdBefore}`,
+      onRemove: () => removeFilter({ createdBefore: '' }),
+    });
+    if (filters.dueAfter) chips.push({
+      key: 'due-after',
+      label: `Due ≥ ${filters.dueAfter}`,
+      onRemove: () => removeFilter({ dueAfter: '' }),
+    });
+    if (filters.dueBefore) chips.push({
+      key: 'due-before',
+      label: `Due ≤ ${filters.dueBefore}`,
+      onRemove: () => removeFilter({ dueBefore: '' }),
+    });
+    return chips;
+  }, [filters, allStatuses, allPriorities, allCategories, users]);
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -585,6 +702,19 @@ export default function Task() {
                 {/* Right Controls Group */}
                 <div className="flex items-center gap-2 sm:gap-3">
                   <button
+                    type="button"
+                    onClick={() => setShowFiltersPanel(true)}
+                    className="bg-white dark:bg-gray-800 text-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 px-3 sm:px-4 py-2 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-2 whitespace-nowrap"
+                  >
+                    <Filter className="w-4 h-4" />
+                    <span className="hidden sm:inline">Filters</span>
+                    {activeFilterCount > 0 && (
+                      <span className="ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-medium bg-[#3EBF0F] text-white rounded-full">
+                        {activeFilterCount}
+                      </span>
+                    )}
+                  </button>
+                  <button
                     onClick={() => setIsExportModalOpen(true)}
                     className="bg-white dark:bg-gray-800 text-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 px-3 sm:px-4 py-2 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-2 whitespace-nowrap"
                   >
@@ -601,6 +731,34 @@ export default function Task() {
                   )}
                 </div>
               </div>
+
+              {filterChips.length > 0 && (
+                <div className="mt-4 flex items-center gap-2 flex-wrap">
+                  {filterChips.map((chip) => (
+                    <span
+                      key={chip.key}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full"
+                    >
+                      {chip.label}
+                      <button
+                        type="button"
+                        onClick={chip.onRemove}
+                        className="hover:text-red-500"
+                        aria-label={`Remove ${chip.label}`}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={resetFilters}
+                    className="text-xs text-gray-600 dark:text-gray-400 underline hover:text-gray-900 dark:hover:text-white ml-1"
+                  >
+                    Clear all
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="mt-8 flex-1 overflow-auto">
@@ -694,6 +852,18 @@ export default function Task() {
               isOpen={isExportModalOpen}
               onClose={() => setIsExportModalOpen(false)}
               onExport={handleExport}
+            />
+
+            <TasksFiltersPanel
+              show={showFiltersPanel}
+              onClose={() => setShowFiltersPanel(false)}
+              filters={filters}
+              onApply={applyFilters}
+              onReset={resetFilters}
+              statuses={allStatuses}
+              priorities={allPriorities}
+              categories={allCategories}
+              users={filterableUsers}
             />
 
             {AlertModal()}

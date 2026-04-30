@@ -23,8 +23,11 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState(null);
   const [agents, setAgents] = useState([]);
+  const [followers, setFollowers] = useState([]);
   const [dueDate, setDueDate] = useState("");
   const [status, setStatus] = useState(null);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [task, setTask] = useState(null);
   const [priorities, setPriorities] = useState([]);
@@ -37,11 +40,13 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
   const prioritiesEndpoint = "tasks/priorities/";
   const statusesEndpoint = "tasks/statuses/";
   const slaEndpoint = "/sla/";
+  const categoriesEndpoint = "tasks/categories/";
 
   const [loadingAgents, setLoadingAgents] = useState(false);
   const [loadingPriorities, setLoadingPriorities] = useState(false);
   const [loadingStatuses, setLoadingStatuses] = useState(false);
   const [loadingSlas, setLoadingSlas] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(false);
 
 
   const fetchSlaPolicies = async () => {
@@ -126,10 +131,28 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
         }
       };
 
+      const fetchCategories = async () => {
+        setLoadingCategories(true);
+        try {
+          const response = await axiosInstance.get(categoriesEndpoint);
+          setCategories(
+            (response.data.categories || []).map((cat) => ({
+              value: cat.id,
+              label: cat.label,
+            }))
+          );
+        } catch (error) {
+          handleApiError(error);
+        } finally {
+          setLoadingCategories(false);
+        }
+      };
+
 
       if (priorities.length === 0) fetchPriorities();
       if (statuses.length === 0) fetchStatuses();
       if (users.length === 0) fetchAssignees();
+      if (categories.length === 0) fetchCategories();
     }
   }, [isOpen]);
 
@@ -164,6 +187,12 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
           label: formatUserLabel(assignee),
         }))
       );
+      setFollowers(
+        (task.followers || []).map((follower) => ({
+          value: follower.id,
+          label: formatUserLabel(follower),
+        }))
+      );
 
 
       setPriority(
@@ -171,6 +200,9 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
       );
       setStatus(
         statuses.find((s) => s.id === task.status.id) || null
+      );
+      setSelectedCategories(
+        (task.categories || []).map((cat) => ({ value: cat.id, label: cat.name || cat.label }))
       );
     }
   }, [task, priorities, statuses]);
@@ -200,6 +232,10 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
     setStatus(selectedOption);
   };
 
+  const handleCategoryChange = (selectedOptions) => {
+    setSelectedCategories(selectedOptions || []);
+  };
+
   const handleAgentChange = (selectedOptions) => {
     setAgents(selectedOptions.map((option) => option.value));
   };
@@ -213,8 +249,11 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
     if (description !== task.description) updatedFields.description = description;
     if (priority?.value !== task.priority.id) updatedFields.priority = priority?.value;
     if (status?.value !== task.status.id) updatedFields.status = status?.value;
-    if (sla?.id !== task.sla?.id) updatedFields.sla = String(sla?.id);
-
+    const originalCategoryIds = (task.categories || []).map((c) => c.id).sort((a, b) => a - b);
+    const selectedCategoryIds = selectedCategories.map((c) => c.value).sort((a, b) => a - b);
+    if (JSON.stringify(originalCategoryIds) !== JSON.stringify(selectedCategoryIds)) {
+      updatedFields.categories = selectedCategoryIds;
+    }
     const formattedDueDate = new Date(dueDate).toISOString().split("T")[0];
     const originalDueDate = new Date(task.due_date).toISOString().split("T")[0];
 
@@ -230,6 +269,15 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
 
     if (JSON.stringify(originalAgentIds) !== JSON.stringify(selectedAgentIds)) {
       updatedFields.assignees = selectedAgentIds.length > 0 ? selectedAgentIds : [];
+    }
+
+    const originalFollowerIds = (task.followers || []).map((f) => f.id).sort((a, b) => a - b);
+    const selectedFollowerIds = followers
+      .map((follower) => follower.value)
+      .sort((a, b) => a - b);
+
+    if (JSON.stringify(originalFollowerIds) !== JSON.stringify(selectedFollowerIds)) {
+      updatedFields.followers = selectedFollowerIds;
     }
 
     // Prevent sending an empty request if no fields were updated
@@ -345,6 +393,23 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
 
         </div>
 
+        <p className="mb-3">Followers</p>
+        <div className="mb-7">
+          <Select
+            isMulti
+            options={agentOptions}
+            value={followers}
+            onChange={(selected) => setFollowers(selected || [])}
+            styles={selectStyles}
+            isLoading={loadingAgents}
+            isDisabled={loadingAgents}
+            placeholder={loadingAgents ? "Loading agents..." : "Select followers"}
+            noOptionsMessage={() =>
+              loadingAgents ? "Loading agents..." : "No agents found"
+            }
+          />
+        </div>
+
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Due Date</label>
           <input
@@ -367,6 +432,20 @@ const TaskUpdateModal = ({ isOpen, onClose, taskId, onUpdate }) => {
             placeholder={loadingStatuses ? "Loading statuses..." : "Select status"}
           />
 
+        </div>
+
+        <div className="mb-7">
+          <label className="block text-sm font-medium mb-1">Category</label>
+          <Select
+            isMulti
+            options={categories}
+            value={selectedCategories}
+            onChange={handleCategoryChange}
+            styles={selectStyles}
+            isLoading={loadingCategories}
+            isDisabled={loadingCategories}
+            placeholder={loadingCategories ? "Loading categories..." : "Select categories"}
+          />
         </div>
       </form>
     </Modal>

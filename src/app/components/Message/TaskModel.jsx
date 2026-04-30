@@ -17,14 +17,15 @@ function TaskModel({ isOpen, onClose, conversationId, setIsSuccessModalOpen, set
     status: null,
     assignees: [],
     due_date: "",
-    sla_id: null,
     tags: [],
+    category_id: null,
   });
 
   const [priorities, setPriorities] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [users, setUsers] = useState([]);
   const [slas, setSlas] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [tags, setTags] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -70,15 +71,17 @@ function TaskModel({ isOpen, onClose, conversationId, setIsSuccessModalOpen, set
     if (isOpen) {
       const fetchData = async () => {
         try {
-          const [prioritiesRes, statusesRes, assigneesRes, slasRes] = await Promise.all([
+          const [prioritiesRes, statusesRes, assigneesRes, slasRes, categoriesRes] = await Promise.all([
             axiosInstance.get(prioritiesEndpoint),
             axiosInstance.get(statusesEndpoint),
             axiosInstance.get(getAssigneesEndpoint),
             axiosInstance.get(getSlasEndpoint),
+            axiosInstance.get("/tasks/categories/"),
           ]);
   
           setPriorities(prioritiesRes.data.priorities || []);
           setStatuses(statusesRes.data.statuses || []);
+          setCategories(categoriesRes.data.categories || []);
           setUsers(
             assigneesRes.data.results.map((user) => ({
               value: user.id,
@@ -147,6 +150,7 @@ function TaskModel({ isOpen, onClose, conversationId, setIsSuccessModalOpen, set
       due_date: isoDueDate,
       tags: formData.tags.map((tag) => tag.label),
       sla_id: formData.sla_id?.value,
+      category_id: formData.category_id?.value,
     };
   
     try {
@@ -160,6 +164,7 @@ function TaskModel({ isOpen, onClose, conversationId, setIsSuccessModalOpen, set
           assignees: [],
           due_date: "",
           sla_id: null,
+          category_id: null,
           tags: [],
         });
         setSuccessModalMessage('Task created successfully.');
@@ -271,6 +276,20 @@ function TaskModel({ isOpen, onClose, conversationId, setIsSuccessModalOpen, set
                 onChange={(value) => handleChange("sla_id", value)}
                 styles={selectStyles}
                 placeholder="Select SLA"
+              />
+            </div>
+  
+            <div>
+              <label className="block text-sm font-medium mb-1">Category</label>
+              <Select
+                options={categories.map((c) => ({
+                  value: c.id,
+                  label: c.label || c.name,
+                }))}
+                value={formData.category_id}
+                onChange={(value) => handleChange("category_id", value)}
+                styles={selectStyles}
+                placeholder="Select category"
               />
             </div>
   

@@ -41,6 +41,7 @@ const CreateTicketModal = ({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [dueDate, setDueDate] = useState("")
+  const [selectedImages, setSelectedImages] = useState([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -197,6 +198,12 @@ const CreateTicketModal = ({
       return;
     }
 
+
+    if (!priority?.value) {
+      toast.warning('Please select a priority');
+      return;
+    }
+
     const isoDueDate = dueDate
     ? new Date(dueDate).toISOString()
     : null;
@@ -221,24 +228,33 @@ const CreateTicketModal = ({
       };
 
       // Remove undefined values
-      Object.keys(payload).forEach(key =>
+      Object.keys(payload).forEach((key) =>
         payload[key] === undefined && delete payload[key]
       );
+
+      const formData = new FormData();
+      Object.entries(payload).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach((item) => formData.append(key, item));
+        } else if (value !== null && value !== "") {
+          formData.append(key, value);
+        }
+      });
+      selectedImages.forEach((image) => formData.append('images', image));
 
       // Use different endpoint based on whether conversationId exists
       const endpoint = conversationId
         ? `/communication/conversations/${conversationId}/ticket/`
         : '/tickets/create/';
 
-      const response = await axiosInstance.post(endpoint, payload);
+      const response = await axiosInstance.post(endpoint, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       if (response.data.success) {
-        // Show success toast
-        if (!conversationId) {
-          const message = 'Ticket created successfully';
-          toast.success(message);
-        }
-
+        toast.success('Ticket created successfully');
 
         // Reset form
         setSubject('');
@@ -251,6 +267,7 @@ const CreateTicketModal = ({
         setCategory(null);
         setAssignedTo([]);
         setFollowers([]);
+        setSelectedImages([]);
 
         // Call parent callback
         if (onSubmit) {
@@ -266,7 +283,19 @@ const CreateTicketModal = ({
     }
   };
 
-  const isFormValid = subject.trim() && description.trim();
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const imageFiles = files.filter((file) => file.type.startsWith('image/'));
+    setSelectedImages((prev) => [...prev, ...imageFiles]);
+    e.target.value = null;
+  };
+
+  const removeImage = (index) => {
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const isFormValid = subject.trim() && description.trim() && priority?.value;
 
   return (
     <Modal
@@ -401,7 +430,7 @@ const CreateTicketModal = ({
           {/* Priority */}
           <div className="mb-7">
             <label className="block text-sm font-medium mb-1">
-              Priority
+              Priority <span className="text-red-500">*</span>
             </label>
             <Select
               value={priority}
@@ -494,6 +523,36 @@ const CreateTicketModal = ({
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg body-theme focus:outline-none focus:ring-2 focus:ring-[#3EBF0F] resize-none"
             />
+          </div>
+
+          <div className="mb-7">
+            <label className="block text-sm font-medium mb-1">Images</label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageChange}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg body-theme"
+            />
+            {selectedImages.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {selectedImages.map((file, index) => (
+                  <div
+                    key={`${file.name}-${index}`}
+                    className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 flex items-center gap-2"
+                  >
+                    <span className="max-w-[160px] truncate">{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="text-red-500"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </form>
       )}

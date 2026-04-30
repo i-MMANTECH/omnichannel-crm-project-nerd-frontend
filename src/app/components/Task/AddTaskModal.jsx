@@ -21,17 +21,21 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
   const [users, setUsers] = useState([]);
   const [slas, setSlas] = useState([]);
   const [followers, setFollowers] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   const prioritiesEndpoint = "tasks/priorities/";
   const statusesEndpoint = "tasks/statuses/";
   const createTaskEndpoint = "tasks/create/";
   const getAssigneesEndpoint = "/users/";
   const getSlasEndpoint = "/sla/";
+  const categoriesEndpoint = "tasks/categories/";
 
   const [loadingAgents, setLoadingAgents] = useState(false);
   const [loadingPriorities, setLoadingPriorities] = useState(false);
   const [loadingStatuses, setLoadingStatuses] = useState(false);
   const [loadingSlas, setLoadingSlas] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(false);
 
 
   const getUserLabel = (user) => {
@@ -54,14 +58,16 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
         setLoadingStatuses(true);
         setLoadingAgents(true);
         setLoadingSlas(true);
+        setLoadingCategories(true);
 
         try {
-          const [prioritiesRes, statusesRes, assigneesRes, slasRes] =
+          const [prioritiesRes, statusesRes, assigneesRes, slasRes, categoriesRes] =
             await Promise.all([
               axiosInstance.get(prioritiesEndpoint),
               axiosInstance.get(statusesEndpoint),
               axiosInstance.get(getAssigneesEndpoint),
               axiosInstance.get(getSlasEndpoint),
+              axiosInstance.get(categoriesEndpoint),
             ]);
 
           setPriorities(prioritiesRes.data.priorities || []);
@@ -78,6 +84,12 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
               label: sla.title,
             }))
           );
+          setCategories(
+            categoriesRes.data.categories.map((cat) => ({
+              value: cat.id,
+              label: cat.label,
+            }))
+          );
         } catch (error) {
           handleApiError(error);
         } finally {
@@ -85,6 +97,7 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
           setLoadingStatuses(false);
           setLoadingAgents(false);
           setLoadingSlas(false);
+          setLoadingCategories(false);
         }
       };
 
@@ -114,6 +127,10 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
     setSla(selectedOption);
   };
 
+  const handleCategoryChange = (selectedOptions) => {
+    setSelectedCategories(selectedOptions || []);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -126,6 +143,7 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
       sla_id: sla?.value,
       priority: priority?.value,
       status: status?.value,
+      categories: selectedCategories.map((c) => c.value),
     };
 
 
@@ -137,7 +155,8 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
         setAssignees([]);
         setFollowers([]);
         setDueDate("");
-        setSla("");
+        setSla(null);
+        setSelectedCategories([]);
         setPriority(null);
         setStatus(null);
         onClose();
@@ -228,6 +247,23 @@ const TaskModal = ({ isOpen, onClose, setIsSuccessModalOpen }) => {
             }
           />
 
+        </div>
+
+        <div className="mb-7">
+          <label className="block text-sm font-medium mb-1">Category</label>
+          <Select
+            isMulti
+            options={categories}
+            value={selectedCategories}
+            onChange={handleCategoryChange}
+            styles={selectStyles}
+            isLoading={loadingCategories}
+            isDisabled={loadingCategories}
+            placeholder={loadingCategories ? "Loading categories..." : "Select categories"}
+            noOptionsMessage={() =>
+              loadingCategories ? "Loading categories..." : "No categories found"
+            }
+          />
         </div>
 
         <div className="mb-7">

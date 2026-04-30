@@ -223,6 +223,30 @@ const MessageList = ({
     return faFile;
   };
 
+  const getMessageAttachments = (msg) => {
+    if (Array.isArray(msg?.attachments) && msg.attachments.length > 0) {
+      return msg.attachments;
+    }
+
+    const imageAttachments = Array.isArray(msg?.image)
+      ? msg.image.map((file) => ({
+        file: typeof file === "string" ? file : URL.createObjectURL(file),
+        file_type: "image",
+        name: file?.name,
+      }))
+      : [];
+
+    const documentAttachments = Array.isArray(msg?.document)
+      ? msg.document.map((file) => ({
+        file: typeof file === "string" ? file : URL.createObjectURL(file),
+        file_type: "document",
+        name: file?.name,
+      }))
+      : [];
+
+    return [...imageAttachments, ...documentAttachments];
+  };
+
   const sanitizeHtml = (value = "") => {
     if (typeof window === "undefined") return value;
     const parser = new DOMParser();
@@ -242,6 +266,53 @@ const MessageList = ({
   };
 
   const containsHtml = (value = "") => /<[a-z][\s\S]*>/i.test(value);
+  const isEmailMessage = (msg) =>
+    msg?.channel?.name === "Email" ||
+    msg?.channel?.id === 7 ||
+    (typeof msg?.subject === "string" && msg.subject.trim().length > 0);
+
+  const normalizePlainEmailContent = (value = "") => {
+    const normalized = String(value).replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
+    if (!normalized) return "";
+
+    return normalized
+      .split(/\n{2,}/)
+      .map((paragraph) =>
+        paragraph
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .join(" ")
+      )
+      .join("\n\n");
+  };
+
+  const renderPlainEmailContent = (content = "", msg) => {
+    const normalizedContent = normalizePlainEmailContent(content);
+    const attachmentCount = getMessageAttachments(msg).length;
+
+    return (
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          p: ({ node, ...props }) => (
+            <p
+              style={{
+                whiteSpace: "pre-wrap",
+                marginTop: attachmentCount ? "8px" : "0",
+                marginBottom: "0.75rem",
+              }}
+              {...props}
+            />
+          ),
+          strong: ({ node, ...props }) => <strong className="font-semibold" {...props} />,
+          em: ({ node, ...props }) => <em className="italic" {...props} />,
+        }}
+      >
+        {normalizedContent}
+      </ReactMarkdown>
+    );
+  };
 
   const getFileExtension = (fileUrl = "") => {
     const cleanUrl = String(fileUrl).split("?")[0];
@@ -334,12 +405,14 @@ const MessageList = ({
   }, [selectedImage, selectedVideo]);
 
   function renderMessageContent(msg) {
+    const isEmail = isEmailMessage(msg);
+    const contentHasHtml = containsHtml(msg.content);
     const contentType = msg.content_type || "text"; // ✅ fallback for internal messages
 
     if (contentType === "html") {
       return (
         <div
-          style={{ marginTop: msg.attachments?.length ? "8px" : "0" }}
+          style={{ marginTop: getMessageAttachments(msg).length ? "8px" : "0" }}
           dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
         />
       );
@@ -362,7 +435,7 @@ const MessageList = ({
               <p
                 style={{
                   whiteSpace: "pre-wrap",
-                  marginTop: msg.attachments?.length ? "8px" : "0",
+                  marginTop: getMessageAttachments(msg).length ? "8px" : "0",
                 }}
                 {...props}
               />
@@ -376,19 +449,22 @@ const MessageList = ({
 
     // ✅ Normal text (internal messages will land here)
     if (contentType === "text") {
-      if (msg?.channel?.name === "Email" || containsHtml(msg.content)) {
+      if (contentHasHtml) {
         return (
           <div
-            style={{ marginTop: msg.attachments?.length ? "8px" : "0" }}
+            style={{ marginTop: getMessageAttachments(msg).length ? "8px" : "0" }}
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
           />
         );
+      }
+      if (isEmail) {
+        return renderPlainEmailContent(msg.content, msg);
       }
       return (
         <div
           style={{
             whiteSpace: "pre-wrap",
-            marginTop: msg.attachments?.length ? "8px" : "0",
+            marginTop: getMessageAttachments(msg).length ? "8px" : "0",
           }}
         >
           {msg.content}
@@ -396,13 +472,25 @@ const MessageList = ({
       );
     }
 
-    // If you truly want "image"/"document" to still show msg.content as HTML text
-    if (contentType === "image" || contentType === "document" || contentType === "video" || contentType === "audio") {
+    if (contentType === "image" || contentType === "document") {
+      if (isEmail) {
+        if (contentHasHtml) {
+          return (
+            <div
+              style={{ marginTop: getMessageAttachments(msg).length ? "8px" : "0" }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
+            />
+          );
+        }
+
+        return renderPlainEmailContent(msg.content, msg);
+      }
+
       return msg.content ? (
         <div
           style={{
             whiteSpace: "pre-wrap",
-            marginTop: msg.attachments?.length ? "8px" : "0",
+            marginTop: getMessageAttachments(msg).length ? "8px" : "0",
           }}
         >
           {msg.content}
@@ -439,6 +527,98 @@ const MessageList = ({
     );
   }
 
+  /**
+   * Renders the WhatsApp reply/status-reply quoted-context preview bubble.
+   *
+   * Two cases:
+   *  1. reply_to_details — the quoted message exists in our DB (regular reply).
+   *     Shows the parent message text + optional media thumbnail.
+   *  2. context_metadata only — the quoted content is a WhatsApp Status/Story
+   *     that was never stored as a conversation message.
+   *     Shows the status caption and the thumbnail extracted by the bridge.
+   */
+  function renderQuotedContext(msg, isOutgoing) {
+    const { reply_to_details, context_metadata, context_thumbnail } = msg;
+
+    if (!reply_to_details && !context_metadata) return null;
+
+    const isStatusReply = context_metadata?.is_status_reply === true;
+
+    // Outgoing bubbles have a green tint; incoming have a grey tint.
+    const wrapperCls = isOutgoing
+      ? "border-l-[3px] border-green-400 bg-green-100 dark:bg-green-900/30"
+      : "border-l-[3px] border-gray-400 bg-gray-100 dark:bg-gray-700/50";
+
+    // ── Case 1: Regular reply (parent message is in the DB) ──────────────────
+    if (reply_to_details) {
+      const { content, content_type, attachment_url } = reply_to_details;
+      const isMedia = ["image", "video", "audio", "document"].includes(content_type);
+      const displayText = content || (isMedia ? `[${content_type}]` : "");
+
+      return (
+        <div className={`rounded-md px-2 py-1 mb-2 flex items-start gap-2 text-sm max-w-full overflow-hidden ${wrapperCls}`}>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-0.5 truncate">
+              {isOutgoing ? "You replied to" : "Reply to"}
+            </p>
+            <p className="text-gray-700 dark:text-gray-200 line-clamp-2 break-words">{displayText}</p>
+          </div>
+          {attachment_url && content_type === "image" && (
+            <img
+              src={attachment_url}
+              alt="Quoted"
+              className="w-12 h-12 rounded object-cover flex-shrink-0"
+            />
+          )}
+        </div>
+      );
+    }
+
+    // ── Case 2: Status reply (original status not stored as a message) ───────
+    const quotedText =
+      context_metadata.text ||
+      context_metadata.caption ||
+      context_metadata.quoted_text ||
+      null;
+
+    const quotedType = context_metadata.quoted_type || null;
+
+    // Human-readable label for the content type when there's no text to show
+    const mediaLabel = {
+      image: "📷 Photo",
+      video: "🎥 Video",
+      audio: "🎵 Audio",
+      document: "📄 Document",
+      sticker: "🎭 Sticker",
+    }[quotedType] || null;
+
+    return (
+      <div className={`rounded-md px-2 py-1 mb-2 flex items-start gap-2 text-sm max-w-full overflow-hidden ${wrapperCls}`}>
+        {/* Thumbnail — shown on the LEFT for media-only statuses so it fills the space nicely */}
+        {context_thumbnail && (
+          <img
+            src={context_thumbnail}
+            alt="Status thumbnail"
+            className="w-14 h-14 rounded object-cover flex-shrink-0"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+          />
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-0.5 truncate">
+            {isStatusReply ? "Replied to your status" : "Replied to"}
+          </p>
+          {quotedText ? (
+            <p className="text-gray-700 dark:text-gray-200 line-clamp-2 break-words">{quotedText}</p>
+          ) : mediaLabel ? (
+            <p className="text-gray-500 dark:text-gray-400 italic">{mediaLabel}</p>
+          ) : (
+            <p className="text-gray-400 dark:text-gray-500 italic">Status</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (!chatHistory || chatHistory?.length === 0) return null;
 
   return (
@@ -450,6 +630,9 @@ const MessageList = ({
       onScroll={handleScroll}
     >
       {chatHistory.map((msg, index) => {
+        const attachments = getMessageAttachments(msg);
+        const imageAttachments = attachments.filter((attachment) => attachment?.file_type == 'image');
+        const documentAttachments = attachments.filter((attachment) => attachment?.file_type != 'image');
         const isSystemMessage = msg.is_system_message;
         const isOutgoing =
           chatType === "internal"
@@ -517,6 +700,8 @@ const MessageList = ({
                       <div className="text-lg font-semibold mb-5"><span>{msg?.subject ?? "__"}</span></div>
                     }
 
+                    {renderQuotedContext(msg, isOutgoing)}
+
                     {isOutgoing ? (
                       <div className="flex items-center relative">
                         <div
@@ -528,12 +713,12 @@ const MessageList = ({
                             <Image
                               loader={() => msg.user_sender_details.image}
                               src={msg.user_sender_details.image}
-                              alt={`${msg.user_sender_details.name} Profile`}
+                              alt={`${(msg.user_sender_details?.first_name || msg.user_sender_details?.last_name ? `${msg.user_sender_details?.first_name || ''} ${msg.user_sender_details?.last_name || ''}`.trim() : msg.user_sender_details?.email) || 'Agent'} Profile`}
                               className="w-8 h-8 rounded-full mr-3"
                               width={30}
                               height={30}
                               // onClick={() => router.push(`/nativecrm/users/${msg.user_sender_details?.id}`)}
-                              title={msg.user_sender_details.name}
+                              title={(msg.user_sender_details?.first_name || msg.user_sender_details?.last_name ? `${msg.user_sender_details?.first_name || ''} ${msg.user_sender_details?.last_name || ''}`.trim() : msg.user_sender_details?.email) || 'Agent'}
                             />
                           ) : msg.user_sender_details?.first_name || msg.user_sender_details?.last_name || msg.user_sender_details?.email ? (
                             <UserAvatar
@@ -558,10 +743,9 @@ const MessageList = ({
 
                         {/* Handle Different Content Types */}
                         <div className="flex flex-col">
-                          {/* If message contains images, display them first */}
-                          {msg.content_type === "image" && msg.attachments && msg.attachments.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
-                              {msg.attachments.map((attachment, i) => (
+                          {imageAttachments.length > 0 && (
+                            <div className={`flex flex-wrap gap-2 ${imageAttachments.length > 4 ? "image-attachments-scroll" : ""}`}>
+                              {imageAttachments.map((attachment, i) => (
                                 <Image
                                   key={i}
                                   loader={() => attachment.file}
@@ -603,7 +787,7 @@ const MessageList = ({
                           {/* If message contains documents, display them */}
                           {msg.content_type === "document" && msg.attachments && msg.attachments.length > 0 && (
                             <div className="flex flex-col gap-2">
-                              {msg.attachments.map((attachment, i) => {
+                              {documentAttachments.map((attachment, i) => {
                                 const fileType = attachment.file.split('.').pop(); // Extract file extension
                                 const fileName = attachment.file.split('/').pop(); // Extract file name
                                 if (isVideoAttachment(attachment)) {
@@ -680,72 +864,41 @@ const MessageList = ({
                       <div>
                         {/* Show text content below images or documents if present */}
                         {renderMessageContent(msg)}
-                        {/* If message contains documents, display them */}
-                        {msg.attachments && msg.attachments.length > 0 && (
+                        {attachments.length > 0 && (
                           <div className="flex flex-col gap-2">
-                            <div className="mt-10 mb-2 font-semibold underline">{msg.attachments.length == 1 ? 'Attachment' : 'Attachments'}</div>
-                            {msg.attachments.map((attachment, i) => {
-                              const fileType = attachment.file.split('.').pop();
-                              const fileName = attachment.file.split('/').pop();
-
-                              if (attachment.file_type == 'image') {
-                                return (
+                            <div className="mt-10 mb-2 font-semibold underline">{attachments.length == 1 ? 'Attachment' : 'Attachments'}</div>
+                            {imageAttachments.length > 0 && (
+                              <div className={`flex flex-wrap gap-2 ${imageAttachments.length > 4 ? "image-attachments-scroll" : ""}`}>
+                                {imageAttachments.map((attachment, i) => (
                                   <Image
                                     key={i}
                                     loader={() => attachment.file}
                                     src={attachment.file}
                                     alt="Sent Image"
-                                    className="image-message max-w-[250px] max-h-[250px] pointer mb-2"
+                                    className="image-message max-w-[250px] max-h-[250px] pointer"
                                     width={300}
                                     height={300}
                                     onClick={() => openImageModal(attachment.file)}
                                   />
-                                )
-                              }
-                              if (isVideoAttachment(attachment)) {
-                                return (
-                                  <div key={i} className="relative max-w-[320px] mb-2">
-                                    <video
-                                      src={attachment.file}
-                                      className="max-w-[320px] max-h-[240px] rounded-lg cursor-pointer bg-black"
-                                      muted
-                                      playsInline
-                                      onClick={() => openVideoModal(attachment.file)}
-                                    />
-                                    <button
-                                      type="button"
-                                      className="absolute inset-0 flex items-center justify-center text-white text-sm bg-black/30 rounded-lg"
-                                      onClick={() => openVideoModal(attachment.file)}
-                                    >
-                                      Play
-                                    </button>
-                                  </div>
-                                );
-                              }
-                              if (isAudioAttachment(attachment)) {
-                                return (
-                                  <audio
-                                    key={i}
-                                    controls
-                                    className="max-w-[250px] sm:max-w-[320px] mb-2"
-                                    src={attachment.file}
-                                  />
-                                );
-                              }
-                              else {
-                                return (
-                                  <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-2">
-                                    <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
-                                    <span className="text-sm truncate ">{fileName}</span>
-                                    <button
-                                      className="ml-auto text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
-                                      onClick={() => downloadFile(attachment.file, fileName)}
-                                    >
-                                      <FontAwesomeIcon icon={faDownload} />
-                                    </button>
-                                  </div>
-                                );
-                              }
+                                ))}
+                              </div>
+                            )}
+                            {documentAttachments.map((attachment, i) => {
+                              const fileType = attachment.file.split('.').pop();
+                              const fileName = attachment.name || attachment.file.split('/').pop();
+
+                              return (
+                                <div key={i} className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-2">
+                                  <FontAwesomeIcon icon={getFileIcon(fileType)} className="text-gray-600 dark:text-gray-300" />
+                                  <span className="text-sm truncate ">{fileName}</span>
+                                  <button
+                                    className="ml-auto text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
+                                    onClick={() => downloadFile(attachment.file, fileName)}
+                                  >
+                                    <FontAwesomeIcon icon={faDownload} />
+                                  </button>
+                                </div>
+                              );
                             })}
                           </div>
                         )}

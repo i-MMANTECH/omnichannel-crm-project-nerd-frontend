@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Bold,
   Italic,
@@ -8,20 +8,82 @@ import {
   AlignRight,
   List,
   Undo2,
-  Redo2,
-  Send
+  Redo2
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import "./messageInput.css";
 
-const EmailComposer = ({ onSendMessage, selectedChannel }) => {
-  const [subject, setSubject] = useState('');
-  const [message, setMessage] = useState('');
-  const [selectedImages, setSelectedImages] = useState([]);
-  const [selectedFiles, setSelectedFiles] = useState([]);
+const EmailComposer = ({
+  onSendMessage,
+  selectedChannel,
+  subject: controlledSubject,
+  onSubjectChange,
+  message: controlledMessage,
+  onMessageChange,
+  selectedImages: controlledSelectedImages,
+  onSelectedImagesChange,
+  selectedFiles: controlledSelectedFiles,
+  onSelectedFilesChange,
+  hideSendButton = false,
+}) => {
+  const [subjectState, setSubjectState] = useState('');
+  const [messageState, setMessageState] = useState('');
+  const [selectedImagesState, setSelectedImagesState] = useState([]);
+  const [selectedFilesState, setSelectedFilesState] = useState([]);
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  const subject = controlledSubject ?? subjectState;
+  const message = controlledMessage ?? messageState;
+  const selectedImages = controlledSelectedImages ?? selectedImagesState;
+  const selectedFiles = controlledSelectedFiles ?? selectedFilesState;
+
+  const updateSubject = (value) => {
+    if (onSubjectChange) {
+      onSubjectChange(value);
+      return;
+    }
+
+    setSubjectState(value);
+  };
+
+  const updateMessage = (value) => {
+    if (onMessageChange) {
+      onMessageChange(value);
+      return;
+    }
+
+    setMessageState(value);
+  };
+
+  const updateSelectedImages = (updater) => {
+    const nextValue = typeof updater === "function" ? updater(selectedImages) : updater;
+
+    if (onSelectedImagesChange) {
+      onSelectedImagesChange(nextValue);
+      return;
+    }
+
+    setSelectedImagesState(nextValue);
+  };
+
+  const updateSelectedFiles = (updater) => {
+    const nextValue = typeof updater === "function" ? updater(selectedFiles) : updater;
+
+    if (onSelectedFilesChange) {
+      onSelectedFilesChange(nextValue);
+      return;
+    }
+
+    setSelectedFilesState(nextValue);
+  };
+
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== (message || '')) {
+      editorRef.current.innerHTML = message || '';
+    }
+  }, [message]);
 
   const ToolbarButton = ({ onClick, isActive = false, disabled = false, title, children }) => (
     <button
@@ -60,15 +122,22 @@ const EmailComposer = ({ onSendMessage, selectedChannel }) => {
       subject: subject.trim(),
       text: message.trim(),
       channel_id: selectedChannel?.value,
+      channel: selectedChannel
+        ? {
+            id: selectedChannel.value,
+            name: selectedChannel.label,
+            image: selectedChannel.image,
+          }
+        : null,
       file: selectedFiles.length > 0 ? selectedFiles : null,
       image: selectedImages.length > 0 ? selectedImages : null,
     };
 
     onSendMessage(messagePayload);
-    setSubject('');
-    setMessage('');
-    setSelectedImages([]);
-    setSelectedFiles([]);
+    updateSubject('');
+    updateMessage('');
+    updateSelectedImages([]);
+    updateSelectedFiles([]);
 
     if (editorRef.current) {
       editorRef.current.innerHTML = '';
@@ -83,28 +152,22 @@ const EmailComposer = ({ onSendMessage, selectedChannel }) => {
   };
 
   const handleFileSelect = (e) => {
-    const files = Array.from(e.target.files);
+      const files = Array.from(e.target.files);
     files.forEach(file => {
       if (file.type.startsWith('image/')) {
-        setSelectedImages(prev => [...prev, file]);
+        updateSelectedImages(prev => [...prev, file]);
       } else {
-        setSelectedFiles(prev => [...prev, file]);
+        updateSelectedFiles(prev => [...prev, file]);
       }
     });
   };
 
   const removeFile = (type, index) => {
     if (type === 'image') {
-      setSelectedImages(prev => prev.filter((_, idx) => idx !== index));
+      updateSelectedImages(prev => prev.filter((_, idx) => idx !== index));
     } else {
-      setSelectedFiles(prev => prev.filter((_, idx) => idx !== index));
+      updateSelectedFiles(prev => prev.filter((_, idx) => idx !== index));
     }
-  };
-
-  const getCharacterCount = () => {
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = message;
-    return tempDiv.textContent?.length || 0;
   };
 
   return (
@@ -115,7 +178,7 @@ const EmailComposer = ({ onSendMessage, selectedChannel }) => {
           type="text"
           placeholder="Enter Subject"
           value={subject}
-          onChange={(e) => setSubject(e.target.value)}
+          onChange={(e) => updateSubject(e.target.value)}
           className="w-full text-base text-gray-800 placeholder-gray-400 border-none outline-none bg-transparent"
         />
       </div>
@@ -147,7 +210,7 @@ const EmailComposer = ({ onSendMessage, selectedChannel }) => {
               ref={editorRef}
               contentEditable
               suppressContentEditableWarning
-              onInput={(e) => setMessage(e.target.innerHTML)}
+              onInput={(e) => updateMessage(e.target.innerHTML)}
               onKeyDown={handleKeyDown}
               className="min-h-[80px] max-h-[300px] overflow-y-auto p-3 rounded-lg "
               style={{
@@ -160,14 +223,16 @@ const EmailComposer = ({ onSendMessage, selectedChannel }) => {
             />
           </div>
 
-          {message || selectedImages || selectedFiles ? (
-            <button className="send-button" onClick={handleSend}>
-              <FontAwesomeIcon icon={faPaperPlane} />
-            </button>
-          ) : (
-            <button className="send-button" disabled>
-              <FontAwesomeIcon icon={faPaperPlane} color="grey"/>
-            </button>
+          {!hideSendButton && (
+            message || selectedImages.length > 0 || selectedFiles.length > 0 ? (
+              <button className="send-button" onClick={handleSend}>
+                <FontAwesomeIcon icon={faPaperPlane} />
+              </button>
+            ) : (
+              <button className="send-button" disabled>
+                <FontAwesomeIcon icon={faPaperPlane} color="grey"/>
+              </button>
+            )
           )}
           
         </div>

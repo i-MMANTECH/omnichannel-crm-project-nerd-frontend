@@ -329,6 +329,82 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
     );
   };
 
+  const renderFollowers = () => {
+    if (!ticket.followers || ticket.followers.length === 0) return null;
+
+    return (
+      <div className="rounded-lg mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            <span className="font-medium">Followers</span>
+          </div>
+        </div>
+        <div className="space-y-2">
+          {ticket.followers.map((follower, index) => {
+            const followerName = getAssigneeName(follower);
+            return (
+              <div key={index} className="flex items-center gap-3">
+                {follower?.image ? (
+                  <Image
+                    alt={followerName}
+                    className="w-8 h-8 rounded-full"
+                    src={follower.image}
+                    width={32}
+                    height={32}
+                  />
+                ) : (
+                  <UserAvatar
+                    name={followerName}
+                    width="w-8"
+                    height="h-8"
+                  />
+                )}
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{followerName}</p>
+                  {follower?.email && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{follower.email}</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderAttachments = () => {
+    if (!ticket.attachments || ticket.attachments.length === 0) return null;
+
+    return (
+      <div className="mt-6">
+        <h3 className="text-md font-medium mb-2">Attachments</h3>
+        <div className="flex flex-wrap gap-2">
+          {ticket.attachments.map((attachment) => {
+            const url = attachment.image_url || attachment.image;
+            if (!url) return null;
+            return (
+              <a
+                key={attachment.id}
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="block w-24 h-24 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:opacity-80 transition-opacity"
+              >
+                <img
+                  src={url}
+                  alt={`Attachment ${attachment.id}`}
+                  className="w-full h-full object-cover"
+                />
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderTicketInfo = () => {
     return (
       <div>
@@ -384,7 +460,9 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
               </div>
             )}
 
+            {renderAttachments()}
             {renderAssignedAgents()}
+            {renderFollowers()}
             <div className='pt-0.5'></div>
             {renderTicketInfo()}
 
