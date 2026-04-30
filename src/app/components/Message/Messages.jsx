@@ -46,6 +46,82 @@ let globalMessagePaginationCache = {};
 
 const getFailedMessageChatKey = (chatType, userId) => `${chatType}:${userId}`;
 
+const TEMP_MESSAGE_RECOVERABLE_STATUSES = new Set(["sending", "failed"]);
+
+const getTimestampMs = (value) => {
+	if (!value) return null;
+	const date = new Date(value);
+	const ms = date.getTime();
+	return Number.isFinite(ms) ? ms : null;
+};
+
+const isTempMessageId = (value) => typeof value === "string" && value.startsWith("temp-");
+
+const isRecoverableTempMessage = (message) =>
+	isTempMessageId(message?.id) &&
+	TEMP_MESSAGE_RECOVERABLE_STATUSES.has((message?.status || "").toLowerCase());
+
+const isLikelySameOutgoingMessage = (tempMessage, incomingMessage, options = {}) => {
+	const { requireCompanySender = false, currentUserId = null } = options;
+
+	if (!tempMessage || !incomingMessage) return false;
+	if (isTempMessageId(incomingMessage?.id)) return false;
+
+	const tempContent = String(tempMessage?.content || "").trim();
+	const incomingContent = String(incomingMessage?.content || "").trim();
+	if (tempContent !== incomingContent) return false;
+
+	const tempSubject = String(tempMessage?.subject || "").trim();
+	const incomingSubject = String(incomingMessage?.subject || "").trim();
+	if ((tempSubject || incomingSubject) && tempSubject !== incomingSubject) return false;
+
+	if (
+		tempMessage?.content_type &&
+		incomingMessage?.content_type &&
+		tempMessage.content_type !== incomingMessage.content_type
+	) {
+		return false;
+	}
+
+	const tempChannelId = tempMessage?.channel?.id;
+	const incomingChannelId = incomingMessage?.channel?.id;
+	if (
+		tempChannelId != null &&
+		incomingChannelId != null &&
+		String(tempChannelId) !== String(incomingChannelId)
+	) {
+		return false;
+	}
+
+	if (requireCompanySender && !tempMessage?.company_is_sender) {
+		return false;
+	}
+
+	if (currentUserId != null && incomingMessage?.sender?.id != null) {
+		if (String(incomingMessage.sender.id) !== String(currentUserId)) {
+			return false;
+		}
+	}
+
+	const tempCreatedAt = getTimestampMs(tempMessage?.created_at);
+	const incomingCreatedAt = getTimestampMs(incomingMessage?.created_at);
+	if (tempCreatedAt != null && incomingCreatedAt != null) {
+		const maxDriftMs = 10 * 60 * 1000; // 10 minutes
+		if (Math.abs(tempCreatedAt - incomingCreatedAt) > maxDriftMs) {
+			return false;
+		}
+	}
+
+	return true;
+};
+
+const findRecoverableTempMatchIndex = (messages = [], incomingMessage, options = {}) =>
+	messages.findIndex(
+		(message) =>
+			isRecoverableTempMessage(message) &&
+			isLikelySameOutgoingMessage(message, incomingMessage, options)
+	);
+
 const mergeFailedMessagesIntoHistory = (history = [], failedRecords = []) => {
 	const merged = [...history];
 	const existingIds = new Set(history.map((message) => String(message.id)));
@@ -182,6 +258,10 @@ export const MessagesContent = () => {
 	const [showTicketPanel, setShowTicketPanel] = useState(false);
 	const [isCreateTicketModalOpen, setIsCreateTicketModalOpen] = useState(false);
 
+	// Suggested customer linking
+	const [suggestedCustomer, setSuggestedCustomer] = useState(null);
+	const [isLinkingCustomer, setIsLinkingCustomer] = useState(false);
+
 	const isCancelError = (error) =>
 		error?.name === 'CanceledError' || error?.message === 'canceled' || error?.code === 'ERR_CANCELED';
 
@@ -195,6 +275,7 @@ export const MessagesContent = () => {
 
 	const currentTabRef = useRef(chatType);
 	const abortControllerRef = useRef(null);
+	const isFetchingMoreUsersRef = useRef(false);
 	const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
 	const [showInternalModal, setShowInternalModal] = useState(false);
@@ -206,7 +287,35 @@ export const MessagesContent = () => {
 		}
 
 		const failedRecords = await getFailedMessageRecords(getFailedMessageChatKey(type, userId));
-		return mergeFailedMessagesIntoHistory(baseHistory, failedRecords);
+		const recordsToMerge = [];
+		const resolvedRecordIds = [];
+
+		failedRecords.forEach((record) => {
+			const failedMessage = record?.message;
+			const hasServerEquivalent = baseHistory.some((historyMessage) =>
+				isLikelySameOutgoingMessage(failedMessage, historyMessage, {
+					requireCompanySender: type !== "internal",
+					currentUserId: type === "internal" ? userProfile?.id : null,
+				})
+			);
+
+			if (hasServerEquivalent) {
+				resolvedRecordIds.push(record.id);
+				return;
+			}
+
+			recordsToMerge.push(record);
+		});
+
+		if (resolvedRecordIds.length > 0) {
+			await Promise.all(
+				resolvedRecordIds.map((recordId) =>
+					deleteFailedMessageRecord(recordId).catch(() => undefined)
+				)
+			);
+		}
+
+		return mergeFailedMessagesIntoHistory(baseHistory, recordsToMerge);
 	};
 
 	const persistFailedMessage = async (record) => {
@@ -247,6 +356,22 @@ export const MessagesContent = () => {
 	}, [activeUser]);
 
 	useEffect(() => { setIsScrolledUp(false); }, [activeUser?.id]);
+
+	useEffect(() => {
+		if (chatType !== "leads" || !activeUser?.id) {
+			setSuggestedCustomer(null);
+			return;
+		}
+		const fetchSuggestedCustomer = async () => {
+			try {
+				const { data } = await axiosInstance.get(`/customers/leads/${activeUser.id}`, { showLoader: false });
+				setSuggestedCustomer(data?.lead?.suggested_customer || null);
+			} catch {
+				setSuggestedCustomer(null);
+			}
+		};
+		fetchSuggestedCustomer();
+	}, [activeUser?.id, chatType]);
 
 	useEffect(() => {
 		if (chatId) {
@@ -333,26 +458,28 @@ export const MessagesContent = () => {
 			String(activeUser.id) === String(incomingChatId);
 
 		if (isViewingThisInternalChat) {
+			let matchedTempId = null;
 			setChatHistory((prev) => {
 				const exists = prev.some((m) => String(m.id) === String(msg.id));
 				if (exists) return prev;
 
 				// temp replacement (optional)
-				const tempIndex = prev.findIndex(
-					(m) =>
-						typeof m.id === "string" &&
-						m.id.startsWith("temp-") &&
-						m.status === "sending" &&
-						(m.content || "") === (msg.content || "")
-				);
+				const tempIndex = findRecoverableTempMatchIndex(prev, msg, {
+					currentUserId: userProfile?.id,
+				});
 				if (tempIndex !== -1) {
 					const copy = [...prev];
+					matchedTempId = copy[tempIndex]?.id;
 					copy[tempIndex] = msg;
 					return copy;
 				}
 
 				return [...prev, msg];
 			});
+
+			if (matchedTempId) {
+				removePersistedFailedMessage(matchedTempId).catch(() => undefined);
+			}
 		}
 
 		// Update internal cache always
@@ -533,27 +660,29 @@ export const MessagesContent = () => {
 					markConversationAsRead(activeUser.id);
 				}
 
+				let matchedTempId = null;
 				setChatHistory((prevHistory) => {
 					const alreadyExists = prevHistory.some((msg) => msg.id === message.id);
 
-					const tempMatchIndex = prevHistory.findIndex(
-						(msg) =>
-							typeof msg.id === "string" &&
-							msg.id.startsWith("temp-") &&
-							msg.status === "sending" &&
-							(msg.content || "") === (message.content || "")
-					);
+					const tempMatchIndex = findRecoverableTempMatchIndex(prevHistory, message, {
+						requireCompanySender: true,
+					});
 
 					if (alreadyExists) return prevHistory;
 
 					if (tempMatchIndex !== -1) {
 						const newHistory = [...prevHistory];
+						matchedTempId = newHistory[tempMatchIndex]?.id;
 						newHistory[tempMatchIndex] = message;
 						return newHistory;
 					}
 
 					return [...prevHistory, message];
 				});
+
+				if (matchedTempId) {
+					removePersistedFailedMessage(matchedTempId).catch(() => undefined);
+				}
 
 				if (!activeUser || !activeUser.id) return;
 
@@ -563,13 +692,9 @@ export const MessagesContent = () => {
 
 					if (messageExists) return prev;
 
-					const tempMatchIndex = existing.findIndex(
-						(msg) =>
-							typeof msg.id === "string" &&
-							msg.id.startsWith("temp-") &&
-							msg.status === "sending" &&
-							(msg.content || "") === (message.content || "")
-					);
+					const tempMatchIndex = findRecoverableTempMatchIndex(existing, message, {
+						requireCompanySender: true,
+					});
 
 					let updatedHistory = [...existing];
 					if (tempMatchIndex !== -1) {
@@ -863,7 +988,9 @@ export const MessagesContent = () => {
 								...response.data,
 								results: [
 									...(prev[requestChatType]?.users?.results || []),
-									...response.data.results,
+									...response.data.results.filter(
+										u => !(prev[requestChatType]?.users?.results || []).some(e => e.id === u.id)
+									),
 								],
 							},
 					}
@@ -873,7 +1000,12 @@ export const MessagesContent = () => {
 					...response.data,
 					results: reset
 						? response.data.results
-						: [...(prevUsers?.results || []), ...response.data.results],
+						: [
+							...(prevUsers?.results || []),
+							...response.data.results.filter(
+								u => !(prevUsers?.results || []).some(e => e.id === u.id)
+							),
+						],
 				}));
 
 				setNextUsers(response.data.next);
@@ -1058,10 +1190,98 @@ export const MessagesContent = () => {
 		setActiveUser(user);
 		setIsScrolledUp(false);
 		setPageMessages(1);
-		router.push(`${baseRoute}/messages?chat=${chatType}&id=${user.id}`, { scroll: false });
+		router.push(`${baseRoute}/messages?chat=${currentTabRef.current}&id=${user.id}`, { scroll: false });
+	};
+
+	const handleLeadCategoryUpdated = ({ leadId, categories }) => {
+		if (!leadId) return;
+		const nextCategories = Array.isArray(categories) ? categories : [];
+
+		setActiveUser((prev) =>
+			String(prev?.id) === String(leadId)
+				? { ...prev, categories: nextCategories }
+				: prev
+		);
+
+		setUsers((prevUsers) => {
+			if (!prevUsers?.results) return prevUsers;
+			return {
+				...prevUsers,
+				results: prevUsers.results.map((chatUser) =>
+					String(chatUser.id) === String(leadId)
+						? { ...chatUser, categories: nextCategories }
+						: chatUser
+				),
+			};
+		});
+
+		setCachedData((prev) => {
+			const leadUsers = prev?.leads?.users;
+			if (!leadUsers?.results) return prev;
+
+			return {
+				...prev,
+				leads: {
+					...prev.leads,
+					users: {
+						...leadUsers,
+						results: leadUsers.results.map((chatUser) =>
+							String(chatUser.id) === String(leadId)
+								? { ...chatUser, categories: nextCategories }
+								: chatUser
+						),
+					},
+				},
+			};
+		});
+	};
+
+	const handleCustomerCategoryUpdated = ({ customerId, categories }) => {
+		if (!customerId) return;
+		const nextCategories = Array.isArray(categories) ? categories : [];
+
+		setActiveUser((prev) =>
+			String(prev?.id) === String(customerId)
+				? { ...prev, categories: nextCategories }
+				: prev
+		);
+
+		setUsers((prevUsers) => {
+			if (!prevUsers?.results) return prevUsers;
+			return {
+				...prevUsers,
+				results: prevUsers.results.map((chatUser) =>
+					String(chatUser.id) === String(customerId)
+						? { ...chatUser, categories: nextCategories }
+						: chatUser
+				),
+			};
+		});
+
+		setCachedData((prev) => {
+			const customerUsers = prev?.customers?.users;
+			if (!customerUsers?.results) return prev;
+
+			return {
+				...prev,
+				customers: {
+					...prev.customers,
+					users: {
+						...customerUsers,
+						results: customerUsers.results.map((chatUser) =>
+							String(chatUser.id) === String(customerId)
+								? { ...chatUser, categories: nextCategories }
+								: chatUser
+						),
+					},
+				},
+			};
+		});
 	};
 
 	const handleTabChange = (tab) => {
+		currentTabRef.current = tab;
+
 		// Cancel any ongoing requests
 		if (abortControllerRef.current) {
 			abortControllerRef.current.abort();
@@ -1070,15 +1290,17 @@ export const MessagesContent = () => {
 		setActiveUser(null);
 		setChatHistory([]);
 		setIsScrolledUp(false);
+		// Reset pagination guards so a stale nextUsers URL from the previous tab can't
+		// bleed into loadMoreUsers on the new tab.
+		setNextUsers(null);
+		isFetchingMoreUsersRef.current = false;
+		setIsFetchingMoreUsers(false);
 		router.push(`${baseRoute}/messages?chat=${tab}`, { scroll: false });
 
 		setTabUnreadFlags((prev) => ({
 			...prev,
 			[tab]: false,
 		}));
-
-		// Update current tab reference
-		currentTabRef.current = tab;
 
 		if (!cachedData[tab]?.users) {
 			setLoading(true);
@@ -1178,9 +1400,11 @@ export const MessagesContent = () => {
 		}
 
 		const formData = new FormData();
-		const contentType = messageContent?.file
+		const hasFiles = Array.isArray(messageContent?.file) && messageContent.file.length > 0;
+		const hasImages = Array.isArray(messageContent?.image) && messageContent.image.length > 0;
+		const contentType = hasFiles
 			? "document"
-			: messageContent?.image
+			: hasImages
 				? "image"
 				: "text";
 
@@ -1188,19 +1412,22 @@ export const MessagesContent = () => {
 		formData.append("subject", messageContent?.subject || "");
 		formData.append("content_type", contentType);
 
-		if (messageContent?.file?.length > 0) {
-			messageContent.file.forEach((file) => {
-				formData.append("document", file);
+		if (hasFiles) {
+			// Append files as 'document'
+			messageContent.file.forEach(file => {
+				formData.append('document', file);
 			});
 
-			if (messageContent?.image?.length > 0) {
-				messageContent.image.forEach((img) => {
-					formData.append("document", img);
+			// Also append images as 'document' when files are present
+			if (hasImages) {
+				messageContent.image.forEach(img => {
+					formData.append('document', img);
 				});
 			}
-		} else if (messageContent?.image?.length > 0) {
-			messageContent.image.forEach((img) => {
-				formData.append("image", img);
+		} else if (hasImages) {
+			// Only images, append them as 'image'
+			messageContent.image.forEach(img => {
+				formData.append('image', img);
 			});
 		}
 
@@ -1208,8 +1435,8 @@ export const MessagesContent = () => {
 			id: messageId,
 			content: messageContent.text,
 			content_type: contentType,
+			subject: messageContent?.subject,
 			channel: messageContent?.channel || null,
-			subject: messageContent?.subject || "",
 			image: messageContent?.image,
 			document: messageContent?.file,
 			created_at: createdAt,
@@ -1274,6 +1501,23 @@ export const MessagesContent = () => {
 		sendMessageRequest(messageContent);
 	};
 
+	const handleLinkLeadToCustomer = async () => {
+		if (!suggestedCustomer || !activeUser?.id) return;
+		setIsLinkingCustomer(true);
+		try {
+			await axiosInstance.post(`/customers/leads/${activeUser.id}/link-customer/`, {
+				customer_id: suggestedCustomer.id,
+			});
+			const linkedCustomerId = suggestedCustomer.id;
+			setSuggestedCustomer(null);
+			router.push(`${baseRoute}/customers/${linkedCustomerId}`);
+		} catch (error) {
+			handleApiError(error);
+		} finally {
+			setIsLinkingCustomer(false);
+		}
+	};
+
 	const handleRetryFailedMessage = async (message) => {
 		if (!activeUser?.id || !message?.id) {
 			return;
@@ -1333,7 +1577,11 @@ export const MessagesContent = () => {
 	];
 
 	const loadMoreUsers = async () => {
-		if (isFetchingMoreUsers || !nextUsers) return;
+		if (isFetchingMoreUsersRef.current || isFetchingMoreUsers || !nextUsers) return;
+
+		// Capture the tab at call-time so we can discard stale results if the user switches tabs
+		// before the fetch completes (leads/customers IDs overlap — mixing them corrupts the list).
+		const requestChatType = currentTabRef.current;
 
 		const endpointMap = {
 			leads: `/communication/contacts/?page=${pageUsers}&page_size=${15}`,
@@ -1341,12 +1589,17 @@ export const MessagesContent = () => {
 			archived: `/communication/conversations/?page=${pageUsers}&page_size=${15}`,
 		};
 
-		const endpoint = nextUsers || endpointMap[chatType];
+		const endpoint = nextUsers || endpointMap[requestChatType];
 		if (!endpoint) return;
+		isFetchingMoreUsersRef.current = true;
 		setIsFetchingMoreUsers(true);
 
 		try {
 			const { data } = await axiosInstance.get(endpoint, { showLoader: false });
+
+			// Discard if the user has switched to a different tab while the request was in flight.
+			if (currentTabRef.current !== requestChatType) return;
+
 			const newContacts = data.results;
 			setNextUsers(data.next);
 
@@ -1364,15 +1617,15 @@ export const MessagesContent = () => {
 
 			setCachedData((prev) => ({
 				...prev,
-				[chatType]: {
-					...prev[chatType],
+				[requestChatType]: {
+					...prev[requestChatType],
 					users: {
 						...data,
 						results: [
-							...(prev[chatType]?.users?.results || []),
+							...(prev[requestChatType]?.users?.results || []),
 							...newContacts.filter(
 								(user) =>
-									!(prev[chatType]?.users?.results || []).some(
+									!(prev[requestChatType]?.users?.results || []).some(
 										(existingUser) => existingUser.id === user.id
 									)
 							),
@@ -1385,7 +1638,7 @@ export const MessagesContent = () => {
 			setPageUsers(nextPageUsers);
 
 			// Update global cache
-			globalPaginationCache[chatType] = {
+			globalPaginationCache[requestChatType] = {
 				pageUsers: nextPageUsers,
 				nextUsers: data.next
 			};
@@ -1398,6 +1651,7 @@ export const MessagesContent = () => {
 			}
 		}
 		finally {
+			isFetchingMoreUsersRef.current = false;
 			setIsFetchingMoreUsers(false);
 		}
 	};
@@ -1695,7 +1949,25 @@ export const MessagesContent = () => {
 								onToggleTicketPanel={!isInternalTab ? () => setShowTicketPanel(!showTicketPanel) : undefined}
 								showTicketPanel={!isInternalTab ? showTicketPanel : false}
 								baseRoute={baseRoute}
+								onLeadCategoryUpdated={handleLeadCategoryUpdated}
+								onCustomerCategoryUpdated={handleCustomerCategoryUpdated}
 							/>
+
+							{chatType === "leads" && suggestedCustomer && (
+								<div className="mx-4 my-2 p-3 bg-blue-50 border border-blue-200 rounded-md flex items-center justify-between gap-4">
+									<p className="text-sm text-blue-800">
+										This lead matches an existing customer: <strong>{suggestedCustomer.name}</strong>. Link them to merge their records.
+									</p>
+									<button
+										onClick={handleLinkLeadToCustomer}
+										disabled={isLinkingCustomer}
+										className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap flex-shrink-0"
+									>
+										{isLinkingCustomer ? "Linking..." : "Link to Customer"}
+									</button>
+								</div>
+							)}
+
 							<div className="flex items-center ">
 								<MessageList
 									chatHistory={chatHistory}

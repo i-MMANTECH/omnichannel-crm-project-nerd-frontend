@@ -18,6 +18,7 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const [priority, setPriority] = useState(null);
   const [category, setCategory] = useState(null);
   const [assignedAgents, setAssignedAgents] = useState([]);
+  const [followers, setFollowers] = useState([]);
 
   // Dropdown options
   const [statuses, setStatuses] = useState([]);
@@ -30,6 +31,8 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const [saving, setSaving] = useState(false);
   const [ticket, setTicket] = useState(null);
   const [dueDate, setDueDate] = useState("")
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [existingAttachments, setExistingAttachments] = useState([]);
 
 
   useEffect(() => {
@@ -58,6 +61,7 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
         setSubject(ticketData.subject || '');
         setDescription(ticketData.description || '');
         setCustomerName(ticketData.customer_name || '');
+        setExistingAttachments(ticketData.attachments || []);
       }
 
       // Map priorities
@@ -120,6 +124,18 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
             agentOptions.find(a => a.value === assignee.id)
           ).filter(Boolean);
           setAssignedAgents(currentAgents);
+        } else {
+          setAssignedAgents([]);
+        }
+
+        // Set current followers
+        if (ticketRes.data.success && ticketRes.data.ticket.followers && ticketRes.data.ticket.followers.length > 0) {
+          const currentFollowers = ticketRes.data.ticket.followers.map(follower =>
+            agentOptions.find(a => a.value === follower.id)
+          ).filter(Boolean);
+          setFollowers(currentFollowers);
+        } else {
+          setFollowers([]);
         }
       }
       
@@ -141,6 +157,10 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
       alert('Description cannot be empty');
       return;
     }
+    if (!priority?.value) {
+      alert('Priority is required');
+      return;
+    }
 
     const isoDueDate = dueDate
     ? new Date(dueDate).toISOString()
@@ -158,12 +178,28 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
         priority_id: priority?.value || null,
         category_id: category?.value || null,
         assignee_ids: assignedAgents.map(a => a.value),
+        followers: (followers || []).map(f => f.value),
         due_date: isoDueDate
       };
 
-      const response = await axiosInstance.patch(`/tickets/${ticketId}/update/`, payload);
+      const formData = new FormData();
+      Object.entries(payload).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach((item) => formData.append(key, item));
+        } else if (value !== null && value !== "") {
+          formData.append(key, value);
+        }
+      });
+      selectedImages.forEach((image) => formData.append('images', image));
+
+      const response = await axiosInstance.patch(`/tickets/${ticketId}/update/`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       if (response.data.success) {
+        setSelectedImages([]);
         if (onUpdate) onUpdate();
         onClose();
       }
@@ -172,6 +208,18 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const imageFiles = files.filter((file) => file.type.startsWith('image/'));
+    setSelectedImages((prev) => [...prev, ...imageFiles]);
+    e.target.value = null;
+  };
+
+  const removeNewImage = (index) => {
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -250,10 +298,26 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Followers
+              </label>
+              <Select
+                isMulti
+                value={followers}
+                onChange={(selectedOptions) => setFollowers(selectedOptions || [])}
+                options={agents}
+                styles={selectStyles}
+                placeholder="Select followers..."
+                isDisabled={saving}
+              />
+            </div>
+
             {/* Priority */}
             <div>
               <label className="block text-sm font-medium mb-1">
                 Priority
+                <span className="text-red-500"> *</span>
               </label>
               <Select
                 value={priority}
@@ -302,6 +366,62 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
                 disabled={saving}
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Existing Images
+              </label>
+              {existingAttachments.length === 0 ? (
+                <p className="text-sm text-gray-500">No images attached.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {existingAttachments.map((attachment) => (
+                    <a
+                      key={attachment.id}
+                      href={attachment.image_url || attachment.image}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 underline"
+                    >
+                      Image {attachment.id}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Add Images
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg body-theme"
+                disabled={saving}
+              />
+              {selectedImages.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {selectedImages.map((file, index) => (
+                    <div
+                      key={`${file.name}-${index}`}
+                      className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 flex items-center gap-2"
+                    >
+                      <span className="max-w-[160px] truncate">{file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeNewImage(index)}
+                        className="text-red-500"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Save Button */}
@@ -315,7 +435,7 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
             </button>
             <button
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || !priority?.value}
               className="px-4 py-2 bg-[#3EBF0F] text-white rounded-lg hover:bg-[#35a50d] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
               {saving ? (
