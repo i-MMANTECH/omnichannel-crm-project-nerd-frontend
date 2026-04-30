@@ -40,6 +40,7 @@ const Navbar = () => {
             </div>
             <div className="flex items-center space-x-4">
                 <FaBell
+                    data-tour="notifications"
                     className="text-gray-600 cursor-pointer"
                     onClick={toggleNotification}
                 />
