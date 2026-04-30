@@ -5,7 +5,8 @@ import getStatusSvg from "./getStatusSvg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import { usePermissions } from "@/context/PermissionsContext";
-import { getSmartTimestamp } from "@/utils/timeUtils"; // Add this import
+import { getSmartTimestamp } from "@/utils/timeUtils";
+import { getRoleStyle } from "@/utils/getRoleStyle";
 
 const STATUS_ORDER = ["todo", "overdue", "in_progress", "done"];
 const columns = [
@@ -53,6 +54,7 @@ const TaskCardListView = ({ tasks, handleDelete, openViewModal, openUpdateModal 
                   date={task.created_at}
                   priority={task.priority.label}
                   assignees={task.assignees}
+                  categories={task.categories || []}
                   status={task.status.label}
                   handleDelete={handleDelete}
                   thisTaskId={task.id}
@@ -75,6 +77,7 @@ const TaskCard = ({
   date = new Date().toISOString(),
   priority = "Low",
   assignees = [],
+  categories = [],
   status = "",
   thisTaskId = null,
   handleDelete,
@@ -166,7 +169,23 @@ const TaskCard = ({
             />
           </svg>
           <span className="text-sm mr-4">{getSmartTimestamp(date)}</span>
-          <span className={`text-xs px-2 py-1 mr-32 rounded ${getPriorityColor(priority)}`}>{priority}</span>
+          <span className={`text-xs px-2 py-1 rounded ${getPriorityColor(priority)}`}>{priority}</span>
+          {categories.length > 0 && (
+            <div className="flex flex-wrap gap-1 mr-32">
+              {categories.slice(0, 3).map((cat, index) => (
+                <span
+                  key={index}
+                  className="text-xs px-2 py-1 rounded"
+                  style={getRoleStyle(cat.name || cat.label)}
+                >
+                  {cat.name || cat.label}
+                </span>
+              ))}
+              {categories.length > 3 && (
+                <span className="text-xs font-bold self-center">+{categories.length - 3}</span>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center space-x-4">
