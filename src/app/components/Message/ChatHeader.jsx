@@ -12,6 +12,8 @@ import { usePermissions } from "@/context/PermissionsContext";
 import AssignAgentModal from "./AssignAgentModal";
 import EndSessionModal from "./EndSessionModal";
 import ArchiveModal from "./ArchiveModal";
+import UpdateLeadCategoryModal from "./UpdateLeadCategoryModal";
+import UpdateCustomerCategoryModal from "./UpdateCustomerCategoryModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from '@/context/ErrorContext';
 
@@ -39,7 +41,17 @@ const ModalController = ({ children }) => {
   return children({ isModalOpen, openModal, closeModal });
 };
 
-const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInternal = false, baseRoute, onCreateTicket }) => {
+const ChatHeader = ({
+  activeUser,
+  isLead,
+  conversationId,
+  refreshChatList,
+  isInternal = false,
+  baseRoute,
+  onCreateTicket,
+  onLeadCategoryUpdated,
+  onCustomerCategoryUpdated,
+}) => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successModalMessage, setSuccessModalMessage] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -47,6 +59,8 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInt
   const [isAssignAgentModalOpen, setIsAssignAgentModalOpen] = useState(false);
   const [isEndSessionModalOpen, setIsEndSessionModalOpen] = useState(false);
   const [isArchivedModalOpen, setIsArchivedModalOpen] = useState(false);
+  const [isUpdateCategoryModalOpen, setIsUpdateCategoryModalOpen] = useState(false);
+  const [isUpdateCustomerCategoryModalOpen, setIsUpdateCustomerCategoryModalOpen] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
   const router = useRouter();
@@ -170,6 +184,10 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInt
       onClick: () => setIsNotesModalOpen(true),
     },
     {
+      label: "Update category",
+      onClick: () => setIsUpdateCategoryModalOpen(true),
+    },
+    {
       label: "Assign to agent",
       onClick: () => setIsAssignAgentModalOpen(true),
     },
@@ -204,12 +222,24 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInt
       onClick: () => setIsArchivedModalOpen(true),
     },
     {
+      label: "Update category",
+      onClick: () => setIsUpdateCustomerCategoryModalOpen(true),
+    },
+    {
       label: "Assign to agent",
       onClick: () => setIsAssignAgentModalOpen(true),
     },
     {
       label: "End session",
       onClick: () => setIsEndSessionModalOpen(true),
+    },
+    {
+      label: "Create a ticket",
+      onClick: () => {
+        if (typeof onCreateTicket === "function") {
+          onCreateTicket();
+        }
+      },
     },
     {
       label: aiToggleMenuItem,
@@ -339,6 +369,30 @@ const ChatHeader = ({ activeUser, isLead, conversationId, refreshChatList, isInt
                 onClose={() => setIsAssignAgentModalOpen(false)}
                 userId={activeUser?.id}
                 conversationId={conversationId}
+                setIsSuccessModalOpen={setIsSuccessModalOpen}
+                setSuccessModalMessage={setSuccessModalMessage}
+              />
+            )}
+
+            {isUpdateCategoryModalOpen && (
+              <UpdateLeadCategoryModal
+                isOpen={isUpdateCategoryModalOpen}
+                onClose={() => setIsUpdateCategoryModalOpen(false)}
+                leadId={activeUser?.id}
+                initialCategories={activeUser?.categories || []}
+                onCategoryUpdated={onLeadCategoryUpdated}
+                setIsSuccessModalOpen={setIsSuccessModalOpen}
+                setSuccessModalMessage={setSuccessModalMessage}
+              />
+            )}
+
+            {isUpdateCustomerCategoryModalOpen && (
+              <UpdateCustomerCategoryModal
+                isOpen={isUpdateCustomerCategoryModalOpen}
+                onClose={() => setIsUpdateCustomerCategoryModalOpen(false)}
+                customerId={activeUser?.id}
+                initialCategories={activeUser?.categories || []}
+                onCategoryUpdated={onCustomerCategoryUpdated}
                 setIsSuccessModalOpen={setIsSuccessModalOpen}
                 setSuccessModalMessage={setSuccessModalMessage}
               />

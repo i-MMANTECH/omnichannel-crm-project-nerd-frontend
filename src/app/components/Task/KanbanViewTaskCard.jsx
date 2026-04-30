@@ -5,6 +5,7 @@ import Image from "next/image";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import { usePermissions } from "@/context/PermissionsContext";
 import { getSmartTimestamp } from "@/utils/timeUtils";
+import { getRoleStyle } from "@/utils/getRoleStyle";
 
 const KanbanViewTaskCard = ({ task, handleDelete, openViewModal, openUpdateModal }) => {
   const [menuOpen, setMenuOpen] = useState(null);
@@ -169,6 +170,24 @@ const KanbanViewTaskCard = ({ task, handleDelete, openViewModal, openUpdateModal
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Categories */}
+      {task.categories && task.categories.length > 0 && (
+        <div className="mb-3 flex flex-wrap gap-1">
+          {task.categories.slice(0, 3).map((cat, index) => (
+            <span
+              key={`${task.id}-cat-${index}`}
+              className="px-2 py-0.5 text-xs rounded"
+              style={getRoleStyle(cat.name || cat.label)}
+            >
+              {cat.name || cat.label}
+            </span>
+          ))}
+          {task.categories.length > 3 && (
+            <span className="text-xs font-bold text-gray-500">+{task.categories.length - 3}</span>
+          )}
         </div>
       )}
 

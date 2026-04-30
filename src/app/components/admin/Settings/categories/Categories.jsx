@@ -8,7 +8,7 @@ import Pagination from "@/app/components/Pagination/Pagination";
 import CreateCategoryDrawer from "./CreateCategoryDrawer";
 import UpdateCategoryDrawer from "./UpdateCategoryDrawer";
 import { useDebounce } from "use-debounce";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search } from "lucide-react";
 import Image from "next/image";
 
 const Categories = () => {
@@ -20,6 +20,7 @@ const Categories = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
+  const [selectedModule, setSelectedModule] = useState('tickets');
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
   const { showAlert, AlertModal } = useCustomAlert();
@@ -43,7 +44,7 @@ const Categories = () => {
       if (debouncedSearchQuery) {
         params.search = debouncedSearchQuery;
       }
-      const response = await axiosInstance.get("/tickets/categories/", { params });
+      const response = await axiosInstance.get(`/${selectedModule}/categories/`, { params });
 
       if (response.data.success && response.data.categories) {
         // API returns { success: true, categories: [...] } without pagination
@@ -69,7 +70,7 @@ const Categories = () => {
 
   useEffect(() => {
     fetchCategories(currentPage, pageSize);
-  }, [currentPage, pageSize, debouncedSearchQuery]);
+  }, [currentPage, pageSize, debouncedSearchQuery, selectedModule]);
 
   const toggleMenu = (id) => {
     setMenuOpen(menuOpen === id ? null : id);
@@ -99,7 +100,7 @@ const Categories = () => {
       "Are you sure you want to delete this category?",
       async () => {
         try {
-          await axiosInstance.delete(`/tickets/categories/${categoryId}/`);
+          await axiosInstance.delete(`/${selectedModule}/categories/${categoryId}/`);
           fetchCategories(currentPage, pageSize);
         } catch (error) {
           handleApiError(error);
@@ -157,10 +158,7 @@ const Categories = () => {
                 </div>
               </th>
               <th className="py-3 px-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-600">
-                Number of Tickets
-              </th>
-              <th className="py-3 px-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-600">
-                Number of Tasks
+                Number of {selectedModule.charAt(0).toUpperCase() + selectedModule.slice(1)}
               </th>
               <th className="py-3 px-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-600">
                 Date Created
@@ -186,10 +184,9 @@ const Categories = () => {
                   </div>
                 </td>
                 <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-600 text-sm">
-                  {category.ticket_count ?? category.tickets_count ?? 0}
-                </td>
-                <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-600 text-sm">
-                  {category.task_count ?? category.tasks_count ?? 0}
+                  {selectedModule === 'tickets' ? (category.ticket_count ?? category.tickets_count ?? 0) :
+                   selectedModule === 'tasks' ? (category.task_count ?? category.tasks_count ?? 0) :
+                   selectedModule === 'customers' ? (category.customer_count ?? category.customers_count ?? 0) : 0}
                 </td>
                 <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-600 text-sm">
                   {formatDate(category.created_at || category.date_created)}
@@ -254,6 +251,18 @@ const Categories = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <h2 className="text-lg font-semibold">Categories</h2>
           <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={selectedModule}
+              onChange={(e) => {
+                setSelectedModule(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg body-theme text-sm focus:outline-none focus:border-[#3EBF0F] capitalize"
+            >
+              <option value="tickets">Tickets</option>
+              <option value="tasks">Tasks</option>
+              <option value="customers">Customers</option>
+            </select>
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
@@ -268,12 +277,6 @@ const Categories = () => {
                 className="pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg body-theme text-sm w-[250px] focus:outline-none focus:border-[#3EBF0F]"
               />
             </div>
-
-            {/* Filter button */}
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-sm">
-              <SlidersHorizontal size={16} />
-              Filter
-            </button>
 
             {/* New Category button */}
             <button
@@ -307,6 +310,7 @@ const Categories = () => {
           show={isDrawerOpen}
           onClose={() => setIsDrawerOpen(false)}
           onCategoryCreated={() => fetchCategories(currentPage, pageSize)}
+          moduleType={selectedModule}
         />
 
         {/* Update Category Drawer */}
@@ -318,6 +322,7 @@ const Categories = () => {
           }}
           categoryId={categoryToEdit}
           onCategoryUpdated={() => fetchCategories(currentPage, pageSize)}
+          moduleType={selectedModule}
         />
       </div>
     </div>

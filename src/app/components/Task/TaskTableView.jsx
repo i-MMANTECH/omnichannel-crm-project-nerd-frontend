@@ -4,6 +4,7 @@ import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import { getSmartTimestamp } from "@/utils/timeUtils";
+import { getRoleStyle } from "@/utils/getRoleStyle";
 
 export default function TableView({
   tasks,
@@ -103,6 +104,28 @@ export default function TableView({
     );
   };
 
+  const renderCategoriesCell = (categories) => {
+    if (!categories || categories.length === 0) {
+      return <span className="text-gray-400">—</span>;
+    }
+    return (
+      <div className="flex flex-wrap gap-1">
+        {categories.slice(0, 3).map((cat, index) => (
+          <span
+            key={`cat-${cat?.id ?? index}`}
+            className="px-2 py-0.5 text-xs rounded"
+            style={getRoleStyle(cat.name || cat.label)}
+          >
+            {cat.name || cat.label}
+          </span>
+        ))}
+        {categories.length > 3 && (
+          <span className="text-xs font-bold">+{categories.length - 3}</span>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
       <div className="overflow-x-auto">
@@ -135,6 +158,9 @@ export default function TableView({
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Date Created
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Categories
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Actions
@@ -187,6 +213,9 @@ export default function TableView({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {getSmartTimestamp(task.created_at)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  {renderCategoriesCell(task.categories)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   <div className="relative">

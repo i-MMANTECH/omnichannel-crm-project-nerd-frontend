@@ -77,6 +77,14 @@
   margin-top: 5px;
 }
 
+.image-attachments-scroll {
+  max-height: 380px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  align-content: flex-start;
+}
+
 .message-time {
   font-size: 12px;
 }

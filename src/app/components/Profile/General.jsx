@@ -167,17 +167,15 @@ const GeneralProfile = ({ onProfileChanged }) => {
     if (!hasChanges) return;
 
     try {
-      const resp = await axiosInstance.put("/users/me/update/", {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        date_of_birth: formData.date_of_birth,
-        gender: formData.gender,
-        phone_number: formData.phone_number,
-      }, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const payload = new FormData();
+      payload.append('first_name', formData.first_name || '');
+      payload.append('last_name', formData.last_name || '');
+      if (formData.email) payload.append('email', formData.email);
+      if (formData.date_of_birth) payload.append('date_of_birth', formData.date_of_birth);
+      if (formData.gender) payload.append('gender', formData.gender);
+      if (formData.phone_number) payload.append('phone_number', formData.phone_number);
+
+      const resp = await axiosInstance.put("/users/me/update/", payload);
       fetchInitialData()
       onProfileChanged()
       toast.success(resp?.data?.message)
