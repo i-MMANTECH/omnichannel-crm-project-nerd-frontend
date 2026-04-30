@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import './style.css';
 import TaskCompletionChart from './TaskCompletionChart';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
@@ -8,25 +8,72 @@ import StatsCard from './StatsCard';
 import ChatData from './ChatData';
 import { useApi } from '@/services/axiosConfig';
 import { useAuth } from '@/context/AuthContext';
+import { useError } from '@/context/ErrorContext';
+import DateFilter from '@/app/components/admin/Reports/DateFilter';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
+
+const INITIAL_SUMMARY = {
+    messages: 0,
+    customers: 0,
+    tasks: 0,
+    users: 0,
+    tickets: 0,
+    leads: 0,
+};
+
+const toIsoDate = (d) => new Date(d).toISOString().split("T")[0];
+
+const formatDayLabel = (d) =>
+    new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
 const Dashboard = () => {
     const { user } = useAuth();
     const isAdmin = user?.roles?.includes('Admin') || user?.roles?.includes('admin');
 
-    const [summary, setSummary] = useState({
-        messages: 0,
-        customers: 0,
-        tasks: 0,
-        users: 0,
-        activeAgents: 0,
-        idleAgents: 0,
-        agentsOnBreak: 0,
-    });
-    const [isRotating, setIsRotating] = useState(false);
     const { axiosInstance } = useApi();
+    const { handleApiError } = useError();
+
+    const [summary, setSummary] = useState(INITIAL_SUMMARY);
+    const [isRotating, setIsRotating] = useState(false);
     const [lastUpdated, setLastUpdated] = useState(null);
+    const [dateRange, setDateRange] = useState(null);
+    const [showDateFilter, setShowDateFilter] = useState(false);
+
+    const filterContainerRef = useRef(null);
+    const hasDateRange = !!(dateRange?.startDate && dateRange?.endDate);
+
+    const fetchSummary = useCallback(async () => {
+        try {
+            const params = {};
+            if (dateRange?.startDate && dateRange?.endDate) {
+                params.start_date = toIsoDate(dateRange.startDate);
+                params.end_date = toIsoDate(dateRange.endDate);
+            }
+
+            const response = await axiosInstance.get('analytics/summary/', { params });
+            if (response?.data?.success) {
+                const data = response.data.data || {};
+                setSummary({
+                    messages: data.messages?.total || 0,
+                    customers: data.customers?.total || 0,
+                    tasks: data.tasks?.total || 0,
+                    users: data.users?.total || 0,
+                    tickets: data.tickets?.total || 0,
+                    leads: data.leads?.total || 0,
+                });
+
+                const updatedDate = new Date();
+                setLastUpdated(`Today, ${updatedDate.toLocaleTimeString([], { hour: 'numeric', minute: 'numeric', hour12: true })}`);
+            }
+        } catch (error) {
+            handleApiError(error);
+        }
+    }, [axiosInstance, dateRange, handleApiError]);
+
+    useEffect(() => {
+        fetchSummary();
+    }, [fetchSummary]);
 
     const handleRefreshClick = async () => {
         setIsRotating(true);
@@ -34,44 +81,17 @@ const Dashboard = () => {
         setIsRotating(false);
     };
 
-    const fetchSummary = async () => {
-        try {
-            const response = await axiosInstance.get('analytics/summary/');
-            if (response?.data.success) {
-                const data = response.data.data;
-                setSummary({
-                    messages: data.messages.total || 0,
-                    customers: data.customers.total || 0,
-                    tasks: data.tasks.total || 0,
-                    users: data.users.total || 0,
-                    activeAgents: 71,
-                    idleAgents: 23,
-                    agentsOnBreak: 27,
-                });
-
-                const now = new Date();
-                const updatedDate = new Date();
-                if (now.toDateString() === updatedDate.toDateString()) {
-                    setLastUpdated(`Today, ${updatedDate.toLocaleTimeString([], { hour: 'numeric', minute: 'numeric', hour12: true })}`);
-                } else {
-                    setLastUpdated(updatedDate.toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                        hour: 'numeric',
-                        minute: 'numeric',
-                        hour12: true
-                    }));
-                }
-            }
-        } catch (error) {
-            console.error("Error fetching summary:", error);
+    const handleDateChange = (newRange) => {
+        const range = Array.isArray(newRange) ? newRange[0] : newRange;
+        if (range?.startDate && range?.endDate) {
+            setDateRange({ startDate: range.startDate, endDate: range.endDate });
         }
     };
 
-    useEffect(() => {
-        fetchSummary();
-    }, []);
+    const clearDateRange = (e) => {
+        e.stopPropagation();
+        setDateRange(null);
+    };
 
     return (
         <div className="w-full">
@@ -98,16 +118,40 @@ const Dashboard = () => {
                     </svg>
                 </div>
 
-                {/* ✅ HIDE FILTER FOR NON-ADMIN (Optional feature) */}
                 {isAdmin && (
-                    <div className="hidden sm:flex h-[40px] p-[8px_12px_8px_14px] justify-center items-center gap-2 rounded-[10px] border border-[#DFE1E6] bg-white shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M13.3333 2H2.66667C2.29848 2 2 2.29848 2 2.66667V3.7468C2 4.33065 2.25513 4.88535 2.69842 5.26531L5.96825 8.06802C6.41154 8.44799 6.66667 9.00269 6.66667 9.58654V14L9.33333 12.6667V9.58654C9.33333 9.00269 9.58846 8.44799 10.0318 8.06802L13.3016 5.26531C13.7449 4.88535 14 4.33065 14 3.7468V2.66667C14 2.29848 13.7015 2 13.3333 2Z" stroke="#808897" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                    <div ref={filterContainerRef} className="relative">
+                        <div
+                            onClick={() => setShowDateFilter((prev) => !prev)}
+                            className={`hidden sm:flex h-[40px] p-[8px_12px_8px_14px] cursor-pointer justify-center items-center gap-2 rounded-[10px] border shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)] transition-colors ${hasDateRange ? 'border-[#3EBF0F] bg-[#3EBF0F]/10' : 'border-[#DFE1E6] bg-white'}`}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M13.3333 2H2.66667C2.29848 2 2 2.29848 2 2.66667V3.7468C2 4.33065 2.25513 4.88535 2.69842 5.26531L5.96825 8.06802C6.41154 8.44799 6.66667 9.00269 6.66667 9.58654V14L9.33333 12.6667V9.58654C9.33333 9.00269 9.58846 8.44799 10.0318 8.06802L13.3016 5.26531C13.7449 4.88535 14 4.33065 14 3.7468V2.66667C14 2.29848 13.7015 2 13.3333 2Z" stroke={hasDateRange ? '#3EBF0F' : '#808897'} strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
 
-                        <span className="text-[#666D80] text-center font-[500] text-[14px] font-[Encode Sans] leading-[150%] tracking-[0.2px]">
-                            Filter
-                        </span>
+                            <span className={`text-center font-[500] text-[14px] font-[Encode Sans] leading-[150%] tracking-[0.2px] ${hasDateRange ? 'text-[#3EBF0F]' : 'text-[#666D80]'}`}>
+                                {hasDateRange
+                                    ? `${formatDayLabel(dateRange.startDate)} – ${formatDayLabel(dateRange.endDate)}`
+                                    : 'Filter by date'}
+                            </span>
+
+                            {hasDateRange && (
+                                <button
+                                    type="button"
+                                    onClick={clearDateRange}
+                                    aria-label="Clear date filter"
+                                    className="ml-1 text-[#3EBF0F] hover:text-[#2a8a09] text-base leading-none"
+                                >
+                                    ×
+                                </button>
+                            )}
+                        </div>
+
+                        {showDateFilter && (
+                            <DateFilter
+                                onDateChange={handleDateChange}
+                                onClose={() => setShowDateFilter(false)}
+                            />
+                        )}
                     </div>
                 )}
             </div>

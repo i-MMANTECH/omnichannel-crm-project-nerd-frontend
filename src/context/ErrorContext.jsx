@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useAuth } from './AuthContext';
 
@@ -10,7 +10,7 @@ export const ErrorProvider = ({ children }) => {
     const [error, setError] = useState('');
     const { logout } = useAuth;
 
-    const handleApiError = (error) => {
+    const handleApiError = useCallback((error) => {
         console.error("API Error:", error);
         const errorData = error?.response?.data?.error;
 
@@ -30,10 +30,15 @@ export const ErrorProvider = ({ children }) => {
             setError(errorMessage);
             return
         }
-    };
+    }, []);
+
+    const value = useMemo(
+        () => ({ error, setError, handleApiError }),
+        [error, handleApiError]
+    );
 
     return (
-        <ErrorContext.Provider value={{ error, setError, handleApiError }}>
+        <ErrorContext.Provider value={value}>
             {children}
         </ErrorContext.Provider>
     );
