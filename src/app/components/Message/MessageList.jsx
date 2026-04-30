@@ -412,6 +412,7 @@ const MessageList = ({
     if (contentType === "html") {
       return (
         <div
+          className="message-html-content"
           style={{ marginTop: getMessageAttachments(msg).length ? "8px" : "0" }}
           dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
         />
@@ -452,6 +453,7 @@ const MessageList = ({
       if (contentHasHtml) {
         return (
           <div
+            className="message-html-content"
             style={{ marginTop: getMessageAttachments(msg).length ? "8px" : "0" }}
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
           />
@@ -477,6 +479,7 @@ const MessageList = ({
         if (contentHasHtml) {
           return (
             <div
+              className="message-html-content"
               style={{ marginTop: getMessageAttachments(msg).length ? "8px" : "0" }}
               dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
             />
