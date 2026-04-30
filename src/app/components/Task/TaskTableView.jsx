@@ -76,8 +76,8 @@ export default function TableView({
   };
 
   return (
-    <div>
-      <table className="min-w-full border-collapse shadow-sm">
+    <div className="overflow-x-auto -mx-4 sm:mx-0">
+      <table className="min-w-[900px] w-full border-collapse shadow-sm">
         <thead className="bg-gray-100 dark:bg-neutral-900">
           <tr>
             <th className="hidden">
@@ -91,7 +91,7 @@ export default function TableView({
                 <span>Task ID</span>
               </div>
             </th>
-            <th className="flex items-center w-[340px] h-[40px] px-3">
+            <th className="text-left h-[40px] px-3">
               <span className="font-medium leading-[21px] tracking-[0.2px]">
                 Task Name
               </span>
