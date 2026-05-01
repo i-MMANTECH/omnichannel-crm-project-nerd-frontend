@@ -200,6 +200,11 @@ const SlaModalUpdate = ({ isOpen, onClose, fetchSlaPolicies, slaId }) => {
     </div>
     );
 
+    const getUserLabel = (user) => {
+        const fullName = `${user.first_name || ""} ${user.last_name || ""}`.trim();
+        return fullName || user.email || `User #${user.id}`;
+    };
+
     const StaffSelection = ({ title, users, formData, handleChange, prefix }) => {
         return (
             <div>
@@ -207,21 +212,21 @@ const SlaModalUpdate = ({ isOpen, onClose, fetchSlaPolicies, slaId }) => {
                 {[1, 2, 3].map((level) => {
                     const fieldName = `${prefix}_staff_${level}`;
                     const prefilledUser = users.find(user => user.id == formData[fieldName]);
-    
+
                     return (
                         <select
                             key={level}
                             name={fieldName}
                             value={formData[fieldName] || ""}
                             onChange={handleChange}
-                            className="mt-2 w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white shadow-sm dark:bg-gray-700 dark:text-white"
+                            className="mt-2 w-full p-3 rounded-[10px] border border-[#DFE1E6] bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
                         >
-                            <option value="">
-                                {prefilledUser ? `${prefilledUser.first_name} ${prefilledUser.last_name}` : `Select Level ${level} Staff`}
+                            <option value="" className="bg-white text-gray-900 dark:bg-gray-700 dark:text-white">
+                                {prefilledUser ? getUserLabel(prefilledUser) : `Select Level ${level} Staff`}
                             </option>
                             {users.map((user) => (
-                                <option key={user.id} value={user.id}>
-                                    {user.first_name} {user.last_name}
+                                <option key={user.id} value={user.id} className="bg-white text-gray-900 dark:bg-gray-700 dark:text-white">
+                                    {getUserLabel(user)}
                                 </option>
                             ))}
                         </select>
