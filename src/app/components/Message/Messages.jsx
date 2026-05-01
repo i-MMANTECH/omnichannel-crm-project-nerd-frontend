@@ -553,6 +553,7 @@ export const MessagesContent = () => {
 					markConversationAsRead(activeUser.id);
 				}
 
+				let replacedTempId = null;
 				setChatHistory((prevHistory) => {
 					const alreadyExists = prevHistory.some((msg) => msg.id === message.id);
 
@@ -560,13 +561,14 @@ export const MessagesContent = () => {
 						(msg) =>
 							typeof msg.id === "string" &&
 							msg.id.startsWith("temp-") &&
-							msg.status === "sending" &&
+							(msg.status === "sending" || msg.status === "failed") &&
 							(msg.content || "") === (message.content || "")
 					);
 
 					if (alreadyExists) return prevHistory;
 
 					if (tempMatchIndex !== -1) {
+						replacedTempId = prevHistory[tempMatchIndex].id;
 						const newHistory = [...prevHistory];
 						newHistory[tempMatchIndex] = message;
 						return newHistory;
@@ -574,6 +576,10 @@ export const MessagesContent = () => {
 
 					return [...prevHistory, message];
 				});
+
+				if (replacedTempId) {
+					removePersistedFailedMessage(replacedTempId).catch(() => {});
+				}
 
 				if (!activeUser || !activeUser.id) return;
 
@@ -587,7 +593,7 @@ export const MessagesContent = () => {
 						(msg) =>
 							typeof msg.id === "string" &&
 							msg.id.startsWith("temp-") &&
-							msg.status === "sending" &&
+							(msg.status === "sending" || msg.status === "failed") &&
 							(msg.content || "") === (message.content || "")
 					);
 
@@ -1180,6 +1186,9 @@ export const MessagesContent = () => {
 					});
 				})
 				.catch(async (error) => {
+					if (isCancelError(error)) {
+						return;
+					}
 					const failedMessage = { ...tempMessage, status: "failed" };
 					await persistFailedMessage({ ...failedRecord, message: failedMessage });
 
@@ -1188,9 +1197,6 @@ export const MessagesContent = () => {
 							message.id === messageId ? failedMessage : message
 						)
 					);
-					if (isCancelError(error)) {
-						return;
-					}
 					handleApiError(error);
 				});
 
@@ -1280,6 +1286,9 @@ export const MessagesContent = () => {
 				await removePersistedFailedMessage(messageId);
 			})
 			.catch(async (error) => {
+				if (isCancelError(error)) {
+					return;
+				}
 				const failedMessage = { ...tempMessage, status: "failed" };
 				await persistFailedMessage({ ...failedRecord, message: failedMessage });
 
@@ -1288,9 +1297,6 @@ export const MessagesContent = () => {
 						message.id === messageId ? failedMessage : message
 					)
 				);
-				if (isCancelError(error)) {
-					return;
-				}
 				handleApiError(error);
 			});
 	};
