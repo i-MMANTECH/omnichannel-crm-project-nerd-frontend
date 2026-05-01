@@ -9,11 +9,12 @@ const StatsCard = ({ summary }) => {
   const viewCustomer = checkPermission('view_customer');
   const viewTask = checkPermission('view_task');
   const viewMessage = checkPermission('view_message');
+  const viewLead = checkPermission('view_lead');
 
   return (
     <div className="gap-5 mt-5 flex flex-wrap">
       {viewMessage && (
-        <Link href="/nativecrm/messages?chat=leads" className="flex cursor-pointer flex-col items-start gap-4 p-[16px_16px_14px] rounded-[16px] border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] flex-1">
+        <Link data-tour="metric-messages" href="/nativecrm/messages?chat=leads" className="flex cursor-pointer flex-col items-start gap-4 p-[16px_16px_14px] rounded-[16px] border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] flex-1">
           <div className="flex justify-center items-center gap-2 w-[36px] h-[36px] p-[8px] rounded-[8px] border border-[#30A808] bg-[#3EBF0F] shadow-[0px_-4px_6px_0px_rgba(255,255,255,0.50)_inset,_0px_1px_2px_0px_rgba(13,13,18,0.10)]">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" className="flex-shrink-0">
               <path d="M6.66667 6.66667H9.16667M6.66667 10H11.6667M4.16667 2.5H15.8333C16.7538 2.5 17.5 3.24289 17.5 4.15929V12.4594C17.5 13.3758 16.7538 14.1187 15.8333 14.1187H6.23385C5.9807 14.1187 5.74127 14.2333 5.58313 14.4301L3.24203 17.3435C2.99598 17.6497 2.5 17.4765 2.5 17.0844V4.15929C2.5 3.24289 3.24619 2.5 4.16667 2.5Z" stroke="white" strokeWidth="2" strokeLinecap="round" />
@@ -30,7 +31,7 @@ const StatsCard = ({ summary }) => {
       )}
 
       {viewCustomer && (
-        <Link href="/nativecrm/customers" className="flex cursor-pointer flex-col items-start gap-4 p-[16px_16px_14px] rounded-[16px] border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] flex-1">
+        <Link data-tour="metric-customers" href="/nativecrm/customers" className="flex cursor-pointer flex-col items-start gap-4 p-[16px_16px_14px] rounded-[16px] border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] flex-1">
           <div className="flex justify-center items-center gap-2 w-[36px] h-[36px] p-[8px] rounded-[8px] border border-[#0B6BEA] bg-[#1285FE] shadow-[0px_-4px_6px_0px_rgba(255,255,255,0.50)_inset,_0px_1px_2px_0px_rgba(13,13,18,0.10)]">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 22 20" fill="none" className="flex-shrink-0">
               <path d="M13.5 6.6665C13.5 8.04721 12.3807 9.1665 11 9.1665C9.61925 9.1665 8.5 8.04721 8.5 6.6665C8.5 5.2858 9.61925 4.1665 11 4.1665C12.3807 4.1665 13.5 5.2858 13.5 6.6665Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -52,7 +53,7 @@ const StatsCard = ({ summary }) => {
       )}
 
       {viewTask && (
-        <Link href="/nativecrm/tasks" className="flex cursor-pointer flex-col items-start gap-4 p-[16px_16px_14px] rounded-[16px] border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] flex-1">
+        <Link data-tour="metric-tasks" href="/nativecrm/tasks" className="flex cursor-pointer flex-col items-start gap-4 p-[16px_16px_14px] rounded-[16px] border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] flex-1">
           <div className="flex justify-center items-center gap-2 w-[36px] h-[36px] p-[8px] rounded-[8px] border border-[#5F41B4] bg-[#936DFF] shadow-[0px_-4px_6px_0px_rgba(255,255,255,0.50)_inset,_0px_1px_2px_0px_rgba(13,13,18,0.10)]">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" className="flex-shrink-0">
               <path d="M6.25 10.4167L8.75 12.9167L13.75 7.91667M15 2.5H5C3.61929 2.5 2.5 3.61929 2.5 5V15C2.5 16.3807 3.61929 17.5 5 17.5H15C16.3807 17.5 17.5 16.3807 17.5 15V5C17.5 3.61929 16.3807 2.5 15 2.5Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -69,7 +70,7 @@ const StatsCard = ({ summary }) => {
       )}
 
       {viewUser && (
-        <Link href="/nativecrm/users" className="flex cursor-pointer flex-col items-start gap-4 p-[16px_16px_14px] rounded-[16px] border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] flex-1">
+        <Link data-tour="metric-users" href="/nativecrm/users" className="flex cursor-pointer flex-col items-start gap-4 p-[16px_16px_14px] rounded-[16px] border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] flex-1">
           <div className="flex justify-center items-center gap-2 w-[36px] h-[36px] p-[8px] rounded-[8px] border border-[#F7921E] bg-[#F8B838] shadow-[0px_-4px_6px_0px_rgba(255,255,255,0.50)_inset,_0px_1px_2px_0px_rgba(13,13,18,0.10)]">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" className="flex-shrink-0">
               <path d="M9.98335 5.83333C9.99381 5.86465 10.0042 5.89601 10.0145 5.92741L14.3505 14.4274C14.4235 14.5953 14.3075 14.8 14.1335 14.8H5.86684C5.69284 14.8 5.57684 14.5953 5.64984 14.4274L9.98584 5.92741C9.99611 5.89601 10.0065 5.86465 10.0168 5.83333H9.98335Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -82,6 +83,40 @@ const StatsCard = ({ summary }) => {
 
           <span className="font-[600] text-[18px] font-[Encode Sans] leading-[140%] tracking-[0.2px]">
             {summary.users}
+          </span>
+        </Link>
+      )}
+
+      <Link href="/nativecrm/tickets" className="flex cursor-pointer flex-col items-start gap-4 p-[16px_16px_14px] rounded-[16px] border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] flex-1">
+        <div className="flex justify-center items-center gap-2 w-[36px] h-[36px] p-[8px] rounded-[8px] border border-[#0891B2] bg-[#06B6D4] shadow-[0px_-4px_6px_0px_rgba(255,255,255,0.50)_inset,_0px_1px_2px_0px_rgba(13,13,18,0.10)]">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" className="flex-shrink-0">
+            <path d="M3.33333 8.33333V5.83333C3.33333 4.91286 4.07953 4.16667 5 4.16667H15C15.9205 4.16667 16.6667 4.91286 16.6667 5.83333V8.33333C15.7462 8.33333 15 9.07953 15 10C15 10.9205 15.7462 11.6667 16.6667 11.6667V14.1667C16.6667 15.0871 15.9205 15.8333 15 15.8333H5C4.07953 15.8333 3.33333 15.0871 3.33333 14.1667V11.6667C4.25381 11.6667 5 10.9205 5 10C5 9.07953 4.25381 8.33333 3.33333 8.33333Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M9.16667 7.5V12.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1 2" />
+          </svg>
+        </div>
+        <span className="font-[400] text-[14px] font-[Encode Sans] leading-[150%] tracking-[0.2px]">
+          Tickets
+        </span>
+
+        <span className="font-[600] text-[18px] font-[Encode Sans] leading-[140%] tracking-[0.2px]">
+          {summary.tickets}
+        </span>
+      </Link>
+
+      {viewLead && (
+        <Link href="/nativecrm/leads" className="flex cursor-pointer flex-col items-start gap-4 p-[16px_16px_14px] rounded-[16px] border border-[#DFE1E6] body-theme shadow-[0px_2px_4px_-1px_rgba(13,13,18,0.06)] flex-1">
+          <div className="flex justify-center items-center gap-2 w-[36px] h-[36px] p-[8px] rounded-[8px] border border-[#E11D48] bg-[#F43F5E] shadow-[0px_-4px_6px_0px_rgba(255,255,255,0.50)_inset,_0px_1px_2px_0px_rgba(13,13,18,0.10)]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" className="flex-shrink-0">
+              <path d="M10 9.16667C11.8409 9.16667 13.3333 7.67428 13.3333 5.83333C13.3333 3.99238 11.8409 2.5 10 2.5C8.15905 2.5 6.66667 3.99238 6.66667 5.83333C6.66667 7.67428 8.15905 9.16667 10 9.16667Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M3.33333 17.5C3.33333 13.8181 6.31811 10.8333 10 10.8333C13.6819 10.8333 16.6667 13.8181 16.6667 17.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <span className="font-[400] text-[14px] font-[Encode Sans] leading-[150%] tracking-[0.2px]">
+            Leads
+          </span>
+
+          <span className="font-[600] text-[18px] font-[Encode Sans] leading-[140%] tracking-[0.2px]">
+            {summary.leads}
           </span>
         </Link>
       )}

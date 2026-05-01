@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
 import NProgress from './nprogressConfig';
 import { getUserDomain } from '@/utils/getUserDomain';
@@ -25,24 +25,25 @@ const processQueue = (error, token = null) => {
 export const useApi = () => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const cancelTokens = [];
+  const cancelTokensRef = useRef([]);
   const {logout} = useAuth()
 
-  const cancelAllRequests = () => {
-    cancelTokens.forEach(source => source.cancel("Request cancelled due to logout or navigation"));
-    cancelTokens.length = 0;
-  };
+  const cancelAllRequests = useCallback(() => {
+    cancelTokensRef.current.forEach(source => source.cancel("Request cancelled due to logout or navigation"));
+    cancelTokensRef.current = [];
+  }, []);
 
-  const axiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL,
-    headers: { 'User-Domain': getUserDomain() },
-  });
+  const axiosInstance = useMemo(() => {
+    const instance = axios.create({
+      baseURL: process.env.NEXT_PUBLIC_API_URL,
+      headers: { 'User-Domain': getUserDomain() },
+    });
 
-  axiosInstance.interceptors.request.use(
+    instance.interceptors.request.use(
     (config) => {
       const source = axios.CancelToken.source();
       config.cancelToken = source.token;
-      cancelTokens.push(source);
+      cancelTokensRef.current.push(source);
 
       const showLoader = config.showLoader !== false;
 
@@ -85,7 +86,7 @@ export const useApi = () => {
     }
   );
 
-  axiosInstance.interceptors.response.use(
+    instance.interceptors.response.use(
     (response) => {
       setLoading(false);
       if (response.config.showLoader !== false) {
@@ -125,7 +126,7 @@ export const useApi = () => {
           })
             .then((token) => {
               originalRequest.headers['Authorization'] = `Bearer ${token}`;
-              return axiosInstance(originalRequest);
+              return instance(originalRequest);
             })
             .catch((err) => Promise.reject(err))
         }
@@ -145,7 +146,7 @@ export const useApi = () => {
             processQueue(null, data.access);
 
             originalRequest.headers['Authorization'] = `Bearer ${data.access}`;
-            return axiosInstance(originalRequest);
+            return instance(originalRequest);
         } catch (refreshError) {
             processQueue(refreshError, null);
             cancelAllRequests();
@@ -165,6 +166,9 @@ export const useApi = () => {
       return Promise.reject(error);
     }
   );
+
+    return instance;
+  }, []);
 
   return { axiosInstance, loading, cancelAllRequests };
 };

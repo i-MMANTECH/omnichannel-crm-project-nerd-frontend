@@ -1840,9 +1840,9 @@ export const MessagesContent = () => {
 				</div>
 			</div>
 
-			<div className="overflow-y-hidden overflow-x-hidden messages flex items-start border border-gray-500 rounded-lg relative h-[80vh] m-4 mt-0">
-				<div>
-					<div className="body-theme justify-center gap-5 p-5 flex items-start flex-col w-full">
+			<div className="overflow-hidden messages flex flex-col md:flex-row items-stretch border border-gray-500 rounded-lg relative h-[calc(100vh-180px)] md:h-[80vh] m-2 sm:m-4 mt-0">
+				<div className={`${activeUser ? "hidden md:flex" : "flex"} flex-col w-full md:w-[320px] lg:w-[360px] md:flex-shrink-0 md:border-r md:border-gray-300 dark:md:border-gray-600 md:h-full`}>
+					<div className="body-theme justify-center gap-5 p-3 md:p-5 flex items-start flex-col w-full">
 						<div className="flex items-center  w-full justify-between space-x-4 ">
 							<div className="relative">
 								<input
@@ -1920,9 +1920,19 @@ export const MessagesContent = () => {
 					/>
 				</div>
 
-				<div className="detail ">
+				<div className={`detail ${activeUser ? "flex" : "hidden md:flex"} flex-col flex-1 w-full min-w-0`}>
 					{activeUser ? (
-						<div>
+						<div className="flex flex-col w-full h-full min-w-0">
+							<button
+								type="button"
+								onClick={() => {
+									setActiveUser(null);
+									router.push(`${baseRoute}/messages?chat=${chatType}`, { scroll: false });
+								}}
+								className="md:hidden flex items-center gap-2 px-4 py-2 text-sm text-[#3EBF0F] border-b border-gray-200 dark:border-gray-700"
+							>
+								<span aria-hidden="true">&larr;</span> Back to chats
+							</button>
 							<ChatHeader
 								activeUser={activeUser}
 								conversationId={chatResponse?.conversation_id}

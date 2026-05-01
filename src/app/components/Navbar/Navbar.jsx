@@ -34,12 +34,13 @@ const Navbar = () => {
     const showBackButton = path.split('/').length > 3;
 
     return (
-        <div className="hidden md:flex fixed top-[-3px] left-0 right-0 ml-[200px] body-theme pr-8 pl-10 py-7 z-10 border-b border-gray-300 dark:border-gray-600 flex items-center justify-between">
-            <div className="flex items-center gap-2 relative top-2 ">
-                <h1 className="text-xl font-bold ml-2 ">{title}</h1>
+        <div className="fixed top-0 left-0 right-0 lg:left-60 body-theme pr-4 sm:pr-6 lg:pr-8 pl-16 sm:pl-6 lg:pl-10 py-4 md:py-5 z-10 border-b border-gray-300 dark:border-gray-600 flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+                <h1 className="text-base sm:text-lg md:text-xl font-bold truncate">{title}</h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 flex-shrink-0">
                 <FaBell
+                    data-tour="notifications"
                     className="text-gray-600 cursor-pointer"
                     onClick={toggleNotification}
                 />

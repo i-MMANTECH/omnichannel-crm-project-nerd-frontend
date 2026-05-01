@@ -2,11 +2,12 @@
 import localFont from "next/font/local";
 import "../globals.css";
 import 'react-toastify/dist/ReactToastify.css';
-import Sidebar from "../components/Sidebar/Sidebar";
-import Navbar from "../components/Navbar/Navbar";
+import Sidebar from "../components/admin/Sidebar/Sidebar";
+import Navbar from "../components/admin/Navbar/Navbar";
 import NotificationModalContainer from "../components/Notification/NotificationModalContainer";
 import NetworkStatus from "../components/NetworkStatus";
 import CallModalContainer from "../components/CallCenter/CallModalContainer";
+import OnboardingTour from "../components/Onboarding/OnboardingTour";
 
 export default function RootLayout({ children }) {
   return (
@@ -23,6 +24,7 @@ export default function RootLayout({ children }) {
         </div>
         <NotificationModalContainer />
         <CallModalContainer />
+        <OnboardingTour />
       </div>
     </div>
   );
