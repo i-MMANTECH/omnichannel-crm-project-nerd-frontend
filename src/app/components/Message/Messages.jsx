@@ -671,6 +671,7 @@ export const MessagesContent = () => {
 					if (alreadyExists) return prevHistory;
 
 					if (tempMatchIndex !== -1) {
+						replacedTempId = prevHistory[tempMatchIndex].id;
 						const newHistory = [...prevHistory];
 						matchedTempId = newHistory[tempMatchIndex]?.id;
 						newHistory[tempMatchIndex] = message;
@@ -1382,6 +1383,9 @@ export const MessagesContent = () => {
 					});
 				})
 				.catch(async (error) => {
+					if (isCancelError(error)) {
+						return;
+					}
 					const failedMessage = { ...tempMessage, status: "failed" };
 					await persistFailedMessage({ ...failedRecord, message: failedMessage });
 
@@ -1390,9 +1394,6 @@ export const MessagesContent = () => {
 							message.id === messageId ? failedMessage : message
 						)
 					);
-					if (isCancelError(error)) {
-						return;
-					}
 					handleApiError(error);
 				});
 
@@ -1482,6 +1483,9 @@ export const MessagesContent = () => {
 				await removePersistedFailedMessage(messageId);
 			})
 			.catch(async (error) => {
+				if (isCancelError(error)) {
+					return;
+				}
 				const failedMessage = { ...tempMessage, status: "failed" };
 				await persistFailedMessage({ ...failedRecord, message: failedMessage });
 
@@ -1490,9 +1494,6 @@ export const MessagesContent = () => {
 						message.id === messageId ? failedMessage : message
 					)
 				);
-				if (isCancelError(error)) {
-					return;
-				}
 				handleApiError(error);
 			});
 	};
