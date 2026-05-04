@@ -671,7 +671,6 @@ export const MessagesContent = () => {
 					if (alreadyExists) return prevHistory;
 
 					if (tempMatchIndex !== -1) {
-						replacedTempId = prevHistory[tempMatchIndex].id;
 						const newHistory = [...prevHistory];
 						matchedTempId = newHistory[tempMatchIndex]?.id;
 						newHistory[tempMatchIndex] = message;
