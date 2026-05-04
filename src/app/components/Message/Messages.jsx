@@ -629,9 +629,9 @@ export const MessagesContent = () => {
 				message?.customer_sender != null || message?.customer_receiver != null;
 
 			const newUser = isLeadMessage
-				? message.lead_sender_details
+				? (message.lead_sender_details || message.lead_receiver_details)
 				: isCustomerMessage
-					? message.customer_sender_details
+					? (message.customer_sender_details || message.customer_receiver_details)
 					: null;
 
 			const messageChatType = getMessageType(message);
