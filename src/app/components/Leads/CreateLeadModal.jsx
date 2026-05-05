@@ -20,6 +20,39 @@ const INITIAL_FORM = {
     channel: null,
 };
 
+// Sensible defaults shown alongside any existing values from the backend so
+// users always have a starting point when their company hasn't yet seeded
+// custom tags or categories.
+const DEFAULT_TAG_SUGGESTIONS = [
+    "Hot Lead",
+    "Cold Lead",
+    "Qualified",
+    "Follow Up",
+    "VIP",
+    "Priority",
+    "New",
+    "Returning",
+];
+
+const DEFAULT_CATEGORY_SUGGESTIONS = [
+    "New Inquiry",
+    "Sales",
+    "Support",
+    "Partnership",
+    "Referral",
+    "Marketing",
+];
+
+const dedupeByLabel = (items) => {
+    const seen = new Set();
+    return items.filter((item) => {
+        const key = (item.label || "").toLowerCase();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+};
+
 function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessModalMessage }) {
     const { axiosInstance } = useApi();
     const { handleApiError } = useError();
@@ -74,6 +107,44 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
 
     const handleCategoryChange = (selectedOption) => {
         setFormData((prev) => ({ ...prev, category: selectedOption }));
+    };
+
+    const handleCreateCategory = (inputValue) => {
+        const trimmed = (inputValue || "").trim();
+        if (!trimmed) return;
+        // Optimistically add to local options so it shows up immediately. The
+        // backend persist happens on submit (see ensureCategoryExists below).
+        const newOption = { value: trimmed, label: trimmed, __isNew: true };
+        setCategories((prev) => [...prev, { id: trimmed, name: trimmed, label: trimmed, __isNew: true }]);
+        setFormData((prev) => ({ ...prev, category: newOption }));
+    };
+
+    // Persist a category to the backend if it doesn't exist yet. Returns the
+    // canonical category name to send with the lead payload.
+    const ensureCategoryExists = async (selected) => {
+        if (!selected?.label) return null;
+        const knownByName = categories.find(
+            (c) => (c.name || "").toLowerCase() === selected.label.toLowerCase() && !c.__isNew
+        );
+        if (knownByName) return knownByName.name;
+
+        try {
+            const { data } = await axiosInstance.post("/customers/leads/categories/", {
+                name: selected.label,
+                label: selected.label,
+            });
+            const created = data?.category || data;
+            return created?.name || selected.label;
+        } catch (error) {
+            // If the category already exists on the backend (race / case mismatch),
+            // fall through and let the lead POST handle the lookup. Anything else
+            // surfaces to the user.
+            const status = error?.response?.status;
+            if (status === 400 || status === 409) {
+                return selected.label;
+            }
+            throw error;
+        }
     };
 
     const handleChannelChange = (selectedOption) => {
@@ -131,8 +202,14 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
             (formData.tags || []).forEach((tag) => formDataToSubmit.append("tags", tag));
 
             // categories is a SlugRelatedField on `name`, accepts a list of names.
+            // If the user picked a default suggestion or typed a new one that
+            // isn't yet in the company's CustomerCategory table, persist it
+            // first so the lead POST doesn't fail with does_not_exist.
             if (formData.category?.label) {
-                formDataToSubmit.append("categories", formData.category.label);
+                const categoryName = await ensureCategoryExists(formData.category);
+                if (categoryName) {
+                    formDataToSubmit.append("categories", categoryName);
+                }
             }
 
             if (image) {
@@ -346,7 +423,10 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
                     <CreatableSelect
                         isMulti
                         name="tags"
-                        options={tags.map((tag) => ({ value: tag.name, label: tag.name }))}
+                        options={dedupeByLabel([
+                            ...tags.map((tag) => ({ value: tag.name, label: tag.name })),
+                            ...DEFAULT_TAG_SUGGESTIONS.map((t) => ({ value: t, label: t })),
+                        ])}
                         classNamePrefix="select"
                         onChange={handleTagChange}
                         onCreateOption={handleCreateTag}
@@ -358,16 +438,20 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
 
                 <div>
                     <label className="text-sm">Category</label>
-                    <Select
+                    <CreatableSelect
                         name="category"
-                        options={categories.map((cat) => ({
-                            value: cat.id,
-                            label: cat.label || cat.name,
-                        }))}
+                        options={dedupeByLabel([
+                            ...categories.map((cat) => ({
+                                value: cat.id,
+                                label: cat.label || cat.name,
+                            })),
+                            ...DEFAULT_CATEGORY_SUGGESTIONS.map((c) => ({ value: c, label: c })),
+                        ])}
                         classNamePrefix="select"
                         onChange={handleCategoryChange}
+                        onCreateOption={handleCreateCategory}
                         value={formData.category}
-                        placeholder="Select category"
+                        placeholder="Select or create a category"
                         styles={selectStyles}
                         isClearable
                     />
