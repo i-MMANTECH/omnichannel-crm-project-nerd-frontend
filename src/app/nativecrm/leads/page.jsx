@@ -4,10 +4,13 @@ import React, { useEffect, useMemo, useState, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import { Upload } from "lucide-react";
 import NoDataFound from "@/app/components/NoDataFound";
 import empty from "@/public/assets/empty.svg";
 import Pagination from "@/app/components/Pagination/Pagination";
 import LeadToCustomer from "@/app/components/Message/LeadToCustomer";
+import ImportLeadsModal from "@/app/components/admin/Leads/ImportLeadsModal";
+import CreateLeadModal from "@/app/components/Leads/CreateLeadModal";
 import SuccessModal from "@/app/components/SuccessModal";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
@@ -33,6 +36,8 @@ const LeadsContent = () => {
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [successModalMessage, setSuccessModalMessage] = useState("");
     const [refreshKey, setRefreshKey] = useState(0);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [isCreateLeadModalOpen, setIsCreateLeadModalOpen] = useState(false);
 
     useEffect(() => {
         const page = Number(searchParams.get("page")) || 1;
@@ -133,6 +138,11 @@ const LeadsContent = () => {
         setSuccessModalMessage("");
     };
 
+    const handleImportSuccess = () => {
+        setRefreshKey((prev) => prev + 1);
+        setIsImportModalOpen(false);
+    };
+
     const toggleMenu = (leadId) => {
         setOpenMenuId((prev) => (prev === leadId ? null : leadId));
     };
@@ -151,17 +161,36 @@ const LeadsContent = () => {
             <div className="relative body-theme flex-1 flex flex-col">
 
                 <div className="w-[100%] max-w-[1200px] sm:max-w-full mx-auto mb-6">
-                    <form onSubmit={handleSearchSubmit} className="flex items-center gap-3">
-                        <div className="relative w-1/4">
-                            <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                            <input
-                                className="w-full pl-10 body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-lg px-3 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow dark:text-slate-200"
-                                placeholder="Search leads..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
+                    <div className="flex items-center justify-between gap-3">
+                        <form onSubmit={handleSearchSubmit} className="flex items-center gap-3 w-full">
+                            <div className="relative w-1/4">
+                                <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                <input
+                                    className="w-full pl-10 body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-lg px-3 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow dark:text-slate-200"
+                                    placeholder="Search leads..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                        </form>
+                        <div className="flex items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setIsImportModalOpen(true)}
+                                className="flex items-center border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                            >
+                                <Upload size={16} className="mr-2" />
+                                Import
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setIsCreateLeadModalOpen(true)}
+                                className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm hover:bg-[#35a509] transition-colors"
+                            >
+                                + New Lead
+                            </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
 
                 <div className="w-[100%] max-w-[1200px] sm:max-w-full mx-auto">
@@ -192,6 +221,19 @@ const LeadsContent = () => {
                 isOpen={isConvertModalOpen}
                 onClose={handleCloseConvertModal}
                 leadId={activeLeadId}
+                setIsSuccessModalOpen={setIsSuccessModalOpen}
+                setSuccessModalMessage={setSuccessModalMessage}
+            />
+
+            <ImportLeadsModal
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                onSuccess={handleImportSuccess}
+            />
+
+            <CreateLeadModal
+                isOpen={isCreateLeadModalOpen}
+                onClose={() => setIsCreateLeadModalOpen(false)}
                 setIsSuccessModalOpen={setIsSuccessModalOpen}
                 setSuccessModalMessage={setSuccessModalMessage}
             />

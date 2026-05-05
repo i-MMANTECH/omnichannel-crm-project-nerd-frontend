@@ -8,6 +8,7 @@ import { Upload } from "lucide-react";
 import Pagination from "@/app/components/Pagination/Pagination";
 import LeadToCustomer from "@/app/components/Message/LeadToCustomer";
 import ImportLeadsModal from "@/app/components/admin/Leads/ImportLeadsModal";
+import CreateLeadModal from "@/app/components/Leads/CreateLeadModal";
 import SuccessModal from "@/app/components/SuccessModal";
 import LeadsTable from "@/app/components/Leads/LeadsTable";  // ✅ IMPORT SHARED COMPONENT
 import { useApi } from "@/services/axiosConfig";
@@ -33,6 +34,7 @@ const LeadsContent = () => {
   const [successModalMessage, setSuccessModalMessage] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isCreateLeadModalOpen, setIsCreateLeadModalOpen] = useState(false);
 
   useEffect(() => {
     const page = Number(searchParams.get("page")) || 1;
@@ -130,14 +132,23 @@ const LeadsContent = () => {
                 />
               </div>
             </form>
-            <button
-              type="button"
-              onClick={() => setIsImportModalOpen(true)}
-              className="flex items-center border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
-            >
-              <Upload size={16} className="mr-2" />
-              Import
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsImportModalOpen(true)}
+                className="flex items-center border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <Upload size={16} className="mr-2" />
+                Import
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsCreateLeadModalOpen(true)}
+                className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm hover:bg-[#35a509] transition-colors"
+              >
+                + New Lead
+              </button>
+            </div>
           </div>
         </div>
 
@@ -180,6 +191,13 @@ const LeadsContent = () => {
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onSuccess={handleImportSuccess}
+      />
+
+      <CreateLeadModal
+        isOpen={isCreateLeadModalOpen}
+        onClose={() => setIsCreateLeadModalOpen(false)}
+        setIsSuccessModalOpen={setIsSuccessModalOpen}
+        setSuccessModalMessage={setSuccessModalMessage}
       />
 
       <SuccessModal
