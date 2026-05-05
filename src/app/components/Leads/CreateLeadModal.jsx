@@ -12,12 +12,12 @@ const INITIAL_FORM = {
     last_name: "",
     phone_number: "",
     email: "",
-    instagram: "",
-    facebook: "",
-    whatsapp: "",
-    tiktok: "",
+    instagram_url: "",
+    facebook_url: "",
+    tiktok_url: "",
     tags: [],
     category: null,
+    channel: null,
 };
 
 function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessModalMessage }) {
@@ -25,6 +25,7 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
     const { handleApiError } = useError();
     const [tags, setTags] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [channels, setChannels] = useState([]);
     const [submitting, setSubmitting] = useState(false);
 
     const [formData, setFormData] = useState(INITIAL_FORM);
@@ -39,12 +40,14 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
 
     const fetchSelectOptions = async () => {
         try {
-            const [tagsRes, catRes] = await Promise.all([
+            const [tagsRes, catRes, channelsRes] = await Promise.all([
                 axiosInstance.get("/tags/"),
-                axiosInstance.get("/customers/categories/"),
+                axiosInstance.get("/customers/leads/categories/"),
+                axiosInstance.get("/channels/connected-channels/"),
             ]);
             setTags(tagsRes.data.tags || []);
             setCategories(catRes.data.categories || []);
+            setChannels(channelsRes.data.connected_channels || []);
         } catch (error) {
             handleApiError(error);
         }
@@ -73,6 +76,10 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
         setFormData((prev) => ({ ...prev, category: selectedOption }));
     };
 
+    const handleChannelChange = (selectedOption) => {
+        setFormData((prev) => ({ ...prev, channel: selectedOption }));
+    };
+
     const handleImageUpload = (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -92,26 +99,41 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
         e.preventDefault();
         if (submitting) return;
 
+        // Channel is hard-required by the backend (raises 400 without it).
+        if (!formData.channel?.value) {
+            handleApiError({
+                response: {
+                    data: { channel: "Please select a channel for this lead." },
+                },
+            });
+            return;
+        }
+
         try {
             setSubmitting(true);
 
-            const submissionData = {
-                ...formData,
-                tags: formData.tags,
-                categories: formData.category?.label ? [formData.category.label] : undefined,
-            };
-            delete submissionData.category;
+            const fullName = `${formData.first_name || ""} ${formData.last_name || ""}`.trim();
 
             const formDataToSubmit = new FormData();
-            Object.keys(submissionData).forEach((key) => {
-                const value = submissionData[key];
-                if (value === null || value === undefined || value === "") return;
-                if (Array.isArray(value)) {
-                    value.forEach((item) => formDataToSubmit.append(key, item));
-                } else {
-                    formDataToSubmit.append(key, value);
-                }
-            });
+            formDataToSubmit.append("name", fullName || formData.first_name);
+            formDataToSubmit.append("first_name", formData.first_name);
+            if (formData.last_name) formDataToSubmit.append("last_name", formData.last_name);
+            if (formData.email) formDataToSubmit.append("email", formData.email);
+            if (formData.phone_number) formDataToSubmit.append("phone_number", formData.phone_number);
+            if (formData.instagram_url) formDataToSubmit.append("instagram_url", formData.instagram_url);
+            if (formData.facebook_url) formDataToSubmit.append("facebook_url", formData.facebook_url);
+            if (formData.tiktok_url) formDataToSubmit.append("tiktok_url", formData.tiktok_url);
+
+            // Backend takes the channel ID (PrimaryKeyRelatedField).
+            formDataToSubmit.append("channel", formData.channel.value);
+
+            // tags is a write-only ListField of strings.
+            (formData.tags || []).forEach((tag) => formDataToSubmit.append("tags", tag));
+
+            // categories is a SlugRelatedField on `name`, accepts a list of names.
+            if (formData.category?.label) {
+                formDataToSubmit.append("categories", formData.category.label);
+            }
 
             if (image) {
                 formDataToSubmit.append("image", image);
@@ -174,6 +196,13 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
         </div>
     );
 
+    const channelOptions = channels.map((c) => ({
+        value: c.id,
+        label: c.name || c.channel_name || `Channel #${c.id}`,
+    }));
+
+    const noChannels = channels.length === 0;
+
     const modalFooter = (
         <div className="flex gap-3 w-7/12">
             <button
@@ -186,7 +215,7 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
             <button
                 type="submit"
                 form="leadForm"
-                disabled={submitting}
+                disabled={submitting || noChannels}
                 className="w-6/12 px-4 py-2 bg-[#3EBF0F] text-white rounded-md disabled:opacity-60 disabled:cursor-not-allowed"
             >
                 {submitting ? "Creating..." : "Create Lead"}
@@ -202,11 +231,18 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
             width="700px"
             footer={modalFooter}
         >
+            {noChannels && (
+                <div className="mb-4 px-4 py-3 rounded-md border border-yellow-200 bg-yellow-50 text-sm text-yellow-800">
+                    No channels are connected for this company. Connect a channel under
+                    Settings before creating a lead manually.
+                </div>
+            )}
+
             <form id="leadForm" className="grid grid-cols-2 gap-4" onSubmit={handleSubmit}>
                 {renderImageUpload()}
 
                 <div>
-                    <label className="text-sm">First Name</label>
+                    <label className="text-sm">First Name <span className="text-red-500">*</span></label>
                     <input
                         type="text"
                         name="first_name"
@@ -227,6 +263,21 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
                         onChange={handleChange}
                         className="w-full border border-gray-300 rounded-md p-2 mt-2"
                         placeholder="Doe"
+                    />
+                </div>
+
+                <div className="col-span-2">
+                    <label className="text-sm">Channel <span className="text-red-500">*</span></label>
+                    <Select
+                        name="channel"
+                        options={channelOptions}
+                        classNamePrefix="select"
+                        onChange={handleChannelChange}
+                        value={formData.channel}
+                        placeholder={noChannels ? "No connected channels" : "Select the channel this lead came from"}
+                        styles={selectStyles}
+                        isClearable
+                        isDisabled={noChannels}
                     />
                 </div>
 
@@ -255,50 +306,38 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
                 </div>
 
                 <div>
-                    <label className="text-sm">Instagram</label>
+                    <label className="text-sm">Instagram URL</label>
                     <input
-                        type="text"
-                        name="instagram"
-                        value={formData.instagram}
+                        type="url"
+                        name="instagram_url"
+                        value={formData.instagram_url}
                         onChange={handleChange}
                         className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                        placeholder="Instagram username"
+                        placeholder="https://instagram.com/username"
                     />
                 </div>
 
                 <div>
-                    <label className="text-sm">Facebook</label>
+                    <label className="text-sm">Facebook URL</label>
                     <input
-                        type="text"
-                        name="facebook"
-                        value={formData.facebook}
+                        type="url"
+                        name="facebook_url"
+                        value={formData.facebook_url}
                         onChange={handleChange}
                         className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                        placeholder="Facebook username"
+                        placeholder="https://facebook.com/username"
                     />
                 </div>
 
                 <div>
-                    <label className="text-sm">WhatsApp</label>
+                    <label className="text-sm">TikTok URL</label>
                     <input
-                        type="text"
-                        name="whatsapp"
-                        value={formData.whatsapp}
+                        type="url"
+                        name="tiktok_url"
+                        value={formData.tiktok_url}
                         onChange={handleChange}
                         className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                        placeholder="WhatsApp number"
-                    />
-                </div>
-
-                <div>
-                    <label className="text-sm">TikTok</label>
-                    <input
-                        type="text"
-                        name="tiktok"
-                        value={formData.tiktok}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                        placeholder="TikTok handle"
+                        placeholder="https://tiktok.com/@username"
                     />
                 </div>
 
