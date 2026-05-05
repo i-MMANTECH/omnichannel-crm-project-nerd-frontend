@@ -8,7 +8,6 @@ import UserAvatar from "../UserAvatar";
 import { timeAgo } from "@/utils/timeUtils";
 import { useRouter } from "next/navigation";
 import SlaDetail from "../admin/Settings/sla-policies/SlaDetail";
-import Link from "next/link";
 
 
 const TaskViewModal = ({ isOpen, taskId, onClose }) => {
@@ -83,7 +82,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
         const { data } = await axiosInstance.get(`/tasks/${taskId}`, { signal });
         setTask(data.task);
       } catch (err) {
-        if (err.name !== "AbortError") {
+        if (err.name !== "AbortError" && err.code !== "ERR_CANCELED") {
           handleApiError(err);
         }
       } finally {
@@ -402,7 +401,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
                 <div className="flex justify-between items-center">
                   <div className="flex justify-between items-center gap-2">
                     <svg width="16" height="15" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7.99992 11.5002V14.1668M5.17149 10.3286L3.28587 12.2142M3.99992 7.50016H1.33325M11.9999 7.50016H14.6666M10.8283 10.3286L12.714 12.2142M7.99992 3.50016V0.833496M10.8283 4.67174L12.714 2.78612M5.17149 4.67174L3.28587 2.78612" stroke="#808897" strokeWidth="1.5" strokeLineCap="round" />
+                      <path d="M7.99992 11.5002V14.1668M5.17149 10.3286L3.28587 12.2142M3.99992 7.50016H1.33325M11.9999 7.50016H14.6666M10.8283 10.3286L12.714 12.2142M7.99992 3.50016V0.833496M10.8283 4.67174L12.714 2.78612M5.17149 4.67174L3.28587 2.78612" stroke="#808897" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
                     <span className="font-medium">Status</span>
                   </div>
@@ -543,7 +542,7 @@ const TaskViewModal = ({ isOpen, taskId, onClose }) => {
 
                 {task?.conversation &&
                   <div className="flex justify-between items-center">
-                    <Link onClick={openConversation} className="font-medium pointer mt-5">View related conversation</Link>
+                    <button onClick={openConversation} className="font-medium pointer mt-5">View related conversation</button>
                   </div>
                 }
 
