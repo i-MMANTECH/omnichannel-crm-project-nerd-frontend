@@ -93,34 +93,33 @@ const SignIn = () => {
     const isFormValid = email && password;
 
     return (
-        <div className="flex min-h-screen" style={{ height: '100%', overflow: 'hidden' }}>
-            <div className="w-1/2 flex flex-col">
-                <div className='flex-grow'>
+        <div className="flex min-h-screen flex-col overflow-y-auto lg:flex-row">
+            <div className="hidden flex-col md:flex md:min-h-[360px] md:w-full lg:min-h-screen lg:w-1/2">
+                <div className="min-h-[220px] flex-grow lg:min-h-0">
                     <img
                         src="/assets/sign-in-image.png"
                         alt="Create Password"
-                        className="object-cover w-full h-full"
-                        style={{ height: '100%' }}
+                        className="h-full min-h-[220px] w-full object-cover lg:min-h-0"
                     />
                 </div>
 
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
 
-                <div className="bg-black p-8 text-white flex flex-col items-start">
+                <div className="flex flex-col items-start bg-black p-5 text-white sm:p-6 lg:p-8">
                     <Image src="/assets/nativetalk-logo2.svg"
                         alt="Logo"
                         width={100}
                         height={100}
                     />
-                    <h2 className="text-3xl font-bold text-white leading-tight mt-4">
+                    <h2 className="mt-4 text-2xl font-bold leading-tight text-white lg:text-3xl">
                         Let's empower your <br /> employees today.
                     </h2>
                     <p className="text-white mt-2">Transform every conversation into opportunity.</p>
                 </div>
             </div>
 
-            <div className="w-1/2 flex flex-col items-center justify-center p-8">
-                <div className="w-full max-w-md mt-[100px]">
+            <div className="flex min-h-screen w-full flex-col items-center justify-center px-4 py-8 sm:px-6 md:min-h-0 lg:min-h-screen lg:w-1/2 lg:p-8">
+                <div className="w-full max-w-md lg:mt-[100px]">
                     <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 text-left mb-2">Welcome Back</h2>
                     <p className="text-gray-500 dark:text-gray-400 text-left mb-6">Enter your details to login</p>
                     <form onSubmit={handleSignIn}>
@@ -130,7 +129,7 @@ const SignIn = () => {
                             </label>
                             <input
                                 type="email"
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-300 focus:outline-none focus:ring-[#3EBF0F] focus:border-[#3EBF0F] sm:text-sm"
+                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2.5 text-gray-900 shadow-sm focus:border-[#3EBF0F] focus:outline-none focus:ring-[#3EBF0F] dark:border-gray-600 dark:text-gray-300 sm:py-2 sm:text-sm"
                                 id="email"
                                 placeholder="address@email.com"
                                 value={email}
@@ -144,7 +143,7 @@ const SignIn = () => {
                         <div className="relative">
                             <input
                                 type={showPassword ? 'text' : 'password'}
-                                className="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-300 focus:outline-none focus:ring-[#3EBF0F] focus:border-[#3EBF0F] sm:text-sm"
+                                className="mt-1 block w-full rounded-md border border-gray-300 p-2.5 pr-10 text-gray-900 shadow-sm focus:border-[#3EBF0F] focus:outline-none focus:ring-[#3EBF0F] dark:border-gray-600 dark:text-gray-300 sm:p-2 sm:pr-10 sm:text-sm"
                                 id="password"
                                 placeholder="*********"
                                 value={password}
@@ -174,7 +173,7 @@ const SignIn = () => {
                         </div>
                         <button
                             type="submit"
-                            className={`w-full py-2 rounded-md text-white focus:outline-none 
+                            className={`w-full rounded-md py-2.5 text-white focus:outline-none sm:py-2
                                 ${isFormValid ? 'bg-[#3EBF0F] hover:bg-[#34a60e]' : 'bg-[#EEEFF2] cursor-not-allowed text-gray-500 disabled:text-gray-400'}`}
                             disabled={!isFormValid || loading}
                         >
@@ -206,7 +205,7 @@ const SignIn = () => {
                     </div>
 
                 </div>
-                <div style={{ width: 500 }} className="text-xs mt-auto pt-6">
+                <div className="mt-auto w-full max-w-[500px] pt-6 text-xs">
                     <Footer />
                 </div>
             </div>
