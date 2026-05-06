@@ -128,7 +128,8 @@ const LeadsTable = ({
 
     return (
         <>
-            <div className="overflow-x-auto">
+            {/* Desktop / tablet table view */}
+            <div className="hidden md:block overflow-x-auto">
                 <table className="min-w-full body-theme text-left text-sm">
                     <thead className="bg-gray-100 dark:bg-neutral-900">
                         <tr>
@@ -295,6 +296,130 @@ const LeadsTable = ({
                         )}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Mobile card view */}
+            <div className="md:hidden">
+                {loading ? (
+                    <div className="flex justify-center py-10">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+                    </div>
+                ) : rows.length === 0 ? (
+                    <div className="flex items-center justify-center py-10">
+                        <NoDataFound message="You do not have any leads" icon={empty} />
+                    </div>
+                ) : (
+                    <ul className="space-y-3">
+                        {rows.map((lead) => (
+                            <li
+                                key={lead.id}
+                                className="rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 shadow-sm"
+                            >
+                                <div className="flex items-center gap-3 mb-3">
+                                    {lead?.image ? (
+                                        <Image
+                                            alt="profile pic"
+                                            width={40}
+                                            height={40}
+                                            className="w-10 h-10 rounded-full flex-shrink-0"
+                                            src={lead.image}
+                                        />
+                                    ) : (
+                                        <UserAvatar name={lead.fullName} width="w-10" height="h-10" />
+                                    )}
+                                    <span className="font-medium text-slate-800 dark:text-slate-100 truncate">
+                                        {lead.fullName || "--"}
+                                    </span>
+                                </div>
+
+                                <dl className="space-y-2 text-sm">
+                                    <div className="flex items-start gap-2">
+                                        <dt className="w-20 flex-shrink-0 text-slate-500 dark:text-slate-400">Email</dt>
+                                        <dd className="flex-1 break-all text-slate-700 dark:text-slate-200">
+                                            {lead.email ? maskEmail(lead.email, canViewContactInfo) : "--"}
+                                        </dd>
+                                    </div>
+                                    <div className="flex items-start gap-2">
+                                        <dt className="w-20 flex-shrink-0 text-slate-500 dark:text-slate-400">Phone</dt>
+                                        <dd className="flex-1 break-all text-slate-700 dark:text-slate-200">
+                                            {lead.phoneNumber ? maskPhoneNumber(lead.phoneNumber, canViewContactInfo) : "--"}
+                                        </dd>
+                                    </div>
+                                    <div className="flex items-start gap-2">
+                                        <dt className="w-20 flex-shrink-0 text-slate-500 dark:text-slate-400">Channel</dt>
+                                        <dd className="flex-1 text-slate-700 dark:text-slate-200">
+                                            {(!lead?.channels || lead.channels.length === 0) ? (
+                                                <span className="font-bold">--</span>
+                                            ) : (
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    {lead.channels.map((channel, idx) => (
+                                                        <div
+                                                            key={`${lead.id}-channel-${idx}`}
+                                                            className="channel-icon-container"
+                                                            title={channel}
+                                                        >
+                                                            <img
+                                                                src={getChannelIcon(channel)}
+                                                                alt={channel}
+                                                                className="channel-icon"
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </dd>
+                                    </div>
+                                    <div className="flex items-start gap-2">
+                                        <dt className="w-20 flex-shrink-0 text-slate-500 dark:text-slate-400">Categories</dt>
+                                        <dd className="flex-1 text-slate-700 dark:text-slate-200">
+                                            {(!lead?.categories || lead.categories.length === 0) ? (
+                                                <span className="font-bold">--</span>
+                                            ) : (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {lead.categories.slice(0, 6).map((category, index) => (
+                                                        <span
+                                                            key={`${lead.id}-category-${index}`}
+                                                            className="px-2 py-1 rounded text-xs"
+                                                            style={getRoleStyle(category)}
+                                                        >
+                                                            {category}
+                                                        </span>
+                                                    ))}
+                                                    {lead.categories.length > 6 && (
+                                                        <span className="font-bold text-base">...</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </dd>
+                                    </div>
+                                    <div className="flex items-start gap-2">
+                                        <dt className="w-20 flex-shrink-0 text-slate-500 dark:text-slate-400">Tags</dt>
+                                        <dd className="flex-1 text-slate-700 dark:text-slate-200">
+                                            {(!lead?.tags || lead.tags.length === 0) ? (
+                                                <span className="font-bold">--</span>
+                                            ) : (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {lead.tags.slice(0, 6).map((tag, index) => (
+                                                        <span
+                                                            key={`${lead.id}-tag-${index}`}
+                                                            className="px-2 py-1 rounded text-xs"
+                                                            style={getRoleStyle(tag)}
+                                                        >
+                                                            {tag}
+                                                        </span>
+                                                    ))}
+                                                    {lead.tags.length > 6 && (
+                                                        <span className="font-bold text-base">...</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </dd>
+                                    </div>
+                                </dl>
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </div>
         </>
     );
