@@ -197,9 +197,9 @@ const GeneralProfile = ({ onProfileChanged }) => {
   ];
 
   return (
-    <div className="flex flex-col p-6 gap-6 rounded-lg border body-theme w-full mt-5">
+    <div className="flex flex-col p-4 sm:p-6 gap-6 rounded-lg border body-theme w-full mt-5">
       <h2 className="text-lg font-semibold">Personal Info</h2>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">First Name</label>
           <input
@@ -286,7 +286,7 @@ const GeneralProfile = ({ onProfileChanged }) => {
       {rolePermissions.length > 0 && (
         <div className="mt-6">
           <h3 className="text-md font-semibold mb-4">Role Permissions</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {rolePermissions.map((permission, index) => (
               <div key={index} className="flex items-center gap-2">
                 <span className="text-sm">{permission}</span>

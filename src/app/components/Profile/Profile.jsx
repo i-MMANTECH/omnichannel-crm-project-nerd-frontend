@@ -78,8 +78,8 @@ export default function Profile() {
     
 
     return (
-        <div className="grid grid-cols-3 justify-center my-5 gap-4 p-4 w-full ">
-            <div className="lg:col-span-1 col-span-3 flex flex-col items-center p-5 rounded-lg border border-gray-300  shadow-md h-fit">
+        <div className="grid grid-cols-3 justify-center my-5 gap-4 p-2 sm:p-4 w-full ">
+            <div className="lg:col-span-1 col-span-3 flex flex-col items-center p-4 sm:p-5 rounded-lg border border-gray-300  shadow-md h-fit">
                 <div className='relative px-1 py-4 flex flex-col items-center gap-1 h-fit rounded-lg body-theme '>
                     {/* Profile Image Section */}
                     <div className="relative pb-8 flex flex-col items-center gap-3">
@@ -278,12 +278,12 @@ export default function Profile() {
                 </div>
             </div>
 
-            <div  className="lg:col-span-2 col-span-3 flex flex-col  flex-1 gap-4 p-6 rounded-lg border border-gray-300 shadow-md h-full min-h-full">
-                <div className='flex gap-6'>
+            <div  className="lg:col-span-2 col-span-3 flex flex-col  flex-1 gap-4 p-4 sm:p-6 rounded-lg border border-gray-300 shadow-md h-full min-h-full">
+                <div className='flex gap-4 sm:gap-6 overflow-x-auto -mx-1 px-1'>
                     {tabs.map(tab => (
                         <p
                             key={tab.key}
-                            className={`h-[30px] cursor-pointer ${selected === tab.key ? "selected" : "not-selected"}`}
+                            className={`h-[30px] cursor-pointer whitespace-nowrap ${selected === tab.key ? "selected" : "not-selected"}`}
                             onClick={() => setSelected(tab.key)}
                             aria-selected={selected === tab.key}
                         >
