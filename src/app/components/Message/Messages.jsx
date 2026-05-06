@@ -1659,7 +1659,17 @@ export const MessagesContent = () => {
 	const handleCreateTicket = async (ticketData) => {
 		try {
 			setIsCreateTicketModalOpen(false);
-			// Optionally refresh ticket panel or show success message
+			if (activeUser?.id) {
+				setCachedData((prev) => {
+					const typeBucket = prev[chatType] || { histories: {} };
+					const { [activeUser.id]: _removed, ...remainingHistories } = typeBucket.histories || {};
+					return {
+						...prev,
+						[chatType]: { ...typeBucket, histories: remainingHistories },
+					};
+				});
+			}
+			await fetchChatHistory();
 		} catch (error) {
 			handleApiError(error);
 		}
