@@ -61,48 +61,47 @@ const CustomUrlForm = () => {
     };
 
     return (
-        <div className="flex min-h-screen" style={{ height: '100%', overflow: 'hidden' }}>
-            <div className="w-1/2 flex flex-col">
-                <div className="flex-grow">
+        <div className="flex min-h-screen flex-col overflow-y-auto lg:flex-row">
+            <div className="hidden flex-col md:flex md:min-h-[360px] md:w-full lg:min-h-screen lg:w-1/2">
+                <div className="min-h-[220px] flex-grow lg:min-h-0">
                         <img
                             src="/assets/sign-up-image.png"
                             alt="Sign up"
-                            className="object-cover w-full h-full"
-                            style={{height: '100%'}}
+                            className="h-full min-h-[220px] w-full object-cover lg:min-h-0"
                         />
                 </div>
 
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
 
-                <div className="bg-black p-8 text-white flex flex-col items-start">
+                <div className="flex flex-col items-start bg-black p-5 text-white sm:p-6 lg:p-8">
                     <Image src="/assets/nativetalk-logo2.svg" 
                             alt="Logo" 
                             width={100}
                             height={100}
                             />
-                    <h2 className="text-3xl font-bold text-white leading-tight mt-4">
+                    <h2 className="mt-4 text-2xl font-bold leading-tight text-white lg:text-3xl">
                         Let's empower your <br /> employees today.
                     </h2>
                     <p className="text-white mt-2">Transform every conversation into opportunity.</p>
                 </div>
             </div>
 
-            <div className="w-1/2 flex flex-col items-center justify-center p-8">
-                <div className="w-full max-w-md mt-[100px]">
+            <div className="flex min-h-screen w-full flex-col items-center justify-center px-4 py-8 sm:px-6 md:min-h-0 lg:min-h-screen lg:w-1/2 lg:p-8">
+                <div className="w-full max-w-md lg:mt-[100px]">
                     <h2 className="text-2xl font-bold mb-2">You're almost there! Let's</h2>
                     <h2 className="text-2xl font-bold mb-2">create a custom URL for you</h2>
                     <p className="text-gray-500 dark:text-gray-400 text-left mb-6">This would serve as your unique username</p>
 
-                    <div className="flex items-center border rounded-lg mb-4 overflow-hidden">
+                    <div className="mb-4 flex flex-col overflow-hidden rounded-lg border sm:flex-row sm:items-center">
                         <input
                             type="text"
                             value={url}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border-none focus:outline-none"
+                            className="min-w-0 flex-1 border-none px-4 py-2.5 focus:outline-none sm:py-2"
                             placeholder="mycompanyurl"
                         />
-                        <span className="px-4 text-gray-600">.nativetalkcrm.com</span>
-                        <span className="px-2 text-green-500">{isUrlAvailable ? '✔' : '✖'}</span>
+                        <span className="border-t bg-gray-50 px-4 py-2 text-xs text-gray-600 sm:border-l sm:border-t-0 sm:text-sm">.nativetalkcrm.com</span>
+                        <span className="bg-gray-50 px-4 pb-2 text-green-500 sm:px-2 sm:py-2">{isUrlAvailable ? '✔' : '✖'}</span>
                     </div>
                     <p className="text-xs text-gray-500 mb-6">This is just a suggestion, you can change to what you want</p>
                     <div className="flex items-center justify-between mb-4 mt-3">
@@ -121,13 +120,13 @@ const CustomUrlForm = () => {
 
                     <button
                         onClick={handleSubmit}
-                        className={`w-full py-2 text-white rounded-md ${isUrlAvailable ? 'bg-[#3EBF0F] hover:bg-green-600' : 'bg-gray-300 cursor-not-allowed'}`}
+                        className={`w-full rounded-md py-2.5 text-white sm:py-2 ${isUrlAvailable ? 'bg-[#3EBF0F] hover:bg-green-600' : 'bg-gray-300 cursor-not-allowed'}`}
                         disabled={!isUrlAvailable || loading}
                     >
                         Create account
                     </button>
                 </div>
-                <div style={{ width: 500 }} className="text-xs mt-auto pt-6">
+                <div className="mt-auto w-full max-w-[500px] pt-6 text-xs">
                     <Footer />
                 </div>
             </div>

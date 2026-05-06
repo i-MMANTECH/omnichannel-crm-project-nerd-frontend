@@ -118,8 +118,8 @@ const OtpVerification = () => {
     };
 
     return (
-        <div className="flex flex-col min-h-screen items-center justify-center" style={{ height: "100%" }}>
-            <div className="w-full max-w-sm p-8 mt-[100px]">
+        <div className="flex min-h-screen flex-col items-center justify-center overflow-y-auto px-4 py-8 sm:px-6">
+            <div className="w-full max-w-sm p-4 sm:p-8 lg:mt-[100px]">
                 <div className="flex justify-center mb-8">
                     <Image src="/assets/nativetalk-logo.svg" 
                             alt="Logo" 
@@ -134,7 +134,7 @@ const OtpVerification = () => {
                     Please enter the 6-digit code we sent to <br /> {userData?.email ? maskEmail(userData.email) : "your email"}
                 </p>
 
-                <div className="flex justify-center mb-6 mt-8" onPaste={handlePaste}>
+                <div className="mt-8 mb-6 flex justify-between gap-2" onPaste={handlePaste}>
                     {code.map((digit, index) => (
                         <input
                             key={index}
@@ -144,7 +144,7 @@ const OtpVerification = () => {
                             ref={(el) => inputRefs.current[index] = el}
                             onChange={(e) => handleChange(e.target.value, index)}
                             onKeyDown={(e) => handleKeyDown(e, index)}
-                            className={`w-10 h-10 border-2 rounded-md text-center text-lg mx-1 ${activeInput === index ? 'border-green-500' : 'border-gray-300'} focus:outline-none`}
+                            className={`h-10 w-9 rounded-md border-2 text-center text-lg sm:w-10 ${activeInput === index ? 'border-green-500' : 'border-gray-300'} focus:outline-none`}
                             aria-label="OTP input"
                         />
                     ))}
@@ -152,8 +152,7 @@ const OtpVerification = () => {
 
                 <button
                     onClick={handleSubmit}
-                    className={`w-full bg-[#3EBF0F] mt-5 text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    style={{ width: 300 }}
+                    className={`mt-5 w-full rounded-md bg-[#3EBF0F] py-2.5 text-white hover:bg-[#34a60e] focus:outline-none sm:py-2 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     disabled={loading}
                 >
                     Continue
@@ -164,7 +163,7 @@ const OtpVerification = () => {
                 </p>
 
             </div>
-            <div className="mt-auto text-center mb-5">
+            <div className="mt-auto w-full max-w-[500px] px-4 text-center text-xs sm:px-0">
                 <Footer />
             </div>
         </div>

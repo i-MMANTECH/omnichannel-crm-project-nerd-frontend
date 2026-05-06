@@ -128,34 +128,33 @@ const PasswordCreation = () => {
     const isFormValid = isPasswordValid(password) && password === confirmPassword;
 
     return (
-        <div className="flex min-h-screen" style={{ height: '100%', overflow: 'hidden' }}>
-            <div className="w-1/2 flex flex-col">
-                <div className="flex-grow">
+        <div className="flex min-h-screen flex-col overflow-y-auto lg:flex-row">
+            <div className="hidden flex-col md:flex md:min-h-[360px] md:w-full lg:min-h-screen lg:w-1/2">
+                <div className="min-h-[220px] flex-grow lg:min-h-0">
                         <img
                             src="/assets/sign-up-image.png"
                             alt="Sign up"
-                            className="object-cover w-full h-full"
-                            style={{height: '100%'}}
+                            className="h-full min-h-[220px] w-full object-cover lg:min-h-0"
                         />
                 </div>
                 
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
                 
-                <div className="bg-black p-8 text-white flex flex-col items-start">
+                <div className="flex flex-col items-start bg-black p-5 text-white sm:p-6 lg:p-8">
                     <Image src="/assets/nativetalk-logo2.svg" 
                             alt="Logo" 
                             width={100}
                             height={100}
                             />
-                    <h2 className="text-3xl font-bold text-white leading-tight mt-4">
+                    <h2 className="mt-4 text-2xl font-bold leading-tight text-white lg:text-3xl">
                         Let's empower your <br /> employees today.
                     </h2>
                     <p className="text-white mt-2">Transform every conversation into opportunity.</p>
                 </div>
             </div>
 
-            <div className="w-1/2 flex flex-col items-center justify-center p-8">
-                <div className="w-full max-w-md flex-grow mt-6 mt-[100px]">
+            <div className="flex min-h-screen w-full flex-col items-center justify-center px-4 py-8 sm:px-6 md:min-h-0 lg:min-h-screen lg:w-1/2 lg:p-8">
+                <div className="w-full max-w-md lg:mt-[100px]">
                     <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 text-left mb-2">Create Your Password</h2>
                     <p className="text-gray-500 dark:text-gray-400 text-left mb-6">
                         Set a password with 8-24 characters, including uppercase, lowercase, numbers, and symbols.
@@ -170,7 +169,7 @@ const PasswordCreation = () => {
                                 type={showPassword ? 'text' : 'password'}
                                 value={password}
                                 onChange={handlePasswordChange}
-                                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#3EBF0F]"
+                                className="w-full rounded-md border border-gray-300 p-2.5 pr-10 focus:border-[#3EBF0F] focus:outline-none sm:p-2 sm:pr-10"
                             />
                             <button
                                 onClick={togglePasswordVisibility}
@@ -211,7 +210,7 @@ const PasswordCreation = () => {
                                 type={showConfirmPassword ? 'text' : 'password'}
                                 value={confirmPassword}
                                 onChange={handleConfirmPasswordChange}
-                                className={`w-full p-2 border border-gray-300 rounded-md focus:outline-none ${password === confirmPassword ? 'focus:border-[#3EBF0F]' : 'focus:border-red-500'}`}
+                                className={`w-full rounded-md border border-gray-300 p-2.5 pr-10 focus:outline-none sm:p-2 sm:pr-10 ${password === confirmPassword ? 'focus:border-[#3EBF0F]' : 'focus:border-red-500'}`}
                             />
                             <button
                                 onClick={toggleConfirmPasswordVisibility}
@@ -230,13 +229,13 @@ const PasswordCreation = () => {
 
                     <button
                         onClick={handleSubmit}
-                        className={`w-full text-white mt-5 py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${isFormValid ? 'bg-[#3EBF0F]' : 'bg-gray-300 cursor-not-allowed'}`}
+                        className={`mt-5 w-full rounded-md py-2.5 text-white hover:bg-[#34a60e] focus:outline-none sm:py-2 ${isFormValid ? 'bg-[#3EBF0F]' : 'bg-gray-300 cursor-not-allowed'}`}
                         disabled={!isFormValid}
                     >
                         Continue
                     </button>
                 </div>
-                <div style={{ width: 500 }} className="text-xs mt-auto pt-6">
+                <div className="mt-auto w-full max-w-[500px] pt-6 text-xs">
                     <Footer />
                 </div>
             </div>      
