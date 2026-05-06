@@ -150,7 +150,7 @@ const LeadsContent = () => {
         <div className="overflow-x-hidden flex flex-row body-theme min-h-[83vh] px-4 sm:px-6 lg:pl-10 lg:pr-0">
             <div className="relative body-theme flex-1 flex flex-col min-w-0">
 
-                <div className="w-full max-w-[1200px] mx-auto mb-6">
+                <div className="w-full mb-6">
                     <form onSubmit={handleSearchSubmit} className="flex items-center gap-3">
                         <div className="relative w-full sm:w-2/3 md:w-1/2 lg:w-1/4">
                             <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -164,7 +164,7 @@ const LeadsContent = () => {
                     </form>
                 </div>
 
-                <div className="w-full max-w-[1200px] mx-auto">
+                <div className="w-full">
                     <LeadsTable
                         leads={leads}
                         loading={loading}
@@ -175,7 +175,7 @@ const LeadsContent = () => {
                     />
                 </div>
 
-                <div className="mt-8 w-full max-w-[1200px] mx-auto">
+                <div className="mt-8 w-full">
                     <Pagination
                         currentPage={currentPage}
                         totalPages={totalPages}

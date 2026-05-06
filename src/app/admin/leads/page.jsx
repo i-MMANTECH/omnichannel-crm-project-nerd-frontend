@@ -117,7 +117,7 @@ const LeadsContent = () => {
       <div className="relative body-theme flex-1 flex flex-col min-w-0">
 
         {/* Search and Import Section */}
-        <div className="w-full max-w-[1200px] mx-auto mb-6">
+        <div className="w-full mb-6">
           <div className="flex items-center justify-between gap-3">
             <form onSubmit={handleSearchSubmit} className="flex items-center gap-3 flex-1 min-w-0">
               <div className="relative w-full sm:w-2/3 md:w-1/2 lg:w-1/4">
@@ -143,7 +143,7 @@ const LeadsContent = () => {
         </div>
 
         {/* ✅ SHARED TABLE COMPONENT */}
-        <div className="w-full max-w-[1200px] mx-auto">
+        <div className="w-full">
           <LeadsTable
             leads={leads}
             loading={loading}
@@ -155,7 +155,7 @@ const LeadsContent = () => {
         </div>
 
         {/* Pagination */}
-        <div className="mt-8 w-full max-w-[1200px] mx-auto">
+        <div className="mt-8 w-full">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
