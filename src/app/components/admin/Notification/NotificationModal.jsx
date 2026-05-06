@@ -76,12 +76,14 @@ const NotificationModal = () => {
       // Close notification using context
       toggleNotification();
 
-      // Then redirect if it's a task
+      // Then redirect if it's a task or follow-up
       if (notification.notification_type === 'task' && notification.metadata?.task_id) {
         const params = new URLSearchParams();
         params.set('action', 'view-task');
         params.set('taskId', notification.metadata.task_id);
         router.push(`/nativecrm/tasks?${params.toString()}`);
+      } else if (notification.notification_type === 'follow_up' && notification.metadata?.conversation_id) {
+        router.push(`/nativecrm/messages?chat=active&id=${notification.metadata.conversation_id}`);
       }
     } catch (error) {
       handleApiError(error);

@@ -82,7 +82,9 @@ const NotificationModal = () => {
         const params = new URLSearchParams();
         params.set('action', 'view-task');
         params.set('taskId', notification.metadata.task_id);
-        navigateTo(`tasks?${params.toString()}`);  // ✅ CHANGED THIS LINE
+        navigateTo(`tasks?${params.toString()}`);
+      } else if (notification.notification_type === 'follow_up' && notification.metadata?.conversation_id) {
+        navigateTo(`messages?chat=active&id=${notification.metadata.conversation_id}`);
       }
     } catch (error) {
       handleApiError(error);
