@@ -93,7 +93,7 @@ const Notification = () => {
   };
 
   return (
-    <div className="flex mt-5 flex-col p-6 items-start gap-4 self-stretch rounded-lg border border-[#DFE1E6]">
+    <div className="flex mt-5 flex-col p-4 sm:p-6 items-start gap-4 self-stretch rounded-lg border border-[#DFE1E6]">
       <p className="text-xl font-semibold leading-[140%] tracking-[0.2px]">
         In-App Notifications
       </p>
@@ -105,13 +105,13 @@ const Notification = () => {
           Desktop Push Notifications
         </p>
 
-        <div className="flex justify-between w-full mt-2">
-          <p className="font-[500] text-[14px] font-normal leading-[21px] tracking-[0.2px]">
+        <div className="flex justify-between items-start gap-3 w-full mt-2">
+          <p className="font-[500] text-[14px] font-normal leading-[21px] tracking-[0.2px] flex-1 min-w-0">
             Receive push notifications on tasks, comments, messages on your desktop app
           </p>
 
           <div
-            className={`w-11 h-6 rounded-full transition-colors cursor-pointer ${
+            className={`w-11 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${
               preferences.in_app.enabled ? "bg-[#3EBF0F]" : "bg-gray-300"
             }`}
             onClick={handleDesktopToggle}
@@ -130,13 +130,13 @@ const Notification = () => {
           Email Notifications
         </p>
 
-        <div className="flex justify-between w-full mt-2">
-          <p className="font-[500] text-[14px] font-normal leading-[21px] tracking-[0.2px]">
+        <div className="flex justify-between items-start gap-3 w-full mt-2">
+          <p className="font-[500] text-[14px] font-normal leading-[21px] tracking-[0.2px] flex-1 min-w-0">
             Receive email notifications about your activity
           </p>
 
           <div
-            className={`w-11 h-6 rounded-full transition-colors cursor-pointer ${
+            className={`w-11 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${
               preferences.email.enabled ? "bg-[#3EBF0F]" : "bg-gray-300"
             }`}
             onClick={handleEmailToggle}
