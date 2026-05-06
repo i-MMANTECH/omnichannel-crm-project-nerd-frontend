@@ -15,8 +15,8 @@ const NotificationModalContainer = () => {
       {isNotificationVisible && (
         <div className="fixed inset-0 bg-black bg-opacity-5 z-[9998]" onClick={toggleNotification} />
       )}
-      <div className="fixed top-0 right-0 h-full flex items-start justify-end z-[9999] pt-20 pr-8">
-        <div className="relative">
+      <div className="fixed top-0 right-0 left-0 sm:left-auto h-full flex items-start justify-center sm:justify-end z-[9999] pt-16 sm:pt-20 px-2 sm:pl-0 sm:pr-8 pointer-events-none">
+        <div className="relative pointer-events-auto w-full sm:w-auto max-w-md sm:max-w-none">
           <div className="transform transition-transform duration-300 ease-in-out">
             <NotificationModal />
           </div>

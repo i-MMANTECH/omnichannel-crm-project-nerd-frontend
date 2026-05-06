@@ -90,7 +90,7 @@ const NotificationModal = () => {
 
   if (loading) {
     return (
-      <div className="w-[350px] max-w-lg body-theme rounded-lg border border-gray-200 shadow-lg p-4">
+      <div className="w-full sm:w-[350px] max-w-lg body-theme rounded-lg border border-gray-200 shadow-lg p-4">
         <div className="animate-pulse">
           <div className="flex justify-between">
             <div className="h-4 bg-gray-200 rounded w-1/4 mb-7 mt-2"></div>
@@ -115,7 +115,7 @@ const NotificationModal = () => {
   }
 
   return (
-    <div className="w-[350px] max-w-lg body-theme rounded-lg border border-gray-200 shadow-lg transition-all duration-300 ease-in-out">
+    <div className="w-full sm:w-[350px] max-w-lg body-theme rounded-lg border border-gray-200 shadow-lg transition-all duration-300 ease-in-out">
       <div className="p-4 border-b border-gray-200 flex justify-between items-center">
         <h2 className="text-lg font-semibold">Notifications</h2>
         {unreadCount > 0 && (
@@ -124,7 +124,7 @@ const NotificationModal = () => {
           </span>
         )}
       </div>
-      <div className="max-h-[calc(100vh-160px)] overflow-y-auto scrollable-area">
+      <div className="max-h-[calc(100vh-140px)] sm:max-h-[calc(100vh-160px)] overflow-y-auto scrollable-area overscroll-contain">
         {notifications.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
             No notifications yet
@@ -156,21 +156,21 @@ const NotificationModal = () => {
                   />
                 )}
               </div>
-              <div className="flex flex-col">
-                <p className="text-sm">
+              <div className="flex flex-col flex-1 min-w-0">
+                <p className="text-sm truncate">
                   <span className="font-semibold">
                     {notification.receiver.first_name} {notification.receiver.last_name}
                   </span>{" "}
                 </p>
                 {notification.title && (
-                  <p className="text-sm text-purple-600  mt-1">
+                  <p className="text-sm text-purple-600  mt-1 break-words">
                     {notification.title}
                   </p>
                 )}
-                <p className="text-sm">
+                <p className="text-sm break-words">
                   {getNotificationMessage(notification)}
                 </p>
-                
+
                 <p className="text-xs text-gray-500 mt-1">
                   {moment(notification.created_at).fromNow()}
                 </p>

@@ -84,13 +84,13 @@ const Notifications = () => {
 
   return (
     <div className="body-theme">
-      <div className="flex p-1 gap-1 sticky top-0 z-10 body-theme w-[100p]">
+      <div className="flex p-1 gap-1 sticky top-0 z-10 body-theme w-full overflow-x-auto">
 
         <button
           onClick={() => setActiveTab('all')}
-          className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-            activeTab === 'all' 
-              ? 'bg-[#3EBF0F] text-white' 
+          className={`flex items-center flex-shrink-0 whitespace-nowrap px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            activeTab === 'all'
+              ? 'bg-[#3EBF0F] text-white'
               : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
           }`}
         >
@@ -103,10 +103,10 @@ const Notifications = () => {
             {getTabCount('all')}
           </span>
         </button>
-        
+
         <button
           onClick={() => setActiveTab('urgent')}
-          className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+          className={`flex items-center flex-shrink-0 whitespace-nowrap px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
             activeTab === 'urgent'
               ? 'bg-[#3EBF0F] text-white'
               : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -121,10 +121,10 @@ const Notifications = () => {
             {getTabCount('urgent')}
           </span>
         </button>
-        
+
         <button
           onClick={() => setActiveTab('escalated')}
-          className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+          className={`flex items-center flex-shrink-0 whitespace-nowrap px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
             activeTab === 'escalated'
               ? 'bg-[#3EBF0F] text-white'
               : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -157,42 +157,42 @@ const Notifications = () => {
               </div>
               
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium ">
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="text-sm font-medium truncate">
                     {ticket.user}
                   </h3>
-                  <span className="text-xs ">
+                  <span className="text-xs flex-shrink-0 whitespace-nowrap">
                     {ticket.time}
                   </span>
                 </div>
-                
-                <p className="mt-1 text-sm ">
+
+                <p className="mt-1 text-sm break-words">
                   {ticket.message}
                 </p>
-                
-                <div className="mt-3 flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
+
+                <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="flex items-center space-x-2 min-w-0">
                     {ticket.status === 'waiting' && (
                       <div className="flex items-center">
-                        <div className="w-1 h-4 bg-blue-500 rounded-full mr-2"></div>
+                        <div className="w-1 h-4 bg-blue-500 rounded-full mr-2 flex-shrink-0"></div>
                         <div className="flex items-center text-xs text-blue-600">
-                          <Bell className="w-3 h-3 mr-1" />
+                          <Bell className="w-3 h-3 mr-1 flex-shrink-0" />
                           Waiting for {ticket.waitingTime}
                         </div>
                       </div>
                     )}
                     {ticket.status === 'escalated' && (
                       <div className="flex items-center">
-                        <div className="w-1 h-4 bg-red-500 rounded-full mr-2"></div>
+                        <div className="w-1 h-4 bg-red-500 rounded-full mr-2 flex-shrink-0"></div>
                         <div className="flex items-center text-xs text-red-600">
-                          <AlertCircle className="w-3 h-3 mr-1" />
+                          <AlertCircle className="w-3 h-3 mr-1 flex-shrink-0" />
                           Escalated to supervisor
                         </div>
                       </div>
                     )}
                   </div>
-                  
-                  <button className="text-xs  hover:text-gray-600 flex items-center">
+
+                  <button className="text-xs hover:text-gray-600 flex items-center px-2 py-2 -mx-2 rounded-md self-start sm:self-auto">
                     <CircleCheckBig size={14} />
                     <span className='ms-1'>Mark as read</span>
                   </button>
