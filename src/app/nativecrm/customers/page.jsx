@@ -233,9 +233,9 @@ const CustomersContent = () => {
                                     </button>
                                     <button
                                         onClick={openModal}
-                                        className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm hover:bg-[#35a509] transition-colors"
+                                        className="whitespace-nowrap bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm hover:bg-[#35a509] transition-colors"
                                     >
-                                        New Customer
+                                        + New Customer
                                     </button>
                                 </div>
                             </div>
