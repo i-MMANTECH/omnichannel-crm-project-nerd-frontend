@@ -33,10 +33,6 @@ const LeadGrid = ({ leads, onConvertLead }) => {
       lead?.email,
       lead?.phone_number,
       lead?.unique_identifier,
-      lead?.whatsapp,
-      lead?.instagram,
-      lead?.facebook,
-      lead?.tiktok,
     ].filter(Boolean);
 
     for (const value of contactCandidates) {

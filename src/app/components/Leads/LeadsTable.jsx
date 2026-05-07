@@ -11,7 +11,7 @@ import { getRoleStyle } from "@/utils/getRoleStyle";
 import truncateText from "@/utils/truncateText";
 import "./style.css";
 
-const COLUMN_COUNT = 6;
+const COLUMN_COUNT = 5;
 
 const LeadsTable = ({
     leads = [],
@@ -37,10 +37,6 @@ const LeadsTable = ({
             lead?.email,
             lead?.phone_number,
             lead?.unique_identifier,
-            lead?.whatsapp,
-            lead?.instagram,
-            lead?.facebook,
-            lead?.tiktok
         ].filter(Boolean);
     };
 
@@ -114,7 +110,6 @@ const LeadsTable = ({
         phoneNumber: getPhoneValue(lead),
         channels: getChannels(lead),
         categories: Array.isArray(lead?.categories) ? lead.categories : [],
-        tags: Array.isArray(lead?.tags) ? lead.tags : []
     });
 
     const rows = useMemo(() => {
@@ -146,9 +141,6 @@ const LeadsTable = ({
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 Categories
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                Tags
                             </th>
                         </tr>
                     </thead>
@@ -239,26 +231,6 @@ const LeadsTable = ({
                                                 ))}
                                                 {lead.categories.length > 6 && (
                                                     <span className="text-xs font-bold">+{lead.categories.length - 6}</span>
-                                                )}
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                        {(!lead?.tags || lead.tags.length === 0) ? (
-                                            <span className="text-gray-400">—</span>
-                                        ) : (
-                                            <div className="flex flex-wrap gap-1">
-                                                {lead.tags.slice(0, 6).map((tag, idx) => (
-                                                    <span
-                                                        key={`${lead.id}-tag-${idx}`}
-                                                        className="px-2 py-0.5 text-xs rounded"
-                                                        style={getRoleStyle(tag)}
-                                                    >
-                                                        {tag}
-                                                    </span>
-                                                ))}
-                                                {lead.tags.length > 6 && (
-                                                    <span className="text-xs font-bold">+{lead.tags.length - 6}</span>
                                                 )}
                                             </div>
                                         )}

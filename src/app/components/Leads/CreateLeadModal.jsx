@@ -3,7 +3,6 @@ import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import Image from "next/image";
 import Select from "react-select";
-import CreatableSelect from "react-select/creatable";
 import { selectStyles } from "../selectStyles";
 import Modal from "../Modal";
 
@@ -12,35 +11,24 @@ const INITIAL_FORM = {
     last_name: "",
     phone_number: "",
     email: "",
-    instagram_url: "",
-    facebook_url: "",
-    tiktok_url: "",
-    tags: [],
     category: null,
     channel: null,
 };
 
-// Sensible defaults shown alongside any existing values from the backend so
-// users always have a starting point when their company hasn't yet seeded
-// custom tags or categories.
-const DEFAULT_TAG_SUGGESTIONS = [
-    "Hot Lead",
-    "Cold Lead",
-    "Qualified",
-    "Follow Up",
-    "VIP",
-    "Priority",
-    "New",
-    "Returning",
-];
-
-const DEFAULT_CATEGORY_SUGGESTIONS = [
-    "New Inquiry",
-    "Sales",
-    "Support",
+// Curated category list aligned with NativeTalk's customer engagement focus.
+// Backend categories are merged in alongside these (deduped by label) so any
+// company-specific values still appear.
+const DEFAULT_CATEGORY_OPTIONS = [
+    "New Customer",
+    "Sales Inquiry",
+    "Support Request",
+    "Complaint",
+    "Feedback",
     "Partnership",
-    "Referral",
-    "Marketing",
+    "Follow-up",
+    "VIP / High Priority",
+    "Abandoned Chat",
+    "Other",
 ];
 
 const dedupeByLabel = (items) => {
@@ -56,10 +44,10 @@ const dedupeByLabel = (items) => {
 function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessModalMessage }) {
     const { axiosInstance } = useApi();
     const { handleApiError } = useError();
-    const [tags, setTags] = useState([]);
     const [categories, setCategories] = useState([]);
     const [channels, setChannels] = useState([]);
     const [submitting, setSubmitting] = useState(false);
+    const [contactError, setContactError] = useState("");
 
     const [formData, setFormData] = useState(INITIAL_FORM);
     const [image, setImage] = useState(null);
@@ -73,12 +61,10 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
 
     const fetchSelectOptions = async () => {
         try {
-            const [tagsRes, catRes, channelsRes] = await Promise.all([
-                axiosInstance.get("/tags/"),
+            const [catRes, channelsRes] = await Promise.all([
                 axiosInstance.get("/customers/leads/categories/"),
                 axiosInstance.get("/channels/connected-channels/"),
             ]);
-            setTags(tagsRes.data.tags || []);
             setCategories(catRes.data.categories || []);
             setChannels(channelsRes.data.connected_channels || []);
         } catch (error) {
@@ -89,62 +75,14 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleTagChange = (selectedTags) => {
-        setFormData((prev) => ({
-            ...prev,
-            tags: selectedTags ? selectedTags.map((tag) => tag.value) : [],
-        }));
-    };
-
-    const handleCreateTag = (inputValue) => {
-        if (!inputValue.trim()) return;
-        const newTag = { name: inputValue };
-        setTags((prev) => [...prev, newTag]);
-        setFormData((prev) => ({ ...prev, tags: [...prev.tags, inputValue] }));
+        // Clear the contact-required error as soon as the user provides one.
+        if ((name === "email" || name === "phone_number") && contactError && value.trim()) {
+            setContactError("");
+        }
     };
 
     const handleCategoryChange = (selectedOption) => {
         setFormData((prev) => ({ ...prev, category: selectedOption }));
-    };
-
-    const handleCreateCategory = (inputValue) => {
-        const trimmed = (inputValue || "").trim();
-        if (!trimmed) return;
-        // Optimistically add to local options so it shows up immediately. The
-        // backend persist happens on submit (see ensureCategoryExists below).
-        const newOption = { value: trimmed, label: trimmed, __isNew: true };
-        setCategories((prev) => [...prev, { id: trimmed, name: trimmed, label: trimmed, __isNew: true }]);
-        setFormData((prev) => ({ ...prev, category: newOption }));
-    };
-
-    // Persist a category to the backend if it doesn't exist yet. Returns the
-    // canonical category name to send with the lead payload.
-    const ensureCategoryExists = async (selected) => {
-        if (!selected?.label) return null;
-        const knownByName = categories.find(
-            (c) => (c.name || "").toLowerCase() === selected.label.toLowerCase() && !c.__isNew
-        );
-        if (knownByName) return knownByName.name;
-
-        try {
-            const { data } = await axiosInstance.post("/customers/leads/categories/", {
-                name: selected.label,
-                label: selected.label,
-            });
-            const created = data?.category || data;
-            return created?.name || selected.label;
-        } catch (error) {
-            // If the category already exists on the backend (race / case mismatch),
-            // fall through and let the lead POST handle the lookup. Anything else
-            // surfaces to the user.
-            const status = error?.response?.status;
-            if (status === 400 || status === 409) {
-                return selected.label;
-            }
-            throw error;
-        }
     };
 
     const handleChannelChange = (selectedOption) => {
@@ -164,19 +102,30 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
         setFormData(INITIAL_FORM);
         setImage(null);
         setImagePreview(null);
+        setContactError("");
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (submitting) return;
 
-        // Channel is hard-required by the backend (raises 400 without it).
+        // Hard-required by the backend.
         if (!formData.channel?.value) {
             handleApiError({
-                response: {
-                    data: { channel: "Please select a channel for this lead." },
-                },
+                response: { data: { channel: "Please select a channel for this lead." } },
             });
+            return;
+        }
+        if (!formData.category?.label) {
+            handleApiError({
+                response: { data: { category: "Please select a category for this lead." } },
+            });
+            return;
+        }
+        // At-least-one-of-email-or-phone — leads without any contact path are
+        // not actionable.
+        if (!formData.email.trim() && !formData.phone_number.trim()) {
+            setContactError("Please provide either an email address or a phone number.");
             return;
         }
 
@@ -191,26 +140,15 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
             if (formData.last_name) formDataToSubmit.append("last_name", formData.last_name);
             if (formData.email) formDataToSubmit.append("email", formData.email);
             if (formData.phone_number) formDataToSubmit.append("phone_number", formData.phone_number);
-            if (formData.instagram_url) formDataToSubmit.append("instagram_url", formData.instagram_url);
-            if (formData.facebook_url) formDataToSubmit.append("facebook_url", formData.facebook_url);
-            if (formData.tiktok_url) formDataToSubmit.append("tiktok_url", formData.tiktok_url);
 
-            // Backend takes the channel ID (PrimaryKeyRelatedField).
+            // Channel = PrimaryKeyRelatedField (id).
             formDataToSubmit.append("channel", formData.channel.value);
 
-            // tags is a write-only ListField of strings.
-            (formData.tags || []).forEach((tag) => formDataToSubmit.append("tags", tag));
-
-            // categories is a SlugRelatedField on `name`, accepts a list of names.
-            // If the user picked a default suggestion or typed a new one that
-            // isn't yet in the company's CustomerCategory table, persist it
-            // first so the lead POST doesn't fail with does_not_exist.
-            if (formData.category?.label) {
-                const categoryName = await ensureCategoryExists(formData.category);
-                if (categoryName) {
-                    formDataToSubmit.append("categories", categoryName);
-                }
-            }
+            // Category = SafeSlugRelatedField on `name`. The backend expects
+            // an existing category — the seed migration in the matching
+            // backend ticket guarantees the 10 default categories exist per
+            // company, so no client-side create-on-the-fly is needed.
+            formDataToSubmit.append("categories", formData.category.label);
 
             if (image) {
                 formDataToSubmit.append("image", image);
@@ -278,6 +216,14 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
         label: c.name || c.channel_name || `Channel #${c.id}`,
     }));
 
+    const categoryOptions = dedupeByLabel([
+        ...DEFAULT_CATEGORY_OPTIONS.map((label) => ({ value: label, label })),
+        ...categories.map((cat) => ({
+            value: cat.id,
+            label: cat.label || cat.name,
+        })),
+    ]);
+
     const noChannels = channels.length === 0;
 
     const modalFooter = (
@@ -318,6 +264,21 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
             <form id="leadForm" className="grid grid-cols-2 gap-4" onSubmit={handleSubmit}>
                 {renderImageUpload()}
 
+                <div className="col-span-2">
+                    <label className="text-sm">Channel <span className="text-red-500">*</span></label>
+                    <Select
+                        name="channel"
+                        options={channelOptions}
+                        classNamePrefix="select"
+                        onChange={handleChannelChange}
+                        value={formData.channel}
+                        placeholder={noChannels ? "No connected channels" : "Select the channel this lead came from"}
+                        styles={selectStyles}
+                        isClearable
+                        isDisabled={noChannels}
+                    />
+                </div>
+
                 <div>
                     <label className="text-sm">First Name <span className="text-red-500">*</span></label>
                     <input
@@ -343,21 +304,6 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
                     />
                 </div>
 
-                <div className="col-span-2">
-                    <label className="text-sm">Channel <span className="text-red-500">*</span></label>
-                    <Select
-                        name="channel"
-                        options={channelOptions}
-                        classNamePrefix="select"
-                        onChange={handleChannelChange}
-                        value={formData.channel}
-                        placeholder={noChannels ? "No connected channels" : "Select the channel this lead came from"}
-                        styles={selectStyles}
-                        isClearable
-                        isDisabled={noChannels}
-                    />
-                </div>
-
                 <div>
                     <label className="text-sm">Phone Number</label>
                     <input
@@ -365,8 +311,8 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
                         name="phone_number"
                         value={formData.phone_number}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                        placeholder="8101790957"
+                        className={`w-full border rounded-md p-2 mt-2 ${contactError ? "border-red-400" : "border-gray-300"}`}
+                        placeholder="+234 801 234 5678"
                     />
                 </div>
 
@@ -377,81 +323,24 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2 mt-2"
+                        className={`w-full border rounded-md p-2 mt-2 ${contactError ? "border-red-400" : "border-gray-300"}`}
                         placeholder="johndoe@mail.com"
                     />
                 </div>
 
-                <div>
-                    <label className="text-sm">Instagram URL</label>
-                    <input
-                        type="url"
-                        name="instagram_url"
-                        value={formData.instagram_url}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                        placeholder="https://instagram.com/username"
-                    />
-                </div>
+                {contactError && (
+                    <p className="col-span-2 -mt-2 text-xs text-red-500">{contactError}</p>
+                )}
 
-                <div>
-                    <label className="text-sm">Facebook URL</label>
-                    <input
-                        type="url"
-                        name="facebook_url"
-                        value={formData.facebook_url}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                        placeholder="https://facebook.com/username"
-                    />
-                </div>
-
-                <div>
-                    <label className="text-sm">TikTok URL</label>
-                    <input
-                        type="url"
-                        name="tiktok_url"
-                        value={formData.tiktok_url}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                        placeholder="https://tiktok.com/@username"
-                    />
-                </div>
-
-                <div>
-                    <label className="text-sm">Tags</label>
-                    <CreatableSelect
-                        isMulti
-                        name="tags"
-                        options={dedupeByLabel([
-                            ...tags.map((tag) => ({ value: tag.name, label: tag.name })),
-                            ...DEFAULT_TAG_SUGGESTIONS.map((t) => ({ value: t, label: t })),
-                        ])}
-                        classNamePrefix="select"
-                        onChange={handleTagChange}
-                        onCreateOption={handleCreateTag}
-                        value={formData.tags.map((tag) => ({ value: tag, label: tag }))}
-                        placeholder="Select or create tags"
-                        styles={selectStyles}
-                    />
-                </div>
-
-                <div>
-                    <label className="text-sm">Category</label>
-                    <CreatableSelect
+                <div className="col-span-2">
+                    <label className="text-sm">Category <span className="text-red-500">*</span></label>
+                    <Select
                         name="category"
-                        options={dedupeByLabel([
-                            ...categories.map((cat) => ({
-                                value: cat.id,
-                                label: cat.label || cat.name,
-                            })),
-                            ...DEFAULT_CATEGORY_SUGGESTIONS.map((c) => ({ value: c, label: c })),
-                        ])}
+                        options={categoryOptions}
                         classNamePrefix="select"
                         onChange={handleCategoryChange}
-                        onCreateOption={handleCreateCategory}
                         value={formData.category}
-                        placeholder="Select or create a category"
+                        placeholder="Select a category"
                         styles={selectStyles}
                         isClearable
                     />
