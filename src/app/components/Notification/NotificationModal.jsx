@@ -84,7 +84,8 @@ const NotificationModal = () => {
         params.set('taskId', notification.metadata.task_id);
         navigateTo(`tasks?${params.toString()}`);
       } else if (notification.notification_type === 'follow_up' && notification.metadata?.conversation_id) {
-        navigateTo(`messages?chat=active&id=${notification.metadata.conversation_id}`);
+        const tab = notification.metadata.conversation_type || 'leads';
+        navigateTo(`messages?chat=${tab}&id=${notification.metadata.conversation_id}`);
       }
     } catch (error) {
       handleApiError(error);
