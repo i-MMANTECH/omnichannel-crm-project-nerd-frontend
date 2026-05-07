@@ -121,6 +121,9 @@ const CustomersContent = () => {
 
             params.set("page", currentPage.toString());
             params.set("page_size", pageSize.toString());
+            // Newest-first across pagination. Backend supports DRF OrderingFilter;
+            // the client-side sort below is a defense-in-depth fallback.
+            params.set("ordering", "-created_at");
 
             if (debouncedSearch) {
                 params.set("search", debouncedSearch);
@@ -134,7 +137,15 @@ const CustomersContent = () => {
                 `/customers/?${params.toString()}`
             );
 
-            setCustomers(data.results || []);
+            const results = data.results || [];
+            const sorted = [...results].sort((a, b) => {
+                const aTime = a?.created_at ? new Date(a.created_at).getTime() : 0;
+                const bTime = b?.created_at ? new Date(b.created_at).getTime() : 0;
+                if (bTime !== aTime) return bTime - aTime;
+                return (b?.id || 0) - (a?.id || 0);
+            });
+
+            setCustomers(sorted);
             setTotalPages(Math.ceil(data.count / pageSize));
         } catch (error) {
             handleApiError(error);
