@@ -309,22 +309,13 @@ export default function CustomerDetails() {
                     </div>
                   </div>
 
-                  <div className="flex flex-row items-center justify-between mt-2 ">
-                    <p className="flex-1">Tags</p>
-                    {customer?.tags?.length <= 0 && (
-                      <p className="customer-left-name font-bold mr-1">--</p>
-                    )}
-                    <div className="flex flex-wrap gap-1 max-w-[250px]  text-sm ">
-                      {customer?.tags?.map((tag, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 ml-1 rounded whitespace-nowrap"
-                          style={getRoleStyle(tag)}
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-left">Account Manager</p>
+                    <p className="customer-left-name font-bold">
+                      {customer?.account_manager
+                        ? (`${customer.account_manager.first_name || ""} ${customer.account_manager.last_name || ""}`.trim() || customer.account_manager.email || "--")
+                        : "--"}
+                    </p>
                   </div>
 
                   {/* ✅ APPLY MASKING TO EMAIL */}

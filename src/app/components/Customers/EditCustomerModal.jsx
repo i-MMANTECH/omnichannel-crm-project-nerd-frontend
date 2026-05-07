@@ -13,7 +13,6 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
     const { axiosInstance } = useApi();
     const { handleApiError } = useError();
     const searchParams = useSearchParams();
-    const [tags, setTags] = useState([]);
     const [categories, setCategories] = useState([]);
     const canViewContactInfo = useCanViewContactInfo();  // ✅ ADD THIS
 
@@ -31,7 +30,6 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
         facebook: "",
         whatsapp: "",
         tiktok: "",
-        tag: [],
         country: { id: 160, name: "Nigeria" },
         state: {},
         category: null,
@@ -47,11 +45,7 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
 
     const fetchCategories = async () => {
         try {
-            const [tagsRes, catRes] = await Promise.all([
-                axiosInstance.get("/tags/"),
-                axiosInstance.get("/customers/categories/")
-            ]);
-            setTags(tagsRes.data.tags || []);
+            const catRes = await axiosInstance.get("/customers/categories/");
             setCategories(catRes.data.categories || []);
         } catch (error) {
             handleApiError(error);
@@ -83,13 +77,6 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
         }
     };
 
-    const handleTagChange = (selectedTags) => {
-        setFormData(prev => ({ 
-            ...prev, 
-            tags: selectedTags ? selectedTags.map(t => ({ id: t.value, name: t.label })) : [] 
-        }));
-    };
-
     const fetchCustomerData = async () => {
         try {
             const response = await axiosInstance.get(`/customers/${customerId}/`);
@@ -106,7 +93,6 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
                 facebook: customer.facebook || "",
                 whatsapp: customer.whatsapp || "",
                 tiktok: customer.tiktok || "",
-                tags: customer.tags || [],
                 country: customer.country || { id: 160, name: "Nigeria" },
                 state: customer.state || {},
                 category: customer.category || null,
@@ -123,7 +109,6 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
         try {
             const submissionData = {
                 ...formData,
-                tags: formData?.tags?.map(tag => tag.id),
                 categories: formData.category ? [formData.category.label || formData.category.name] : undefined,
                 country: formData.country?.id,
                 state: formData.state?.id
@@ -377,24 +362,6 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
                         onChange={handleChange}
                         className="w-full border border-gray-300 rounded-md p-2 mt-2"
                         placeholder="TikTok handle"
-                    />
-                </div>
-
-                {/* Multiselect Tags */}
-                <div>
-                    <label className="text-sm">Tags</label>
-                    <Select
-                        isMulti
-                        name="tags"
-                        options={tags?.map(tag => ({
-                            value: tag.id,
-                            label: tag.name || tag.label
-                        }))}
-                        classNamePrefix="select"
-                        onChange={handleTagChange}
-                        value={formData?.tags?.map(t => ({ value: t.id, label: t.name || t.label }))}
-                        placeholder="Select tags"
-                        styles={selectStyles}
                     />
                 </div>
 
