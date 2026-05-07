@@ -5,10 +5,10 @@ import NoDataFound from "@/app/components/NoDataFound";
 import empty from "@/public/assets/empty.svg";
 import { useCanViewContactInfo } from "@/hooks/useCanViewContactInfo";
 import { maskPhoneNumber, maskEmail } from "@/utils/maskContactInfo";
-import UserAvatar from "@/app/components/UserAvatar";
-import Image from "next/image";
 import { getRoleStyle } from "@/utils/getRoleStyle";
+import { getChannelIcon } from "@/utils/getChannelIcon";
 import truncateText from "@/utils/truncateText";
+import LeadAvatar from "@/app/components/Leads/LeadAvatar";
 import "./style.css";
 
 const COLUMN_COUNT = 5;
@@ -87,20 +87,6 @@ const LeadsTable = ({
         return [];
     };
 
-    const getChannelIcon = (channel) => {
-        const normalized = String(channel || "").toLowerCase();
-        if (normalized.includes("whatsapp")) {
-            return "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg";
-        }
-        if (normalized.includes("facebook")) {
-            return "https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg";
-        }
-        if (normalized.includes("instagram")) {
-            return "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png";
-        }
-        return "https://via.placeholder.com/24/000000/FFFFFF?text=?";
-    };
-
     const mapLeadToRow = (lead, index) => ({
         id: lead?.id || lead?.unique_identifier || `lead-${index}`,
         image: lead?.image || null,
@@ -170,17 +156,7 @@ const LeadsTable = ({
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                         <div className="flex items-center gap-3">
-                                            {lead?.image ? (
-                                                <Image
-                                                    alt="profile pic"
-                                                    width={32}
-                                                    height={32}
-                                                    className="w-8 h-8 rounded-full"
-                                                    src={lead.image}
-                                                />
-                                            ) : (
-                                                <UserAvatar name={lead.fullName} width="w-8" height="h-8" />
-                                            )}
+                                            <LeadAvatar image={lead.image} name={lead.fullName} />
                                             <span>{lead.fullName || "--"}</span>
                                         </div>
                                     </td>

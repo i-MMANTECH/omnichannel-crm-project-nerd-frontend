@@ -3,10 +3,11 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
-import UserAvatar from '../UserAvatar';
 import Image from 'next/image';
+import LeadAvatar from './LeadAvatar';
 import { useCanViewContactInfo } from '@/hooks/useCanViewContactInfo';
 import { maskPhoneNumber, maskEmail } from '@/utils/maskContactInfo';
+import { getChannelIcon } from '@/utils/getChannelIcon';
 
 const LeadGrid = ({ leads, onConvertLead }) => {
   const canViewContactInfo = useCanViewContactInfo();
@@ -66,21 +67,12 @@ const LeadGrid = ({ leads, onConvertLead }) => {
           <div key={leadId} className="bg-theme border rounded-lg relative overflow-visible">
             <div className='flex justify-between items-center p-3 border-b'>
               <div className='flex items-center space-x-3'>
-                {lead?.image ? (
-                  <Image
-                    alt="profile pic"
-                    width={40}
-                    height={40}
-                    className="w-10 h-10 rounded-full object-cover"
-                    src={lead.image}
-                  />
-                ) : (
-                  <UserAvatar
-                    name={formatName(lead)}
-                    width="w-10"
-                    height="h-10"
-                  />
-                )}
+                <LeadAvatar
+                  image={lead?.image}
+                  name={formatName(lead)}
+                  widthClass="w-10"
+                  heightClass="h-10"
+                />
                 <h3 className="text-lg font-semibold truncate max-w-[150px]">{formatName(lead)}</h3>
               </div>
               
@@ -119,7 +111,13 @@ const LeadGrid = ({ leads, onConvertLead }) => {
                 </div>
                 
                 <div className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-radio"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/></svg>
+                  <Image
+                    src={getChannelIcon(lead?.channel)}
+                    alt=""
+                    width={18}
+                    height={18}
+                    className="rounded-full"
+                  />
                   <span>{formatChannel(lead)}</span>
                 </div>
               </div>
