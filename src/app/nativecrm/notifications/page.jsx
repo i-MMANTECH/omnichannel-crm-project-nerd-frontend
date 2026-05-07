@@ -13,7 +13,7 @@ const Page = () => {
     }, []);
 
     return (
-        <div className="h-screen flex flex-row px-10 m-10">
+        <div className="h-screen flex flex-row px-3 sm:px-6 lg:px-10 m-3 sm:m-6 lg:m-10">
             <div className="flex-1 overflow-y-auto">
                 <Notifications />
             </div>
