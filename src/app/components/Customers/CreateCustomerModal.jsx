@@ -12,7 +12,6 @@ import CreatableSelect from "react-select/creatable";
 function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
     const { axiosInstance } = useApi();
     const { handleApiError } = useError();
-    const [tags, setTags] = useState([]);
     const [categories, setCategories] = useState([]);
 
     const [formData, setFormData] = useState({
@@ -26,10 +25,9 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
         facebook: "",
         whatsapp: "",
         tiktok: "",
-        tags: [],
         country: { id: 160, name: "Nigeria" },
         state: {},
-        category: null,
+        categories: [],
     });
 
     const [image, setImage] = useState(null);
@@ -37,40 +35,17 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
 
     useEffect(() => {
         if (isOpen) {
-            fetchTags();
+            fetchCategories();
         }
     }, [isOpen]);
 
-    const fetchTags = async () => {
+    const fetchCategories = async () => {
         try {
-            const [tagsRes, catRes] = await Promise.all([
-                axiosInstance.get("/tags/"),
-                axiosInstance.get("/customers/categories/")
-            ]);
-            setTags(tagsRes.data.tags || []);
+            const catRes = await axiosInstance.get("/customers/categories/");
             setCategories(catRes.data.categories || []);
         } catch (error) {
             handleApiError(error);
         }
-    };
-
-    const handleTagChange = (selectedTags) => {
-        setFormData(prev => ({
-            ...prev,
-            tags: selectedTags.map(tag => tag.value)
-        }));
-    };
-
-    const handleCreateTag = (inputValue) => {
-        if (!inputValue.trim()) return;
-
-        const newTag = { value: inputValue, label: inputValue };
-
-        setTags(prevTags => [...prevTags, newTag]);
-        setFormData(prev => ({
-            ...prev,
-            tags: [...prev.tags, inputValue]
-        }));
     };
 
     const handleChange = (e) => {
@@ -146,12 +121,10 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
         try {
             const submissionData = {
                 ...formData,
-                tags: formData.tags, // Send raw tag names, not IDs
-                categories: formData.category?.label ? [formData.category.label] : undefined,
+                categories: formData.categories.map((c) => c.value),
                 country: formData.country?.id,
                 state: formData.state?.id,
             };
-            delete submissionData.category;
 
             const formDataToSubmit = new FormData();
             Object.keys(submissionData).forEach((key) => {
@@ -189,8 +162,7 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
                     facebook: "",
                     whatsapp: "",
                     tiktok: "",
-                    tags: [],
-                    category: null,
+                    categories: [],
                     country: { id: 160, name: "Nigeria" },
                     state: {},
                 });
@@ -398,37 +370,21 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
                     />
                 </div>
                 <div>
-                    <label className="text-sm">Tags</label>
+                    <label className="text-sm">Categories</label>
                     <CreatableSelect
                         isMulti
-                        name="tags"
-                        options={tags.map((tag) => ({
-                            value: tag.name,
-                            label: tag.name,
+                        name="categories"
+                        options={categories.map((cat) => ({
+                            value: cat.name,
+                            label: cat.label || cat.name,
                         }))}
                         classNamePrefix="select"
-                        onChange={handleTagChange}
-                        onCreateOption={handleCreateTag}
-                        value={formData.tags.map(tag => ({ value: tag, label: tag }))}
-                        placeholder="Select or create tags"
+                        onChange={(selected) =>
+                            setFormData((prev) => ({ ...prev, categories: selected || [] }))
+                        }
+                        value={formData.categories}
+                        placeholder="Select or create categories"
                         styles={selectStyles}
-                    />
-                </div>
-
-                <div>
-                    <label className="text-sm">Category</label>
-                    <Select
-                        name="category"
-                        options={categories.map(cat => ({ 
-                            value: cat.id, 
-                            label: cat.label || cat.name 
-                        }))}
-                        classNamePrefix="select"
-                        onChange={(selectedOption) => setFormData(prev => ({ ...prev, category: selectedOption }))}
-                        value={formData.category}
-                        placeholder="Select category"
-                        styles={selectStyles}
-                        isClearable
                     />
                 </div>
 

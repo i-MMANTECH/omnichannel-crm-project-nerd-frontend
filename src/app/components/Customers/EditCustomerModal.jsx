@@ -3,6 +3,7 @@ import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import Image from "next/image";
 import Select from 'react-select';
+import CreatableSelect from 'react-select/creatable';
 import { selectStyles } from "../selectStyles";
 import Modal from "../Modal";
 import { useSearchParams } from "next/navigation";
@@ -13,7 +14,6 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
     const { axiosInstance } = useApi();
     const { handleApiError } = useError();
     const searchParams = useSearchParams();
-    const [tags, setTags] = useState([]);
     const [categories, setCategories] = useState([]);
     const canViewContactInfo = useCanViewContactInfo();  // ✅ ADD THIS
 
@@ -31,28 +31,51 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
         facebook: "",
         whatsapp: "",
         tiktok: "",
-        tag: [],
         country: { id: 160, name: "Nigeria" },
         state: {},
-        category: null,
+        categories: [],
     });
 
     useEffect(() => {
-        console.log('customer id is', customerId)
         if (isOpen && customerId) {
-            fetchCustomerData();
-            fetchCategories();
+            fetchData();
         }
     }, [isOpen, customerId]);
 
-    const fetchCategories = async () => {
+    const fetchData = async () => {
         try {
-            const [tagsRes, catRes] = await Promise.all([
-                axiosInstance.get("/tags/"),
-                axiosInstance.get("/customers/categories/")
+            const [catRes, customerRes] = await Promise.all([
+                axiosInstance.get("/customers/categories/"),
+                axiosInstance.get(`/customers/${customerId}/`),
             ]);
-            setTags(tagsRes.data.tags || []);
-            setCategories(catRes.data.categories || []);
+
+            const fetchedCategories = catRes.data.categories || [];
+            const customer = customerRes.data.customer;
+
+            setCategories(fetchedCategories);
+
+            setFormData({
+                username: customer.username || "",
+                first_name: customer.first_name || "",
+                last_name: customer.last_name || "",
+                gender: customer.gender || "",
+                phone_number: customer.phone_number || "",
+                email: customer.email || "",
+                instagram: customer.instagram || "",
+                facebook: customer.facebook || "",
+                whatsapp: customer.whatsapp || "",
+                tiktok: customer.tiktok || "",
+                country: customer.country || { id: 160, name: "Nigeria" },
+                state: customer.state || {},
+                categories: (customer.categories || []).map((name) => {
+                    const match = fetchedCategories.find((c) => c.name === name);
+                    return match
+                        ? { value: match.name, label: match.label || match.name }
+                        : { value: name, label: name };
+                }),
+            });
+
+            setImagePreview(customer.image || null);
         } catch (error) {
             handleApiError(error);
         }
@@ -83,52 +106,15 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
         }
     };
 
-    const handleTagChange = (selectedTags) => {
-        setFormData(prev => ({ 
-            ...prev, 
-            tags: selectedTags ? selectedTags.map(t => ({ id: t.value, name: t.label })) : [] 
-        }));
-    };
-
-    const fetchCustomerData = async () => {
-        try {
-            const response = await axiosInstance.get(`/customers/${customerId}/`);
-            const customer = response.data.customer;
-
-            setFormData({
-                username: customer.username || "",
-                first_name: customer.first_name || "",
-                last_name: customer.last_name || "",
-                gender: customer.gender || "",
-                phone_number: customer.phone_number || "",
-                email: customer.email || "",
-                instagram: customer.instagram || "",
-                facebook: customer.facebook || "",
-                whatsapp: customer.whatsapp || "",
-                tiktok: customer.tiktok || "",
-                tags: customer.tags || [],
-                country: customer.country || { id: 160, name: "Nigeria" },
-                state: customer.state || {},
-                category: customer.category || null,
-            });
-
-            setImagePreview(customer.image || null);
-        } catch (error) {
-            handleApiError(error);
-        }
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             const submissionData = {
                 ...formData,
-                tags: formData?.tags?.map(tag => tag.id),
-                categories: formData.category ? [formData.category.label || formData.category.name] : undefined,
+                categories: formData.categories.map((c) => c.value),
                 country: formData.country?.id,
                 state: formData.state?.id
             };
-            delete submissionData.category;
 
             const formDataToSubmit = new FormData();
             Object.keys(submissionData).forEach(key => {
@@ -380,44 +366,22 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
                     />
                 </div>
 
-                {/* Multiselect Tags */}
                 <div>
-                    <label className="text-sm">Tags</label>
-                    <Select
+                    <label className="text-sm">Categories</label>
+                    <CreatableSelect
                         isMulti
-                        name="tags"
-                        options={tags?.map(tag => ({
-                            value: tag.id,
-                            label: tag.name || tag.label
+                        name="categories"
+                        options={categories.map((cat) => ({
+                            value: cat.name,
+                            label: cat.label || cat.name,
                         }))}
                         classNamePrefix="select"
-                        onChange={handleTagChange}
-                        value={formData?.tags?.map(t => ({ value: t.id, label: t.name || t.label }))}
-                        placeholder="Select tags"
+                        onChange={(selected) =>
+                            setFormData((prev) => ({ ...prev, categories: selected || [] }))
+                        }
+                        value={formData.categories}
+                        placeholder="Select or create categories"
                         styles={selectStyles}
-                    />
-                </div>
-
-                <div>
-                    <label className="text-sm">Category</label>
-                    <Select
-                        name="category"
-                        options={categories.map(cat => ({ 
-                            value: cat.id, 
-                            label: cat.label || cat.name 
-                        }))}
-                        classNamePrefix="select"
-                        onChange={(selectedOption) => setFormData(prev => ({ 
-                            ...prev, 
-                            category: selectedOption ? { id: selectedOption.value, label: selectedOption.label } : null 
-                        }))}
-                        value={formData.category ? { 
-                            value: formData.category.id, 
-                            label: formData.category.label || formData.category.name 
-                        } : null}
-                        placeholder="Select category"
-                        styles={selectStyles}
-                        isClearable
                     />
                 </div>
             </form>
