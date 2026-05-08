@@ -8,6 +8,7 @@ import { Upload } from "lucide-react";
 import Pagination from "@/app/components/Pagination/Pagination";
 import LeadToCustomer from "@/app/components/Message/LeadToCustomer";
 import ImportLeadsModal from "@/app/components/admin/Leads/ImportLeadsModal";
+import CreateLeadModal from "@/app/components/Leads/CreateLeadModal";
 import SuccessModal from "@/app/components/SuccessModal";
 import LeadsTable from "@/app/components/Leads/LeadsTable";  // ✅ IMPORT SHARED COMPONENT
 import { useApi } from "@/services/axiosConfig";
@@ -33,6 +34,7 @@ const LeadsContent = () => {
   const [successModalMessage, setSuccessModalMessage] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isCreateLeadModalOpen, setIsCreateLeadModalOpen] = useState(false);
 
   useEffect(() => {
     const page = Number(searchParams.get("page")) || 1;
@@ -113,14 +115,14 @@ const LeadsContent = () => {
   };
 
   return (
-    <div className="overflow-x-hidden flex flex-row body-theme min-h-[83vh] px-4 sm:px-6 lg:pl-10 lg:pr-0">
-      <div className="relative body-theme flex-1 flex flex-col min-w-0">
+    <div className="overflow-x-hidden flex flex-row body-theme min-h-[83vh] pl-10">
+      <div className="relative body-theme flex-1 flex flex-col">
 
         {/* Search and Import Section */}
-        <div className="w-full mb-6">
-          <div className="flex items-center justify-between gap-3">
-            <form onSubmit={handleSearchSubmit} className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="relative w-full sm:w-2/3 md:w-1/2 lg:w-1/4">
+        <div className="w-[100%] max-w-[1200px] sm:max-w-full mx-auto mb-6">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <form onSubmit={handleSearchSubmit} className="flex items-center gap-3">
+              <div className="relative w-72 max-w-full">
                 <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   className="w-full pl-10 body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-lg px-3 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow dark:text-slate-200"
@@ -130,20 +132,28 @@ const LeadsContent = () => {
                 />
               </div>
             </form>
-            <button
-              type="button"
-              onClick={() => setIsImportModalOpen(true)}
-              aria-label="Import leads"
-              className="flex items-center justify-center border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 p-2 sm:px-4 sm:py-2 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors min-w-[44px] min-h-[40px] flex-shrink-0"
-            >
-              <Upload size={16} className="sm:mr-2" />
-              <span className="hidden sm:inline">Import</span>
-            </button>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsImportModalOpen(true)}
+                className="flex items-center whitespace-nowrap border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <Upload size={16} className="mr-2" />
+                Import
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsCreateLeadModalOpen(true)}
+                className="whitespace-nowrap bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm hover:bg-[#35a509] transition-colors"
+              >
+                + New Lead
+              </button>
+            </div>
           </div>
         </div>
 
         {/* ✅ SHARED TABLE COMPONENT */}
-        <div className="w-full">
+        <div className="w-[100%] max-w-[1200px] sm:max-w-full mx-auto">
           <LeadsTable
             leads={leads}
             loading={loading}
@@ -155,7 +165,7 @@ const LeadsContent = () => {
         </div>
 
         {/* Pagination */}
-        <div className="mt-8 w-full">
+        <div className="mt-8 w-[100%] max-w-[1200px] sm:max-w-full mx-auto">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -181,6 +191,13 @@ const LeadsContent = () => {
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onSuccess={handleImportSuccess}
+      />
+
+      <CreateLeadModal
+        isOpen={isCreateLeadModalOpen}
+        onClose={() => setIsCreateLeadModalOpen(false)}
+        setIsSuccessModalOpen={setIsSuccessModalOpen}
+        setSuccessModalMessage={setSuccessModalMessage}
       />
 
       <SuccessModal
