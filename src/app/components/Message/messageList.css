@@ -132,7 +132,7 @@
 .ai-typing-indicator span {
   width: 8px;
   height: 8px;
-  background: var(--greyscale-500);
+  background: var(--primary100-base);
   border-radius: 50%;
   animation: ai-bounce 1.2s infinite;
   opacity: 0.4;

@@ -960,8 +960,8 @@ const MessageList = ({
 
       {aiTypingConversationId && currentConversationId &&
         String(aiTypingConversationId) === String(currentConversationId) && (
-          <div className="chat chat-left">
-            <div className="bubble-chat bubble-chat-other">
+          <div className="chat chat-right">
+            <div className="bubble-chat bubble-chat-user">
               <span className="ai-typing-indicator">
                 <span></span><span></span><span></span>
               </span>
