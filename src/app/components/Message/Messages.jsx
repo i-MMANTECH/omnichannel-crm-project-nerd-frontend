@@ -221,6 +221,7 @@ export const MessagesContent = () => {
 	const [loading, setLoading] = useState(true);
 	const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 	const [chatResponse, setChatResponse] = useState();
+	const [aiTypingConversationId, setAiTypingConversationId] = useState(null);
 
 	const [chatType, setChatType] = useState(searchParams.get("chat") || "leads");
 	const chatId = searchParams.get("id");
@@ -558,6 +559,17 @@ export const MessagesContent = () => {
 		(data) => {
 			// ✅ your existing handler body 그대로
 			// console.log("📬 Processing WebSocket data:", { type: data.type });
+
+			if (data.type === "ai_typing") {
+				if (data.is_typing) {
+					setAiTypingConversationId(data.conversation_id);
+				} else {
+					setAiTypingConversationId((prev) =>
+						String(prev) === String(data.conversation_id) ? null : prev
+					);
+				}
+				return;
+			}
 
 			if (data.type === "message_status") {
 				const updatedMessage = data.message;
@@ -1992,6 +2004,8 @@ export const MessagesContent = () => {
 									chatType={chatType}
 									currentUserId={userProfile?.id}
 									onRetryFailedMessage={handleRetryFailedMessage}
+									aiTypingConversationId={aiTypingConversationId}
+									currentConversationId={chatResponse?.conversation_id}
 								/>
 
 								{/* Ticket Panel */}

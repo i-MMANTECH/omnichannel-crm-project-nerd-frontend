@@ -62,7 +62,9 @@ const MessageList = ({
   next,
   chatType,
   currentUserId,
-  onRetryFailedMessage
+  onRetryFailedMessage,
+  aiTypingConversationId,
+  currentConversationId,
 }) => {
   const messageEndRef = useRef(null);
   const listRef = useRef(null);
@@ -955,6 +957,17 @@ const MessageList = ({
           </React.Fragment>
         );
       })}
+
+      {aiTypingConversationId && currentConversationId &&
+        String(aiTypingConversationId) === String(currentConversationId) && (
+          <div className="chat chat-left">
+            <div className="bubble-chat bubble-chat-other">
+              <span className="ai-typing-indicator">
+                <span></span><span></span><span></span>
+              </span>
+            </div>
+          </div>
+        )}
 
       <div ref={messageEndRef} />
 
