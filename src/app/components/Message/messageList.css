@@ -103,3 +103,21 @@
   max-width: 100%;
   height: auto;
 }
+
+.pay-now-btn {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 6px 16px;
+  background: #16a34a;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.pay-now-btn:hover {
+  background: #15803d;
+  color: #fff;
+}

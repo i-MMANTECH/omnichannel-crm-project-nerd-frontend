@@ -404,10 +404,32 @@ const MessageList = ({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [selectedImage, selectedVideo]);
 
+  const PAYSTACK_URL_RE = /https:\/\/(?:checkout\.paystack\.com|paystack\.com\/pay)\/\S+/;
+
   function renderMessageContent(msg) {
     const isEmail = isEmailMessage(msg);
     const contentHasHtml = containsHtml(msg.content);
     const contentType = msg.content_type || "text"; // ✅ fallback for internal messages
+
+    // Detect Paystack payment URL — render "Pay Now" button instead of raw URL
+    const paystackMatch = !contentHasHtml && !isEmail && (msg.content || "").match(PAYSTACK_URL_RE);
+    if (paystackMatch) {
+      const url = paystackMatch[0];
+      const textPart = msg.content.slice(0, paystackMatch.index).trim();
+      return (
+        <div style={{ whiteSpace: "pre-wrap", marginTop: getMessageAttachments(msg).length ? "8px" : "0" }}>
+          {textPart && <div>{textPart}</div>}
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="pay-now-btn"
+          >
+            Pay Now →
+          </a>
+        </div>
+      );
+    }
 
     if (contentType === "html") {
       return (
