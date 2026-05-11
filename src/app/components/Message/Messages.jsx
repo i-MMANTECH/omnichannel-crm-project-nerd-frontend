@@ -1876,7 +1876,7 @@ export const MessagesContent = () => {
 								<path d="M7.99984 2.66683C5.05432 2.66683 2.6665 5.05464 2.6665 8.00016C2.6665 9.97425 3.73903 11.6978 5.33317 12.62M7.99984 2.66683L6.6665 1.3335M7.99984 2.66683L6.99984 4.3335M7.99984 13.3335C10.9454 13.3335 13.3332 10.9457 13.3332 8.00016C13.3332 6.02608 12.2606 4.30249 10.6665 3.38033M7.99984 13.3335L9.33317 14.6668M7.99984 13.3335L8.99984 11.6668" stroke="#3EBF0F" strokeLinecap="round" strokeLinejoin="round" />
 							</svg>
 						</div>
-						<div className="flex gap-3 w-full overflow-x-auto -mx-1 px-1">
+						<div className="flex gap-3 w-full overflow-x-auto -mx-1 px-1 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
 							<div className="tab-atom relative flex-shrink-0">
 								<div className={`px-3 pb-1 whitespace-nowrap ${chatType === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>
 									Leads
