@@ -7,32 +7,6 @@ import Select from "react-select";
 import { selectStyles } from "../selectStyles";
 import Modal from "../Modal";
 
-// Curated category list aligned with NativeTalk's customer engagement focus.
-// Backend categories are merged in alongside these (deduped by label) so any
-// company-specific values still appear.
-const DEFAULT_CATEGORY_OPTIONS = [
-    "New Customer",
-    "Sales Inquiry",
-    "Support Request",
-    "Complaint",
-    "Feedback",
-    "Partnership",
-    "Follow-up",
-    "VIP / High Priority",
-    "Abandoned Chat",
-    "Other",
-];
-
-const dedupeByLabel = (items) => {
-    const seen = new Set();
-    return items.filter((item) => {
-        const key = (item.label || "").toLowerCase();
-        if (!key || seen.has(key)) return false;
-        seen.add(key);
-        return true;
-    });
-};
-
 const buildAccountManagerLabel = (user) => {
     const fullName = `${user?.first_name || ""} ${user?.last_name || ""}`.trim();
     return fullName ? `${fullName} (${user.email})` : user?.email || `User #${user?.id}`;
@@ -51,7 +25,7 @@ const INITIAL_FORM = {
     tiktok: "",
     country: { id: 160, name: "Nigeria" },
     state: {},
-    category: null,
+    categories: [],
     account_manager: null,
 };
 
@@ -66,6 +40,11 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
     const [formData, setFormData] = useState(INITIAL_FORM);
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
+    // Field-level errors surfaced from duplicate-customer 400 responses.
+    // Keys must match input `name` attributes so handleChange can clear them.
+    const [fieldErrors, setFieldErrors] = useState({ email: "", phone_number: "" });
+    // Top-of-modal banner reserved for the race-condition envelope shape.
+    const [duplicateBanner, setDuplicateBanner] = useState("");
 
     useEffect(() => {
         if (isOpen) {
@@ -103,14 +82,22 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+        // Clear an inline duplicate-field error as soon as the offending
+        // input is edited — standard "validation re-runs on change".
+        if (fieldErrors[name]) {
+            setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+        }
+        if ((name === "email" || name === "phone_number") && duplicateBanner) {
+            setDuplicateBanner("");
+        }
     };
 
     const handleGenderChange = (selectedOption) => {
         setFormData({ ...formData, gender: selectedOption ? selectedOption.value : "" });
     };
 
-    const handleCategoryChange = (selectedOption) => {
-        setFormData((prev) => ({ ...prev, category: selectedOption }));
+    const handleCategoryChange = (selectedOptions) => {
+        setFormData((prev) => ({ ...prev, categories: selectedOptions || [] }));
     };
 
     const handleAccountManagerChange = (selectedOption) => {
@@ -130,15 +117,47 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
         setFormData(INITIAL_FORM);
         setImage(null);
         setImagePreview(null);
+        setFieldErrors({ email: "", phone_number: "" });
+        setDuplicateBanner("");
+    };
+
+    // DRF returns field errors as either string or string[]; normalize.
+    const pickFieldMessage = (value) => {
+        if (typeof value === "string") return value.trim();
+        if (Array.isArray(value) && typeof value[0] === "string") return value[0].trim();
+        return "";
+    };
+
+    // Returns true when the error matched one of the duplicate-customer shapes
+    // and was rendered inline / as a banner. Otherwise the caller falls back
+    // to the generic toast handler.
+    const handleDuplicateCustomerError = (error) => {
+        if (error?.response?.status !== 400) return false;
+        const data = error?.response?.data;
+        if (!data || typeof data !== "object") return false;
+
+        const emailMsg = pickFieldMessage(data.email);
+        const phoneMsg = pickFieldMessage(data.phone_number);
+        const bannerMsg = pickFieldMessage(data.error);
+
+        if (!emailMsg && !phoneMsg && !bannerMsg) return false;
+
+        setFieldErrors({ email: emailMsg, phone_number: phoneMsg });
+        setDuplicateBanner(bannerMsg);
+        return true;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (submitting) return;
+        // Clear stale duplicate-error state before re-validating, otherwise a
+        // successful resubmit briefly flashes the previous error.
+        setFieldErrors({ email: "", phone_number: "" });
+        setDuplicateBanner("");
 
-        if (!formData.category?.label) {
+        if (!formData.categories || formData.categories.length === 0) {
             handleApiError({
-                response: { data: { category: "Please select a category for this customer." } },
+                response: { data: { categories: "Please select at least one category for this customer." } },
             });
             return;
         }
@@ -157,7 +176,6 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
                 facebook: formData.facebook,
                 whatsapp: formData.whatsapp,
                 tiktok: formData.tiktok,
-                categories: [formData.category.label],
                 country: formData.country?.id,
                 state: formData.state?.id,
             };
@@ -177,6 +195,13 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
                 }
             });
 
+            // Categories = multi-valued slug field. Append each selected
+            // category to the same FormData key so the backend receives an
+            // array of names (same pattern as leads).
+            formData.categories.forEach((cat) => {
+                formDataToSubmit.append("categories", cat.label);
+            });
+
             if (image) {
                 formDataToSubmit.append("image", image);
             }
@@ -191,7 +216,12 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
                 setIsSuccessModalOpen(true);
             }
         } catch (error) {
-            handleApiError(error);
+            // Surface duplicate-customer errors against the right input
+            // rather than firing a generic toast. Falls through for network
+            // errors, 5xx, and unrelated 400s.
+            if (!handleDuplicateCustomerError(error)) {
+                handleApiError(error);
+            }
         } finally {
             setSubmitting(false);
         }
@@ -206,15 +236,15 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
         [users]
     );
 
+    // Categories are sourced exclusively from the company's saved list
+    // (/customers/categories/) — no client-side defaults, mirroring the leads
+    // dropdown after the NOCF-165 reviewer feedback.
     const categoryOptions = useMemo(
         () =>
-            dedupeByLabel([
-                ...DEFAULT_CATEGORY_OPTIONS.map((label) => ({ value: label, label })),
-                ...categories.map((cat) => ({
-                    value: cat.id,
-                    label: cat.label || cat.name,
-                })),
-            ]),
+            categories.map((cat) => ({
+                value: cat.id,
+                label: cat.label || cat.name,
+            })),
         [categories]
     );
 
@@ -284,6 +314,12 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
             width="700px"
             footer={modalFooter}
         >
+            {duplicateBanner && (
+                <div className="mb-4 px-4 py-3 rounded-md border border-red-200 bg-red-50 text-sm text-red-700">
+                    {duplicateBanner}
+                </div>
+            )}
+
             <form id="customerForm" className="grid grid-cols-2 gap-4" onSubmit={handleSubmit}>
                 {renderImageUpload()}
 
@@ -356,10 +392,16 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
                         name="phone_number"
                         value={formData.phone_number}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2 mt-2"
+                        className={`w-full border rounded-md p-2 mt-2 ${
+                            fieldErrors.phone_number ? "border-red-400" : "border-gray-300"
+                        }`}
                         placeholder="8101790957"
                         required
+                        aria-invalid={Boolean(fieldErrors.phone_number)}
                     />
+                    {fieldErrors.phone_number && (
+                        <p className="mt-1 text-xs text-red-500">{fieldErrors.phone_number}</p>
+                    )}
                 </div>
 
                 <div>
@@ -369,9 +411,15 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2 mt-2"
+                        className={`w-full border rounded-md p-2 mt-2 ${
+                            fieldErrors.email ? "border-red-400" : "border-gray-300"
+                        }`}
                         placeholder="johndoe@mail.com"
+                        aria-invalid={Boolean(fieldErrors.email)}
                     />
+                    {fieldErrors.email && (
+                        <p className="mt-1 text-xs text-red-500">{fieldErrors.email}</p>
+                    )}
                 </div>
 
                 <div>
@@ -423,16 +471,23 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
                 </div>
 
                 <div className="col-span-2">
-                    <label className="text-sm">Category <span className="text-red-500">*</span></label>
+                    <label className="text-sm">Categories <span className="text-red-500">*</span></label>
                     <Select
-                        name="category"
+                        isMulti
+                        name="categories"
                         options={categoryOptions}
                         classNamePrefix="select"
                         onChange={handleCategoryChange}
-                        value={formData.category}
-                        placeholder="Select a category"
+                        value={formData.categories}
+                        placeholder={
+                            categoryOptions.length === 0
+                                ? "No categories configured yet — add some under Settings"
+                                : "Select one or more categories"
+                        }
                         styles={selectStyles}
                         isClearable
+                        closeMenuOnSelect={false}
+                        isDisabled={categoryOptions.length === 0}
                     />
                 </div>
 

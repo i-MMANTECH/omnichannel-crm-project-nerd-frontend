@@ -121,9 +121,6 @@ const CustomersContent = () => {
 
             params.set("page", currentPage.toString());
             params.set("page_size", pageSize.toString());
-            // Newest-first across pagination. Backend supports DRF OrderingFilter;
-            // the client-side sort below is a defense-in-depth fallback.
-            params.set("ordering", "-created_at");
 
             if (debouncedSearch) {
                 params.set("search", debouncedSearch);

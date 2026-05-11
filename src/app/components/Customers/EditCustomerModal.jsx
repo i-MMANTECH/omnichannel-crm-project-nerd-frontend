@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import Image from "next/image";
@@ -6,15 +6,21 @@ import Select from 'react-select';
 import { selectStyles } from "../selectStyles";
 import Modal from "../Modal";
 import { useSearchParams } from "next/navigation";
-import { useCanViewContactInfo } from "@/hooks/useCanViewContactInfo";  // ✅ ADD THIS
-import { maskPhoneNumber } from "@/utils/maskContactInfo";  // ✅ ADD THIS
+import { useCanViewContactInfo } from "@/hooks/useCanViewContactInfo";
+import { maskPhoneNumber } from "@/utils/maskContactInfo";
+
+const buildAccountManagerLabel = (user) => {
+    const fullName = `${user?.first_name || ""} ${user?.last_name || ""}`.trim();
+    return fullName ? `${fullName} (${user.email})` : user?.email || `User #${user?.id}`;
+};
 
 function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen }) {
     const { axiosInstance } = useApi();
     const { handleApiError } = useError();
     const searchParams = useSearchParams();
     const [categories, setCategories] = useState([]);
-    const canViewContactInfo = useCanViewContactInfo();  // ✅ ADD THIS
+    const [users, setUsers] = useState([]);
+    const canViewContactInfo = useCanViewContactInfo();
 
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
@@ -32,21 +38,25 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
         tiktok: "",
         country: { id: 160, name: "Nigeria" },
         state: {},
-        category: null,
+        categories: [],
+        account_manager: null,
     });
 
     useEffect(() => {
-        console.log('customer id is', customerId)
         if (isOpen && customerId) {
             fetchCustomerData();
-            fetchCategories();
+            fetchSelectOptions();
         }
     }, [isOpen, customerId]);
 
-    const fetchCategories = async () => {
+    const fetchSelectOptions = async () => {
         try {
-            const catRes = await axiosInstance.get("/customers/categories/");
+            const [catRes, usersRes] = await Promise.all([
+                axiosInstance.get("/customers/categories/"),
+                axiosInstance.get("/users/"),
+            ]);
             setCategories(catRes.data.categories || []);
+            setUsers(usersRes.data.results || []);
         } catch (error) {
             handleApiError(error);
         }
@@ -82,6 +92,24 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
             const response = await axiosInstance.get(`/customers/${customerId}/`);
             const customer = response.data.customer;
 
+            // Backend may return categories as ["name", ...] or [{ id, name }, ...].
+            // Normalize to react-select option shape.
+            const initialCategories = Array.isArray(customer.categories)
+                ? customer.categories
+                    .map((c) => {
+                        if (typeof c === "string") return { value: c, label: c };
+                        if (c?.name) return { value: c.id ?? c.name, label: c.name };
+                        if (c?.label) return { value: c.id ?? c.label, label: c.label };
+                        return null;
+                    })
+                    .filter(Boolean)
+                : [];
+
+            const manager = customer.account_manager;
+            const initialManager = manager
+                ? { value: manager.id, label: buildAccountManagerLabel(manager) }
+                : null;
+
             setFormData({
                 username: customer.username || "",
                 first_name: customer.first_name || "",
@@ -95,7 +123,8 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
                 tiktok: customer.tiktok || "",
                 country: customer.country || { id: 160, name: "Nigeria" },
                 state: customer.state || {},
-                category: customer.category || null,
+                categories: initialCategories,
+                account_manager: initialManager,
             });
 
             setImagePreview(customer.image || null);
@@ -104,30 +133,51 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
         }
     };
 
+    const handleCategoryChange = (selectedOptions) => {
+        setFormData((prev) => ({ ...prev, categories: selectedOptions || [] }));
+    };
+
+    const handleAccountManagerChange = (selectedOption) => {
+        setFormData((prev) => ({ ...prev, account_manager: selectedOption }));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            // Build a clean PATCH payload — strip out the react-select shapes
+            // for categories/account_manager so they don't bleed into the
+            // FormData as objects.
+            const {
+                categories: _selectedCategories,
+                account_manager: _selectedManager,
+                ...rest
+            } = formData;
+
             const submissionData = {
-                ...formData,
-                categories: formData.category ? [formData.category.label || formData.category.name] : undefined,
+                ...rest,
                 country: formData.country?.id,
-                state: formData.state?.id
+                state: formData.state?.id,
             };
-            delete submissionData.category;
 
             const formDataToSubmit = new FormData();
-            Object.keys(submissionData).forEach(key => {
+            Object.keys(submissionData).forEach((key) => {
                 const value = submissionData[key];
-                if (value !== null && value !== undefined) {
-                    if (Array.isArray(value)) {
-                        value.forEach(item => {
-                            formDataToSubmit.append(key, item);
-                        });
-                    } else {
-                        formDataToSubmit.append(key, value);
-                    }
+                if (value === null || value === undefined) return;
+                if (Array.isArray(value)) {
+                    value.forEach((item) => formDataToSubmit.append(key, item));
+                } else {
+                    formDataToSubmit.append(key, value);
                 }
             });
+
+            // Multi-valued category field — append each selected option once.
+            formData.categories.forEach((cat) => {
+                formDataToSubmit.append("categories", cat.label);
+            });
+
+            if (formData.account_manager?.value) {
+                formDataToSubmit.append("account_manager", formData.account_manager.value);
+            }
 
             if (image) {
                 formDataToSubmit.append('image', image);
@@ -147,6 +197,24 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
             handleApiError(error);
         }
     };
+
+    const categoryOptions = useMemo(
+        () =>
+            categories.map((cat) => ({
+                value: cat.id,
+                label: cat.label || cat.name,
+            })),
+        [categories]
+    );
+
+    const accountManagerOptions = useMemo(
+        () =>
+            users.map((u) => ({
+                value: u.id,
+                label: buildAccountManagerLabel(u),
+            })),
+        [users]
+    );
 
     const renderImageUpload = () => (
         <div className="col-span-2 flex items-center justify-start gap-4">
@@ -365,26 +433,39 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
                     />
                 </div>
 
-                <div>
-                    <label className="text-sm">Category</label>
+                <div className="col-span-2">
+                    <label className="text-sm">Categories</label>
                     <Select
-                        name="category"
-                        options={categories.map(cat => ({ 
-                            value: cat.id, 
-                            label: cat.label || cat.name 
-                        }))}
+                        isMulti
+                        name="categories"
+                        options={categoryOptions}
                         classNamePrefix="select"
-                        onChange={(selectedOption) => setFormData(prev => ({ 
-                            ...prev, 
-                            category: selectedOption ? { id: selectedOption.value, label: selectedOption.label } : null 
-                        }))}
-                        value={formData.category ? { 
-                            value: formData.category.id, 
-                            label: formData.category.label || formData.category.name 
-                        } : null}
-                        placeholder="Select category"
+                        onChange={handleCategoryChange}
+                        value={formData.categories}
+                        placeholder={
+                            categoryOptions.length === 0
+                                ? "No categories configured yet — add some under Settings"
+                                : "Select one or more categories"
+                        }
                         styles={selectStyles}
                         isClearable
+                        closeMenuOnSelect={false}
+                        isDisabled={categoryOptions.length === 0}
+                    />
+                </div>
+
+                <div className="col-span-2">
+                    <label className="text-sm">Account Manager</label>
+                    <Select
+                        name="account_manager"
+                        options={accountManagerOptions}
+                        classNamePrefix="select"
+                        onChange={handleAccountManagerChange}
+                        value={formData.account_manager}
+                        placeholder="Assign an account manager"
+                        styles={selectStyles}
+                        isClearable
+                        isLoading={users.length === 0}
                     />
                 </div>
             </form>
