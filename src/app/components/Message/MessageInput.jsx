@@ -216,7 +216,7 @@ const MessageInput = ({
         )}
 
         {selectedChannel?.label !== "Email" && (
-          <div className="flex items-center gap-3 bg-white pl-4 pr-3 py-1 rounded-full h-fit">
+          <div className="flex items-center gap-3 bg-white pl-2 pr-3 py-1 rounded-full h-fit">
             <div className="attach-icon flex items-center justify-center m-0" onClick={() => setIsOpen(true)}>
               <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
