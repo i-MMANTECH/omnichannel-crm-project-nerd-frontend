@@ -13,6 +13,12 @@ import DateFilter from '@/app/components/admin/Reports/DateFilter';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
+// Status codes counted toward "Total Pending Tickets". The set covers both
+// ticket-style (open / in_progress) and task-style (todo / overdue / pending)
+// codes so the metric stays correct regardless of which schema the analytics
+// endpoint surfaces under tasks.status_distribution.
+const PENDING_STATUS_CODES = new Set(['open', 'in_progress', 'todo', 'overdue', 'pending']);
+
 const INITIAL_SUMMARY = {
     messages: 0,
     customers: 0,
@@ -20,12 +26,24 @@ const INITIAL_SUMMARY = {
     users: 0,
     tickets: 0,
     leads: 0,
+    totalTickets: 0,
+    totalTicketsCreated: 0,
+    totalPendingTickets: 0,
+    newLeads: 0,
 };
 
 const toIsoDate = (d) => new Date(d).toISOString().split("T")[0];
 
 const formatDayLabel = (d) =>
     new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+const sumPending = (statusDistribution) => {
+    if (!Array.isArray(statusDistribution)) return 0;
+    return statusDistribution.reduce(
+        (acc, entry) => acc + (PENDING_STATUS_CODES.has(entry?.code) ? (entry.count || 0) : 0),
+        0
+    );
+};
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -45,31 +63,58 @@ const Dashboard = () => {
 
     const fetchSummary = useCallback(async () => {
         try {
-            const params = {};
-            if (dateRange?.startDate && dateRange?.endDate) {
-                params.start_date = toIsoDate(dateRange.startDate);
-                params.end_date = toIsoDate(dateRange.endDate);
-            }
+            // Per the JIRA AC, "Total Tickets" and "Total Pending Tickets"
+            // are all-time snapshots that ignore the date filter, while
+            // "Total Tickets Created" and "New Leads" are scoped to the
+            // active filter. Always fetch the all-time slice; when a filter
+            // is active, fetch the scoped slice in parallel.
+            const allTimePromise = axiosInstance.get('analytics/summary/');
+            const scopedPromise = hasDateRange
+                ? axiosInstance.get('analytics/summary/', {
+                    params: {
+                        start_date: toIsoDate(dateRange.startDate),
+                        end_date: toIsoDate(dateRange.endDate),
+                    },
+                })
+                : Promise.resolve(null);
 
-            const response = await axiosInstance.get('analytics/summary/', { params });
-            if (response?.data?.success) {
-                const data = response.data.data || {};
-                setSummary({
-                    messages: data.messages?.total || 0,
-                    customers: data.customers?.total || 0,
-                    tasks: data.tasks?.total || 0,
-                    users: data.users?.total || 0,
-                    tickets: data.tickets?.total || 0,
-                    leads: data.leads?.total || 0,
-                });
+            const [allTimeRes, scopedRes] = await Promise.all([allTimePromise, scopedPromise]);
 
-                const updatedDate = new Date();
-                setLastUpdated(`Today, ${updatedDate.toLocaleTimeString([], { hour: 'numeric', minute: 'numeric', hour12: true })}`);
-            }
+            const allTime = allTimeRes?.data?.success ? (allTimeRes.data.data || {}) : {};
+            const scoped = scopedRes?.data?.success ? (scopedRes.data.data || {}) : null;
+
+            // Prefer scoped totals when a filter is active; fall back to
+            // all-time so cards never blank out if the scoped slice is
+            // missing a key.
+            const pickScoped = (key) => {
+                if (scoped && scoped[key]?.total != null) return scoped[key].total;
+                return allTime[key]?.total || 0;
+            };
+
+            setSummary({
+                messages: pickScoped('messages'),
+                customers: pickScoped('customers'),
+                tasks: pickScoped('tasks'),
+                users: pickScoped('users'),
+                tickets: pickScoped('tickets'),
+                leads: pickScoped('leads'),
+                // All-time by spec — not affected by the date filter.
+                totalTickets: allTime.tasks?.total || 0,
+                totalPendingTickets: sumPending(allTime.tasks?.status_distribution),
+                // Scoped by spec — when filter active, use the scoped period
+                // total; otherwise fall back to the last-24h count.
+                totalTicketsCreated: scoped
+                    ? (scoped.tasks?.total || 0)
+                    : (allTime.tasks?.last_24_hours?.count || 0),
+                newLeads: pickScoped('leads'),
+            });
+
+            const updatedDate = new Date();
+            setLastUpdated(`Today, ${updatedDate.toLocaleTimeString([], { hour: 'numeric', minute: 'numeric', hour12: true })}`);
         } catch (error) {
             handleApiError(error);
         }
-    }, [axiosInstance, dateRange, handleApiError]);
+    }, [axiosInstance, dateRange, hasDateRange, handleApiError]);
 
     useEffect(() => {
         fetchSummary();

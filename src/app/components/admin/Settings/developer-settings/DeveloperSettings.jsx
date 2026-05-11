@@ -459,40 +459,38 @@ export default function DeveloperSettings() {
                 <h3 className="text-sm font-semibold text-gray-700 mb-3">When AI Escalates a Conversation</h3>
 
                 <div className="flex flex-col gap-4">
-                  <div className={`flex items-start justify-between max-w-md gap-4 ${!aiEnabled ? "opacity-40" : ""}`}>
+                  <div className="flex items-start justify-between max-w-md gap-4">
                     <div>
                       <span className="font-medium text-sm">Auto-assign human agent</span>
                       <p className="text-xs text-gray-500 mt-0.5">Find an available agent and send them the handoff message automatically</p>
                     </div>
-                    <label className={`relative inline-flex items-center shrink-0 ${!aiEnabled ? "cursor-not-allowed" : "cursor-pointer"}`}>
+                    <label className="relative inline-flex items-center shrink-0 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={aiEscalationAssignAgent}
                         onChange={(e) => handleSaveEscalationSettings("ai_escalation_assign_agent", e.target.checked)}
-                        disabled={!aiEnabled}
                         className="sr-only peer"
                       />
-                      <div className={`w-11 h-6 rounded-full transition-colors ${aiEscalationAssignAgent && aiEnabled ? "bg-[#3EBF0F]" : "bg-gray-300"}`}>
-                        <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-transform ${aiEscalationAssignAgent && aiEnabled ? "translate-x-5" : "translate-x-0"}`} />
+                      <div className={`w-11 h-6 rounded-full transition-colors ${aiEscalationAssignAgent ? "bg-[#3EBF0F]" : "bg-gray-300"}`}>
+                        <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-transform ${aiEscalationAssignAgent ? "translate-x-5" : "translate-x-0"}`} />
                       </div>
                     </label>
                   </div>
 
-                  <div className={`flex items-start justify-between max-w-md gap-4 ${!aiEnabled ? "opacity-40" : ""}`}>
+                  <div className="flex items-start justify-between max-w-md gap-4">
                     <div>
                       <span className="font-medium text-sm">Auto-create support ticket</span>
                       <p className="text-xs text-gray-500 mt-0.5">Automatically log a ticket so the issue is tracked even if no agent is immediately available</p>
                     </div>
-                    <label className={`relative inline-flex items-center shrink-0 ${!aiEnabled ? "cursor-not-allowed" : "cursor-pointer"}`}>
+                    <label className="relative inline-flex items-center shrink-0 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={aiEscalationCreateTicket}
                         onChange={(e) => handleSaveEscalationSettings("ai_escalation_create_ticket", e.target.checked)}
-                        disabled={!aiEnabled}
                         className="sr-only peer"
                       />
-                      <div className={`w-11 h-6 rounded-full transition-colors ${aiEscalationCreateTicket && aiEnabled ? "bg-[#3EBF0F]" : "bg-gray-300"}`}>
-                        <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-transform ${aiEscalationCreateTicket && aiEnabled ? "translate-x-5" : "translate-x-0"}`} />
+                      <div className={`w-11 h-6 rounded-full transition-colors ${aiEscalationCreateTicket ? "bg-[#3EBF0F]" : "bg-gray-300"}`}>
+                        <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-transform ${aiEscalationCreateTicket ? "translate-x-5" : "translate-x-0"}`} />
                       </div>
                     </label>
                   </div>

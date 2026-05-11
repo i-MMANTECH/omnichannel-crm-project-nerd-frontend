@@ -123,7 +123,7 @@ const VerifyOtpModal = ({ isModalOpen, closeModal, goToChangePassword }) => {
         <form onSubmit={handleSubmit}>
           <div>
             <p>Please enter the 6 digit code we sent to {email}</p>
-            <div className="flex mb-6 mt-8" onPaste={handlePaste}>
+            <div className="flex justify-center sm:justify-start mb-6 mt-8" onPaste={handlePaste}>
                 {code.map((digit, index) => (
                     <input
                         key={index}

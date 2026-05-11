@@ -46,14 +46,14 @@ const SecuritySettings = () => {
   ];
 
   return (
-    <div className="flex mt-5 flex-col p-6 items-start gap-4 self-stretch rounded-lg border border-[#DFE1E6]">
+    <div className="flex mt-5 flex-col p-4 sm:p-6 items-start gap-4 self-stretch rounded-lg border border-[#DFE1E6]">
       <p className="font-semibold text-xl leading-[25.2px] tracking-[0.2px] font-encode-sans">
         Security
       </p>
 
       <div className="flex h-[1px] items-center gap-2 self-stretch bg-[#DFE1E6]" />
 
-      <div className="w-full flex items-between justify-between">
+      <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <p className="font-medium text-xl leading-[25.2px] tracking-[0.2px] font-encode-sans">
             Password
@@ -64,7 +64,7 @@ const SecuritySettings = () => {
         </div>
 
         <button
-          className="px-4 py-2 border h-fit rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+          className="px-4 py-2 border h-fit rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 self-start sm:self-auto"
           onClick={() => setIsSendOtModalOpen(true)}
         >
           Edit

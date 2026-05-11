@@ -15,14 +15,10 @@ const Modal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30 p-4">
-      <div 
-        className="body-theme dark:border rounded-lg shadow-lg flex flex-col"
-        style={{ 
-          width: '660px',
-          maxWidth: '100%',
-          maxHeight: 'calc(100vh - 2rem)'
-        }}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-stretch sm:items-center justify-center z-30 p-0 sm:p-4">
+      <div
+        className="body-theme dark:border rounded-none sm:rounded-lg shadow-lg flex flex-col w-full sm:w-[var(--modal-w)] h-full sm:h-auto max-w-full max-h-screen sm:max-h-[calc(100vh-2rem)]"
+        style={{ '--modal-w': width }}
       >
         {/* Header - fixed at top */}
         <div className={`flex justify-between items-center w-full py-2 px-5 ${showBorder ? 'border-b border-[#DFE1E6]' : ''}`}>

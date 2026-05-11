@@ -127,8 +127,8 @@ const ForgotPassword = () => {
     };
 
     return (
-        <div className="flex flex-col min-h-screen items-center items-center justify-center" style={{ height: "100%" }}>
-            <div className="w-full max-w-md  mt-[100px]">
+        <div className="flex min-h-screen flex-col items-center justify-center overflow-y-auto px-4 py-8 sm:px-6">
+            <div className="w-full max-w-md lg:mt-[100px]">
                 <div className="flex justify-center mb-8">
                     <Image src="/assets/nativetalk-logo.svg" 
                             alt="Logo" 
@@ -150,7 +150,7 @@ const ForgotPassword = () => {
                             type={showPassword ? 'text' : 'password'}
                             value={password}
                             onChange={handlePasswordChange}
-                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#3EBF0F]"
+                            className="w-full rounded-md border border-gray-300 p-2.5 pr-10 focus:border-[#3EBF0F] focus:outline-none sm:p-2 sm:pr-10"
                         />
                         <button
                             onClick={togglePasswordVisibility}
@@ -188,7 +188,7 @@ const ForgotPassword = () => {
                             type={showConfirmPassword ? 'text' : 'password'}
                             value={confirmPassword}
                             onChange={handleConfirmPasswordChange}
-                            className={`w-full p-2 border border-gray-300 rounded-md focus:outline-none ${password === confirmPassword ? 'focus:border-[#3EBF0F]' : 'focus:border-red-500'}`}
+                            className={`w-full rounded-md border border-gray-300 p-2.5 pr-10 focus:outline-none sm:p-2 sm:pr-10 ${password === confirmPassword ? 'focus:border-[#3EBF0F]' : 'focus:border-red-500'}`}
                         />
                         <button
                             onClick={toggleConfirmPasswordVisibility}
@@ -212,14 +212,14 @@ const ForgotPassword = () => {
 
                 <button
                     onClick={handleSubmit}
-                    className={`w-full mt-5 text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${isFormValid ? 'bg-[#3EBF0F]' : 'bg-gray-300 cursor-not-allowed'}`}
+                    className={`mt-5 w-full rounded-md py-2.5 text-white hover:bg-[#34a60e] focus:outline-none sm:py-2 ${isFormValid ? 'bg-[#3EBF0F]' : 'bg-gray-300 cursor-not-allowed'}`}
                     disabled={!isFormValid || loading}
                 >
                     Proceed
                 </button>
             </div>
 
-            <div className="mt-auto text-center mb-5">
+            <div className="mt-auto w-full max-w-[500px] px-4 text-center text-xs sm:px-0">
                 <Footer />
             </div>
         </div>

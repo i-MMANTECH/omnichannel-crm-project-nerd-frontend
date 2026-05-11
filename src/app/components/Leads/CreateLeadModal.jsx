@@ -11,34 +11,8 @@ const INITIAL_FORM = {
     last_name: "",
     phone_number: "",
     email: "",
-    category: null,
+    categories: [],
     channel: null,
-};
-
-// Curated category list aligned with NativeTalk's customer engagement focus.
-// Backend categories are merged in alongside these (deduped by label) so any
-// company-specific values still appear.
-const DEFAULT_CATEGORY_OPTIONS = [
-    "New Customer",
-    "Sales Inquiry",
-    "Support Request",
-    "Complaint",
-    "Feedback",
-    "Partnership",
-    "Follow-up",
-    "VIP / High Priority",
-    "Abandoned Chat",
-    "Other",
-];
-
-const dedupeByLabel = (items) => {
-    const seen = new Set();
-    return items.filter((item) => {
-        const key = (item.label || "").toLowerCase();
-        if (!key || seen.has(key)) return false;
-        seen.add(key);
-        return true;
-    });
 };
 
 function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessModalMessage }) {
@@ -52,6 +26,14 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
     const [formData, setFormData] = useState(INITIAL_FORM);
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
+    // Field-level errors for duplicate-lead responses from the backend.
+    // Keys must match the input `name` attributes so handleChange can clear
+    // them as the user edits.
+    const [fieldErrors, setFieldErrors] = useState({ email: "", phone_number: "" });
+    // Top-of-modal banner reserved for the race-condition envelope
+    // ({ error: "..." }) — we don't know which input collided, so we can't
+    // pin the message to a single field.
+    const [duplicateBanner, setDuplicateBanner] = useState("");
 
     useEffect(() => {
         if (isOpen) {
@@ -79,10 +61,20 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
         if ((name === "email" || name === "phone_number") && contactError && value.trim()) {
             setContactError("");
         }
+        // Clear an inline duplicate-field error as soon as the offending
+        // input is edited — standard "validation re-runs on change".
+        if (fieldErrors[name]) {
+            setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+        }
+        // The race-envelope banner could have been triggered by either
+        // input, so any edit on email / phone_number clears it.
+        if ((name === "email" || name === "phone_number") && duplicateBanner) {
+            setDuplicateBanner("");
+        }
     };
 
-    const handleCategoryChange = (selectedOption) => {
-        setFormData((prev) => ({ ...prev, category: selectedOption }));
+    const handleCategoryChange = (selectedOptions) => {
+        setFormData((prev) => ({ ...prev, categories: selectedOptions || [] }));
     };
 
     const handleChannelChange = (selectedOption) => {
@@ -103,11 +95,45 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
         setImage(null);
         setImagePreview(null);
         setContactError("");
+        setFieldErrors({ email: "", phone_number: "" });
+        setDuplicateBanner("");
+    };
+
+    // DRF can return a field error as either a string or an array of strings.
+    // Normalize to a single trimmed string (or "" if absent).
+    const pickFieldMessage = (value) => {
+        if (typeof value === "string") return value.trim();
+        if (Array.isArray(value) && typeof value[0] === "string") return value[0].trim();
+        return "";
+    };
+
+    // Returns true if the error matched one of the duplicate-lead shapes
+    // and was rendered as inline field errors / banner. Caller should fall
+    // through to the generic handler when this returns false.
+    const handleDuplicateLeadError = (error) => {
+        if (error?.response?.status !== 400) return false;
+        const data = error?.response?.data;
+        if (!data || typeof data !== "object") return false;
+
+        const emailMsg = pickFieldMessage(data.email);
+        const phoneMsg = pickFieldMessage(data.phone_number);
+        const bannerMsg = pickFieldMessage(data.error);
+
+        if (!emailMsg && !phoneMsg && !bannerMsg) return false;
+
+        setFieldErrors({ email: emailMsg, phone_number: phoneMsg });
+        setDuplicateBanner(bannerMsg);
+        return true;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (submitting) return;
+        // Clear stale duplicate-error state from a prior submit before
+        // re-validating, otherwise a successful resubmit briefly flashes
+        // the previous error.
+        setFieldErrors({ email: "", phone_number: "" });
+        setDuplicateBanner("");
 
         // Hard-required by the backend.
         if (!formData.channel?.value) {
@@ -116,9 +142,9 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
             });
             return;
         }
-        if (!formData.category?.label) {
+        if (!formData.categories || formData.categories.length === 0) {
             handleApiError({
-                response: { data: { category: "Please select a category for this lead." } },
+                response: { data: { categories: "Please select at least one category for this lead." } },
             });
             return;
         }
@@ -144,11 +170,13 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
             // Channel = PrimaryKeyRelatedField (id).
             formDataToSubmit.append("channel", formData.channel.value);
 
-            // Category = SafeSlugRelatedField on `name`. The backend expects
-            // an existing category — the seed migration in the matching
-            // backend ticket guarantees the 10 default categories exist per
-            // company, so no client-side create-on-the-fly is needed.
-            formDataToSubmit.append("categories", formData.category.label);
+            // Categories = SafeSlugRelatedField on `name`, multi-valued.
+            // The dropdown is sourced exclusively from the company's saved
+            // categories (/customers/leads/categories/), so every option
+            // here already exists on the backend.
+            formData.categories.forEach((cat) => {
+                formDataToSubmit.append("categories", cat.label);
+            });
 
             if (image) {
                 formDataToSubmit.append("image", image);
@@ -167,7 +195,13 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
                 setIsSuccessModalOpen(true);
             }
         } catch (error) {
-            handleApiError(error);
+            // Surface duplicate-lead errors against the right input rather
+            // than firing a generic toast. Falls through to the generic
+            // handler for everything else (network errors, 5xx, unrelated
+            // 400s, etc.).
+            if (!handleDuplicateLeadError(error)) {
+                handleApiError(error);
+            }
         } finally {
             setSubmitting(false);
         }
@@ -216,13 +250,10 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
         label: c.name || c.channel_name || `Channel #${c.id}`,
     }));
 
-    const categoryOptions = dedupeByLabel([
-        ...DEFAULT_CATEGORY_OPTIONS.map((label) => ({ value: label, label })),
-        ...categories.map((cat) => ({
-            value: cat.id,
-            label: cat.label || cat.name,
-        })),
-    ]);
+    const categoryOptions = categories.map((cat) => ({
+        value: cat.id,
+        label: cat.label || cat.name,
+    }));
 
     const noChannels = channels.length === 0;
 
@@ -258,6 +289,12 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
                 <div className="mb-4 px-4 py-3 rounded-md border border-yellow-200 bg-yellow-50 text-sm text-yellow-800">
                     No channels are connected for this company. Connect a channel under
                     Settings before creating a lead manually.
+                </div>
+            )}
+
+            {duplicateBanner && (
+                <div className="mb-4 px-4 py-3 rounded-md border border-red-200 bg-red-50 text-sm text-red-700">
+                    {duplicateBanner}
                 </div>
             )}
 
@@ -311,9 +348,15 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
                         name="phone_number"
                         value={formData.phone_number}
                         onChange={handleChange}
-                        className={`w-full border rounded-md p-2 mt-2 ${contactError ? "border-red-400" : "border-gray-300"}`}
+                        className={`w-full border rounded-md p-2 mt-2 ${
+                            fieldErrors.phone_number || contactError ? "border-red-400" : "border-gray-300"
+                        }`}
                         placeholder="+234 801 234 5678"
+                        aria-invalid={Boolean(fieldErrors.phone_number)}
                     />
+                    {fieldErrors.phone_number && (
+                        <p className="mt-1 text-xs text-red-500">{fieldErrors.phone_number}</p>
+                    )}
                 </div>
 
                 <div>
@@ -323,9 +366,15 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className={`w-full border rounded-md p-2 mt-2 ${contactError ? "border-red-400" : "border-gray-300"}`}
+                        className={`w-full border rounded-md p-2 mt-2 ${
+                            fieldErrors.email || contactError ? "border-red-400" : "border-gray-300"
+                        }`}
                         placeholder="johndoe@mail.com"
+                        aria-invalid={Boolean(fieldErrors.email)}
                     />
+                    {fieldErrors.email && (
+                        <p className="mt-1 text-xs text-red-500">{fieldErrors.email}</p>
+                    )}
                 </div>
 
                 {contactError && (
@@ -333,16 +382,23 @@ function CreateLeadModal({ isOpen, onClose, setIsSuccessModalOpen, setSuccessMod
                 )}
 
                 <div className="col-span-2">
-                    <label className="text-sm">Category <span className="text-red-500">*</span></label>
+                    <label className="text-sm">Categories <span className="text-red-500">*</span></label>
                     <Select
-                        name="category"
+                        isMulti
+                        name="categories"
                         options={categoryOptions}
                         classNamePrefix="select"
                         onChange={handleCategoryChange}
-                        value={formData.category}
-                        placeholder="Select a category"
+                        value={formData.categories}
+                        placeholder={
+                            categoryOptions.length === 0
+                                ? "No categories configured yet — add some under Settings"
+                                : "Select one or more categories"
+                        }
                         styles={selectStyles}
                         isClearable
+                        closeMenuOnSelect={false}
+                        isDisabled={categoryOptions.length === 0}
                     />
                 </div>
             </form>

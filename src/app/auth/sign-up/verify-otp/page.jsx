@@ -123,33 +123,32 @@ const EmailConfirmation = () => {
     };
 
     return (
-        <div className="flex min-h-screen" style={{ height: '100%', overflow: 'hidden' }}>
-            <div className="md:w-1/2 flex flex-col">
-                <div className="flex-grow">
+        <div className="flex min-h-screen flex-col overflow-y-auto lg:flex-row">
+            <div className="hidden flex-col md:flex md:min-h-[360px] md:w-full lg:min-h-screen lg:w-1/2">
+                <div className="min-h-[220px] flex-grow lg:min-h-0">
 
                         <img
                             src="/assets/sign-up-image.png"
                             alt="Sign up"
-                            className="object-cover w-full h-full"
-                            style={{height: '100%'}}
+                            className="h-full min-h-[220px] w-full object-cover lg:min-h-0"
                         />
                 </div>
                 <div style={{ height: '4px', backgroundColor: '#3EBF0F' }}></div>
-                <div className="bg-black p-8 text-white flex flex-col items-start">
+                <div className="flex flex-col items-start bg-black p-5 text-white sm:p-6 lg:p-8">
                     <Image src="/assets/nativetalk-logo2.svg" 
                         alt="Logo" 
                         width={100}
                         height={100}
                         />
-                    <h2 className="text-3xl font-bold text-white leading-tight mt-4">
+                    <h2 className="mt-4 text-2xl font-bold leading-tight text-white lg:text-3xl">
                         Let's empower your <br /> employees today.
                     </h2>
                     <p className="text-white mt-2">Transform every conversation into opportunity.</p>
                 </div>
             </div>
 
-            <div className="w-1/2 flex flex-col items-center justify-center p-8">
-                <div className='w-full max-w-md mt-[150px]'>
+            <div className="flex min-h-screen w-full flex-col items-center justify-center px-4 py-8 sm:px-6 md:min-h-0 lg:min-h-screen lg:w-1/2 lg:p-8">
+                <div className="w-full max-w-md lg:mt-[150px]">
                     <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 text-left mb-2">
                         Confirm email address
                     </h2>
@@ -157,7 +156,7 @@ const EmailConfirmation = () => {
                         Please enter the 6 digit code we sent to <br /> {userData?.email ? maskEmail(userData.email) : "your email"}
                     </p>
 
-                    <div className="flex mb-6 mt-8" onPaste={handlePaste}>
+                    <div className="mt-8 mb-6 flex justify-between gap-2" onPaste={handlePaste}>
                         {code.map((digit, index) => (
                             <input
                                 key={index}
@@ -167,7 +166,7 @@ const EmailConfirmation = () => {
                                 ref={(el) => inputRefs.current[index] = el}
                                 onChange={(e) => handleChange(e.target.value, index)}
                                 onKeyDown={(e) => handleKeyDown(e, index)}
-                                className={`w-10 h-10 border-2 rounded-md text-center text-lg mx-1 ${
+                                className={`h-10 w-9 rounded-md border-2 text-center text-lg sm:w-10 ${
                                     activeInput === index ? 'border-green-500' : 'border-gray-300'
                                 } focus:outline-none`}
                                 aria-label="OTP input"
@@ -176,13 +175,12 @@ const EmailConfirmation = () => {
                     </div>
 
                     
-                    <div className='mt-5 w-fit d-flex'>
+                    <div className="mt-5 w-full max-w-[300px]">
                         <button
                             onClick={handleSubmit}
-                            className={`w-full bg-[#3EBF0F] mt-5  text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${
+                            className={`mt-5 w-full rounded-md bg-[#3EBF0F] py-2.5 text-white hover:bg-[#34a60e] focus:outline-none sm:py-2 ${
                                 loading ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
-                            style={{ width: 300 }}
                             disabled={loading}
                         >
                             Continue
@@ -194,7 +192,7 @@ const EmailConfirmation = () => {
                     </div>
                 </div>
 
-                <div style={{ width: 500 }} className="text-xs mt-auto pt-6">
+                <div className="mt-auto w-full max-w-[500px] pt-6 text-xs">
                     <Footer />
                 </div>
             </div>

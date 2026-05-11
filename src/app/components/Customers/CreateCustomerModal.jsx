@@ -4,6 +4,7 @@ import { useError } from "@/context/ErrorContext";
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
 import Select from "react-select";
+import CreatableSelect from "react-select/creatable";
 import { selectStyles } from "../selectStyles";
 import Modal from "../Modal";
 
@@ -195,11 +196,11 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
                 }
             });
 
-            // Categories = multi-valued slug field. Append each selected
-            // category to the same FormData key so the backend receives an
-            // array of names (same pattern as leads).
+            // Categories field is multi-valued and supports inline creation
+            // via CreatableSelect (dev's 5fa44bc contract). Submit each
+            // selected option's value (the category name) under the same key.
             formData.categories.forEach((cat) => {
-                formDataToSubmit.append("categories", cat.label);
+                if (cat?.value) formDataToSubmit.append("categories", cat.value);
             });
 
             if (image) {
@@ -236,13 +237,10 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
         [users]
     );
 
-    // Categories are sourced exclusively from the company's saved list
-    // (/customers/categories/) — no client-side defaults, mirroring the leads
-    // dropdown after the NOCF-165 reviewer feedback.
     const categoryOptions = useMemo(
         () =>
             categories.map((cat) => ({
-                value: cat.id,
+                value: cat.name,
                 label: cat.label || cat.name,
             })),
         [categories]
@@ -472,22 +470,16 @@ function CreateCustomerModal({ isOpen, onClose, setIsSuccessModalOpen }) {
 
                 <div className="col-span-2">
                     <label className="text-sm">Categories <span className="text-red-500">*</span></label>
-                    <Select
+                    <CreatableSelect
                         isMulti
                         name="categories"
                         options={categoryOptions}
                         classNamePrefix="select"
                         onChange={handleCategoryChange}
                         value={formData.categories}
-                        placeholder={
-                            categoryOptions.length === 0
-                                ? "No categories configured yet — add some under Settings"
-                                : "Select one or more categories"
-                        }
+                        placeholder="Select or create categories"
                         styles={selectStyles}
-                        isClearable
                         closeMenuOnSelect={false}
-                        isDisabled={categoryOptions.length === 0}
                     />
                 </div>
 

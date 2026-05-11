@@ -221,6 +221,7 @@ export const MessagesContent = () => {
 	const [loading, setLoading] = useState(true);
 	const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 	const [chatResponse, setChatResponse] = useState();
+	const [aiTypingConversationId, setAiTypingConversationId] = useState(null);
 
 	const [chatType, setChatType] = useState(searchParams.get("chat") || "leads");
 	const chatId = searchParams.get("id");
@@ -559,6 +560,17 @@ export const MessagesContent = () => {
 			// ✅ your existing handler body 그대로
 			// console.log("📬 Processing WebSocket data:", { type: data.type });
 
+			if (data.type === "ai_typing") {
+				if (data.is_typing) {
+					setAiTypingConversationId(data.conversation_id);
+				} else {
+					setAiTypingConversationId((prev) =>
+						String(prev) === String(data.conversation_id) ? null : prev
+					);
+				}
+				return;
+			}
+
 			if (data.type === "message_status") {
 				const updatedMessage = data.message;
 
@@ -629,9 +641,9 @@ export const MessagesContent = () => {
 				message?.customer_sender != null || message?.customer_receiver != null;
 
 			const newUser = isLeadMessage
-				? message.lead_sender_details
+				? (message.lead_sender_details || message.lead_receiver_details)
 				: isCustomerMessage
-					? message.customer_sender_details
+					? (message.customer_sender_details || message.customer_receiver_details)
 					: null;
 
 			const messageChatType = getMessageType(message);
@@ -1382,6 +1394,9 @@ export const MessagesContent = () => {
 					});
 				})
 				.catch(async (error) => {
+					if (isCancelError(error)) {
+						return;
+					}
 					const failedMessage = { ...tempMessage, status: "failed" };
 					await persistFailedMessage({ ...failedRecord, message: failedMessage });
 
@@ -1390,9 +1405,6 @@ export const MessagesContent = () => {
 							message.id === messageId ? failedMessage : message
 						)
 					);
-					if (isCancelError(error)) {
-						return;
-					}
 					handleApiError(error);
 				});
 
@@ -1482,6 +1494,9 @@ export const MessagesContent = () => {
 				await removePersistedFailedMessage(messageId);
 			})
 			.catch(async (error) => {
+				if (isCancelError(error)) {
+					return;
+				}
 				const failedMessage = { ...tempMessage, status: "failed" };
 				await persistFailedMessage({ ...failedRecord, message: failedMessage });
 
@@ -1490,9 +1505,6 @@ export const MessagesContent = () => {
 						message.id === messageId ? failedMessage : message
 					)
 				);
-				if (isCancelError(error)) {
-					return;
-				}
 				handleApiError(error);
 			});
 	};
@@ -1659,7 +1671,17 @@ export const MessagesContent = () => {
 	const handleCreateTicket = async (ticketData) => {
 		try {
 			setIsCreateTicketModalOpen(false);
-			// Optionally refresh ticket panel or show success message
+			if (activeUser?.id) {
+				setCachedData((prev) => {
+					const typeBucket = prev[chatType] || { histories: {} };
+					const { [activeUser.id]: _removed, ...remainingHistories } = typeBucket.histories || {};
+					return {
+						...prev,
+						[chatType]: { ...typeBucket, histories: remainingHistories },
+					};
+				});
+			}
+			await fetchChatHistory();
 		} catch (error) {
 			handleApiError(error);
 		}
@@ -1982,6 +2004,8 @@ export const MessagesContent = () => {
 									chatType={chatType}
 									currentUserId={userProfile?.id}
 									onRetryFailedMessage={handleRetryFailedMessage}
+									aiTypingConversationId={aiTypingConversationId}
+									currentConversationId={chatResponse?.conversation_id}
 								/>
 
 								{/* Ticket Panel */}

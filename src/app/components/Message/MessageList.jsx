@@ -62,7 +62,9 @@ const MessageList = ({
   next,
   chatType,
   currentUserId,
-  onRetryFailedMessage
+  onRetryFailedMessage,
+  aiTypingConversationId,
+  currentConversationId,
 }) => {
   const messageEndRef = useRef(null);
   const listRef = useRef(null);
@@ -404,14 +406,37 @@ const MessageList = ({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [selectedImage, selectedVideo]);
 
+  const PAYSTACK_URL_RE = /https:\/\/(?:checkout\.paystack\.com|paystack\.com\/pay)\/\S+/;
+
   function renderMessageContent(msg) {
     const isEmail = isEmailMessage(msg);
     const contentHasHtml = containsHtml(msg.content);
     const contentType = msg.content_type || "text"; // ✅ fallback for internal messages
 
+    // Detect Paystack payment URL — render "Pay Now" button instead of raw URL
+    const paystackMatch = !contentHasHtml && !isEmail && (msg.content || "").match(PAYSTACK_URL_RE);
+    if (paystackMatch) {
+      const url = paystackMatch[0];
+      const textPart = msg.content.slice(0, paystackMatch.index).trim();
+      return (
+        <div style={{ whiteSpace: "pre-wrap", marginTop: getMessageAttachments(msg).length ? "8px" : "0" }}>
+          {textPart && <div>{textPart}</div>}
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="pay-now-btn"
+          >
+            Pay Now →
+          </a>
+        </div>
+      );
+    }
+
     if (contentType === "html") {
       return (
         <div
+          className="message-html-content"
           style={{ marginTop: getMessageAttachments(msg).length ? "8px" : "0" }}
           dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
         />
@@ -452,6 +477,7 @@ const MessageList = ({
       if (contentHasHtml) {
         return (
           <div
+            className="message-html-content"
             style={{ marginTop: getMessageAttachments(msg).length ? "8px" : "0" }}
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
           />
@@ -477,6 +503,7 @@ const MessageList = ({
         if (contentHasHtml) {
           return (
             <div
+              className="message-html-content"
               style={{ marginTop: getMessageAttachments(msg).length ? "8px" : "0" }}
               dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
             />
@@ -930,6 +957,17 @@ const MessageList = ({
           </React.Fragment>
         );
       })}
+
+      {aiTypingConversationId && currentConversationId &&
+        String(aiTypingConversationId) === String(currentConversationId) && (
+          <div className="chat chat-right">
+            <div className="bubble-chat bubble-chat-user">
+              <span className="ai-typing-indicator">
+                <span></span><span></span><span></span>
+              </span>
+            </div>
+          </div>
+        )}
 
       <div ref={messageEndRef} />
 

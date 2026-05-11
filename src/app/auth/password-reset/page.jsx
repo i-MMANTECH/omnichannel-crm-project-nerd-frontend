@@ -42,9 +42,9 @@ const PasswordReset = () => {
 
 
     return (
-        <div style={{ height: '100%', overflow: 'hidden' }} className="flex min-h-screen flex-col items-center justify-center">
-            <div className="flex items-center justify-center mt-[100px]">
-                <div className="w-full max-w-md p-8">
+        <div className="flex min-h-screen flex-col items-center justify-center overflow-y-auto px-4 py-8 sm:px-6">
+            <div className="flex w-full items-center justify-center lg:mt-[100px]">
+                <div className="w-full max-w-md p-4 sm:p-8">
                     <div className="flex justify-center mb-8">
                         <Image src="/assets/nativetalk-logo.svg"
                             alt="Logo"
@@ -67,14 +67,14 @@ const PasswordReset = () => {
                             type="email"
                             value={email}
                             onChange={handleChange}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-300 focus:outline-none focus:ring-[#3EBF0F] focus:border-[#3EBF0F] sm:text-sm"
+                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2.5 text-gray-900 shadow-sm focus:border-[#3EBF0F] focus:outline-none focus:ring-[#3EBF0F] dark:border-gray-600 dark:text-gray-300 sm:py-2 sm:text-sm"
                             placeholder="mycompany@email.com"
                         />
                     </div>
 
                     <button
                         onClick={handleSubmit}
-                        className={`w-full mt-5 bg-[#3EBF0F] text-white py-2 rounded-md hover:bg-[#34a60e] focus:outline-none ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`mt-5 w-full rounded-md bg-[#3EBF0F] py-2.5 text-white hover:bg-[#34a60e] focus:outline-none sm:py-2 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         disabled={loading}
                     >
                         Proceed
@@ -88,7 +88,7 @@ const PasswordReset = () => {
                 </div>
             </div>
 
-            <div className="mt-auto text-center mb-5">
+            <div className="mt-auto w-full max-w-[500px] px-4 text-center text-xs sm:px-0">
                 <Footer />
             </div>
         </div>
