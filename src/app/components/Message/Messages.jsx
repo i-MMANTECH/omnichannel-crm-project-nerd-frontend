@@ -1711,7 +1711,7 @@ export const MessagesContent = () => {
 		<div className="body-theme flex flex-col px-2 sm:px-5 w-full max-w-full overflow-x-hidden min-w-0">
 			<div className={`${activeUser ? "hidden md:flex" : "flex"} flex-wrap gap-3 p-2 sm:p-4 items-center justify-between w-full max-w-full min-w-0 overflow-x-hidden`}>
 				<div className="flex items-center gap-3 sm:gap-8 min-w-0 max-w-full">
-					<div className="relative flex items-center flex-wrap min-w-0 max-w-full">
+					<div className="relative flex items-center flex-wrap min-w-0 max-w-full gap-y-2 leading-none">
 						{agents.map((assignee, index) => {
 							const tooltipName = (() => {
 								const fullName = `${assignee?.first_name || ""} ${assignee?.last_name || ""}`.trim();
