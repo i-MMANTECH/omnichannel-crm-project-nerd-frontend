@@ -43,7 +43,7 @@ const MessageInput = ({
   }, []);
 
   useEffect(() => {
-    const update = () => setPickerWidth(Math.min(350, window.innerWidth - 32));
+    const update = () => setPickerWidth(Math.min(350, window.innerWidth - 24));
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
@@ -185,7 +185,7 @@ const MessageInput = ({
   return (
     <div
       ref={inputContainerRef}
-      className={`body-theme type absolute bottom-0 w-full max-w-full pr-3 sm:pr-6 pt-4 ${
+      className={`body-theme type absolute bottom-0 w-full max-w-full pr-5 sm:pr-6 pt-4 ${
       selectedChannel?.label !== "Email" ? 'pb-4' : ''
     }`}
     >
@@ -238,7 +238,7 @@ const MessageInput = ({
             <div className="relative flex items-center justify-center cursor-pointer" ref={emojiPickerRef}>
               <Smile size={28} color="#0D0D12" onClick={() => setShowEmojiPicker((val) => !val)} strokeWidth={1.5} />
               {showEmojiPicker && (
-                <div className="absolute bottom-12 left-[-10px] z-[999]">
+                <div className="fixed sm:absolute bottom-20 sm:bottom-12 right-2 left-2 sm:right-auto sm:left-[-10px] z-[999] flex justify-end sm:block">
                   <EmojiPicker onEmojiClick={onEmojiClick} autoFocusSearch={false} width={pickerWidth} />
                 </div>
               )}
