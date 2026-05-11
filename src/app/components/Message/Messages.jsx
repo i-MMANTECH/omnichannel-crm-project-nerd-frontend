@@ -221,7 +221,6 @@ export const MessagesContent = () => {
 	const [loading, setLoading] = useState(true);
 	const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 	const [chatResponse, setChatResponse] = useState();
-	const [aiTypingConversationId, setAiTypingConversationId] = useState(null);
 
 	const [chatType, setChatType] = useState(searchParams.get("chat") || "leads");
 	const chatId = searchParams.get("id");
@@ -559,17 +558,6 @@ export const MessagesContent = () => {
 		(data) => {
 			// ✅ your existing handler body 그대로
 			// console.log("📬 Processing WebSocket data:", { type: data.type });
-
-			if (data.type === "ai_typing") {
-				if (data.is_typing) {
-					setAiTypingConversationId(data.conversation_id);
-				} else {
-					setAiTypingConversationId((prev) =>
-						String(prev) === String(data.conversation_id) ? null : prev
-					);
-				}
-				return;
-			}
 
 			if (data.type === "message_status") {
 				const updatedMessage = data.message;
@@ -1671,17 +1659,7 @@ export const MessagesContent = () => {
 	const handleCreateTicket = async (ticketData) => {
 		try {
 			setIsCreateTicketModalOpen(false);
-			if (activeUser?.id) {
-				setCachedData((prev) => {
-					const typeBucket = prev[chatType] || { histories: {} };
-					const { [activeUser.id]: _removed, ...remainingHistories } = typeBucket.histories || {};
-					return {
-						...prev,
-						[chatType]: { ...typeBucket, histories: remainingHistories },
-					};
-				});
-			}
-			await fetchChatHistory();
+			// Optionally refresh ticket panel or show success message
 		} catch (error) {
 			handleApiError(error);
 		}
@@ -1730,10 +1708,10 @@ export const MessagesContent = () => {
 
 
 	return (
-		<div className="body-theme flex flex-col px-5 ">
-			<div className="flex p-4 items-center justify-between w-full ">
-				<div className="flex items-center gap-8">
-					<div className="relative flex items-center">
+		<div className="body-theme flex flex-col px-2 sm:px-5 w-full max-w-full overflow-x-hidden min-w-0">
+			<div className={`${activeUser ? "hidden md:flex" : "flex"} flex-wrap gap-3 p-2 sm:p-4 items-center justify-between w-full max-w-full min-w-0 overflow-x-hidden`}>
+				<div className="flex items-center gap-3 sm:gap-8 min-w-0 max-w-full">
+					<div className="relative flex items-center flex-wrap min-w-0 max-w-full">
 						{agents.map((assignee, index) => {
 							const tooltipName = (() => {
 								const fullName = `${assignee?.first_name || ""} ${assignee?.last_name || ""}`.trim();
@@ -1757,7 +1735,7 @@ export const MessagesContent = () => {
 									{assignee?.image ? (
 										<Image
 											alt="profile pic"
-											className="w-8 h-8 rounded-full bg-gray-200"
+											className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-200"
 											src={assignee.image}
 											width={30}
 											height={30}
@@ -1768,9 +1746,9 @@ export const MessagesContent = () => {
 												`${assignee.first_name} ${assignee?.last_name}` :
 												assignee?.email || '--'
 											}
-											className="w-10 h-10 rounded-full flex-shrink-0"
-											width="w-8"
-											height="h-8"
+											className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0"
+											width="w-6 sm:w-8"
+											height="h-6 sm:h-8"
 										/>
 									)}
 									{/* ✅ SMART TOOLTIP - Shows name, email, phone, or fallback */}
@@ -1792,29 +1770,31 @@ export const MessagesContent = () => {
 					</div>
 				</div>
 
-				<div className="flex gap-4">
+				<div className="relative flex flex-wrap gap-1.5 sm:gap-4 min-w-0 max-w-full">
 					{baseRoute == '/admin' && (
 						<>
 							<button
 								onClick={() => setIsExportModalOpen(true)}
-								className="bg-white dark:bg-gray-800 text-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-2"
+								className="bg-white dark:bg-gray-800 text-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap"
+								aria-label="Export"
 							>
-								<Download className="w-4 h-4" />
-								Export
+								<Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+								<span className="hidden sm:inline">Export</span>
 							</button>
 							<button
 								onClick={() => { router.push(`${baseRoute}/settings#channels-integration`); }}
-								className="bg-[#3EBF0F] text-white px-4 py-2 rounded-lg shadow-sm">
-								+ Connect Channel
+								className="bg-[#3EBF0F] text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-sm text-xs sm:text-sm whitespace-nowrap">
+								<span className="sm:hidden">+ Connect</span>
+								<span className="hidden sm:inline">+ Connect Channel</span>
 							</button>
 						</>
 					)}
 					<div className="bg-gray-500 w-0.5 hidden"></div>
 					<div
-						className=" flex h-10 min-w-20 px-3 justify-center items-center gap-2 rounded-lg border border-[#DFE1E6] body-theme cursor-pointer shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]"
+						className=" flex h-8 sm:h-10 min-w-0 sm:min-w-20 px-2 sm:px-3 justify-center items-center gap-1 sm:gap-2 rounded-lg border border-[#DFE1E6] body-theme cursor-pointer shadow-[0px_1px_2px_0px_rgba(13,13,18,0.06)]"
 						ref={buttonRef}
 						onClick={() => setIsMenuOpen(!isMenuOpen)}>
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0">
 							<path
 								d="M13.3333 2H2.66667C2.29848 2 2 2.29848 2 2.66667V3.7468C2 4.33065 2.25513 4.88535 2.69842 5.26531L5.96825 8.06802C6.41154 8.44799 6.66667 9.00269 6.66667 9.58654V14L9.33333 12.6667V9.58654C9.33333 9.00269 9.58846 8.44799 10.0318 8.06802L13.3016 5.26531C13.7449 4.88535 14 4.33065 14 3.7468V2.66667C14 2.29848 13.7015 2 13.3333 2Z"
 								stroke="#808897"
@@ -1824,17 +1804,18 @@ export const MessagesContent = () => {
 							/>
 						</svg>
 
-						<p className=" text-[14px] font-medium leading-[150%] tracking-[0.2px]">
+						<p className=" text-xs sm:text-[14px] font-medium leading-[150%] tracking-[0.2px] truncate max-w-[80px] sm:max-w-none">
 							{selectedChannel ? selectedChannel.name : "Filter"}
 						</p>
 					</div>
 
 					{chatType === "internal" && (
 						<button
-							className="px-4 py-2 bg-[#3EBF0F] text-white rounded-md shadow-sm"
+							className="px-2 sm:px-4 py-1.5 sm:py-2 bg-[#3EBF0F] text-white rounded-md shadow-sm text-xs sm:text-sm whitespace-nowrap"
 							onClick={() => setShowInternalModal(true)}
 						>
-							+ New Internal Chat
+							<span className="sm:hidden">+ New</span>
+							<span className="hidden sm:inline">+ New Internal Chat</span>
 						</button>
 					)}
 
@@ -1862,13 +1843,13 @@ export const MessagesContent = () => {
 				</div>
 			</div>
 
-			<div className="overflow-hidden messages flex flex-col md:flex-row items-stretch border border-gray-500 rounded-lg relative h-[calc(100vh-180px)] md:h-[80vh] m-2 sm:m-4 mt-0">
-				<div className={`${activeUser ? "hidden md:flex" : "flex"} flex-col w-full md:w-[320px] lg:w-[360px] md:flex-shrink-0 md:border-r md:border-gray-300 dark:md:border-gray-600 md:h-full`}>
+			<div className={`overflow-hidden messages flex flex-col md:flex-row items-stretch border border-gray-500 md:rounded-lg ${activeUser ? "rounded-none" : "rounded-lg"} relative ${activeUser ? "h-[calc(100dvh-100px)]" : "h-[calc(100dvh-180px)]"} md:h-[80vh] m-0 sm:m-4 mt-0 max-w-full`}>
+				<div className={`${activeUser ? "hidden md:flex" : "flex"} flex-col w-full md:w-[320px] lg:w-[360px] md:flex-shrink-0 md:border-r md:border-gray-300 dark:md:border-gray-600 md:h-full min-h-0 min-w-0 overflow-x-hidden`}>
 					<div className="body-theme justify-center gap-5 p-3 md:p-5 flex items-start flex-col w-full">
-						<div className="flex items-center  w-full justify-between space-x-4 ">
-							<div className="relative">
+						<div className="flex items-center  w-full justify-between gap-3 ">
+							<div className="relative flex-1 min-w-0">
 								<input
-									className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
+									className="w-full body-theme bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-10 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
 									placeholder="Search Users..."
 									value={searchQuery}
 									onChange={(e) => setSearchQuery(e.target.value)}
@@ -1876,8 +1857,9 @@ export const MessagesContent = () => {
 								<button
 									className="absolute top-1 right-0 flex items-center rounded body-theme py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow-sm hover:shadow active:bg-gray-400 active:dark:bg-black hover:bg-gray-100 hover:dark:bg-gray-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
 									type="button"
+									aria-label="Search"
 								>
-									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 mr-2">
+									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
 										<path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
 									</svg>
 								</button>
@@ -1894,33 +1876,33 @@ export const MessagesContent = () => {
 								<path d="M7.99984 2.66683C5.05432 2.66683 2.6665 5.05464 2.6665 8.00016C2.6665 9.97425 3.73903 11.6978 5.33317 12.62M7.99984 2.66683L6.6665 1.3335M7.99984 2.66683L6.99984 4.3335M7.99984 13.3335C10.9454 13.3335 13.3332 10.9457 13.3332 8.00016C13.3332 6.02608 12.2606 4.30249 10.6665 3.38033M7.99984 13.3335L9.33317 14.6668M7.99984 13.3335L8.99984 11.6668" stroke="#3EBF0F" strokeLinecap="round" strokeLinejoin="round" />
 							</svg>
 						</div>
-						<div className="flex gap-3 w-full ">
-							<div className="tab-atom relative">
-								<div className={`px-3 pb-1 ${chatType === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>
+						<div className="flex gap-3 w-full overflow-x-auto -mx-1 px-1">
+							<div className="tab-atom relative flex-shrink-0">
+								<div className={`px-3 pb-1 whitespace-nowrap ${chatType === 'leads' ? 'active' : ""}`} onClick={() => handleTabChange('leads')}>
 									Leads
 									{tabUnreadFlags.leads && (
 										<span className="absolute top-0.5 right-1 w-1.5 h-1.5 bg-[#3EBF0F] rounded-full"></span>
 									)}
 								</div>
 							</div>
-							<div className="tab-atom relative">
-								<div className={`px-3 pb-1 ${chatType === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>
+							<div className="tab-atom relative flex-shrink-0">
+								<div className={`px-3 pb-1 whitespace-nowrap ${chatType === 'customers' ? 'active' : ""}`} onClick={() => handleTabChange('customers')}>
 									Customers
 									{tabUnreadFlags.customers && (
 										<span className="absolute top-0.5 right-1 w-1.5 h-1.5 bg-[#3EBF0F] rounded-full"></span>
 									)}
 								</div>
 							</div>
-							<div className="tab-atom relative">
-								<div className={`px-3 pb-1 ${chatType === 'archived' ? 'active' : ""}`} onClick={() => handleTabChange('archived')}>
+							<div className="tab-atom relative flex-shrink-0">
+								<div className={`px-3 pb-1 whitespace-nowrap ${chatType === 'archived' ? 'active' : ""}`} onClick={() => handleTabChange('archived')}>
 									Archived
 									{tabUnreadFlags.archived && (
 										<span className="absolute top-0.5 right-1 w-1.5 h-1.5 bg-[#3EBF0F] rounded-full"></span>
 									)}
 								</div>
 							</div>
-							<div className="tab-atom relative">
-								<div className={`px-3 pb-1 ${chatType === 'internal' ? 'active' : ""}`} onClick={() => handleTabChange('internal')}>
+							<div className="tab-atom relative flex-shrink-0">
+								<div className={`px-3 pb-1 whitespace-nowrap ${chatType === 'internal' ? 'active' : ""}`} onClick={() => handleTabChange('internal')}>
 									Internal
 									{tabUnreadFlags.internal && (
 										<span className="absolute top-0.5 right-1 w-1.5 h-1.5 bg-[#3EBF0F] rounded-full"></span>
@@ -1951,9 +1933,10 @@ export const MessagesContent = () => {
 									setActiveUser(null);
 									router.push(`${baseRoute}/messages?chat=${chatType}`, { scroll: false });
 								}}
-								className="md:hidden flex items-center gap-2 px-4 py-2 text-sm text-[#3EBF0F] border-b border-gray-200 dark:border-gray-700"
+								className="md:hidden flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#3EBF0F] border-b border-gray-200 dark:border-gray-700 active:bg-gray-100 dark:active:bg-gray-800 transition-colors"
+								aria-label="Back to chats"
 							>
-								<span aria-hidden="true">&larr;</span> Back to chats
+								<span aria-hidden="true" className="text-base">&larr;</span> Back to chats
 							</button>
 							<ChatHeader
 								activeUser={activeUser}
@@ -1976,14 +1959,14 @@ export const MessagesContent = () => {
 							/>
 
 							{chatType === "leads" && suggestedCustomer && (
-								<div className="mx-4 my-2 p-3 bg-blue-50 border border-blue-200 rounded-md flex items-center justify-between gap-4">
-									<p className="text-sm text-blue-800">
+								<div className="mx-2 sm:mx-4 my-2 p-3 bg-blue-50 border border-blue-200 rounded-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 max-w-full overflow-hidden">
+									<p className="text-sm text-blue-800 break-words min-w-0">
 										This lead matches an existing customer: <strong>{suggestedCustomer.name}</strong>. Link them to merge their records.
 									</p>
 									<button
 										onClick={handleLinkLeadToCustomer}
 										disabled={isLinkingCustomer}
-										className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap flex-shrink-0"
+										className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap flex-shrink-0 self-start sm:self-auto"
 									>
 										{isLinkingCustomer ? "Linking..." : "Link to Customer"}
 									</button>
@@ -2004,8 +1987,6 @@ export const MessagesContent = () => {
 									chatType={chatType}
 									currentUserId={userProfile?.id}
 									onRetryFailedMessage={handleRetryFailedMessage}
-									aiTypingConversationId={aiTypingConversationId}
-									currentConversationId={chatResponse?.conversation_id}
 								/>
 
 								{/* Ticket Panel */}

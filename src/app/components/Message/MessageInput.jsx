@@ -177,7 +177,7 @@ const MessageInput = ({
   return (
     <div
       ref={inputContainerRef}
-      className={`body-theme type absolute bottom-0 w-full pr-6 pt-4 ${
+      className={`body-theme type absolute bottom-0 w-full max-w-full pr-3 sm:pr-6 pt-4 ${
       selectedChannel?.label !== "Email" ? 'pb-4' : ''
     }`}
     >

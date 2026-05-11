@@ -6,13 +6,35 @@
     border-color: var(--greyscale-100);
     display: flex;
     flex: 0 0 auto;
-    gap: 16px;
+    gap: 12px;
     margin-left: -1.00px;
     margin-right: -1.00px;
     margin-top: -1.00px;
-    padding: 24px;
+    padding: 12px 14px;
     position: relative;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  @media (min-width: 768px) {
+    .messages .header {
+      gap: 16px;
+      padding: 24px;
+    }
+  }
+
+  .messages .info {
+    min-width: 0;
+  }
+
+  .messages .info > div:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
   }
   
 .messages .title-4 {

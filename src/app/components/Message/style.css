@@ -126,9 +126,18 @@
   flex-direction: column;
   flex-grow: 1;
   gap: 16px;
-  padding: 24px 36px;
+  padding: 16px 12px;
   position: relative;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .messages .message-list {
+    padding: 24px 36px;
+  }
 }
 
 .messages .chat {

@@ -62,9 +62,7 @@ const MessageList = ({
   next,
   chatType,
   currentUserId,
-  onRetryFailedMessage,
-  aiTypingConversationId,
-  currentConversationId,
+  onRetryFailedMessage
 }) => {
   const messageEndRef = useRef(null);
   const listRef = useRef(null);
@@ -406,32 +404,10 @@ const MessageList = ({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [selectedImage, selectedVideo]);
 
-  const PAYSTACK_URL_RE = /https:\/\/(?:checkout\.paystack\.com|paystack\.com\/pay)\/\S+/;
-
   function renderMessageContent(msg) {
     const isEmail = isEmailMessage(msg);
     const contentHasHtml = containsHtml(msg.content);
     const contentType = msg.content_type || "text"; // ✅ fallback for internal messages
-
-    // Detect Paystack payment URL — render "Pay Now" button instead of raw URL
-    const paystackMatch = !contentHasHtml && !isEmail && (msg.content || "").match(PAYSTACK_URL_RE);
-    if (paystackMatch) {
-      const url = paystackMatch[0];
-      const textPart = msg.content.slice(0, paystackMatch.index).trim();
-      return (
-        <div style={{ whiteSpace: "pre-wrap", marginTop: getMessageAttachments(msg).length ? "8px" : "0" }}>
-          {textPart && <div>{textPart}</div>}
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="pay-now-btn"
-          >
-            Pay Now →
-          </a>
-        </div>
-      );
-    }
 
     if (contentType === "html") {
       return (
@@ -778,7 +754,7 @@ const MessageList = ({
                                   loader={() => attachment.file}
                                   src={attachment.file}
                                   alt="Sent Image"
-                                  className="image-message max-w-[250px] max-h-[250px] pointer"
+                                  className="image-message max-w-full sm:max-w-[250px] max-h-[250px] pointer"
                                   width={250}
                                   height={250}
                                   onClick={() => openImageModal(attachment.file)}
@@ -791,10 +767,10 @@ const MessageList = ({
                           {msg.content_type === "video" && msg.attachments && msg.attachments.length > 0 && (
                             <div className="flex flex-col gap-2">
                               {msg.attachments.map((attachment, i) => (
-                                <div key={i} className="relative max-w-[320px]">
+                                <div key={i} className="relative max-w-full sm:max-w-[320px]">
                                   <video
                                     src={attachment.file}
-                                    className="max-w-[320px] max-h-[240px] rounded-lg cursor-pointer bg-black"
+                                    className="max-w-full sm:max-w-[320px] max-h-[240px] rounded-lg cursor-pointer bg-black"
                                     muted
                                     playsInline
                                     onClick={() => openVideoModal(attachment.file)}
@@ -902,7 +878,7 @@ const MessageList = ({
                                     loader={() => attachment.file}
                                     src={attachment.file}
                                     alt="Sent Image"
-                                    className="image-message max-w-[250px] max-h-[250px] pointer"
+                                    className="image-message max-w-full sm:max-w-[250px] max-h-[250px] pointer"
                                     width={300}
                                     height={300}
                                     onClick={() => openImageModal(attachment.file)}
@@ -957,17 +933,6 @@ const MessageList = ({
           </React.Fragment>
         );
       })}
-
-      {aiTypingConversationId && currentConversationId &&
-        String(aiTypingConversationId) === String(currentConversationId) && (
-          <div className="chat chat-right">
-            <div className="bubble-chat bubble-chat-user">
-              <span className="ai-typing-indicator">
-                <span></span><span></span><span></span>
-              </span>
-            </div>
-          </div>
-        )}
 
       <div ref={messageEndRef} />
 
