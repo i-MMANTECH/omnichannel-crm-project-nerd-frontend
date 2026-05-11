@@ -28,6 +28,7 @@ const MessageInput = ({
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [pickerWidth, setPickerWidth] = useState(350);
   const emojiPickerRef = useRef(null);
   const inputContainerRef = useRef(null);
 
@@ -39,6 +40,13 @@ const MessageInput = ({
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const update = () => setPickerWidth(Math.min(350, window.innerWidth - 32));
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
   }, []);
 
   useEffect(() => {
@@ -231,7 +239,7 @@ const MessageInput = ({
               <Smile size={28} color="#0D0D12" onClick={() => setShowEmojiPicker((val) => !val)} strokeWidth={1.5} />
               {showEmojiPicker && (
                 <div className="absolute bottom-12 left-[-10px] z-[999]">
-                  <EmojiPicker onEmojiClick={onEmojiClick} autoFocusSearch={false} />
+                  <EmojiPicker onEmojiClick={onEmojiClick} autoFocusSearch={false} width={pickerWidth} />
                 </div>
               )}
             </div>
