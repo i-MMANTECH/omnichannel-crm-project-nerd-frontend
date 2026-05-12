@@ -252,7 +252,7 @@ export default function SuperAdminUsers() {
                           )}
                         </button>
                         {menuOpen === user.id && (
-                          <div className="absolute right-0 top-8 bg-white rounded-lg border border-gray-200 shadow-lg z-10 min-w-[160px] py-1">
+                          <div className="absolute right-0 top-8 bg-white rounded-lg border border-gray-200 shadow-lg z-10 min-w-[180px] py-1">
                             <button
                               onClick={() => toggleStatus(user)}
                               className={`flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-50 ${
@@ -264,6 +264,19 @@ export default function SuperAdminUsers() {
                               ) : (
                                 <><UserCheck className="w-3.5 h-3.5" /> Activate User</>
                               )}
+                            </button>
+                            <div className="border-t border-gray-100 my-1" />
+                            <button
+                              onClick={() => { setMenuOpen(null); setConfirmDelete({ user, permanent: false }); }}
+                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-orange-600 hover:bg-orange-50"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Soft Delete
+                            </button>
+                            <button
+                              onClick={() => { setMenuOpen(null); setConfirmDelete({ user, permanent: true }); }}
+                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Permanently Delete
                             </button>
                           </div>
                         )}
@@ -317,6 +330,28 @@ export default function SuperAdminUsers() {
       </div>
 
       {menuOpen && <div className="fixed inset-0 z-[5]" onClick={() => setMenuOpen(null)} />}
+
+      <ConfirmModal
+        open={!!confirmDelete && !confirmDelete.permanent}
+        title="Soft Delete User"
+        message={`"${confirmDelete?.user?.full_name || confirmDelete?.user?.email}" will be marked as deleted and deactivated but data stays in the database.`}
+        confirmLabel="Soft Delete"
+        confirmClass="bg-orange-500 hover:bg-orange-600"
+        onConfirm={handleDeleteUser}
+        onCancel={() => setConfirmDelete(null)}
+        loading={deleteLoading}
+      />
+
+      <ConfirmModal
+        open={!!confirmDelete && confirmDelete.permanent === true}
+        title="Permanently Delete User"
+        message={`This will permanently delete "${confirmDelete?.user?.full_name || confirmDelete?.user?.email}" from the database. This cannot be undone.`}
+        confirmLabel="Delete Forever"
+        confirmClass="bg-red-600 hover:bg-red-700"
+        onConfirm={handleDeleteUser}
+        onCancel={() => setConfirmDelete(null)}
+        loading={deleteLoading}
+      />
     </div>
   );
 }
