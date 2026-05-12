@@ -700,6 +700,12 @@ export const MessagesContent = () => {
 					markConversationAsRead(activeUser.id);
 				}
 
+				// Clear the customer typing indicator the moment their message arrives.
+				if (!message.company_is_sender && isCustomerTyping) {
+					if (customerTypingTimerRef.current) clearTimeout(customerTypingTimerRef.current);
+					setIsCustomerTyping(false);
+				}
+
 				let matchedTempId = null;
 				setChatHistory((prevHistory) => {
 					const alreadyExists = prevHistory.some((msg) => msg.id === message.id);
