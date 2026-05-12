@@ -256,6 +256,9 @@ export const MessagesContent = () => {
 
 	const [isCustomerTyping, setIsCustomerTyping] = useState(false);
 	const customerTypingTimerRef = useRef(null);
+	// Stores status updates that arrived before the real message replaced its temp placeholder.
+	// Key: real DB message id (number), Value: partial message update object {id, status, ...}
+	const pendingStatusUpdatesRef = useRef(new Map());
 
 	// Ticketing states
 	const [showTicketPanel, setShowTicketPanel] = useState(false);
@@ -565,11 +568,18 @@ export const MessagesContent = () => {
 			if (data.type === "message_status") {
 				const updatedMessage = data.message;
 
-				setChatHistory((prevHistory) =>
-					prevHistory.map((msg) =>
+				setChatHistory((prevHistory) => {
+					const matched = prevHistory.some((msg) => msg.id === updatedMessage.id);
+					if (!matched) {
+						// Real message hasn't replaced its temp placeholder yet — cache the
+						// status update so it can be applied once the real message arrives.
+						pendingStatusUpdatesRef.current.set(updatedMessage.id, updatedMessage);
+						return prevHistory;
+					}
+					return prevHistory.map((msg) =>
 						msg.id === updatedMessage.id ? { ...msg, ...updatedMessage } : msg
-					)
-				);
+					);
+				});
 
 				if (!activeUser || !activeUser.id) return;
 
@@ -691,7 +701,14 @@ export const MessagesContent = () => {
 					if (tempMatchIndex !== -1) {
 						const newHistory = [...prevHistory];
 						matchedTempId = newHistory[tempMatchIndex]?.id;
-						newHistory[tempMatchIndex] = message;
+						// Apply any status update that arrived before this real message did.
+						const pendingStatus = pendingStatusUpdatesRef.current.get(message.id);
+						if (pendingStatus) {
+							pendingStatusUpdatesRef.current.delete(message.id);
+							newHistory[tempMatchIndex] = { ...message, ...pendingStatus };
+						} else {
+							newHistory[tempMatchIndex] = message;
+						}
 						return newHistory;
 					}
 

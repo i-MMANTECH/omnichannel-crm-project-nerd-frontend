@@ -31,6 +31,8 @@ const MessageInput = ({
   const [pickerWidth, setPickerWidth] = useState(350);
   const emojiPickerRef = useRef(null);
   const inputContainerRef = useRef(null);
+  const typingTimerRef = useRef(null);
+  const isComposingRef = useRef(false);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -98,6 +100,27 @@ const MessageInput = ({
     }
   }, [activeUser, chatType]);
 
+  // Send composing/paused presence to the WhatsApp customer (leads only).
+  // The backend silently no-ops if the channel isn't whatsmeow.
+  const sendTypingPresence = (state) => {
+    if (chatType !== "leads" || !activeUser?.id) return;
+    axiosInstance
+      .post("/communication/whatsapp/typing/", { lead_id: activeUser.id, state }, { showLoader: false })
+      .catch(() => undefined);
+  };
+
+  // Cancel pending "paused" timer and send "paused" when the conversation changes.
+  useEffect(() => {
+    return () => {
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+      if (isComposingRef.current) {
+        isComposingRef.current = false;
+        sendTypingPresence("paused");
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeUser?.id, chatType]);
+
   const fetchChannels = async () => {
     setIsLoadingChannels(true);
     try {
@@ -125,6 +148,18 @@ const MessageInput = ({
 
   const handleInputChangeInternal = (e) => {
     setMessage(e.target.value);
+
+    if (chatType === "leads") {
+      if (!isComposingRef.current) {
+        isComposingRef.current = true;
+        sendTypingPresence("composing");
+      }
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = setTimeout(() => {
+        isComposingRef.current = false;
+        sendTypingPresence("paused");
+      }, 4000);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -176,6 +211,13 @@ const MessageInput = ({
     setSelectedImages([]);
     setSelectedFiles([]);
     setIsOpen(false);
+
+    // Cancel composing state when message is sent.
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    if (isComposingRef.current) {
+      isComposingRef.current = false;
+      sendTypingPresence("paused");
+    }
   };
 
   const onEmojiClick = (emojiObject) => {
