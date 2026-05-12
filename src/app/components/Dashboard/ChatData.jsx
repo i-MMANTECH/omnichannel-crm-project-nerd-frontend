@@ -1,13 +1,17 @@
-import React, {useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import { Doughnut } from "react-chartjs-2";
 import NoDataFound from '../NoDataFound';
 import './style.css';
 import { useRouter } from 'next/navigation';
 import { usePermissions } from '@/context/PermissionsContext';
+import { useApi } from '@/services/axiosConfig';
+import { useError } from '@/context/ErrorContext';
 
 export default function ChatData(){
     const router = useRouter();
     const { checkPermission } = usePermissions();
+    const { axiosInstance } = useApi();
+    const { handleApiError } = useError();
 
     const viewUser = checkPermission('view_user');
     const addUser = checkPermission('add_user');
@@ -18,15 +22,38 @@ export default function ChatData(){
 
     const hasQuickActionsPermissions = (viewUser && addUser) || (viewCustomer && addCustomer) || (viewTask && addTask)
 
-    const [agentsData, setAgentsData] = useState([
+    const [agentCounts, setAgentCounts] = useState({ active: 0, away: 0, offline: 0, total: 0 });
+    const [agentsLoading, setAgentsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchAgentStats = async () => {
+            try {
+                const { data } = await axiosInstance.get('analytics/users/');
+                const activity = data?.data?.users?.activity ?? {};
+                setAgentCounts({
+                    active: activity.active?.count ?? 0,
+                    away: activity.away?.count ?? 0,
+                    offline: activity.offline?.count ?? 0,
+                    total: activity.total ?? data?.data?.users?.total ?? 0,
+                });
+            } catch (error) {
+                handleApiError(error);
+            } finally {
+                setAgentsLoading(false);
+            }
+        };
+        fetchAgentStats();
+    }, []);
+
+    const agentsData = [
         {
-          data: [71, 27, 23],
-          backgroundColor: ["#3EBF0F", "#115BC7", "#808897"],
-          borderWidth: 1,
+            data: [agentCounts.active, agentCounts.away, agentCounts.offline],
+            backgroundColor: ["#3EBF0F", "#115BC7", "#808897"],
+            borderWidth: 1,
         }
-      ]);
-    
-      const options = {
+    ];
+
+    const options = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -168,7 +195,11 @@ export default function ChatData(){
         <span className="text-base sm:text-lg font-semibold">Total Agents</span>
       </div>
       <div className="flex flex-col gap-3 w-full justify-center items-center pt-4 px-3">
-        {agentsData.length === 0 ? (
+        {agentsLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-gray-400"></div>
+          </div>
+        ) : agentCounts.total === 0 ? (
           <NoDataFound message="No records found" />
         ) : (
           <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -178,15 +209,15 @@ export default function ChatData(){
             <div>
               <p className="text-sm mb-1 flex items-center">
                 <span className="w-2 h-2 inline-block rounded-full bg-green-500 mr-2"></span>
-                Active Agents: 0
+                Active Agents: {agentCounts.active}
               </p>
               <p className="text-sm mb-1 flex items-center">
                 <span className="w-2 h-2 inline-block rounded-full bg-blue-500 mr-2"></span>
-                Agents on Break: 0
+                Agents on Break: {agentCounts.away}
               </p>
               <p className="text-sm mb-1 flex items-center">
                 <span className="w-2 h-2 inline-block rounded-full bg-gray-500 mr-2"></span>
-                Idle Agents: 0
+                Idle Agents: {agentCounts.offline}
               </p>
             </div>
           </div>
