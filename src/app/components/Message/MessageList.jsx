@@ -64,6 +64,8 @@ const MessageList = ({
   currentUserId,
   onRetryFailedMessage,
   isCustomerTyping = false,
+  aiTypingConversationId,
+  currentConversationId,
 }) => {
   const messageEndRef = useRef(null);
   const listRef = useRef(null);
@@ -934,6 +936,17 @@ const MessageList = ({
           </React.Fragment>
         );
       })}
+
+      {aiTypingConversationId && currentConversationId &&
+        String(aiTypingConversationId) === String(currentConversationId) && (
+          <div className="chat chat-right">
+            <div className="bubble-chat bubble-chat-user">
+              <span className="ai-typing-indicator">
+                <span></span><span></span><span></span>
+              </span>
+            </div>
+          </div>
+        )}
 
       {isCustomerTyping && (
         <div className="chat chat-left">
