@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, ChevronLeft, ChevronRight, Building2, Users, CreditCard, TrendingUp, ExternalLink, X } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Building2, Users, CreditCard, TrendingUp, ExternalLink, X, Edit2, Trash2, Power, PowerOff, AlertTriangle } from 'lucide-react';
 import { useSuperAdminAuth } from '../context/SuperAdminAuthContext';
 import { createSuperAdminApi } from '../lib/api';
 import { toast } from 'react-toastify';
@@ -41,6 +41,34 @@ function StatCard({ label, value, icon: Icon, color }) {
   );
 }
 
+function ConfirmModal({ open, title, message, confirmLabel, confirmClass, onConfirm, onCancel, loading }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/50" onClick={onCancel} />
+      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+            <AlertTriangle className="w-4 h-4 text-red-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-800 text-sm">{title}</h3>
+            <p className="text-sm text-gray-500 mt-1">{message}</p>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button onClick={onCancel} disabled={loading} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+            Cancel
+          </button>
+          <button onClick={onConfirm} disabled={loading} className={`px-4 py-2 text-sm text-white rounded-lg transition-colors disabled:opacity-60 ${confirmClass}`}>
+            {loading ? 'Processing...' : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SuperAdminCompanies() {
   const { superAdmin } = useSuperAdminAuth();
   const [companies, setCompanies] = useState([]);
@@ -53,6 +81,15 @@ export default function SuperAdminCompanies() {
   const [totalCount, setTotalCount] = useState(0);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+
+  // Edit name state
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState('');
+  const [nameSaving, setNameSaving] = useState(false);
+
+  // Confirm modal state
+  const [confirmModal, setConfirmModal] = useState(null); // { type, permanent }
+  const [actionLoading, setActionLoading] = useState(false);
 
   const PAGE_SIZE = 20;
 
@@ -89,6 +126,7 @@ export default function SuperAdminCompanies() {
   const openDetail = async (company) => {
     setSelectedCompany({ ...company, _loading: true });
     setDetailLoading(true);
+    setEditingName(false);
     try {
       const api = createSuperAdminApi(superAdmin.access);
       const res = await api.get(`/super-admin/companies/${company.id}`);
@@ -98,6 +136,69 @@ export default function SuperAdminCompanies() {
       setSelectedCompany(null);
     } finally {
       setDetailLoading(false);
+    }
+  };
+
+  const closeDetail = () => {
+    setSelectedCompany(null);
+    setEditingName(false);
+    setConfirmModal(null);
+  };
+
+  const handleSaveName = async () => {
+    if (!nameInput.trim() || nameInput.trim() === selectedCompany.name) {
+      setEditingName(false);
+      return;
+    }
+    setNameSaving(true);
+    try {
+      const api = createSuperAdminApi(superAdmin.access);
+      await api.patch(`/super-admin/companies/${selectedCompany.id}/`, { name: nameInput.trim() });
+      setSelectedCompany((c) => ({ ...c, name: nameInput.trim() }));
+      setCompanies((prev) => prev.map((c) => c.id === selectedCompany.id ? { ...c, name: nameInput.trim() } : c));
+      toast.success('Company name updated');
+      setEditingName(false);
+    } catch (err) {
+      toast.error('Failed to update company name');
+    } finally {
+      setNameSaving(false);
+    }
+  };
+
+  const handleToggleActive = async () => {
+    const newActive = !selectedCompany.is_active;
+    setActionLoading(true);
+    try {
+      const api = createSuperAdminApi(superAdmin.access);
+      await api.patch(`/super-admin/companies/${selectedCompany.id}/`, { is_active: newActive });
+      const newStatus = newActive ? 'active' : 'inactive';
+      setSelectedCompany((c) => ({ ...c, is_active: newActive, status: newStatus }));
+      setCompanies((prev) => prev.map((c) => c.id === selectedCompany.id ? { ...c, status: newStatus } : c));
+      toast.success(`Company ${newActive ? 'activated' : 'deactivated'} successfully`);
+    } catch (err) {
+      toast.error('Failed to update company status');
+    } finally {
+      setActionLoading(false);
+      setConfirmModal(null);
+    }
+  };
+
+  const handleDelete = async (permanent) => {
+    setActionLoading(true);
+    try {
+      const api = createSuperAdminApi(superAdmin.access);
+      const url = permanent
+        ? `/super-admin/companies/${selectedCompany.id}/?permanent=true`
+        : `/super-admin/companies/${selectedCompany.id}/`;
+      await api.delete(url);
+      setCompanies((prev) => prev.filter((c) => c.id !== selectedCompany.id));
+      setTotalCount((n) => n - 1);
+      toast.success(permanent ? 'Company permanently deleted' : 'Company deleted (soft)');
+      closeDetail();
+    } catch (err) {
+      toast.error('Failed to delete company');
+      setActionLoading(false);
+      setConfirmModal(null);
     }
   };
 
@@ -133,7 +234,7 @@ export default function SuperAdminCompanies() {
             />
           </div>
           <div className="flex gap-2 flex-wrap">
-            {['all', 'active', 'trial', 'churned'].map((s) => (
+            {['all', 'active', 'trial', 'churned', 'inactive'].map((s) => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
@@ -227,11 +328,11 @@ export default function SuperAdminCompanies() {
       {/* Company Detail Drawer */}
       {selectedCompany && (
         <div className="fixed inset-0 z-50 flex justify-end">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setSelectedCompany(null)} />
+          <div className="absolute inset-0 bg-black/40" onClick={closeDetail} />
           <div className="relative w-full max-w-md bg-white h-full shadow-xl overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b border-gray-100">
               <h2 className="font-semibold text-gray-800">Company Details</h2>
-              <button onClick={() => setSelectedCompany(null)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
+              <button onClick={closeDetail} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -242,16 +343,45 @@ export default function SuperAdminCompanies() {
               </div>
             ) : (
               <div className="p-5 space-y-4">
-                <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                {/* Header with name */}
+                <div className="flex items-start gap-3 pb-4 border-b border-gray-100">
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
                     <Building2 className="w-6 h-6 text-blue-600" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-gray-800 text-lg">{selectedCompany.name}</h3>
+                  <div className="flex-1 min-w-0">
+                    {editingName ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          autoFocus
+                          value={nameInput}
+                          onChange={(e) => setNameInput(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false); }}
+                          className="flex-1 text-sm border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#3EBF0F]"
+                        />
+                        <button onClick={handleSaveName} disabled={nameSaving} className="px-2 py-1 text-xs bg-[#3EBF0F] text-white rounded-lg disabled:opacity-60">
+                          {nameSaving ? '...' : 'Save'}
+                        </button>
+                        <button onClick={() => setEditingName(false)} className="px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 rounded-lg">
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="font-bold text-gray-800 text-lg truncate">{selectedCompany.name}</h3>
+                        <button
+                          onClick={() => { setEditingName(true); setNameInput(selectedCompany.name); }}
+                          className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 flex-shrink-0"
+                          title="Rename company"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                     <StatusBadge status={selectedCompany.status} />
                   </div>
                 </div>
 
+                {/* Details grid */}
                 <div className="grid grid-cols-2 gap-3">
                   {[
                     { label: 'Plan', value: selectedCompany.plan_name },
@@ -283,11 +413,88 @@ export default function SuperAdminCompanies() {
                     </p>
                   </div>
                 )}
+
+                {/* Action buttons */}
+                <div className="pt-2 border-t border-gray-100 space-y-2">
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Actions</p>
+
+                  {/* Toggle active */}
+                  <button
+                    onClick={() => setConfirmModal({ type: 'toggle' })}
+                    disabled={actionLoading}
+                    className={`flex items-center gap-2 w-full px-4 py-2.5 text-sm rounded-lg border transition-colors disabled:opacity-60 ${
+                      selectedCompany.is_active
+                        ? 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                        : 'border-green-200 text-green-700 hover:bg-green-50'
+                    }`}
+                  >
+                    {selectedCompany.is_active ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
+                    {selectedCompany.is_active ? 'Deactivate Company' : 'Activate Company'}
+                  </button>
+
+                  {/* Soft delete */}
+                  <button
+                    onClick={() => setConfirmModal({ type: 'delete', permanent: false })}
+                    disabled={actionLoading}
+                    className="flex items-center gap-2 w-full px-4 py-2.5 text-sm rounded-lg border border-orange-200 text-orange-600 hover:bg-orange-50 transition-colors disabled:opacity-60"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Soft Delete (hide from platform)
+                  </button>
+
+                  {/* Hard delete */}
+                  <button
+                    onClick={() => setConfirmModal({ type: 'delete', permanent: true })}
+                    disabled={actionLoading}
+                    className="flex items-center gap-2 w-full px-4 py-2.5 text-sm rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-60"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Permanently Delete
+                  </button>
+                </div>
               </div>
             )}
           </div>
         </div>
       )}
+
+      {/* Confirm modals */}
+      <ConfirmModal
+        open={confirmModal?.type === 'toggle'}
+        title={selectedCompany?.is_active ? 'Deactivate Company' : 'Activate Company'}
+        message={
+          selectedCompany?.is_active
+            ? `Deactivating "${selectedCompany?.name}" will mark it as inactive. You can reactivate it at any time.`
+            : `This will reactivate "${selectedCompany?.name}" on the platform.`
+        }
+        confirmLabel={selectedCompany?.is_active ? 'Deactivate' : 'Activate'}
+        confirmClass={selectedCompany?.is_active ? 'bg-gray-700 hover:bg-gray-800' : 'bg-[#3EBF0F] hover:bg-[#35a80d]'}
+        onConfirm={handleToggleActive}
+        onCancel={() => setConfirmModal(null)}
+        loading={actionLoading}
+      />
+
+      <ConfirmModal
+        open={confirmModal?.type === 'delete' && !confirmModal?.permanent}
+        title="Soft Delete Company"
+        message={`"${selectedCompany?.name}" will be hidden from the platform but data will remain in the database. This can be reversed manually.`}
+        confirmLabel="Soft Delete"
+        confirmClass="bg-orange-500 hover:bg-orange-600"
+        onConfirm={() => handleDelete(false)}
+        onCancel={() => setConfirmModal(null)}
+        loading={actionLoading}
+      />
+
+      <ConfirmModal
+        open={confirmModal?.type === 'delete' && confirmModal?.permanent === true}
+        title="Permanently Delete Company"
+        message={`This will permanently delete "${selectedCompany?.name}" and ALL its data from the database. This cannot be undone.`}
+        confirmLabel="Delete Forever"
+        confirmClass="bg-red-600 hover:bg-red-700"
+        onConfirm={() => handleDelete(true)}
+        onCancel={() => setConfirmModal(null)}
+        loading={actionLoading}
+      />
     </div>
   );
 }

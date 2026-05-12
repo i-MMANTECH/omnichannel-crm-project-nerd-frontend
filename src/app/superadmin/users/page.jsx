@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, ChevronLeft, ChevronRight, MoreVertical, UserCheck, UserX } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, MoreVertical, UserCheck, UserX, Trash2, AlertTriangle } from 'lucide-react';
 import { useSuperAdminAuth } from '../context/SuperAdminAuthContext';
 import { createSuperAdminApi } from '../lib/api';
 import { toast } from 'react-toastify';
@@ -37,6 +37,34 @@ function UserInitials({ name }) {
   );
 }
 
+function ConfirmModal({ open, title, message, confirmLabel, confirmClass, onConfirm, onCancel, loading }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/50" onClick={onCancel} />
+      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+            <AlertTriangle className="w-4 h-4 text-red-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-800 text-sm">{title}</h3>
+            <p className="text-sm text-gray-500 mt-1">{message}</p>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button onClick={onCancel} disabled={loading} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+            Cancel
+          </button>
+          <button onClick={onConfirm} disabled={loading} className={`px-4 py-2 text-sm text-white rounded-lg transition-colors disabled:opacity-60 ${confirmClass}`}>
+            {loading ? 'Processing...' : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SuperAdminUsers() {
   const { superAdmin } = useSuperAdminAuth();
   const [users, setUsers] = useState([]);
@@ -48,6 +76,8 @@ export default function SuperAdminUsers() {
   const [totalCount, setTotalCount] = useState(0);
   const [menuOpen, setMenuOpen] = useState(null);
   const [togglingId, setTogglingId] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null); // { user, permanent }
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const PAGE_SIZE = 20;
 
@@ -97,6 +127,26 @@ export default function SuperAdminUsers() {
       console.error(err);
     } finally {
       setTogglingId(null);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!confirmDelete) return;
+    const { user, permanent } = confirmDelete;
+    setDeleteLoading(true);
+    try {
+      const api = createSuperAdminApi(superAdmin.access);
+      const url = permanent
+        ? `/super-admin/users/${user.id}/?permanent=true`
+        : `/super-admin/users/${user.id}/`;
+      await api.delete(url);
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+      toast.success(permanent ? 'User permanently deleted' : 'User soft deleted');
+      setConfirmDelete(null);
+    } catch (err) {
+      toast.error('Failed to delete user');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 

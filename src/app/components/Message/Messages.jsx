@@ -254,6 +254,9 @@ export const MessagesContent = () => {
 
 	const [isFilterActive, setIsFilterActive] = useState(false)
 
+	const [isCustomerTyping, setIsCustomerTyping] = useState(false);
+	const customerTypingTimerRef = useRef(null);
+
 	// Ticketing states
 	const [showTicketPanel, setShowTicketPanel] = useState(false);
 	const [isCreateTicketModalOpen, setIsCreateTicketModalOpen] = useState(false);
@@ -590,6 +593,21 @@ export const MessagesContent = () => {
 					};
 				});
 
+				return;
+			}
+
+			if (data.type === "customer_typing") {
+				const { conversation_id, state } = data;
+				if (String(conversation_id) !== String(chatResponse?.conversation_id)) return;
+
+				if (customerTypingTimerRef.current) clearTimeout(customerTypingTimerRef.current);
+
+				if (state === "composing") {
+					setIsCustomerTyping(true);
+					customerTypingTimerRef.current = setTimeout(() => setIsCustomerTyping(false), 10000);
+				} else {
+					setIsCustomerTyping(false);
+				}
 				return;
 			}
 
@@ -1988,6 +2006,18 @@ export const MessagesContent = () => {
 									currentUserId={userProfile?.id}
 									onRetryFailedMessage={handleRetryFailedMessage}
 								/>
+
+								{/* Customer typing indicator */}
+								{isCustomerTyping && chatType !== "internal" && (
+									<div className="px-4 py-1 text-xs text-gray-400 italic flex items-center gap-1">
+										<span className="inline-flex gap-0.5">
+											<span className="animate-bounce" style={{ animationDelay: "0ms" }}>●</span>
+											<span className="animate-bounce" style={{ animationDelay: "150ms" }}>●</span>
+											<span className="animate-bounce" style={{ animationDelay: "300ms" }}>●</span>
+										</span>
+										Customer is typing…
+									</div>
+								)}
 
 								{/* Ticket Panel */}
 								{chatType !== "internal" && showTicketPanel && (
