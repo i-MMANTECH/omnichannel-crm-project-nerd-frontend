@@ -107,3 +107,27 @@
   max-width: 100%;
   height: auto;
 }
+
+.customer-typing-indicator {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 2px 0;
+}
+
+.customer-typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background: var(--greyscale-500);
+  border-radius: 50%;
+  animation: customer-bounce 1.2s infinite;
+  opacity: 0.4;
+}
+
+.customer-typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.customer-typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes customer-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}

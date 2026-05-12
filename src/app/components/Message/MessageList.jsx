@@ -62,7 +62,8 @@ const MessageList = ({
   next,
   chatType,
   currentUserId,
-  onRetryFailedMessage
+  onRetryFailedMessage,
+  isCustomerTyping = false,
 }) => {
   const messageEndRef = useRef(null);
   const listRef = useRef(null);
@@ -933,6 +934,16 @@ const MessageList = ({
           </React.Fragment>
         );
       })}
+
+      {isCustomerTyping && (
+        <div className="chat chat-left">
+          <div className="bubble-chat bubble-chat-other">
+            <span className="customer-typing-indicator">
+              <span></span><span></span><span></span>
+            </span>
+          </div>
+        </div>
+      )}
 
       <div ref={messageEndRef} />
 
