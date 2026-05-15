@@ -309,6 +309,14 @@ export default function CustomerDetails() {
                     </div>
                   </div>
 
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-left">Account Manager</p>
+                    <p className="customer-left-name font-bold">
+                      {customer?.account_manager
+                        ? (`${customer.account_manager.first_name || ""} ${customer.account_manager.last_name || ""}`.trim() || customer.account_manager.email || "--")
+                        : "--"}
+                    </p>
+                  </div>
 
                   {/* ✅ APPLY MASKING TO EMAIL */}
                   <div className="flex items-center justify-between mt-2">

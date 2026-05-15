@@ -86,6 +86,17 @@ const CustomerGrid = ({ customers }) => {
                 )}
               </p>
 
+              {customer?.account_manager && (
+                <p className="mb-2 flex gap-2 items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#808897" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <span className="truncate">
+                    {`${customer.account_manager.first_name || ""} ${customer.account_manager.last_name || ""}`.trim() || customer.account_manager.email || "--"}
+                  </span>
+                </p>
+              )}
 
               {customer?.channels?.length > 0 && (
                 <div className="mb-2 flex gap-2 items-center">

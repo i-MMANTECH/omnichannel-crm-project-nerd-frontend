@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import Image from "next/image";
@@ -7,15 +7,21 @@ import CreatableSelect from 'react-select/creatable';
 import { selectStyles } from "../selectStyles";
 import Modal from "../Modal";
 import { useSearchParams } from "next/navigation";
-import { useCanViewContactInfo } from "@/hooks/useCanViewContactInfo";  // ✅ ADD THIS
-import { maskPhoneNumber } from "@/utils/maskContactInfo";  // ✅ ADD THIS
+import { useCanViewContactInfo } from "@/hooks/useCanViewContactInfo";
+import { maskPhoneNumber } from "@/utils/maskContactInfo";
+
+const buildAccountManagerLabel = (user) => {
+    const fullName = `${user?.first_name || ""} ${user?.last_name || ""}`.trim();
+    return fullName ? `${fullName} (${user.email})` : user?.email || `User #${user?.id}`;
+};
 
 function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen }) {
     const { axiosInstance } = useApi();
     const { handleApiError } = useError();
     const searchParams = useSearchParams();
     const [categories, setCategories] = useState([]);
-    const canViewContactInfo = useCanViewContactInfo();  // ✅ ADD THIS
+    const [users, setUsers] = useState([]);
+    const canViewContactInfo = useCanViewContactInfo();
 
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
@@ -34,6 +40,7 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
         country: { id: 160, name: "Nigeria" },
         state: {},
         categories: [],
+        account_manager: null,
     });
 
     useEffect(() => {
@@ -44,15 +51,23 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
 
     const fetchData = async () => {
         try {
-            const [catRes, customerRes] = await Promise.all([
+            const [catRes, usersRes, customerRes] = await Promise.all([
                 axiosInstance.get("/customers/categories/"),
+                axiosInstance.get("/users/"),
                 axiosInstance.get(`/customers/${customerId}/`),
             ]);
 
             const fetchedCategories = catRes.data.categories || [];
+            const fetchedUsers = usersRes.data.results || [];
             const customer = customerRes.data.customer;
 
             setCategories(fetchedCategories);
+            setUsers(fetchedUsers);
+
+            const manager = customer?.account_manager;
+            const initialManager = manager
+                ? { value: manager.id, label: buildAccountManagerLabel(manager) }
+                : null;
 
             setFormData({
                 username: customer.username || "",
@@ -67,12 +82,17 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
                 tiktok: customer.tiktok || "",
                 country: customer.country || { id: 160, name: "Nigeria" },
                 state: customer.state || {},
-                categories: (customer.categories || []).map((name) => {
-                    const match = fetchedCategories.find((c) => c.name === name);
+                // Normalize whatever shape the backend returns (string[] or
+                // {id,name}[]) into react-select option objects.
+                categories: (customer.categories || []).map((c) => {
+                    const name = typeof c === "string" ? c : (c?.name || c?.label || "");
+                    if (!name) return null;
+                    const match = fetchedCategories.find((fc) => fc.name === name);
                     return match
                         ? { value: match.name, label: match.label || match.name }
                         : { value: name, label: name };
-                }),
+                }).filter(Boolean),
+                account_manager: initialManager,
             });
 
             setImagePreview(customer.image || null);
@@ -94,6 +114,14 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
         setFormData({ ...formData, gender: selectedOption ? selectedOption.value : '' });
     };
 
+    const handleCategoryChange = (selectedOptions) => {
+        setFormData((prev) => ({ ...prev, categories: selectedOptions || [] }));
+    };
+
+    const handleAccountManagerChange = (selectedOption) => {
+        setFormData((prev) => ({ ...prev, account_manager: selectedOption }));
+    };
+
     const handleImageUpload = (e) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -109,11 +137,18 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            // Strip out the react-select shapes (categories / account_manager)
+            // so they don't bleed into the FormData as JS objects.
+            const {
+                categories: _selectedCategories,
+                account_manager: _selectedManager,
+                ...rest
+            } = formData;
+
             const submissionData = {
-                ...formData,
-                categories: formData.categories.map((c) => c.value),
+                ...rest,
                 country: formData.country?.id,
-                state: formData.state?.id
+                state: formData.state?.id,
             };
 
             const formDataToSubmit = new FormData();
@@ -129,6 +164,16 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
                     }
                 }
             });
+
+            // Multi-valued category field — append each selected option's
+            // value (the category name) once. Same contract as create.
+            formData.categories.forEach((cat) => {
+                if (cat?.value) formDataToSubmit.append("categories", cat.value);
+            });
+
+            if (formData.account_manager?.value) {
+                formDataToSubmit.append("account_manager", formData.account_manager.value);
+            }
 
             if (image) {
                 formDataToSubmit.append('image', image);
@@ -148,6 +193,24 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
             handleApiError(error);
         }
     };
+
+    const categoryOptions = useMemo(
+        () =>
+            categories.map((cat) => ({
+                value: cat.name,
+                label: cat.label || cat.name,
+            })),
+        [categories]
+    );
+
+    const accountManagerOptions = useMemo(
+        () =>
+            users.map((u) => ({
+                value: u.id,
+                label: buildAccountManagerLabel(u),
+            })),
+        [users]
+    );
 
     const renderImageUpload = () => (
         <div className="col-span-2 flex items-center justify-start gap-4">
@@ -366,22 +429,33 @@ function EditCustomerModal({ isOpen, onClose, customerId, setIsSuccessModalOpen 
                     />
                 </div>
 
-                <div>
+                <div className="col-span-2">
                     <label className="text-sm">Categories</label>
                     <CreatableSelect
                         isMulti
                         name="categories"
-                        options={categories.map((cat) => ({
-                            value: cat.name,
-                            label: cat.label || cat.name,
-                        }))}
+                        options={categoryOptions}
                         classNamePrefix="select"
-                        onChange={(selected) =>
-                            setFormData((prev) => ({ ...prev, categories: selected || [] }))
-                        }
+                        onChange={handleCategoryChange}
                         value={formData.categories}
                         placeholder="Select or create categories"
                         styles={selectStyles}
+                        closeMenuOnSelect={false}
+                    />
+                </div>
+
+                <div className="col-span-2">
+                    <label className="text-sm">Account Manager</label>
+                    <Select
+                        name="account_manager"
+                        options={accountManagerOptions}
+                        classNamePrefix="select"
+                        onChange={handleAccountManagerChange}
+                        value={formData.account_manager}
+                        placeholder="Assign an account manager"
+                        styles={selectStyles}
+                        isClearable
+                        isLoading={users.length === 0}
                     />
                 </div>
             </form>

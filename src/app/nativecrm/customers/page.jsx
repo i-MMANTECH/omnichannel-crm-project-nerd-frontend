@@ -134,7 +134,15 @@ const CustomersContent = () => {
                 `/customers/?${params.toString()}`
             );
 
-            setCustomers(data.results || []);
+            const results = data.results || [];
+            const sorted = [...results].sort((a, b) => {
+                const aTime = a?.created_at ? new Date(a.created_at).getTime() : 0;
+                const bTime = b?.created_at ? new Date(b.created_at).getTime() : 0;
+                if (bTime !== aTime) return bTime - aTime;
+                return (b?.id || 0) - (a?.id || 0);
+            });
+
+            setCustomers(sorted);
             setTotalPages(Math.ceil(data.count / pageSize));
         } catch (error) {
             handleApiError(error);
@@ -233,9 +241,9 @@ const CustomersContent = () => {
                                     </button>
                                     <button
                                         onClick={openModal}
-                                        className="bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm hover:bg-[#35a509] transition-colors"
+                                        className="whitespace-nowrap bg-[#3EBF0F] text-white px-4 py-2 rounded-md shadow-sm hover:bg-[#35a509] transition-colors"
                                     >
-                                        New Customer
+                                        + New Customer
                                     </button>
                                 </div>
                             </div>

@@ -51,32 +51,50 @@ const Sms = () => {
                     </div>
                 </div>
 
-               <table className="body-theme min-w-full divide-y divide-gray-200">
-                    <thead className="body-theme ">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">SMS</th>
-                            <th className="w-20  text-sm font-medium text-gray-600 dark:text-gray-300">Date Sent</th>
-                            <th className="w-20 px-6 py-3 text-right text-sm font-medium text-gray-600 dark:text-gray-300">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody className="body-theme divide-y divide-gray-100 dark:divide-gray-700">
-                        {filteredMessages.map((message) => (
-                            <tr key={message.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                                <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{message.text}</td>
-                                <td className="px- py-4 text-sm text-gray-500 dark:text-gray-400">{message.date}</td>
-                                <td className="px-6 py-4 text-right">
-                                    <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                                        message.status === 'Sent' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
-                                        message.status === 'Draft' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' :
-                                        'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
-                                    }`}>
-                                        {message.status}
-                                    </span>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        SMS
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Date Sent
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Status
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                {filteredMessages.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={3} className="px-6 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                                            No messages found
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    filteredMessages.map((message) => (
+                                        <tr key={message.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{message.text}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{message.date}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
+                                                    message.status === 'Sent' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
+                                                    message.status === 'Draft' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' :
+                                                    'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                                                }`}>
+                                                    {message.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     );

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import './style.css';
 import { useRouter } from 'next/navigation';
 import UserAvatar from '../../UserAvatar';
-import Image from 'next/image';
+import LeadAvatar from '../../Leads/LeadAvatar';
 import { getRoleStyle } from '@/utils/getRoleStyle';
+import { getChannelIcon } from '@/utils/getChannelIcon';
 import { useCanViewContactInfo } from '@/hooks/useCanViewContactInfo';
 import { maskPhoneNumber, maskEmail } from '@/utils/maskContactInfo';
 import truncateText from '@/utils/truncateText';
@@ -21,145 +22,134 @@ const CustomerTable = ({ customers }) => {
         setCurrentPage(1);
     };
 
-    const getChannelIcon = (channel) => {
-        switch (channel) {
-            case "WhatsApp":
-                return "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg";
-            case "Facebook":
-                return "https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg";
-            case "Instagram":
-                return "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png";
-            default:
-                return "https://via.placeholder.com/24/000000/FFFFFF?text=?";
-        }
+    const formatAccountManager = (manager) => {
+        if (!manager) return null;
+        const fullName = `${manager.first_name || ""} ${manager.last_name || ""}`.trim();
+        return fullName || manager.email || `User #${manager.id}`;
     };
 
-
     return (
-        <>
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div className="overflow-x-auto">
-                <table className="min-w-full body-theme text-left text-sm">
-                    <thead className="bg-gray-100 dark:bg-neutral-900">
+                <table className="w-full">
+                    <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                         <tr>
-                            <th className="styled-th whitespace-nowrap">Username</th>
-                            <th className="styled-th whitespace-nowrap">Customer Name</th>
-                            <th className="styled-th whitespace-nowrap">
-                                <div className="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
-                                        <path d="M4 5.3335L6.80743 6.73721C7.55817 7.11258 8.44183 7.11258 9.19257 6.73721L12 5.3335M4 12.6668H12C13.1046 12.6668 14 11.7714 14 10.6668V5.3335C14 4.22893 13.1046 3.3335 12 3.3335H4C2.89543 3.3335 2 4.22893 2 5.3335V10.6668C2 11.7714 2.89543 12.6668 4 12.6668Z" stroke="#808897" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                    <span className="ml-1">Email</span>
-                                </div>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Username
                             </th>
-                            <th className="styled-th whitespace-nowrap">
-                                <div className="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
-                                        <path d="M7.86164 9.82798L6.16797 8.13712C5.62282 7.59287 5.62282 6.71048 6.16797 6.16623C6.65516 5.67985 6.71403 4.91134 6.30658 4.35665L4.9159 2.46343C4.50421 1.90296 3.68898 1.84072 3.19671 2.33217C2.44724 3.08039 1.94543 4.07059 2.00475 5.12706C2.29456 10.2884 6.33224 13.7386 10.8984 13.9953C11.9455 14.0542 12.9207 13.5486 13.6623 12.8082C14.1619 12.3094 14.0986 11.4834 13.5289 11.0663L11.6484 9.68959C11.0928 9.28282 10.323 9.34159 9.83581 9.82798C9.29066 10.3722 8.4068 10.3722 7.86164 9.82798Z" stroke="#808897" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                    <span className="ml-1">Phone</span>
-                                </div>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Customer Name
                             </th>
-                            <th className="styled-th whitespace-nowrap">
-                                <div className="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" style={{ flexShrink: 0 }} viewBox="0 0 16 16" fill="none">
-                                        <path d="M6.66675 8.81966C6.76115 8.97426 6.87321 9.12059 7.00288 9.25553C7.80788 10.0933 9.03488 10.2243 9.97181 9.64846C10.1454 9.54173 10.309 9.41079 10.4582 9.25553L12.6178 7.00793C13.5719 6.01489 13.5719 4.40483 12.6178 3.41178C11.6636 2.41873 10.1166 2.41873 9.16241 3.41178L8.68675 3.90685" stroke="#808897" strokeLinecap="round" />
-                                        <path d="M7.31362 12.0933L6.83775 12.5885C5.88359 13.5816 4.33656 13.5816 3.38238 12.5885C2.4282 11.5955 2.4282 9.98546 3.38238 8.9924L5.542 6.7448C6.49617 5.75174 8.04322 5.75173 8.99735 6.7448C9.12702 6.87966 9.23902 7.026 9.33342 7.18053" stroke="#808897" strokeLinecap="round" />
-                                    </svg>
-                                    <span className="ml-1">Channel</span>
-                                </div>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Email
                             </th>
-                            <th className="styled-th whitespace-nowrap">
-                                <div className="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-group-icon lucide-group"><path d="M3 7V5c0-1.1.9-2 2-2h2" /><path d="M17 3h2c1.1 0 2 .9 2 2v2" /><path d="M21 17v2c0 1.1-.9 2-2 2h-2" /><path d="M7 21H5c-1.1 0-2-.9-2-2v-2" /><rect width="7" height="5" x="7" y="7" rx="1" /><rect width="7" height="5" x="10" y="12" rx="1" /></svg>
-
-                                    <span className="ml-1">Categories</span>
-                                </div>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Phone
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Channel
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Categories
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Account Manager
                             </th>
                         </tr>
                     </thead>
 
-                    <tbody>
-                        {customers?.map((customer, index) => (
-                            <tr style={{
-                                width: '100px',
-                                flexShrink: 0,
-                                fontFamily: '"Encode Sans"',
-                                fontSize: '14px',
-                                fontStyle: 'normal',
-                                fontWeight: 500,
-                                lineHeight: '150%',
-                                letterSpacing: '0.2px'
-                            }} key={index} className="hover:dark:bg-neutral-900 hover:bg-gray-100 cursor-pointer"
-                                onClick={() => router.push(`customers/${customer.id}`)}
-                            >
-                                <td className="whitespace-nowrap py-3 px-4 border-b flex items-center">
-                                    <div className='pr-2'>
-                                        {customer?.image && <Image
-                                            alt="profile pic"
-                                            width={10}
-                                            height={10}
-                                            className="mt-2 w-8 h-8 rounded-full"
-                                            src={customer.image}
-                                        />}
-                                        {!customer?.image && <UserAvatar name={`${customer.first_name} ${customer.last_name}`} width="w-8" height="h-8" />}
-                                    </div>
-                                    {customer?.username || "--"}
-                                </td>
-                                <td className="whitespace-nowrap py-3 px-4 border-b">{`${customer.first_name} ${customer.last_name}` || "--"}</td>
-                                <td className="whitespace-nowrap py-3 px-4 border-b">
-                                    {maskEmail(truncateText(customer.email), canViewContactInfo)}
-                                </td>
-                                <td className="whitespace-nowrap py-3 px-4 border-b">
-                                    {maskPhoneNumber(customer.phone_number, canViewContactInfo)}
-                                </td>
-                                <td className="whitespace-nowrap py-3 px-4 border-b">
-                                    {(customer?.channels?.length <= 0 || !customers?.channels) &&
-                                        <span className="customer-left-name font-bold mr-1">--</span>
-                                    }
-                                    <div className="flex items-center space-x-2">
-                                        {customer.channels?.map((channel, idx) => (
-                                            <div
-                                                key={idx}
-                                                className="channel-icon-container"
-                                                title={channel}
-                                            >
-                                                <img
-                                                    src={getChannelIcon(channel)}
-                                                    alt={channel}
-                                                    className="channel-icon"
-                                                />
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                        {customers?.map((customer, index) => {
+                            const managerName = formatAccountManager(customer?.account_manager);
+                            return (
+                                <tr
+                                    key={customer.id || index}
+                                    className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                                    onClick={() => router.push(`customers/${customer.id}`)}
+                                >
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                        <div className="flex items-center gap-3">
+                                            <LeadAvatar
+                                                image={customer?.image}
+                                                name={`${customer.first_name || ""} ${customer.last_name || ""}`.trim()}
+                                            />
+                                            <span>{customer?.username || "--"}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                        {`${customer.first_name || ""} ${customer.last_name || ""}`.trim() || "--"}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                        {customer.email
+                                            ? maskEmail(truncateText(customer.email), canViewContactInfo)
+                                            : <span className="text-gray-400">—</span>}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                        {customer.phone_number
+                                            ? maskPhoneNumber(customer.phone_number, canViewContactInfo)
+                                            : <span className="text-gray-400">—</span>}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                        {(!customer?.channels || customer.channels.length === 0) ? (
+                                            <span className="text-gray-400">—</span>
+                                        ) : (
+                                            <div className="flex items-center space-x-2">
+                                                {customer.channels.map((channel, idx) => (
+                                                    <div
+                                                        key={`${customer.id}-channel-${idx}`}
+                                                        className="channel-icon-container"
+                                                        title={channel}
+                                                    >
+                                                        <img
+                                                            src={getChannelIcon(channel)}
+                                                            alt={channel}
+                                                            className="channel-icon"
+                                                        />
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
-                                    </div>
-                                </td>
-                                <td className="whitespace-nowrap py-3 px-4 border-b">
-                                    {(!customer?.categories || customer?.categories.length === 0) ? (
-                                        <span className="customer-left-name font-bold mr-1">--</span>
-                                    ) : (
-                                        <span className="inline-block py-1 rounded-full -ml-1 text-sm font-medium">
-                                            {customer?.categories.slice(0, 6).map((cat, index) => (
-                                                <span
-                                                    key={index}
-                                                    className="px-2 py-1 ml-1 rounded"
-                                                    style={getRoleStyle(cat)}
-                                                >
-                                                    {cat}
-                                                </span>
-                                            ))}
-                                            {customer?.categories.length > 6 && (
-                                                <span className="ml-1 font-bold text-base">...</span>
-                                            )}
-
-                                        </span>
-                                    )}
-                                </td>
-
-                            </tr>
-                        ))}
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                        {(!customer?.categories || customer.categories.length === 0) ? (
+                                            <span className="text-gray-400">—</span>
+                                        ) : (
+                                            <div className="flex flex-wrap gap-1">
+                                                {customer.categories.slice(0, 6).map((cat, idx) => (
+                                                    <span
+                                                        key={`${customer.id}-category-${idx}`}
+                                                        className="px-2 py-0.5 text-xs rounded"
+                                                        style={getRoleStyle(cat)}
+                                                    >
+                                                        {cat}
+                                                    </span>
+                                                ))}
+                                                {customer.categories.length > 6 && (
+                                                    <span className="text-xs font-bold">+{customer.categories.length - 6}</span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                        {managerName ? (
+                                            <div
+                                                className="flex items-center gap-2"
+                                                title={customer?.account_manager?.email || managerName}
+                                            >
+                                                <UserAvatar name={managerName} width="w-7" height="h-7" />
+                                                <span className="truncate max-w-[160px]">{managerName}</span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-gray-400">—</span>
+                                        )}
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>
-        </>
+        </div>
     );
 };
 
