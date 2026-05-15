@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, ChevronLeft, ChevronRight, Building2, Users, CreditCard, TrendingUp, ExternalLink, X, Edit2, Trash2, Power, PowerOff, AlertTriangle } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Building2, Users, CreditCard, TrendingUp, ExternalLink, X, Edit2, Trash2, Power, PowerOff, AlertTriangle, RefreshCw, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
 import { useSuperAdminAuth } from '../context/SuperAdminAuthContext';
 import { createSuperAdminApi } from '../lib/api';
 import { toast } from 'react-toastify';
@@ -69,6 +69,38 @@ function ConfirmModal({ open, title, message, confirmLabel, confirmClass, onConf
   );
 }
 
+const INTEGRATION_STATUS = {
+  active:         { label: 'Active',          icon: CheckCircle,  cls: 'text-green-600' },
+  inactive:       { label: 'Inactive',        icon: XCircle,      cls: 'text-red-500'   },
+  not_configured: { label: 'Not configured',  icon: MinusCircle,  cls: 'text-gray-400'  },
+};
+
+function IntegrationRow({ integration, onRetry, retrying }) {
+  const { label, icon: Icon, cls } = INTEGRATION_STATUS[integration.status] || INTEGRATION_STATUS.not_configured;
+  const canRetry = integration.key === 'cloudpbx' && integration.status !== 'active';
+  return (
+    <div className="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">
+      <div className="flex items-center gap-2.5">
+        <Icon className={`w-4 h-4 flex-shrink-0 ${cls}`} />
+        <span className="text-sm text-gray-700">{integration.name}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className={`text-xs font-medium ${cls}`}>{label}</span>
+        {canRetry && (
+          <button
+            onClick={() => onRetry(integration)}
+            disabled={retrying}
+            title="Retry setup"
+            className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-[#3EBF0F] transition-colors disabled:opacity-40"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${retrying ? 'animate-spin' : ''}`} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function SuperAdminCompanies() {
   const { superAdmin } = useSuperAdminAuth();
   const [companies, setCompanies] = useState([]);
@@ -81,6 +113,11 @@ export default function SuperAdminCompanies() {
   const [totalCount, setTotalCount] = useState(0);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+
+  // Integrations state
+  const [integrations, setIntegrations] = useState([]);
+  const [integrationsLoading, setIntegrationsLoading] = useState(false);
+  const [retrying, setRetrying] = useState(false);
 
   // Edit name state
   const [editingName, setEditingName] = useState(false);
@@ -127,15 +164,41 @@ export default function SuperAdminCompanies() {
     setSelectedCompany({ ...company, _loading: true });
     setDetailLoading(true);
     setEditingName(false);
+    setIntegrations([]);
     try {
       const api = createSuperAdminApi(superAdmin.access);
-      const res = await api.get(`/super-admin/companies/${company.id}`);
-      setSelectedCompany(res.data.organization);
+      const [detailRes, intRes] = await Promise.all([
+        api.get(`/super-admin/companies/${company.id}`),
+        api.get(`/super-admin/companies/${company.id}/integrations/`),
+      ]);
+      setSelectedCompany(detailRes.data.organization);
+      setIntegrations(intRes.data.integrations || []);
     } catch (err) {
       toast.error('Failed to load company details');
       setSelectedCompany(null);
     } finally {
       setDetailLoading(false);
+    }
+  };
+
+  const handleRetryIntegration = async (integration) => {
+    if (integration.key !== 'cloudpbx') return;
+    setRetrying(true);
+    try {
+      const api = createSuperAdminApi(superAdmin.access);
+      await api.post(`/super-admin/companies/${selectedCompany.id}/integrations/cloudpbx/retry/`);
+      toast.success('PBX setup queued — refresh integrations in a few seconds');
+      // Poll once after 5s to update status
+      setTimeout(async () => {
+        try {
+          const r = await api.get(`/super-admin/companies/${selectedCompany.id}/integrations/`);
+          setIntegrations(r.data.integrations || []);
+        } catch (_) {}
+        setRetrying(false);
+      }, 5000);
+    } catch (err) {
+      toast.error('Failed to queue PBX setup');
+      setRetrying(false);
     }
   };
 
@@ -413,6 +476,29 @@ export default function SuperAdminCompanies() {
                     </p>
                   </div>
                 )}
+
+                {/* Integrations health */}
+                <div className="pt-2 border-t border-gray-100">
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Integrations</p>
+                  {integrationsLoading ? (
+                    <div className="flex justify-center py-4">
+                      <div className="w-4 h-4 border-2 border-[#3EBF0F] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  ) : integrations.length === 0 ? (
+                    <p className="text-xs text-gray-400 py-2">No integration data available</p>
+                  ) : (
+                    <div className="bg-gray-50 rounded-lg px-3 py-1">
+                      {integrations.map((integration) => (
+                        <IntegrationRow
+                          key={integration.key}
+                          integration={integration}
+                          onRetry={handleRetryIntegration}
+                          retrying={retrying}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 {/* Action buttons */}
                 <div className="pt-2 border-t border-gray-100 space-y-2">
