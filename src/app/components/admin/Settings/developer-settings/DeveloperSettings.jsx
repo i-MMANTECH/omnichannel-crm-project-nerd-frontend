@@ -39,6 +39,15 @@ export default function DeveloperSettings() {
   const [aiEscalationAssignAgent, setAiEscalationAssignAgent] = useState(true);
   const [aiEscalationCreateTicket, setAiEscalationCreateTicket] = useState(false);
 
+  // Proactive AI Settings State
+  const [loadingProactiveSettings, setLoadingProactiveSettings] = useState(true);
+  const [proactiveEnabled, setProactiveEnabled] = useState(false);
+  const [customerIdleThreshold, setCustomerIdleThreshold] = useState(10);
+  const [agentIdleThreshold, setAgentIdleThreshold] = useState(10);
+  const [reengagementEnabled, setReengagementEnabled] = useState(false);
+  const [reengagementMaxAttempts, setReengagementMaxAttempts] = useState(5);
+  const [savingProactive, setSavingProactive] = useState(false);
+
   useEffect(() => {
     const fetchWebhook = async () => {
       try {
@@ -97,10 +106,29 @@ export default function DeveloperSettings() {
       }
     };
 
+    const fetchProactiveSettings = async () => {
+      try {
+        const response = await axiosInstance.get("/companies/ai/proactive-settings/");
+        if (response.data?.success) {
+          const d = response.data.data;
+          setProactiveEnabled(d.proactive_ai_enabled || false);
+          setCustomerIdleThreshold(d.customer_idle_threshold_minutes ?? 10);
+          setAgentIdleThreshold(d.agent_idle_threshold_minutes ?? 10);
+          setReengagementEnabled(d.reengagement_enabled || false);
+          setReengagementMaxAttempts(d.reengagement_max_attempts ?? 5);
+        }
+      } catch (error) {
+        handleApiError(error);
+      } finally {
+        setLoadingProactiveSettings(false);
+      }
+    };
+
     fetchWebhook();
     fetchApiKey();
     fetchPaymentKeys();
     fetchAiSettings();
+    fetchProactiveSettings();
   }, []);
 
   const fetchDocuments = async () => {
@@ -256,6 +284,44 @@ export default function DeveloperSettings() {
       if (field === "ai_escalation_assign_agent") setAiEscalationAssignAgent(prev);
       else setAiEscalationCreateTicket(prev);
       handleApiError(error);
+    }
+  };
+
+  const handleToggleProactiveEnabled = async (newValue) => {
+    setProactiveEnabled(newValue);
+    try {
+      await axiosInstance.patch("/companies/ai/proactive-settings/", { proactive_ai_enabled: newValue });
+      toast.success(`Proactive AI follow-ups ${newValue ? "enabled" : "disabled"}.`);
+    } catch (error) {
+      setProactiveEnabled(!newValue);
+      handleApiError(error);
+    }
+  };
+
+  const handleToggleReengagement = async (newValue) => {
+    setReengagementEnabled(newValue);
+    try {
+      await axiosInstance.patch("/companies/ai/proactive-settings/", { reengagement_enabled: newValue });
+      toast.success(`Re-engagement ${newValue ? "enabled" : "disabled"}.`);
+    } catch (error) {
+      setReengagementEnabled(!newValue);
+      handleApiError(error);
+    }
+  };
+
+  const handleSaveProactiveThresholds = async () => {
+    setSavingProactive(true);
+    try {
+      await axiosInstance.patch("/companies/ai/proactive-settings/", {
+        customer_idle_threshold_minutes: Number(customerIdleThreshold),
+        agent_idle_threshold_minutes: Number(agentIdleThreshold),
+        reengagement_max_attempts: Number(reengagementMaxAttempts),
+      });
+      toast.success("Proactive AI thresholds saved.");
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setSavingProactive(false);
     }
   };
 
@@ -495,6 +561,107 @@ export default function DeveloperSettings() {
                     </label>
                   </div>
                 </div>
+              </div>
+
+              {/* Proactive AI Settings */}
+              <div className="pt-4 border-t border-gray-200">
+                <h3 className="text-sm font-semibold text-gray-700 mb-1">Proactive Follow-ups</h3>
+                <p className="text-xs text-gray-500 mb-3">AI-initiated messages when conversations go quiet or leads need re-engaging.</p>
+
+                {loadingProactiveSettings ? (
+                  <p className="text-sm text-gray-400">Loading...</p>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    {/* Master toggle */}
+                    <div className="flex items-center justify-between max-w-md">
+                      <span className="font-medium text-sm">Enable proactive follow-ups</span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={proactiveEnabled}
+                          onChange={(e) => handleToggleProactiveEnabled(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className={`w-11 h-6 rounded-full transition-colors ${proactiveEnabled ? "bg-[#3EBF0F]" : "bg-gray-300"}`}>
+                          <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-transform ${proactiveEnabled ? "translate-x-5" : "translate-x-0"}`} />
+                        </div>
+                      </label>
+                    </div>
+
+                    {proactiveEnabled && (
+                      <>
+                        {/* Idle thresholds */}
+                        <div className="flex gap-4 max-w-md">
+                          <div className="flex-1">
+                            <label className="block mb-1 text-xs font-medium text-gray-600">Customer idle (mins)</label>
+                            <input
+                              type="number"
+                              min={1}
+                              max={1440}
+                              value={customerIdleThreshold}
+                              onChange={(e) => setCustomerIdleThreshold(e.target.value)}
+                              className="w-full border border-gray-300 p-2 rounded text-sm"
+                            />
+                            <p className="text-xs text-gray-400 mt-0.5">Follow up when customer goes quiet</p>
+                          </div>
+                          <div className="flex-1">
+                            <label className="block mb-1 text-xs font-medium text-gray-600">Agent idle (mins)</label>
+                            <input
+                              type="number"
+                              min={1}
+                              max={1440}
+                              value={agentIdleThreshold}
+                              onChange={(e) => setAgentIdleThreshold(e.target.value)}
+                              className="w-full border border-gray-300 p-2 rounded text-sm"
+                            />
+                            <p className="text-xs text-gray-400 mt-0.5">Step in when agent hasn't replied</p>
+                          </div>
+                        </div>
+
+                        {/* Re-engagement toggle */}
+                        <div className="flex items-start justify-between max-w-md gap-4">
+                          <div>
+                            <span className="font-medium text-sm">Re-engage cold leads</span>
+                            <p className="text-xs text-gray-500 mt-0.5">Send progressive follow-ups to leads who stopped responding</p>
+                          </div>
+                          <label className="relative inline-flex items-center shrink-0 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={reengagementEnabled}
+                              onChange={(e) => handleToggleReengagement(e.target.checked)}
+                              className="sr-only peer"
+                            />
+                            <div className={`w-11 h-6 rounded-full transition-colors ${reengagementEnabled ? "bg-[#3EBF0F]" : "bg-gray-300"}`}>
+                              <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-transform ${reengagementEnabled ? "translate-x-5" : "translate-x-0"}`} />
+                            </div>
+                          </label>
+                        </div>
+
+                        {reengagementEnabled && (
+                          <div className="max-w-[160px]">
+                            <label className="block mb-1 text-xs font-medium text-gray-600">Max re-engagement attempts</label>
+                            <input
+                              type="number"
+                              min={1}
+                              max={10}
+                              value={reengagementMaxAttempts}
+                              onChange={(e) => setReengagementMaxAttempts(e.target.value)}
+                              className="w-full border border-gray-300 p-2 rounded text-sm"
+                            />
+                          </div>
+                        )}
+
+                        <button
+                          onClick={handleSaveProactiveThresholds}
+                          disabled={savingProactive}
+                          className="mt-1 px-4 py-2 bg-[#3EBF0F] text-white rounded text-sm disabled:opacity-50 w-fit"
+                        >
+                          {savingProactive ? "Saving..." : "Save thresholds"}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}
