@@ -206,6 +206,8 @@ export default function SuperAdminCompanies() {
     setSelectedCompany(null);
     setEditingName(false);
     setConfirmModal(null);
+    setActionLoading(false);
+    setRetrying(false);
   };
 
   const handleSaveName = async () => {
