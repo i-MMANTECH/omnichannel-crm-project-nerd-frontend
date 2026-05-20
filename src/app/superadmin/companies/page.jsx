@@ -220,6 +220,9 @@ export default function SuperAdminCompanies() {
   const [confirmModal, setConfirmModal] = useState(null); // { type, permanent }
   const [actionLoading, setActionLoading] = useState(false);
 
+  // DID assignment state
+  const [assigningDID, setAssigningDID] = useState(false);
+
   const PAGE_SIZE = 20;
 
   const fetchCompanies = useCallback(async (pageNum = 1) => {
@@ -316,6 +319,21 @@ export default function SuperAdminCompanies() {
     setConfirmModal(null);
     setActionLoading(false);
     setRetrying(false);
+  };
+
+  const handleAssignDID = async () => {
+    setAssigningDID(true);
+    try {
+      const api = createSuperAdminApi(superAdmin.access);
+      const res = await api.post(`/super-admin/companies/${selectedCompany.id}/assign-did/`);
+      const didNumber = res.data.did_number;
+      setSelectedCompany((c) => ({ ...c, did_number: didNumber }));
+      toast.success(`DID ${didNumber} assigned successfully`);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to assign DID');
+    } finally {
+      setAssigningDID(false);
+    }
   };
 
   const handleSaveName = async () => {
@@ -569,6 +587,25 @@ export default function SuperAdminCompanies() {
                       <p className="text-sm font-medium text-gray-700 truncate">{value ?? '—'}</p>
                     </div>
                   ))}
+                </div>
+
+                {/* DID number */}
+                <div className="bg-gray-50 rounded-lg p-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs text-gray-400 mb-1">DID Number</p>
+                    <p className="text-sm font-medium text-gray-700 truncate">
+                      {selectedCompany.did_number ?? 'Not assigned'}
+                    </p>
+                  </div>
+                  {!selectedCompany.did_number && (
+                    <button
+                      onClick={handleAssignDID}
+                      disabled={assigningDID}
+                      className="flex-shrink-0 px-3 py-1.5 text-xs font-medium text-white bg-[#3EBF0F] hover:bg-[#35a80d] rounded-lg transition-colors disabled:opacity-60"
+                    >
+                      {assigningDID ? 'Assigning…' : 'Assign DID'}
+                    </button>
+                  )}
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-3">
