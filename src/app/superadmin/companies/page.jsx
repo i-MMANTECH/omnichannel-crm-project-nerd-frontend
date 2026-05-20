@@ -77,7 +77,7 @@ const INTEGRATION_STATUS = {
 
 function IntegrationRow({ integration, onRetry, retrying }) {
   const { label, icon: Icon, cls } = INTEGRATION_STATUS[integration.status] || INTEGRATION_STATUS.not_configured;
-  const canRetry = integration.key === 'cloudpbx' && integration.status !== 'active';
+  const canRetry = ['cloudpbx', 'ai_service'].includes(integration.key) && integration.status !== 'active';
   return (
     <div className="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">
       <div className="flex items-center gap-2.5">
@@ -279,19 +279,33 @@ export default function SuperAdminCompanies() {
     setIntegrations(r.data.integrations || []);
   }, [superAdmin?.access]);
 
+  const RETRY_CONFIG = {
+    cloudpbx: {
+      url: (id) => `/super-admin/companies/${id}/integrations/cloudpbx/retry/`,
+      successMsg: 'PBX setup queued — check status in a few seconds',
+      errorMsg: 'Failed to queue PBX setup',
+    },
+    ai_service: {
+      url: (id) => `/super-admin/companies/${id}/integrations/ai-service/retry/`,
+      successMsg: 'AI service setup queued — check status in a few seconds',
+      errorMsg: 'Failed to queue AI service setup',
+    },
+  };
+
   const handleRetryIntegration = async (integration) => {
-    if (integration.key !== 'cloudpbx') return;
+    const cfg = RETRY_CONFIG[integration.key];
+    if (!cfg) return;
     setRetrying(true);
     try {
       const api = createSuperAdminApi(superAdmin.access);
-      await api.post(`/super-admin/companies/${selectedCompany.id}/integrations/cloudpbx/retry/`);
-      toast.success('PBX setup queued — refresh integrations in a few seconds');
+      await api.post(cfg.url(selectedCompany.id));
+      toast.success(cfg.successMsg);
       setTimeout(async () => {
         try { await refreshIntegrations(selectedCompany.id); } catch (_) {}
         setRetrying(false);
       }, 5000);
     } catch (err) {
-      toast.error('Failed to queue PBX setup');
+      toast.error(err.response?.data?.error || cfg.errorMsg);
       setRetrying(false);
     }
   };
