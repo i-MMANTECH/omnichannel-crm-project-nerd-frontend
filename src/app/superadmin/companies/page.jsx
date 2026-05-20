@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, ChevronLeft, ChevronRight, Building2, Users, CreditCard, TrendingUp, ExternalLink, X, Edit2, Trash2, Power, PowerOff, AlertTriangle, RefreshCw, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, ChevronDown, Building2, Users, CreditCard, TrendingUp, ExternalLink, X, Edit2, Trash2, Power, PowerOff, AlertTriangle, RefreshCw, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
 import { useSuperAdminAuth } from '../context/SuperAdminAuthContext';
 import { createSuperAdminApi } from '../lib/api';
 import { toast } from 'react-toastify';
@@ -101,6 +101,98 @@ function IntegrationRow({ integration, onRetry, retrying }) {
   );
 }
 
+function CloudPBXIntegrationRow({ integration, companyId, onRetry, retrying, onRefreshIntegrations }) {
+  const { superAdmin } = useSuperAdminAuth();
+  const [expanded, setExpanded] = useState(false);
+  const [retryingUserId, setRetryingUserId] = useState(null);
+  const { label, icon: Icon, cls } = INTEGRATION_STATUS[integration.status] || INTEGRATION_STATUS.not_configured;
+  const canRetry = integration.status !== 'active';
+  const users = integration.details?.users || [];
+  const provisioned = users.filter((u) => u.sip_device_created).length;
+
+  const handleUserSIPRetry = async (user) => {
+    setRetryingUserId(user.id);
+    try {
+      const api = createSuperAdminApi(superAdmin.access);
+      await api.post(`/super-admin/companies/${companyId}/integrations/cloudpbx/retry/${user.id}/`);
+      toast.success(`SIP device provisioning queued for ${user.full_name}`);
+      setTimeout(async () => {
+        try { await onRefreshIntegrations(); } catch (_) {}
+        setRetryingUserId(null);
+      }, 5000);
+    } catch (err) {
+      const msg = err.response?.data?.error || 'Failed to queue SIP provisioning';
+      toast.error(msg);
+      setRetryingUserId(null);
+    }
+  };
+
+  return (
+    <div className="border-b border-gray-50 last:border-0">
+      <div className="flex items-center justify-between py-2.5">
+        <div className="flex items-center gap-2.5">
+          <Icon className={`w-4 h-4 flex-shrink-0 ${cls}`} />
+          <span className="text-sm text-gray-700">{integration.name}</span>
+          {users.length > 0 && (
+            <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
+              {provisioned}/{users.length}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className={`text-xs font-medium ${cls}`}>{label}</span>
+          {canRetry && (
+            <button
+              onClick={() => onRetry(integration)}
+              disabled={retrying}
+              title="Retry setup"
+              className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-[#3EBF0F] transition-colors disabled:opacity-40"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${retrying ? 'animate-spin' : ''}`} />
+            </button>
+          )}
+          {users.length > 0 && (
+            <button
+              onClick={() => setExpanded((e) => !e)}
+              className="p-1 rounded hover:bg-gray-100 text-gray-400 transition-colors"
+              title={expanded ? 'Hide users' : 'Show users'}
+            >
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-150 ${expanded ? 'rotate-180' : ''}`} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="pb-2 space-y-0.5">
+          {users.map((u) => (
+            <div key={u.id} className="flex items-center gap-2 px-1 py-1.5 rounded-lg hover:bg-white transition-colors">
+              <div className={`w-2 h-2 rounded-full flex-shrink-0 ${u.sip_device_created ? 'bg-green-500' : 'bg-red-400'}`} />
+              <span className="text-xs text-gray-700 flex-1 truncate min-w-0">{u.full_name}</span>
+              <span className="text-xs text-gray-400 truncate max-w-[100px] hidden sm:block">{u.email}</span>
+              {u.sip_device_created ? (
+                <span className="text-xs font-medium text-green-600 flex-shrink-0">Provisioned</span>
+              ) : (
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <span className="text-xs font-medium text-red-500">No SIP</span>
+                  <button
+                    onClick={() => handleUserSIPRetry(u)}
+                    disabled={retryingUserId === u.id}
+                    title="Provision SIP device"
+                    className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-[#3EBF0F] transition-colors disabled:opacity-40"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${retryingUserId === u.id ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SuperAdminCompanies() {
   const { superAdmin } = useSuperAdminAuth();
   const [companies, setCompanies] = useState([]);
@@ -181,6 +273,12 @@ export default function SuperAdminCompanies() {
     }
   };
 
+  const refreshIntegrations = useCallback(async (companyId) => {
+    const api = createSuperAdminApi(superAdmin.access);
+    const r = await api.get(`/super-admin/companies/${companyId}/integrations/`);
+    setIntegrations(r.data.integrations || []);
+  }, [superAdmin?.access]);
+
   const handleRetryIntegration = async (integration) => {
     if (integration.key !== 'cloudpbx') return;
     setRetrying(true);
@@ -188,12 +286,8 @@ export default function SuperAdminCompanies() {
       const api = createSuperAdminApi(superAdmin.access);
       await api.post(`/super-admin/companies/${selectedCompany.id}/integrations/cloudpbx/retry/`);
       toast.success('PBX setup queued — refresh integrations in a few seconds');
-      // Poll once after 5s to update status
       setTimeout(async () => {
-        try {
-          const r = await api.get(`/super-admin/companies/${selectedCompany.id}/integrations/`);
-          setIntegrations(r.data.integrations || []);
-        } catch (_) {}
+        try { await refreshIntegrations(selectedCompany.id); } catch (_) {}
         setRetrying(false);
       }, 5000);
     } catch (err) {
@@ -490,14 +584,25 @@ export default function SuperAdminCompanies() {
                     <p className="text-xs text-gray-400 py-2">No integration data available</p>
                   ) : (
                     <div className="bg-gray-50 rounded-lg px-3 py-1">
-                      {integrations.map((integration) => (
-                        <IntegrationRow
-                          key={integration.key}
-                          integration={integration}
-                          onRetry={handleRetryIntegration}
-                          retrying={retrying}
-                        />
-                      ))}
+                      {integrations.map((integration) =>
+                        integration.key === 'cloudpbx' ? (
+                          <CloudPBXIntegrationRow
+                            key="cloudpbx"
+                            integration={integration}
+                            companyId={selectedCompany.id}
+                            onRetry={handleRetryIntegration}
+                            retrying={retrying}
+                            onRefreshIntegrations={() => refreshIntegrations(selectedCompany.id)}
+                          />
+                        ) : (
+                          <IntegrationRow
+                            key={integration.key}
+                            integration={integration}
+                            onRetry={handleRetryIntegration}
+                            retrying={retrying}
+                          />
+                        )
+                      )}
                     </div>
                   )}
                 </div>
