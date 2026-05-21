@@ -90,8 +90,9 @@ export function NotificationProvider({ children }) {
   }, [isAuthenticated, socket]);
 
   const handleNewNotification = (data) => {
-    // Play notification sound
-    notificationSound.play().catch(error => console.log('Error playing sound:', error));
+    if (notificationSound) {
+      notificationSound.play().catch(error => console.log('Error playing sound:', error));
+    }
 
     // Update notifications list
     setNotifications(prev => [data, ...prev]);
