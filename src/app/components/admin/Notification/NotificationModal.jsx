@@ -6,8 +6,8 @@ import { useError } from '@/context/ErrorContext';
 import moment from 'moment';
 import UserAvatar from "../UserAvatar";
 import Image from "next/image";
-import { useRouter } from 'next/navigation';
 import { useNotification } from '@/context/NotificationContext';
+import { usePortalRouter } from '@/context/usePortalRouter';
 
 const NotificationModal = () => {
   const { axiosInstance, loading } = useApi();
@@ -16,8 +16,8 @@ const NotificationModal = () => {
   const [replyingTo, setReplyingTo] = useState(null);
   const [replies, setReplies] = useState({});
   const [unreadCount, setUnreadCount] = useState(0);
-  const router = useRouter();
   const { toggleNotification } = useNotification();
+  const { navigateTo } = usePortalRouter();
 
   const fetchNotifications = async () => {
     try {
@@ -81,13 +81,13 @@ const NotificationModal = () => {
         const params = new URLSearchParams();
         params.set('action', 'view-task');
         params.set('taskId', notification.metadata.task_id);
-        router.push(`/nativecrm/tasks?${params.toString()}`);
+        navigateTo(`tasks?${params.toString()}`);
       } else if (notification.notification_type === 'follow_up' && notification.metadata?.conversation_id) {
         const tab = notification.metadata.conversation_type || 'leads';
-        router.push(`/admin/messages?chat=${tab}&id=${notification.metadata.conversation_id}`);
+        navigateTo(`messages?chat=${tab}&id=${notification.metadata.conversation_id}`);
       } else if (notification.notification_type === 'escalation' && notification.metadata?.conversation_id) {
         const tab = notification.metadata.conversation_type || 'leads';
-        router.push(`/admin/messages?chat=${tab}&id=${notification.metadata.conversation_id}`);
+        navigateTo(`messages?chat=${tab}&id=${notification.metadata.conversation_id}`);
       }
     } catch (error) {
       handleApiError(error);
@@ -185,7 +185,7 @@ const NotificationModal = () => {
       {notifications.length > 10 && (
         <div className="p-3 border-t border-gray-200 text-center">
           <button
-            onClick={() => { toggleNotification(); router.push('/admin/notifications'); }}
+            onClick={() => { toggleNotification(); navigateTo('notifications'); }}
             className="text-sm text-blue-500 hover:text-blue-700 font-medium"
           >
             See all {notifications.length} notifications
