@@ -48,6 +48,13 @@ export default function DeveloperSettings() {
   const [reengagementMaxAttempts, setReengagementMaxAttempts] = useState(5);
   const [savingProactive, setSavingProactive] = useState(false);
 
+  // Follow-up Notification Settings State
+  const [loadingFollowUpSettings, setLoadingFollowUpSettings] = useState(true);
+  const [followUpMinIdleHours, setFollowUpMinIdleHours] = useState(3);
+  const [followUpMaxIdleHours, setFollowUpMaxIdleHours] = useState(48);
+  const [followUpCooldownHours, setFollowUpCooldownHours] = useState(8);
+  const [savingFollowUpSettings, setSavingFollowUpSettings] = useState(false);
+
   useEffect(() => {
     const fetchWebhook = async () => {
       try {
@@ -124,11 +131,28 @@ export default function DeveloperSettings() {
       }
     };
 
+    const fetchFollowUpSettings = async () => {
+      try {
+        const response = await axiosInstance.get("/companies/ai/follow-up-settings/");
+        if (response.data?.success) {
+          const d = response.data.data;
+          setFollowUpMinIdleHours(d.follow_up_min_idle_hours ?? 3);
+          setFollowUpMaxIdleHours(d.follow_up_max_idle_hours ?? 48);
+          setFollowUpCooldownHours(d.follow_up_cooldown_hours ?? 8);
+        }
+      } catch (error) {
+        handleApiError(error);
+      } finally {
+        setLoadingFollowUpSettings(false);
+      }
+    };
+
     fetchWebhook();
     fetchApiKey();
     fetchPaymentKeys();
     fetchAiSettings();
     fetchProactiveSettings();
+    fetchFollowUpSettings();
   }, []);
 
   const fetchDocuments = async () => {
@@ -322,6 +346,22 @@ export default function DeveloperSettings() {
       handleApiError(error);
     } finally {
       setSavingProactive(false);
+    }
+  };
+
+  const handleSaveFollowUpSettings = async () => {
+    setSavingFollowUpSettings(true);
+    try {
+      await axiosInstance.patch("/companies/ai/follow-up-settings/", {
+        follow_up_min_idle_hours: Number(followUpMinIdleHours),
+        follow_up_max_idle_hours: Number(followUpMaxIdleHours),
+        follow_up_cooldown_hours: Number(followUpCooldownHours),
+      });
+      toast.success("Follow-up notification settings saved.");
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setSavingFollowUpSettings(false);
     }
   };
 
@@ -561,6 +601,68 @@ export default function DeveloperSettings() {
                     </label>
                   </div>
                 </div>
+              </div>
+
+              {/* Follow-up Notification Settings */}
+              <div className="pt-4 border-t border-gray-200">
+                <h3 className="text-sm font-semibold text-gray-700 mb-1">Follow-up Notifications</h3>
+                <p className="text-xs text-gray-500 mb-3">
+                  Controls when agents are notified about idle conversations. A notification fires when a conversation has been silent for between <strong>Min</strong> and <strong>Max</strong> hours — anything shorter is too soon, anything older is considered dead and skipped. <strong>Cooldown</strong> prevents the same conversation from triggering repeat alerts until enough time has passed.
+                </p>
+
+                {loadingFollowUpSettings ? (
+                  <p className="text-sm text-gray-400">Loading...</p>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    <div className="flex gap-4 max-w-md">
+                      <div className="flex-1">
+                        <label className="block mb-1 text-xs font-medium text-gray-600">Min idle (hours)</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={167}
+                          value={followUpMinIdleHours}
+                          onChange={(e) => setFollowUpMinIdleHours(e.target.value)}
+                          className="w-full border border-gray-300 p-2 rounded text-sm"
+                        />
+                        <p className="text-xs text-gray-400 mt-0.5">Don't notify until silent for at least this long</p>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block mb-1 text-xs font-medium text-gray-600">Max idle (hours)</label>
+                        <input
+                          type="number"
+                          min={2}
+                          max={168}
+                          value={followUpMaxIdleHours}
+                          onChange={(e) => setFollowUpMaxIdleHours(e.target.value)}
+                          className="w-full border border-gray-300 p-2 rounded text-sm"
+                        />
+                        <p className="text-xs text-gray-400 mt-0.5">Skip conversations silent longer than this</p>
+                      </div>
+                    </div>
+
+                    <div className="max-w-[160px]">
+                      <label className="block mb-1 text-xs font-medium text-gray-600">Cooldown (hours)</label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={168}
+                        value={followUpCooldownHours}
+                        onChange={(e) => setFollowUpCooldownHours(e.target.value)}
+                        className="w-full border border-gray-300 p-2 rounded text-sm"
+                      />
+                      <p className="text-xs text-gray-400 mt-0.5">Wait this long before re-alerting on the same conversation</p>
+                    </div>
+
+                    <button
+                      onClick={handleSaveFollowUpSettings}
+                      disabled={savingFollowUpSettings}
+                      className="mt-1 px-4 py-2 bg-[#3EBF0F] text-white rounded text-sm disabled:opacity-50 w-fit"
+                    >
+                      {savingFollowUpSettings ? "Saving..." : "Save"}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Proactive AI Settings */}
