@@ -86,6 +86,9 @@ const NotificationModal = () => {
       } else if (notification.notification_type === 'follow_up' && notification.metadata?.conversation_id) {
         const tab = notification.metadata.conversation_type || 'leads';
         navigateTo(`messages?chat=${tab}&id=${notification.metadata.conversation_id}`);
+      } else if (notification.notification_type === 'escalation' && notification.metadata?.conversation_id) {
+        const tab = notification.metadata.conversation_type || 'leads';
+        navigateTo(`messages?chat=${tab}&id=${notification.metadata.conversation_id}`);
       }
     } catch (error) {
       handleApiError(error);
