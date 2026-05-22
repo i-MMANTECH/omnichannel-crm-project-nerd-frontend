@@ -1077,6 +1077,18 @@ export const MessagesContent = () => {
 				);
 				if (foundUser) {
 					setActiveUser(foundUser);
+				} else if (chatId && reset) {
+					// Contact not in first page — fetch directly by ID
+					try {
+						const endpoint = requestChatType === 'leads'
+							? `/customers/leads/${chatId}/`
+							: `/customers/${chatId}/`;
+						const { data: directData } = await axiosInstance.get(endpoint, { showLoader: false });
+						const contact = directData?.lead || directData?.customer;
+						if (contact) setActiveUser(contact);
+					} catch {
+						// Contact not found — leave panel blank
+					}
 				}
 			}
 		}
