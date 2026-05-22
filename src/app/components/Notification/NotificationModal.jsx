@@ -131,13 +131,13 @@ const NotificationModal = () => {
           </span>
         )}
       </div>
-      <div className="max-h-[calc(100vh-140px)] sm:max-h-[calc(100vh-160px)] overflow-y-auto scrollable-area overscroll-contain">
+      <div className="overflow-y-auto scrollable-area overscroll-contain" style={{ maxHeight: '480px' }}>
         {notifications.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
             No notifications yet
           </div>
         ) : (
-          notifications.map(notification => (
+          notifications.slice(0, 10).map(notification => (
             <div
               key={notification.id}
               className="pointer flex gap-3 py-6 border-b border-gray-200 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
@@ -180,6 +180,16 @@ const NotificationModal = () => {
           ))
         )}
       </div>
+      {notifications.length > 10 && (
+        <div className="p-3 border-t border-gray-200 text-center">
+          <button
+            onClick={() => { toggleNotification(); navigateTo('notifications'); }}
+            className="text-sm text-blue-500 hover:text-blue-700 font-medium"
+          >
+            See all {notifications.length} notifications
+          </button>
+        </div>
+      )}
     </div>
   );
 };

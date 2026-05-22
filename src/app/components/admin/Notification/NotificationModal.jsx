@@ -130,35 +130,33 @@ const NotificationModal = () => {
           </span>
         )}
       </div>
-      <div className="max-h-[calc(100vh-140px)] sm:max-h-[calc(100vh-160px)] overflow-y-auto scrollable-area overscroll-contain">
+      <div className="overflow-y-auto scrollable-area overscroll-contain" style={{ maxHeight: '480px' }}>
         {notifications.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
             No notifications yet
           </div>
         ) : (
-          notifications.map((notification) => (
+          notifications.slice(0, 10).map((notification) => (
             <div
               key={notification.id}
-              className={`pointer flex gap-3 py-6 border-b border-gray-200 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer ${
-                notification.is_read ? "body-theme" : "body-theme"
-              }`}
+              className="pointer flex gap-3 py-6 border-b border-gray-200 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer body-theme"
               onClick={() => handleNotificationClick(notification)}
             >
               <div className="flex-shrink-0">
-                {notification?.receiver?.image && <Image 
+                {notification?.receiver?.image && <Image
                   alt="profile pic"
                   width={40}
                   height={40}
-                  className="rounded-full w-8 h-8" 
-                  src={notification?.receiver?.image} 
+                  className="rounded-full w-8 h-8"
+                  src={notification?.receiver?.image}
                 />}
                 {!notification?.receiver?.image && (
-                  <UserAvatar 
-                    name={notification?.receiver?.first_name ? 
-                      `${notification.receiver.first_name} ${notification.receiver.last_name}` : 
-                      notification?.receiver?.email || '--'} 
-                    width="w-8" 
-                    height="h-8" 
+                  <UserAvatar
+                    name={notification?.receiver?.first_name ?
+                      `${notification.receiver.first_name} ${notification.receiver.last_name}` :
+                      notification?.receiver?.email || '--'}
+                    width="w-8"
+                    height="h-8"
                   />
                 )}
               </div>
@@ -169,14 +167,13 @@ const NotificationModal = () => {
                   </span>{" "}
                 </p>
                 {notification.title && (
-                  <p className="text-sm text-purple-600  mt-1 break-words">
+                  <p className="text-sm text-purple-600 mt-1 break-words">
                     {notification.title}
                   </p>
                 )}
                 <p className="text-sm break-words">
                   {getNotificationMessage(notification)}
                 </p>
-
                 <p className="text-xs text-gray-500 mt-1">
                   {moment(notification.created_at).fromNow()}
                 </p>
@@ -185,6 +182,16 @@ const NotificationModal = () => {
           ))
         )}
       </div>
+      {notifications.length > 10 && (
+        <div className="p-3 border-t border-gray-200 text-center">
+          <button
+            onClick={() => { toggleNotification(); router.push('/admin/notifications'); }}
+            className="text-sm text-blue-500 hover:text-blue-700 font-medium"
+          >
+            See all {notifications.length} notifications
+          </button>
+        </div>
+      )}
     </div>
   );
 };
