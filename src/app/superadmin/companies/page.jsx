@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, ChevronLeft, ChevronRight, ChevronDown, Building2, Users, CreditCard, TrendingUp, ExternalLink, X, Edit2, Trash2, Power, PowerOff, AlertTriangle, RefreshCw, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, ChevronDown, Building2, Users, CreditCard, TrendingUp, ExternalLink, X, Edit2, Trash2, Power, PowerOff, AlertTriangle, RefreshCw, CheckCircle, XCircle, MinusCircle, Link2, Copy, Check } from 'lucide-react';
 import { useSuperAdminAuth } from '../context/SuperAdminAuthContext';
 import { createSuperAdminApi } from '../lib/api';
 import { toast } from 'react-toastify';
@@ -223,6 +223,13 @@ export default function SuperAdminCompanies() {
   // DID assignment state
   const [assigningDID, setAssigningDID] = useState(false);
 
+  // Payment link state
+  const [paymentLinkOpen, setPaymentLinkOpen] = useState(false);
+  const [paymentLinkAmount, setPaymentLinkAmount] = useState('');
+  const [paymentLinkLoading, setPaymentLinkLoading] = useState(false);
+  const [paymentLinkUrl, setPaymentLinkUrl] = useState(null);
+  const [paymentLinkCopied, setPaymentLinkCopied] = useState(false);
+
   const PAGE_SIZE = 20;
 
   const fetchCompanies = useCallback(async (pageNum = 1) => {
@@ -319,6 +326,10 @@ export default function SuperAdminCompanies() {
     setConfirmModal(null);
     setActionLoading(false);
     setRetrying(false);
+    setPaymentLinkOpen(false);
+    setPaymentLinkAmount('');
+    setPaymentLinkUrl(null);
+    setPaymentLinkCopied(false);
   };
 
   const handleAssignDID = async () => {
@@ -333,6 +344,35 @@ export default function SuperAdminCompanies() {
       toast.error(err.response?.data?.error || 'Failed to assign DID');
     } finally {
       setAssigningDID(false);
+    }
+  };
+
+  const handleGeneratePaymentLink = async () => {
+    const amount = parseFloat(paymentLinkAmount);
+    if (!amount || amount < 100) {
+      toast.error('Minimum amount is ₦100');
+      return;
+    }
+    setPaymentLinkLoading(true);
+    try {
+      const api = createSuperAdminApi(superAdmin.access);
+      const res = await api.post(`/super-admin/companies/${selectedCompany.id}/wallet/payment-link/`, { amount });
+      setPaymentLinkUrl(res.data.payment_url);
+      toast.success('Payment link generated');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to generate payment link');
+    } finally {
+      setPaymentLinkLoading(false);
+    }
+  };
+
+  const handleCopyPaymentLink = async () => {
+    try {
+      await navigator.clipboard.writeText(paymentLinkUrl);
+      setPaymentLinkCopied(true);
+      setTimeout(() => setPaymentLinkCopied(false), 2000);
+    } catch {
+      toast.error('Failed to copy link');
     }
   };
 
@@ -675,6 +715,60 @@ export default function SuperAdminCompanies() {
                     {selectedCompany.is_active ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
                     {selectedCompany.is_active ? 'Deactivate Company' : 'Activate Company'}
                   </button>
+
+                  {/* Generate Payment Link */}
+                  <div className="rounded-lg border border-blue-200 overflow-hidden">
+                    <button
+                      onClick={() => { setPaymentLinkOpen((o) => !o); setPaymentLinkUrl(null); setPaymentLinkAmount(''); setPaymentLinkCopied(false); }}
+                      className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
+                    >
+                      <Link2 className="w-4 h-4" />
+                      Generate Wallet Payment Link
+                      <ChevronDown className={`w-4 h-4 ml-auto transition-transform duration-150 ${paymentLinkOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {paymentLinkOpen && (
+                      <div className="border-t border-blue-100 bg-blue-50/50 px-4 py-3 space-y-3">
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">₦</span>
+                            <input
+                              type="number"
+                              min="100"
+                              value={paymentLinkAmount}
+                              onChange={(e) => { setPaymentLinkAmount(e.target.value); setPaymentLinkUrl(null); }}
+                              placeholder="Amount (min 100)"
+                              className="w-full pl-7 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                            />
+                          </div>
+                          <button
+                            onClick={handleGeneratePaymentLink}
+                            disabled={paymentLinkLoading || !paymentLinkAmount}
+                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-60 whitespace-nowrap"
+                          >
+                            {paymentLinkLoading ? 'Generating…' : 'Generate'}
+                          </button>
+                        </div>
+                        {paymentLinkUrl && (
+                          <div className="flex gap-2">
+                            <input
+                              readOnly
+                              value={paymentLinkUrl}
+                              className="flex-1 text-xs bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-600 min-w-0"
+                            />
+                            <button
+                              onClick={handleCopyPaymentLink}
+                              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border transition-colors ${
+                                paymentLinkCopied ? 'border-green-300 text-green-600 bg-green-50' : 'border-gray-200 text-gray-600 hover:bg-gray-100'
+                              }`}
+                            >
+                              {paymentLinkCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                              {paymentLinkCopied ? 'Copied!' : 'Copy'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
                   {/* Soft delete */}
                   <button
