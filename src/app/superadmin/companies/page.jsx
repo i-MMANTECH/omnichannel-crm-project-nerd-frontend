@@ -236,6 +236,7 @@ export default function SuperAdminCompanies() {
   const [txPage, setTxPage] = useState(1);
   const [txTotalPages, setTxTotalPages] = useState(1);
   const [txLoadingMore, setTxLoadingMore] = useState(false);
+  const [txBalance, setTxBalance] = useState(null);
   const [paymentLinkCopied, setPaymentLinkCopied] = useState(false);
 
   const PAGE_SIZE = 20;
@@ -342,6 +343,7 @@ export default function SuperAdminCompanies() {
     setTxRecords([]);
     setTxPage(1);
     setTxTotalPages(1);
+    setTxBalance(null);
   };
 
   const handleAssignDID = async () => {
@@ -397,6 +399,9 @@ export default function SuperAdminCompanies() {
       setTxRecords((prev) => append ? [...prev, ...results] : results);
       setTxPage(page);
       setTxTotalPages(res.data.total_pages || 1);
+      if (page === 1 && res.data.wallet_balance != null) {
+        setTxBalance(res.data.wallet_balance);
+      }
     } catch {
       toast.error('Failed to load transactions');
     } finally {
@@ -736,13 +741,18 @@ export default function SuperAdminCompanies() {
 
                 {/* Transaction history */}
                 <div className="pt-2 border-t border-gray-100">
-                  <button
-                    onClick={handleToggleTx}
-                    className="flex items-center justify-between w-full mb-3"
-                  >
-                    <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Transactions</p>
-                    <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-150 ${txOpen ? 'rotate-180' : ''}`} />
-                  </button>
+                  <div className="flex items-center justify-between mb-3">
+                    <button onClick={handleToggleTx} className="flex items-center gap-2">
+                      <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Transactions</p>
+                      <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-150 ${txOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {txBalance != null && (
+                      <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 rounded-lg px-2.5 py-1">
+                        <span className="text-xs text-gray-500">Balance:</span>
+                        <span className="text-xs font-bold text-green-700">₦{txBalance.toLocaleString()}</span>
+                      </div>
+                    )}
+                  </div>
 
                   {txOpen && (
                     <div>
