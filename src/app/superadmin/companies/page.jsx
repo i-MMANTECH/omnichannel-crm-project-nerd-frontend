@@ -228,6 +228,14 @@ export default function SuperAdminCompanies() {
   const [paymentLinkAmount, setPaymentLinkAmount] = useState('');
   const [paymentLinkLoading, setPaymentLinkLoading] = useState(false);
   const [paymentLinkUrl, setPaymentLinkUrl] = useState(null);
+
+  // Transactions state
+  const [txOpen, setTxOpen] = useState(false);
+  const [txRecords, setTxRecords] = useState([]);
+  const [txLoading, setTxLoading] = useState(false);
+  const [txPage, setTxPage] = useState(1);
+  const [txTotalPages, setTxTotalPages] = useState(1);
+  const [txLoadingMore, setTxLoadingMore] = useState(false);
   const [paymentLinkCopied, setPaymentLinkCopied] = useState(false);
 
   const PAGE_SIZE = 20;
@@ -330,6 +338,10 @@ export default function SuperAdminCompanies() {
     setPaymentLinkAmount('');
     setPaymentLinkUrl(null);
     setPaymentLinkCopied(false);
+    setTxOpen(false);
+    setTxRecords([]);
+    setTxPage(1);
+    setTxTotalPages(1);
   };
 
   const handleAssignDID = async () => {
@@ -374,6 +386,30 @@ export default function SuperAdminCompanies() {
     } catch {
       toast.error('Failed to copy link');
     }
+  };
+
+  const fetchTransactions = async (companyId, page = 1, append = false) => {
+    if (page === 1) setTxLoading(true); else setTxLoadingMore(true);
+    try {
+      const api = createSuperAdminApi(superAdmin.access);
+      const res = await api.get(`/super-admin/companies/${companyId}/transactions/?page=${page}`);
+      const results = res.data.results || [];
+      setTxRecords((prev) => append ? [...prev, ...results] : results);
+      setTxPage(page);
+      setTxTotalPages(res.data.total_pages || 1);
+    } catch {
+      toast.error('Failed to load transactions');
+    } finally {
+      setTxLoading(false);
+      setTxLoadingMore(false);
+    }
+  };
+
+  const handleToggleTx = () => {
+    if (!txOpen && txRecords.length === 0) {
+      fetchTransactions(selectedCompany.id, 1);
+    }
+    setTxOpen((o) => !o);
   };
 
   const handleSaveName = async () => {
@@ -693,6 +729,81 @@ export default function SuperAdminCompanies() {
                             retrying={retrying}
                           />
                         )
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Transaction history */}
+                <div className="pt-2 border-t border-gray-100">
+                  <button
+                    onClick={handleToggleTx}
+                    className="flex items-center justify-between w-full mb-3"
+                  >
+                    <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Transactions</p>
+                    <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-150 ${txOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {txOpen && (
+                    <div>
+                      {txLoading ? (
+                        <div className="flex justify-center py-6">
+                          <div className="w-4 h-4 border-2 border-[#3EBF0F] border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      ) : txRecords.length === 0 ? (
+                        <p className="text-xs text-gray-400 text-center py-4">No transactions found</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {txRecords.map((tx, idx) => {
+                            const statusMap = {
+                              completed: 'bg-green-100 text-green-700',
+                              paid: 'bg-green-100 text-green-700',
+                              success: 'bg-green-100 text-green-700',
+                              pending: 'bg-yellow-100 text-yellow-700',
+                              failed: 'bg-red-100 text-red-600',
+                              cancelled: 'bg-red-100 text-red-600',
+                              refunded: 'bg-purple-100 text-purple-700',
+                            };
+                            const badgeCls = statusMap[tx.status?.toLowerCase()] || 'bg-gray-100 text-gray-500';
+                            return (
+                              <div key={idx} className="bg-gray-50 rounded-lg px-3 py-2.5">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-xs font-medium text-gray-700 truncate">{tx.type}</p>
+                                    {tx.reference && (
+                                      <p className="text-xs text-gray-400 font-mono truncate mt-0.5">{tx.reference}</p>
+                                    )}
+                                  </div>
+                                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                                    {tx.amount != null && (
+                                      <p className={`text-xs font-semibold ${tx.amount < 0 ? 'text-red-500' : 'text-gray-800'}`}>
+                                        {tx.amount < 0 ? '-' : ''}₦{Math.abs(tx.amount).toLocaleString()}
+                                      </p>
+                                    )}
+                                    {tx.status && (
+                                      <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium capitalize ${badgeCls}`}>
+                                        {tx.status}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <p className="text-xs text-gray-400 mt-1">
+                                  {new Date(tx.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            );
+                          })}
+
+                          {txPage < txTotalPages && (
+                            <button
+                              onClick={() => fetchTransactions(selectedCompany.id, txPage + 1, true)}
+                              disabled={txLoadingMore}
+                              className="w-full py-2 text-xs font-medium text-[#3EBF0F] hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-60"
+                            >
+                              {txLoadingMore ? 'Loading…' : 'Load more'}
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   )}
