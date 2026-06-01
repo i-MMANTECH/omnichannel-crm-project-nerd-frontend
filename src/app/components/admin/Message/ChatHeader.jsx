@@ -4,7 +4,7 @@ import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import "./chatHeader.css";
 import UserAvatar from "../../UserAvatar";
 import Image from "next/image";
-import LeadToCustomer from "./LeadToCustomer";
+import LeadToCustomer from "../../Message/LeadToCustomer";
 import NotesModal from "./NotesModal";
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import SuccessModal from "../../SuccessModal";
