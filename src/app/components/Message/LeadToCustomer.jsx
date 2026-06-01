@@ -110,7 +110,7 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
         try {
             const submissionData = {
                 ...formData,
-                categories: formData?.categories?.map(c => c.value ?? c.id),
+                categories: formData?.categories?.map(c => c.label),
                 country: formData.country?.id,
                 state: formData.state?.id,
             };
