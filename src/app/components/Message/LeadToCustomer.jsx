@@ -43,8 +43,9 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
     };
 
     useEffect(() => {
+        if (!axiosInstance) return;
         axiosInstance.get('/customers/categories/').then(res => {
-            setCategories(res.data?.results || res.data || []);
+            setCategories(res.data?.categories || []);
         }).catch(() => {});
     }, []);
 
