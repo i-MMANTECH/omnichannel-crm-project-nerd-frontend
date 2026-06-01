@@ -11,7 +11,7 @@ import { useCanViewContactInfo } from "@/hooks/useCanViewContactInfo";  // ✅ A
 function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuccessModalMessage }) {
     const { axiosInstance } = useApi();
     const { handleApiError } = useError();
-    const [tags, setTags] = useState([]);
+    const [categories, setCategories] = useState([]);
     const canViewContactInfo = useCanViewContactInfo();  // ✅ ADD THIS
 
     const [formData, setFormData] = useState({
@@ -25,7 +25,7 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
         facebook: "",
         whatsapp: "",
         tiktok: "",
-        tag: [],
+        categories: [],
         country: { id: 160, name: "Nigeria" },
         state: {},
     });
@@ -41,6 +41,12 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
         }
         setFormData({ ...formData, [name]: value });
     };
+
+    useEffect(() => {
+        axiosInstance.get('/customers/categories/').then(res => {
+            setCategories(res.data?.results || res.data || []);
+        }).catch(() => {});
+    }, []);
 
     useEffect(() => {
         if (isOpen && leadId) {
@@ -63,7 +69,7 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
                             facebook: leadData.facebook || "",
                             whatsapp: (leadData?.channel?.id == 2 ? leadData.unique_identifier : leadData.phone_number) || "",
                             tiktok: leadData.tiktok || "",
-                            tag: leadData.tag || [],
+                            categories: [],
                             country: { id: 160, name: "Nigeria" },
                             state: {},
                         }));
@@ -93,8 +99,8 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
         }
     };
 
-    const handleTagChange = (selectedTags) => {
-        setFormData(prev => ({ ...prev, tags: selectedTags }));
+    const handleCategoryChange = (selected) => {
+        setFormData(prev => ({ ...prev, categories: selected || [] }));
     };
 
     const handleSubmit = async (e) => {
@@ -103,7 +109,7 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
         try {
             const submissionData = {
                 ...formData,
-                tags: formData?.tags?.map(tag => tag.id),
+                categories: formData?.categories?.map(c => c.value ?? c.id),
                 country: formData.country?.id,
                 state: formData.state?.id,
             };
@@ -144,7 +150,7 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
                     facebook: "",
                     whatsapp: "",
                     tiktok: "",
-                    tags: [],
+                    categories: [],
                     country: { id: 160, name: "Nigeria" },
                     state: {},
                 });
@@ -388,20 +394,16 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
                         />
                     </div>
 
-                    {/* Multiselect Tags */}
                     <div>
-                        <label className="text-sm">Tags</label>
+                        <label className="text-sm">Category <span className="text-red-500">*</span></label>
                         <Select
                             isMulti
-                            name="tags"
-                            options={tags?.map(tag => ({
-                                value: tag.id,
-                                label: tag.name
-                            }))}
+                            name="categories"
+                            options={categories.map(c => ({ value: c.id, label: c.name }))}
                             classNamePrefix="select"
-                            onChange={handleTagChange}
-                            value={formData?.tags}
-                            placeholder="Select tags"
+                            onChange={handleCategoryChange}
+                            value={formData.categories}
+                            placeholder="Select category"
                             styles={selectStyles}
                         />
                     </div>
