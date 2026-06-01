@@ -396,7 +396,7 @@ function LeadToCustomer({ isOpen, onClose, leadId, setIsSuccessModalOpen, setSuc
                     </div>
 
                     <div>
-                        <label className="text-sm">Category <span className="text-red-500">*</span></label>
+                        <label className="text-sm">Category</label>
                         <Select
                             isMulti
                             name="categories"
