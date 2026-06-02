@@ -11,6 +11,7 @@ import {
   CreditCard,
   Share2,
   BarChart2,
+  Activity,
   LogOut,
   Menu,
   X,
@@ -24,6 +25,7 @@ const navItems = [
   { href: '/superadmin/plans', label: 'Plans', icon: CreditCard },
   { href: '/superadmin/referrals', label: 'Referrals', icon: Share2 },
   { href: '/superadmin/analytics', label: 'Analytics', icon: BarChart2 },
+  { href: '/superadmin/health', label: 'Health', icon: Activity },
 ];
 
 export default function Sidebar() {
