@@ -36,6 +36,8 @@ export default function DeveloperSettings() {
   const [aiOffDuringBusinessHours, setAiOffDuringBusinessHours] = useState(false);
   const [aiDisableStart, setAiDisableStart] = useState("");
   const [aiDisableEnd, setAiDisableEnd] = useState("");
+  const [aiDisplayName, setAiDisplayName] = useState("");
+  const [savingAiDisplayName, setSavingAiDisplayName] = useState(false);
   const [aiEscalationAssignAgent, setAiEscalationAssignAgent] = useState(true);
   const [aiEscalationCreateTicket, setAiEscalationCreateTicket] = useState(false);
 
@@ -103,6 +105,7 @@ export default function DeveloperSettings() {
           setAiOffDuringBusinessHours(aiData.ai_off_during_business_hours || false);
           setAiDisableStart(aiData.ai_disable_start || "");
           setAiDisableEnd(aiData.ai_disable_end || "");
+          setAiDisplayName(aiData.ai_display_name || "");
           setAiEscalationAssignAgent(aiData.ai_escalation_assign_agent ?? true);
           setAiEscalationCreateTicket(aiData.ai_escalation_create_ticket ?? false);
         }
@@ -270,6 +273,20 @@ export default function DeveloperSettings() {
     } catch (error) {
       setAiEnabled(!newValue); // Revert on failure
       handleApiError(error);
+    }
+  };
+
+  const handleSaveAiDisplayName = async () => {
+    setSavingAiDisplayName(true);
+    try {
+      await axiosInstance.patch("/companies/ai/settings/", {
+        ai_display_name: aiDisplayName || null,
+      });
+      toast.success("Agent display name updated successfully.");
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setSavingAiDisplayName(false);
     }
   };
 
@@ -515,6 +532,37 @@ export default function DeveloperSettings() {
                     <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-transform ${aiEnabled ? "translate-x-5" : "translate-x-0"}`} />
                   </div>
                 </label>
+              </div>
+
+              {/* Agent Display Name */}
+              <div className="max-w-md">
+                <label className="block mb-1 text-sm font-medium">Agent Display Name</label>
+                <p className="text-xs text-gray-500 mb-2">The name the AI uses when referring to your company in conversations. Leave blank to use your account name.</p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={aiDisplayName}
+                    onChange={(e) => setAiDisplayName(e.target.value)}
+                    className="flex-1 border border-gray-300 p-2 rounded text-sm"
+                    placeholder="e.g., Support Team"
+                    maxLength={100}
+                  />
+                  <button
+                    onClick={handleSaveAiDisplayName}
+                    disabled={savingAiDisplayName}
+                    className="px-3 py-2 bg-[#3EBF0F] text-white rounded text-sm font-medium disabled:opacity-50"
+                  >
+                    {savingAiDisplayName ? "Saving..." : "Save"}
+                  </button>
+                  {aiDisplayName && (
+                    <button
+                      onClick={() => setAiDisplayName("")}
+                      className="px-3 py-2 border border-gray-300 text-gray-600 rounded text-sm hover:bg-gray-50"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Turn off during business hours Toggle */}
