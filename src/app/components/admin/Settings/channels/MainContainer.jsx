@@ -8,6 +8,7 @@ import { useError } from "@/context/ErrorContext";
 import ComingSoonModal from "@/app/components/ComingSoonModal";
 import { ConnectWhatsAppModal } from "../../MainContainer/ConnectWhatsAppModal";
 import { ConnectInstagramModal } from "../../MainContainer/ConnectInstagramModal";
+import { ConnectFacebookModal } from "../../MainContainer/ConnectFacebookModal";
 
 
 export const MainContainer = () => {
@@ -22,16 +23,19 @@ export const MainContainer = () => {
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
   const [channels, setChannels] = useState([])
   const [isInstagram, setIsInstagram] = useState(false);
+  const [isFacebook, setIsFacebook] = useState(false);
 
 
   const handleConnectClick = (title, icon) => {
     const lowerCaseTitle = title.toLowerCase();
-    const comingSoonChannels = ["facebook", "sms", "telegram"];
+    const comingSoonChannels = ["sms", "telegram"];
 
     if (lowerCaseTitle === "whatsapp") {
       setIsWhatsApp(true);
     } else if (lowerCaseTitle === "instagram") {
       setIsInstagram(true);
+    } else if (lowerCaseTitle === "facebook") {
+      setIsFacebook(true);
     } else if (comingSoonChannels.includes(lowerCaseTitle)) {
       setModalTitle("Coming Soon");
       setModalContent("This feature is coming soon!");
@@ -55,6 +59,7 @@ export const MainContainer = () => {
     setIsEmail(false);
     setIsWhatsApp(false);
     setIsInstagram(false);
+    setIsFacebook(false);
   };
 
   useEffect(() => {
@@ -124,6 +129,7 @@ export const MainContainer = () => {
         {isLiveChat && <ConnectLiveChatModal onCancel={closeModal} />}
         {isEmail && <ConnectEmailModal onCancel={closeModal} />}
         {isInstagram && <ConnectInstagramModal onCancel={closeModal} />}
+        {isFacebook && <ConnectFacebookModal onCancel={closeModal} />}
       </div>
     </div>
   );
