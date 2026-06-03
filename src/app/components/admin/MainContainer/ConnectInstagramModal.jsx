@@ -20,7 +20,7 @@ export const ConnectInstagramModal = ({ onCancel }) => {
 
     const checkStatus = async () => {
         try {
-            const { data } = await axiosInstance.get('/communication/instagram/status/');
+            const { data } = await axiosInstance.get('/channels/instagram/status/');
             if (data.connected && data.is_active) {
                 setConnectedAccount(data.account_id);
                 setStep('disconnect');
@@ -43,7 +43,7 @@ export const ConnectInstagramModal = ({ onCancel }) => {
         setError("");
 
         try {
-            const { data } = await axiosInstance.post('/communication/instagram/connect/', {
+            const { data } = await axiosInstance.post('/channels/instagram/connect/', {
                 username: username,
                 password: password
             });
@@ -67,7 +67,7 @@ export const ConnectInstagramModal = ({ onCancel }) => {
         setLoading(true);
 
         try {
-            await axiosInstance.post('/communication/instagram/disconnect/');
+            await axiosInstance.post('/channels/instagram/disconnect/');
             setStep('login');
             setUsername('');
             setPassword('');
@@ -114,47 +114,40 @@ export const ConnectInstagramModal = ({ onCancel }) => {
 
         if (step === 'login') {
             return (
-                <form onSubmit={handleLogin} className="space-y-4">
-                    <div className="text-center mb-6">
-                        <p className="text-gray-600 text-sm">
-                            Log in to sync your Instagram Direct Messages. Your credentials are used securely to establish a connection.
+                <div className="text-center py-4 space-y-5">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-pink-50 mb-2">
+                        <svg className="w-8 h-8 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 className="text-base font-semibold text-gray-900 mb-1">Connect via the Mobile App</h3>
+                        <p className="text-sm text-gray-500 leading-relaxed">
+                            Instagram connection requires a secure in-app login that isn't supported in a browser.
+                            Open the <strong>NativeTalk Business App</strong> on your phone to connect your Instagram account.
                         </p>
                     </div>
-
-                    <div>
-                        <input
-                            type="text"
-                            placeholder="Phone number, username, or email"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            className="w-full border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:border-gray-400 bg-gray-50 focus:bg-white transition-colors"
-                        />
+                    <div className="bg-gray-50 rounded-lg p-4 text-left space-y-2">
+                        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Steps</p>
+                        {[
+                            'Open the NativeTalk Business App',
+                            'Go to Settings → Channel Integration',
+                            'Tap Instagram and log in',
+                            'Your DMs will sync automatically here too',
+                        ].map((step, i) => (
+                            <div key={i} className="flex items-start gap-2">
+                                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-pink-100 text-pink-600 text-xs font-bold flex items-center justify-center mt-0.5">{i + 1}</span>
+                                <p className="text-sm text-gray-600">{step}</p>
+                            </div>
+                        ))}
                     </div>
-
-                    <div>
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:border-gray-400 bg-gray-50 focus:bg-white transition-colors"
-                        />
-                    </div>
-
-                    {error && (
-                        <div className="p-3 bg-red-50 border border-red-100 rounded-md">
-                            <p className="text-red-600 text-xs text-center">{error}</p>
-                        </div>
-                    )}
-
                     <button
-                        type="submit"
-                        disabled={loading || !username || !password}
-                        className="w-full bg-[#0095f6] text-white py-2.5 rounded-lg hover:bg-[#1877f2] transition-colors disabled:opacity-50 font-semibold text-sm mt-2"
+                        onClick={onCancel}
+                        className="w-full border border-gray-200 text-gray-600 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
                     >
-                        {loading ? "Logging in..." : "Log In"}
+                        Close
                     </button>
-                </form>
+                </div>
             );
         }
 
