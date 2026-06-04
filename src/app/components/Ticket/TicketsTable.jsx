@@ -11,6 +11,24 @@ import UserAvatar from "@/app/components/UserAvatar";
 import Image from "next/image";
 import { Tooltip } from "react-tooltip";
 import TicketsFiltersPanel, { EMPTY_FILTERS } from "@/app/components/Ticket/TicketsFiltersPanel";
+import { useTicketStatuses } from "@/hooks/useTicketStatuses";
+
+// Colour map keyed on status `name` (open / in_progress / resolved / closed).
+// The merged-Resolved entry under simplification-on reuses the "resolved"
+// row's underlying name, so its pill stays green automatically.
+const STATUS_PILL_CLASSES = {
+  open: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
+  in_progress: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+  resolved: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
+  closed: "bg-gray-100 text-gray-600 dark:bg-gray-700/30 dark:text-gray-400",
+};
+
+const STATUS_CARD_COLORS = {
+  open: { bgColor: "red", borderColor: "black" },
+  in_progress: { bgColor: "#1485fe", borderColor: "black" },
+  resolved: { bgColor: "#10B981", borderColor: "black" },
+  closed: { bgColor: "#6B7280", borderColor: "black" },
+};
 
 const TicketsTable = ({
     showExportButton = true,
@@ -24,16 +42,16 @@ const TicketsTable = ({
 }) => {
     const { axiosInstance } = useApi();
     const { handleApiError } = useError();
+    const {
+        statuses: allStatuses,
+        expandStatusIdsForFilter,
+        resolveDisplayStatus,
+    } = useTicketStatuses();
 
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
-    const [statusCounts, setStatusCounts] = useState({
-        open: 0,
-        in_progress: 0,
-        resolved: 0,
-        closed: 0,
-    });
+    const [statusCounts, setStatusCounts] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
     const [pagination, setPagination] = useState({
         count: 0,
@@ -44,7 +62,6 @@ const TicketsTable = ({
     });
     const [pageSize, setPageSize] = useState(8);
     const [lastUpdated, setLastUpdated] = useState(null);
-    const [allStatuses, setAllStatuses] = useState([]);
     const [allPriorities, setAllPriorities] = useState([]);
     const [allCategories, setAllCategories] = useState([]);
     const [statusFilterId, setStatusFilterId] = useState(null);
@@ -224,9 +241,15 @@ const TicketsTable = ({
                 search: searchQuery || undefined,
             };
 
-            const statusIds = new Set(filters.statusIds.map(String));
-            if (enableStatusFiltering && statusFilterId) statusIds.add(String(statusFilterId));
-            if (statusIds.size) params.status = Array.from(statusIds).join(',');
+            // Collect every status id the user has selected (either via the
+            // filters panel or via clicking a stat card). Then expand any
+            // merged entry (e.g. merged-Resolved when simplification is on)
+            // into its underlying ids so the backend list query matches both
+            // Resolved and Closed tickets.
+            const rawStatusIds = [...filters.statusIds];
+            if (enableStatusFiltering && statusFilterId) rawStatusIds.push(statusFilterId);
+            const expandedStatusIds = expandStatusIdsForFilter(rawStatusIds);
+            if (expandedStatusIds.length) params.status = expandedStatusIds.join(',');
 
             const assigneeIds = new Set(filters.assigneeIds.map(String));
             if (selectedUser) assigneeIds.add(String(selectedUser));
@@ -249,11 +272,17 @@ const TicketsTable = ({
                 setPagination(response.data.pagination);
                 setLastUpdated(new Date());
 
+                // Bucket counts under the *displayed* status. With
+                // simplification off this is identical to the backing
+                // status; with simplification on, Closed tickets land in
+                // the merged-Resolved bucket since that's the entry users
+                // see and interact with.
                 const counts = response.data.tickets.reduce((acc, ticket) => {
-                    const statusName = ticket.status?.name || 'open';
-                    acc[statusName] = (acc[statusName] || 0) + 1;
+                    const display = resolveDisplayStatus(ticket.status);
+                    const key = display?.name || 'open';
+                    acc[key] = (acc[key] || 0) + 1;
                     return acc;
-                }, { open: 0, in_progress: 0, resolved: 0, closed: 0 });
+                }, {});
 
                 setStatusCounts(counts);
             }
@@ -266,15 +295,14 @@ const TicketsTable = ({
 
     const fetchDropdownData = async () => {
         try {
-            const [statusesRes, prioritiesRes, categoriesRes] = await Promise.all([
-                axiosInstance.get('/tickets/statuses/'),
+            // Statuses now come from useTicketStatuses (effective endpoint).
+            // Priorities and categories stay inline pending a future
+            // centralisation pass — out of scope for NOCF-214.
+            const [prioritiesRes, categoriesRes] = await Promise.all([
                 axiosInstance.get('/tickets/priorities/'),
                 axiosInstance.get('/tickets/categories/')
             ]);
 
-            if (statusesRes.data.success) {
-                setAllStatuses(statusesRes.data.statuses);
-            }
             if (prioritiesRes.data.success) {
                 setAllPriorities(prioritiesRes.data.priorities);
             }
@@ -377,48 +405,31 @@ const TicketsTable = ({
         fetchTickets();
     };
 
-    const statsData = [
-        {
-            key: "open",
-            title: "Open",
-            value: statusCounts.open,
+    // Driven from the effective status list so simplification on/off
+    // automatically adjusts the cards (4 vs 3) without a separate mode check.
+    const statsData = allStatuses.map((status) => {
+        const colours = STATUS_CARD_COLORS[status.name] || { bgColor: "#6B7280", borderColor: "black" };
+        return {
+            key: status.name,
+            title: status.label,
+            value: statusCounts[status.name] || 0,
             icon: <TicketIcon className="text-white" size={20} />,
-            bgColor: "red",
-            borderColor: "black",
-        },
-        {
-            key: "in_progress",
-            title: "In Progress",
-            value: statusCounts.in_progress,
-            icon: <TicketIcon className="text-white" size={20} />,
-            bgColor: "#1485fe",
-            borderColor: "black",
-        },
-        {
-            key: "resolved",
-            title: "Resolved",
-            value: statusCounts.resolved,
-            icon: <TicketIcon className="text-white" size={20} />,
-            bgColor: "#10B981",
-            borderColor: "black",
-        },
-        {
-            key: "closed",
-            title: "Closed",
-            value: statusCounts.closed,
-            icon: <TicketIcon className="text-white" size={20} />,
-            bgColor: "#6B7280",
-            borderColor: "black",
-        }
-    ];
+            ...colours,
+        };
+    });
 
     const startIndex = (currentPage - 1) * pageSize + 1;
     const endIndex = Math.min(currentPage * pageSize, pagination.count);
 
     return (
         <div className="w-full">
-            {/* Status Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-6">
+            {/* Status Cards — column count adapts to the effective list
+                (3 under simplification-on, 4 under off). */}
+            <div
+                className={`grid grid-cols-1 gap-5 mb-6 ${
+                    statsData.length === 3 ? "md:grid-cols-3" : "md:grid-cols-4"
+                }`}
+            >
                 {statsData.map((stat) => (
                     <div
                         key={stat.key}
@@ -705,27 +716,28 @@ const TicketsTable = ({
                                             </select>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <select
-                                                className={`px-2 py-1 text-sm rounded font-medium cursor-pointer ${ticket.status?.name === "open"
-                                                    ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
-                                                    : ticket.status?.name === "in_progress"
-                                                        ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-                                                        : ticket.status?.name === "resolved"
-                                                            ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
-                                                            : ticket.status?.name === "closed"
-                                                                ? "bg-gray-100 text-gray-600 dark:bg-gray-700/30 dark:text-gray-400"
-                                                                : "bg-gray-100 text-gray-600"
-                                                    }`}
-                                                value={ticket.status?.id || ''}
-                                                onChange={(e) => handleStatusChange(ticket.id, e.target.value, e)}
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                {allStatuses.map((status) => (
-                                                    <option key={status.id} value={status.id}>
-                                                        {status.label}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                            {(() => {
+                                                // Resolve the effective entry that represents this
+                                                // ticket's backing status. Under simplification-on a
+                                                // Closed ticket displays as the merged-Resolved entry
+                                                // (label, colour, and dropdown selection).
+                                                const displayStatus = resolveDisplayStatus(ticket.status);
+                                                const pillClasses = STATUS_PILL_CLASSES[displayStatus?.name] || "bg-gray-100 text-gray-600";
+                                                return (
+                                                    <select
+                                                        className={`px-2 py-1 text-sm rounded font-medium cursor-pointer ${pillClasses}`}
+                                                        value={displayStatus?.id || ticket.status?.id || ''}
+                                                        onChange={(e) => handleStatusChange(ticket.id, e.target.value, e)}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        {allStatuses.map((status) => (
+                                                            <option key={status.id} value={status.id}>
+                                                                {status.label}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                );
+                                            })()}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <select

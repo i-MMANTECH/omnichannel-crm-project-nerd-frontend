@@ -5,10 +5,12 @@ import { selectStyles } from '../selectStyles';
 import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
 import TextInput from '../TextInput';
+import { useTicketStatuses, resolveDisplayStatus } from '@/hooks/useTicketStatuses';
 
 const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
+  const { statuses: effectiveStatuses } = useTicketStatuses();
 
   // Editable fields
   const [subject, setSubject] = useState('');
@@ -45,11 +47,12 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
     try {
       setLoading(true);
 
-      // Fetch ticket data and dropdown data
-      const [ticketRes, prioritiesRes, statusesRes, categoriesRes, agentsRes] = await Promise.all([
+      // Statuses come from useTicketStatuses (effective endpoint).
+      // Priorities and categories stay inline pending a future
+      // centralisation pass — out of scope for NOCF-214.
+      const [ticketRes, prioritiesRes, categoriesRes, agentsRes] = await Promise.all([
         axiosInstance.get(`/tickets/${ticketId}/`),
         axiosInstance.get('/tickets/priorities/'),
-        axiosInstance.get('/tickets/statuses/'),
         axiosInstance.get('/tickets/categories/'),
         axiosInstance.get('/users/'),
       ]);
@@ -79,19 +82,22 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
         }
       }
 
-      // Map statuses
-      if (statusesRes.data.success) {
-        const statusOptions = statusesRes.data.statuses.map(s => ({
-          value: s.id,
-          label: s.label
-        }));
-        setStatuses(statusOptions);
-        
-        // Set current status
-        if (ticketRes.data.success && ticketRes.data.ticket.status) {
-          const currentStatus = statusOptions.find(s => s.value === ticketRes.data.ticket.status.id);
-          setStatus(currentStatus);
-        }
+      // Map statuses from the effective list. When the ticket's backing
+      // status doesn't appear in the effective list (e.g. it's Closed and
+      // simplification is on), resolveDisplayStatus returns the merged
+      // entry that represents it, so the dropdown lands on the right
+      // visible option instead of rendering blank.
+      const statusOptions = (effectiveStatuses || []).map(s => ({
+        value: s.id,
+        label: s.label,
+      }));
+      setStatuses(statusOptions);
+
+      if (ticketRes.data.success && ticketRes.data.ticket.status) {
+        const backingStatus = ticketRes.data.ticket.status;
+        const displayStatus = resolveDisplayStatus(effectiveStatuses, backingStatus);
+        const currentStatus = statusOptions.find((s) => s.value === displayStatus?.id);
+        setStatus(currentStatus || null);
       }
 
       // Map categories

@@ -6,6 +6,7 @@ import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
 import { toast } from 'react-toastify';
 import TextInput from '../TextInput';
+import { useTicketStatuses } from '@/hooks/useTicketStatuses';
 
 const CreateTicketModal = ({
   isOpen,
@@ -17,6 +18,7 @@ const CreateTicketModal = ({
 }) => {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
+  const { statuses: effectiveStatuses } = useTicketStatuses();
 
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
@@ -42,6 +44,15 @@ const CreateTicketModal = ({
   const [submitting, setSubmitting] = useState(false);
   const [dueDate, setDueDate] = useState("")
   const [selectedImages, setSelectedImages] = useState([]);
+
+  // Mirror the effective statuses (from the shared hook) into the local
+  // react-select options whenever they change. Keeps the existing dropdown
+  // wiring untouched.
+  useEffect(() => {
+    setStatuses(
+      (effectiveStatuses || []).map((s) => ({ value: s.id, label: s.label }))
+    );
+  }, [effectiveStatuses]);
 
   useEffect(() => {
     if (isOpen) {
@@ -117,10 +128,11 @@ const CreateTicketModal = ({
     try {
       setLoading(true);
 
-      // Fetch all dropdown data in parallel
-      const [prioritiesRes, statusesRes, categoriesRes, agentsRes] = await Promise.all([
+      // Statuses now come from useTicketStatuses (effective endpoint).
+      // Priorities and categories stay inline pending a future
+      // centralisation pass — out of scope for NOCF-214.
+      const [prioritiesRes, categoriesRes, agentsRes] = await Promise.all([
         axiosInstance.get('/tickets/priorities/'),
-        axiosInstance.get('/tickets/statuses/'),
         axiosInstance.get('/tickets/categories/'),
         axiosInstance.get('/users/')
       ]);
@@ -131,16 +143,6 @@ const CreateTicketModal = ({
           prioritiesRes.data.priorities.map(p => ({
             value: p.id,
             label: p.label
-          }))
-        );
-      }
-
-      // Map statuses
-      if (statusesRes.data.success) {
-        setStatuses(
-          statusesRes.data.statuses.map(s => ({
-            value: s.id,
-            label: s.label
           }))
         );
       }
