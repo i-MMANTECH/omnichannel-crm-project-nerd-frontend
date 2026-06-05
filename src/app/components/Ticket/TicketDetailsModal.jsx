@@ -5,10 +5,12 @@ import Image from 'next/image';
 import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
 import { timeAgo } from '@/utils/timeUtils';
-import { Calendar, Grid, User, CheckCircle, Circle } from 'lucide-react';
+import { Calendar, Grid, User, CheckCircle, Circle, Clock } from 'lucide-react';
 import { selectStyles } from '../selectStyles';
 import Select from "react-select";
 import TextInput from '../TextInput';
+import SLABadge from './SLABadge';
+import formatResolutionTime from '@/utils/formatResolutionTime';
 
 
 const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
@@ -405,6 +407,53 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
     );
   };
 
+  const renderSLA = () => {
+    if (!ticket) return null;
+
+    // No SLA attached -> single-line note instead of empty rows.
+    if (!ticket.sla_status) {
+      return (
+        <div className="rounded-lg mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Clock className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            <span className="font-medium">SLA</span>
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            No SLA attached to this ticket
+          </p>
+        </div>
+      );
+    }
+
+    const isOverdue = ticket.sla_status.state === 'overdue';
+    const daysOverdue = ticket.sla_status.days_overdue;
+
+    return (
+      <div className="rounded-lg mb-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Clock className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+          <span className="font-medium">SLA</span>
+        </div>
+        <div className="flex flex-col gap-3">
+          <div className="flex justify-between items-center w-full">
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Status</span>
+            <SLABadge slaStatus={ticket.sla_status} />
+          </div>
+          <div className="flex justify-between items-center w-full">
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Resolution</span>
+            <p className="text-sm">{formatResolutionTime(ticket.resolution_time)}</p>
+          </div>
+          {isOverdue && daysOverdue != null && (
+            <div className="flex justify-between items-center w-full">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Days overdue</span>
+              <p className="text-sm">{daysOverdue}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderTicketInfo = () => {
     return (
       <div>
@@ -465,6 +514,7 @@ const TicketDetailsModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
             {renderFollowers()}
             <div className='pt-0.5'></div>
             {renderTicketInfo()}
+            {renderSLA()}
 
           </div>
         );
