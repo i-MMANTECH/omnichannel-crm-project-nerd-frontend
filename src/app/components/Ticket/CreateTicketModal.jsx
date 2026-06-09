@@ -6,7 +6,8 @@ import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
 import { toast } from 'react-toastify';
 import TextInput from '../TextInput';
-import { useTicketStatuses } from '@/hooks/useTicketStatuses';
+import { useTicketStatuses, buildGroupedSelectOptions } from '@/hooks/useTicketStatuses';
+import StatusGroupHeader from './StatusGroupHeader';
 
 // Stable reference for the "no SLA" option so react-select's value matching
 // stays consistent across renders.
@@ -22,7 +23,7 @@ const CreateTicketModal = ({
 }) => {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
-  const { statuses: effectiveStatuses } = useTicketStatuses();
+  const { groupedStatuses } = useTicketStatuses();
 
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
@@ -56,14 +57,16 @@ const CreateTicketModal = ({
   const [slas, setSlas] = useState([NO_SLA_OPTION]);
   const [sla, setSla] = useState(NO_SLA_OPTION);
 
-  // Mirror the effective statuses (from the shared hook) into the local
-  // react-select options whenever they change. Keeps the existing dropdown
-  // wiring untouched.
+  // Mirror the grouped statuses (from the shared hook) into the local
+  // react-select grouped-options shape. Each top-level entry becomes a
+  // category group with its own options array; the Status <Select> below
+  // renders a coloured header per group via the formatGroupLabel prop.
+  //
+  // The write contract is unchanged — picking a status writes its `id` to
+  // status_id in the same shape it always did.
   useEffect(() => {
-    setStatuses(
-      (effectiveStatuses || []).map((s) => ({ value: s.id, label: s.label }))
-    );
-  }, [effectiveStatuses]);
+    setStatuses(buildGroupedSelectOptions(groupedStatuses));
+  }, [groupedStatuses]);
 
   useEffect(() => {
     if (isOpen) {
@@ -499,6 +502,7 @@ const CreateTicketModal = ({
               styles={selectStyles}
               placeholder="Select status"
               isClearable
+              formatGroupLabel={(group) => <StatusGroupHeader group={group} />}
             />
           </div>
 

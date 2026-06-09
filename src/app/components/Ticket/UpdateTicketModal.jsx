@@ -5,7 +5,8 @@ import { selectStyles } from '../selectStyles';
 import { useApi } from '@/services/axiosConfig';
 import { useError } from '@/context/ErrorContext';
 import TextInput from '../TextInput';
-import { useTicketStatuses, resolveDisplayStatus } from '@/hooks/useTicketStatuses';
+import { useTicketStatuses, resolveDisplayStatus, buildGroupedSelectOptions } from '@/hooks/useTicketStatuses';
+import StatusGroupHeader from './StatusGroupHeader';
 
 // Stable reference for the "no SLA" option so react-select's value matching
 // stays consistent across renders. Labelled "Detach SLA" here (rather than
@@ -15,7 +16,10 @@ const DETACH_SLA_OPTION = { value: null, label: 'Detach SLA' };
 const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
-  const { statuses: effectiveStatuses } = useTicketStatuses();
+  // effectiveStatuses (flat) is still needed for resolveDisplayStatus's
+  // merged-Resolved fallback under simplification-on. groupedStatuses
+  // drives the dropdown's UI shape.
+  const { statuses: effectiveStatuses, groupedStatuses } = useTicketStatuses();
 
   // Editable fields
   const [subject, setSubject] = useState('');
@@ -98,21 +102,21 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
         }
       }
 
-      // Map statuses from the effective list. When the ticket's backing
-      // status doesn't appear in the effective list (e.g. it's Closed and
-      // simplification is on), resolveDisplayStatus returns the merged
-      // entry that represents it, so the dropdown lands on the right
-      // visible option instead of rendering blank.
-      const statusOptions = (effectiveStatuses || []).map(s => ({
-        value: s.id,
-        label: s.label,
-      }));
-      setStatuses(statusOptions);
+      // Build grouped status options from the NBS-195 /grouped/ response
+      // (NOCF-222). Each top-level entry is a category group; nested options
+      // are the selectable statuses. resolveDisplayStatus still operates on
+      // the flat effective list so the merged-Resolved fallback under
+      // simplification-on continues to work — when a Closed-backed ticket
+      // is opened with simplification on, this finds the merged "Resolved"
+      // option (which lives inside the Done group) and selects it.
+      const groupedOptions = buildGroupedSelectOptions(groupedStatuses);
+      setStatuses(groupedOptions);
 
       if (ticketRes.data.success && ticketRes.data.ticket.status) {
         const backingStatus = ticketRes.data.ticket.status;
         const displayStatus = resolveDisplayStatus(effectiveStatuses, backingStatus);
-        const currentStatus = statusOptions.find((s) => s.value === displayStatus?.id);
+        const allOptions = groupedOptions.flatMap((g) => g.options || []);
+        const currentStatus = allOptions.find((s) => s.value === displayStatus?.id);
         setStatus(currentStatus || null);
       }
 
@@ -329,6 +333,7 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
                 styles={selectStyles}
                 isDisabled={saving}
                 placeholder="Select status..."
+                formatGroupLabel={(group) => <StatusGroupHeader group={group} />}
               />
             </div>
 

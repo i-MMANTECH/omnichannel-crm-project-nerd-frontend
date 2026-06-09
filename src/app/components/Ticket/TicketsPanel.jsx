@@ -5,6 +5,7 @@ import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
 import UserAvatar from "../UserAvatar";
 import { useRouter } from "next/navigation";
+import { getCategoryPillClasses } from "@/hooks/useTicketStatuses";
 
 const TicketsPanel = ({ isOpen, onClose, conversationId }) => {
   const [tickets, setTickets] = useState([]);
@@ -51,22 +52,19 @@ const TicketsPanel = ({ isOpen, onClose, conversationId }) => {
     }
   };
 
-  const getStatusColor = (status) => {
-    const statusName = status?.name?.toLowerCase() || status?.label?.toLowerCase();
-    switch (statusName) {
-      case "in progress":
-      case "in_progress":
-        return "text-blue-600 bg-blue-50";
-      case "open":
-        return "text-green-600 bg-green-50";
-      case "closed":
-        return "text-gray-600 bg-gray-100";
-      case "pending":
-        return "text-yellow-600 bg-yellow-50";
-      default:
-        return "text-gray-600 bg-gray-50";
-    }
-  };
+  // Pill colour now derives from status `category` per the new ticket
+  // status overhaul PRD. Status names are flexible labels; category drives
+  // every system-level visual cue. The shared mapping lives in
+  // useTicketStatuses (CATEGORY_PILL_CLASSES) so every consumer agrees.
+  //
+  // Visible behaviour change vs the previous name-keyed mapping:
+  //   Open    was green → now red    (to_do)
+  //   Closed  was gray  → now green  (done)
+  //   "pending" name special-case is gone (no longer in the model)
+  // These align this panel with TicketsTable's pill colours under the new
+  // category model.
+  const getStatusColor = (status) =>
+    getCategoryPillClasses(status?.category);
 
   if (!isOpen) return null;
 

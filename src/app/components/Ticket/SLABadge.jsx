@@ -1,8 +1,8 @@
 import React from "react";
 
-// Colour classes match the existing ticket-status pill styling
-// (see STATUS_PILL_CLASSES in TicketsTable.jsx) so the badge slots into
-// the row without a visual jump.
+// Colour classes mirror the same tailwind tints used by CATEGORY_PILL_CLASSES
+// in @/hooks/useTicketStatuses so the SLA badge slots into the row without
+// a visual jump against the status pill.
 //
 //   on_time  -> green   (open ticket still within its SLA window)
 //   met      -> grey    (closed ticket that was resolved in time —

@@ -11,18 +11,14 @@ import UserAvatar from "@/app/components/UserAvatar";
 import Image from "next/image";
 import { Tooltip } from "react-tooltip";
 import TicketsFiltersPanel, { EMPTY_FILTERS } from "@/app/components/Ticket/TicketsFiltersPanel";
-import { useTicketStatuses } from "@/hooks/useTicketStatuses";
+import { useTicketStatuses, getCategoryPillClasses } from "@/hooks/useTicketStatuses";
 import SLABadge from "@/app/components/Ticket/SLABadge";
 
-// Colour map keyed on status `name` (open / in_progress / resolved / closed).
-// The merged-Resolved entry under simplification-on reuses the "resolved"
-// row's underlying name, so its pill stays green automatically.
-const STATUS_PILL_CLASSES = {
-  open: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
-  in_progress: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
-  resolved: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
-  closed: "bg-gray-100 text-gray-600 dark:bg-gray-700/30 dark:text-gray-400",
-};
+// Pill colour now derives from status `category`, not `name`, per the new
+// ticket status overhaul PRD. The mapping lives in useTicketStatuses
+// (CATEGORY_PILL_CLASSES) so the same source of truth feeds every consumer.
+// The merged-Resolved entry under simplification-on inherits category
+// "done", so its pill stays green automatically.
 
 const STATUS_CARD_COLORS = {
   open: { bgColor: "red", borderColor: "black" },
@@ -45,6 +41,7 @@ const TicketsTable = ({
     const { handleApiError } = useError();
     const {
         statuses: allStatuses,
+        groupedStatuses,
         expandStatusIdsForFilter,
         resolveDisplayStatus,
     } = useTicketStatuses();
@@ -406,16 +403,26 @@ const TicketsTable = ({
         fetchTickets();
     };
 
-    // Driven from the effective status list so simplification on/off
-    // automatically adjusts the cards (4 vs 3) without a separate mode check.
-    const statsData = allStatuses.map((status) => {
-        const colours = STATUS_CARD_COLORS[status.name] || { bgColor: "#6B7280", borderColor: "black" };
-        return {
-            key: status.name,
-            title: status.label,
-            value: statusCounts[status.name] || 0,
-            icon: <TicketIcon className="text-white" size={20} />,
-            ...colours,
+    // Stat cards stay scoped to the four canonical statuses so the summary
+    // row keeps its NBS-190 shape after NBS-195 seeds three new globals
+    // (New, Assigned, Investigating). Under simplification-on the merged
+    // "resolved" entry covers Resolved + Closed, so this filter naturally
+    // collapses to 3 cards in that mode.
+    //
+    // Switching the cards to category-based reporting (3 cards: To Do /
+    // In Progress / Done) lives in the future reporting epic — out of
+    // scope here per the brief.
+    const CANONICAL_STAT_NAMES = new Set(['open', 'in_progress', 'resolved', 'closed']);
+    const statsData = allStatuses
+        .filter((status) => CANONICAL_STAT_NAMES.has(status.name))
+        .map((status) => {
+            const colours = STATUS_CARD_COLORS[status.name] || { bgColor: "#6B7280", borderColor: "black" };
+            return {
+                key: status.name,
+                title: status.label,
+                value: statusCounts[status.name] || 0,
+                icon: <TicketIcon className="text-white" size={20} />,
+                ...colours,
         };
     });
 
@@ -725,8 +732,22 @@ const TicketsTable = ({
                                                 // ticket's backing status. Under simplification-on a
                                                 // Closed ticket displays as the merged-Resolved entry
                                                 // (label, colour, and dropdown selection).
+                                                //
+                                                // Pill colour now comes from the resolved status's
+                                                // `category` (to_do / in_progress / done), not its
+                                                // `name`. Falls back to the raw ticket.status.category
+                                                // if the resolution missed (e.g. effective list hasn't
+                                                // loaded yet), then to the default gray pill.
                                                 const displayStatus = resolveDisplayStatus(ticket.status);
-                                                const pillClasses = STATUS_PILL_CLASSES[displayStatus?.name] || "bg-gray-100 text-gray-600";
+                                                const category = displayStatus?.category || ticket.status?.category;
+                                                const pillClasses = getCategoryPillClasses(category);
+                                                // Group the options by category so the dropdown shows
+                                                // the three colour-coded sections in fixed order. The
+                                                // native <select> uses <optgroup>, which renders the
+                                                // header bold + non-selectable by default. Browsers
+                                                // can't render a coloured dot inside the header, so
+                                                // the colour cue lives only on the dropdown sections
+                                                // and the pill itself — fine for the row UI.
                                                 return (
                                                     <select
                                                         className={`px-2 py-1 text-sm rounded font-medium cursor-pointer ${pillClasses}`}
@@ -734,10 +755,14 @@ const TicketsTable = ({
                                                         onChange={(e) => handleStatusChange(ticket.id, e.target.value, e)}
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
-                                                        {allStatuses.map((status) => (
-                                                            <option key={status.id} value={status.id}>
-                                                                {status.label}
-                                                            </option>
+                                                        {(groupedStatuses || []).map((cat) => (
+                                                            <optgroup key={cat.key} label={cat.label}>
+                                                                {(cat.statuses || []).map((status) => (
+                                                                    <option key={status.id} value={status.id}>
+                                                                        {status.label}
+                                                                    </option>
+                                                                ))}
+                                                            </optgroup>
                                                         ))}
                                                     </select>
                                                 );

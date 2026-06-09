@@ -10,27 +10,59 @@ import { useApi } from "@/services/axiosConfig";
 // reloads (e.g. when an admin flips the simplification toggle and wants the
 // UI to reflect it without manually refreshing).
 let cachedEffective = null;
+let cachedGrouped = null;
 let cachedLegacyMap = null;
 let inflight = null;
 
+// Pill colour classes keyed on category (to_do / in_progress / done). Per the
+// new PRD (Ticket Status Overhaul v2), pill colour derives from category, not
+// from status name. Status names are just labels; category drives every
+// system-level visual cue.
+export const CATEGORY_PILL_CLASSES = {
+  to_do: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
+  in_progress: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  done: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
+};
+
+// Background tint for the coloured dot rendered in category-group headers.
+// Keyed on the colour string the backend ships ("red" / "yellow" / "green").
+// We avoid hardcoded hex so theme tokens stay consistent across the app.
+export const CATEGORY_DOT_CLASSES = {
+  red: "bg-red-500",
+  yellow: "bg-yellow-500",
+  green: "bg-green-500",
+};
+
+export const getCategoryPillClasses = (category) =>
+  CATEGORY_PILL_CLASSES[category] || "bg-gray-100 text-gray-600 dark:bg-gray-700/30 dark:text-gray-400";
+
 const fetchAll = async (axiosInstance) => {
-  // Effective drives all UI display. Legacy is fetched only for the name → id
-  // map used by expandStatusIdsForFilter — we need Closed's id when
-  // simplification is on (Closed isn't in the effective list in that mode)
-  // so the list-filter query can match both Resolved and Closed tickets.
-  // Per NBS-190 the legacy endpoint stays alive; this is filter plumbing,
-  // not UI consumption.
-  const [effRes, legacyRes] = await Promise.all([
+  // Three endpoints fetched in parallel on first mount:
+  //
+  //   /tickets/statuses/grouped/   (NBS-195, Epic A) — drives every status
+  //     dropdown. Returns the three fixed categories with nested statuses.
+  //   /tickets/statuses/effective/ (NBS-190)         — drives the flat list
+  //     consumed by the stat cards, filter chips, and resolveDisplayStatus
+  //     for the merged-Resolved fallback under simplification-on.
+  //   /tickets/statuses/           (legacy)          — name → id map used
+  //     by expandStatusIdsForFilter to expand a merged-Resolved selection
+  //     into both Resolved and Closed ids on the list-filter query.
+  //
+  // Per NBS-195 the legacy endpoint stays alive for non-FE consumers; we
+  // keep it on the FE side strictly as filter plumbing, never for UI.
+  const [groupedRes, effRes, legacyRes] = await Promise.all([
+    axiosInstance.get("/tickets/statuses/grouped/"),
     axiosInstance.get("/tickets/statuses/effective/"),
     axiosInstance.get("/tickets/statuses/"),
   ]);
+  const grouped = groupedRes?.data?.success ? (groupedRes.data.categories || []) : [];
   const effective = effRes?.data?.success ? (effRes.data.statuses || []) : [];
   const legacy = legacyRes?.data?.success ? (legacyRes.data.statuses || []) : [];
   const legacyMap = legacy.reduce((m, s) => {
     if (s?.name && s?.id !== undefined) m[s.name] = s.id;
     return m;
   }, {});
-  return { effective, legacyMap };
+  return { grouped, effective, legacyMap };
 };
 
 // Given a ticket's backing status, return the effective list entry that
@@ -46,23 +78,45 @@ export const resolveDisplayStatus = (statuses, ticketStatus) => {
   return merged || ticketStatus;
 };
 
+// Convert the raw grouped categories into react-select's grouped options
+// shape. Each top-level entry becomes a group with its own options array.
+// The group object carries `colour` and `key` so a custom formatGroupLabel
+// can render the coloured dot per NBS-195's contract. Empty categories
+// still produce a group (with options: []) so the FE doesn't have to
+// special-case ordering.
+export const buildGroupedSelectOptions = (groupedStatuses) =>
+  (groupedStatuses || []).map((category) => ({
+    label: category.label,
+    colour: category.colour,
+    key: category.key,
+    options: (category.statuses || []).map((s) => ({
+      value: s.id,
+      label: s.label,
+      name: s.name,
+      category: s.category,
+    })),
+  }));
+
 export const useTicketStatuses = () => {
   const { axiosInstance } = useApi();
   const [statuses, setStatuses] = useState(cachedEffective || []);
-  const [loading, setLoading] = useState(!cachedEffective);
+  const [groupedStatuses, setGroupedStatuses] = useState(cachedGrouped || []);
+  const [loading, setLoading] = useState(!cachedEffective || !cachedGrouped);
 
   useEffect(() => {
-    if (cachedEffective) {
+    if (cachedEffective && cachedGrouped) {
       setStatuses(cachedEffective);
+      setGroupedStatuses(cachedGrouped);
       setLoading(false);
       return;
     }
     if (!inflight) {
       inflight = fetchAll(axiosInstance)
-        .then(({ effective, legacyMap }) => {
+        .then(({ grouped, effective, legacyMap }) => {
+          cachedGrouped = grouped;
           cachedEffective = effective;
           cachedLegacyMap = legacyMap;
-          return effective;
+          return { grouped, effective };
         })
         .catch((err) => {
           // Don't poison the cache. Let the next mount retry.
@@ -72,9 +126,10 @@ export const useTicketStatuses = () => {
     }
     let mounted = true;
     inflight
-      .then((effective) => {
+      .then(({ grouped, effective }) => {
         if (!mounted) return;
         setStatuses(effective);
+        setGroupedStatuses(grouped);
         setLoading(false);
       })
       .catch(() => {
@@ -112,14 +167,17 @@ export const useTicketStatuses = () => {
   // cache and refetch. Not used in this ticket but exposed for completeness.
   const refetch = async () => {
     cachedEffective = null;
+    cachedGrouped = null;
     cachedLegacyMap = null;
     inflight = null;
     setLoading(true);
     try {
-      const { effective, legacyMap } = await fetchAll(axiosInstance);
+      const { grouped, effective, legacyMap } = await fetchAll(axiosInstance);
+      cachedGrouped = grouped;
       cachedEffective = effective;
       cachedLegacyMap = legacyMap;
       setStatuses(effective);
+      setGroupedStatuses(grouped);
     } finally {
       setLoading(false);
     }
@@ -127,6 +185,7 @@ export const useTicketStatuses = () => {
 
   return {
     statuses,
+    groupedStatuses,
     loading,
     expandStatusIdsForFilter,
     resolveDisplayStatus: (ticketStatus) => resolveDisplayStatus(statuses, ticketStatus),
