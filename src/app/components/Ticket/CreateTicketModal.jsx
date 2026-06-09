@@ -8,6 +8,10 @@ import { toast } from 'react-toastify';
 import TextInput from '../TextInput';
 import { useTicketStatuses } from '@/hooks/useTicketStatuses';
 
+// Stable reference for the "no SLA" option so react-select's value matching
+// stays consistent across renders.
+const NO_SLA_OPTION = { value: null, label: 'None' };
+
 const CreateTicketModal = ({
   isOpen,
   onClose,
@@ -44,6 +48,13 @@ const CreateTicketModal = ({
   const [submitting, setSubmitting] = useState(false);
   const [dueDate, setDueDate] = useState("")
   const [selectedImages, setSelectedImages] = useState([]);
+
+  // SLA dropdown state. Default-selected to "None" so the new ticket is
+  // created without an SLA attachment unless the admin explicitly picks one.
+  // Per NBS-194, the payload only includes sla_id when a real SLA is chosen;
+  // "None" omits the key entirely.
+  const [slas, setSlas] = useState([NO_SLA_OPTION]);
+  const [sla, setSla] = useState(NO_SLA_OPTION);
 
   // Mirror the effective statuses (from the shared hook) into the local
   // react-select options whenever they change. Keeps the existing dropdown
@@ -131,10 +142,13 @@ const CreateTicketModal = ({
       // Statuses now come from useTicketStatuses (effective endpoint).
       // Priorities and categories stay inline pending a future
       // centralisation pass — out of scope for NOCF-214.
-      const [prioritiesRes, categoriesRes, agentsRes] = await Promise.all([
+      // SLAs added in NOCF-220; .catch keeps the modal usable if the SLA
+      // endpoint is down or empty — dropdown still renders with "None".
+      const [prioritiesRes, categoriesRes, agentsRes, slasRes] = await Promise.all([
         axiosInstance.get('/tickets/priorities/'),
         axiosInstance.get('/tickets/categories/'),
-        axiosInstance.get('/users/')
+        axiosInstance.get('/users/'),
+        axiosInstance.get('/sla/list/').catch(() => ({ data: { success: false } })),
       ]);
 
       // Map priorities
@@ -166,6 +180,16 @@ const CreateTicketModal = ({
           }))
         );
       }
+
+      // Map SLAs. Failure or empty list still renders the dropdown with
+      // just the "None" option.
+      const slaList = (slasRes?.data?.success && Array.isArray(slasRes.data.slas))
+        ? slasRes.data.slas
+        : [];
+      setSlas([
+        NO_SLA_OPTION,
+        ...slaList.map((s) => ({ value: s.id, label: s.title })),
+      ]);
     } catch (error) {
       handleApiError(error);
     } finally {
@@ -226,6 +250,10 @@ const CreateTicketModal = ({
         status_id: status?.value || undefined,
         priority_id: priority?.value || undefined,
         category_id: category?.value || undefined,
+        // sla_id is only included when a real SLA was picked. "None"
+        // (sla.value === null) omits the key so the backend creates the
+        // ticket without an attachment, matching the NBS-194 contract.
+        sla_id: sla?.value || undefined,
         due_date: isoDueDate
       };
 
@@ -269,6 +297,7 @@ const CreateTicketModal = ({
         setCategory(null);
         setAssignedTo([]);
         setFollowers([]);
+        setSla(NO_SLA_OPTION);
         setSelectedImages([]);
 
         // Call parent callback
@@ -441,6 +470,20 @@ const CreateTicketModal = ({
               styles={selectStyles}
               placeholder="Select priority"
               isClearable
+            />
+          </div>
+
+          {/* SLA */}
+          <div className="mb-7">
+            <label className="block text-sm font-medium mb-1">
+              SLA
+            </label>
+            <Select
+              value={sla}
+              onChange={(opt) => setSla(opt || NO_SLA_OPTION)}
+              options={slas}
+              styles={selectStyles}
+              placeholder="None"
             />
           </div>
 

@@ -7,6 +7,11 @@ import { useError } from '@/context/ErrorContext';
 import TextInput from '../TextInput';
 import { useTicketStatuses, resolveDisplayStatus } from '@/hooks/useTicketStatuses';
 
+// Stable reference for the "no SLA" option so react-select's value matching
+// stays consistent across renders. Labelled "Detach SLA" here (rather than
+// "None") because in the edit context it's an active choice, not a default.
+const DETACH_SLA_OPTION = { value: null, label: 'Detach SLA' };
+
 const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const { axiosInstance } = useApi();
   const { handleApiError } = useError();
@@ -27,6 +32,14 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
   const [priorities, setPriorities] = useState([]);
   const [categories, setCategories] = useState([]);
   const [agents, setAgents] = useState([]);
+
+  // SLA dropdown state + the id at load time. initialSlaId is the change
+  // baseline: handleSave only includes sla_id in the payload when the
+  // current selection differs from this value, matching the NBS-194 "absent
+  // means no change" contract.
+  const [slas, setSlas] = useState([DETACH_SLA_OPTION]);
+  const [sla, setSla] = useState(DETACH_SLA_OPTION);
+  const [initialSlaId, setInitialSlaId] = useState(null);
 
   // States
   const [loading, setLoading] = useState(true);
@@ -50,11 +63,14 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
       // Statuses come from useTicketStatuses (effective endpoint).
       // Priorities and categories stay inline pending a future
       // centralisation pass — out of scope for NOCF-214.
-      const [ticketRes, prioritiesRes, categoriesRes, agentsRes] = await Promise.all([
+      // SLAs added in NOCF-220; .catch keeps the modal usable if the SLA
+      // endpoint is down or empty — dropdown still renders with "Detach SLA".
+      const [ticketRes, prioritiesRes, categoriesRes, agentsRes, slasRes] = await Promise.all([
         axiosInstance.get(`/tickets/${ticketId}/`),
         axiosInstance.get('/tickets/priorities/'),
         axiosInstance.get('/tickets/categories/'),
         axiosInstance.get('/users/'),
+        axiosInstance.get('/sla/list/').catch(() => ({ data: { success: false } })),
       ]);
 
       // Set ticket data
@@ -107,13 +123,31 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
           label: c.label
         }));
         setCategories(categoryOptions);
-        
+
         // Set current category
         if (ticketRes.data.success && ticketRes.data.ticket.category) {
           const currentCategory = categoryOptions.find(c => c.value === ticketRes.data.ticket.category.id);
           setCategory(currentCategory);
         }
       }
+
+      // Map SLAs. "Detach SLA" is always the first option. Pre-select
+      // whatever SLA is currently attached to the ticket via the read-side
+      // `sla: {id, title}` field from NBS-193 / NOCF-219, or fall back to
+      // "Detach SLA" when no SLA is attached. Track the baseline id so
+      // handleSave can detect "unchanged" and omit sla_id from the payload.
+      const slaList = (slasRes?.data?.success && Array.isArray(slasRes.data.slas))
+        ? slasRes.data.slas
+        : [];
+      const slaOptions = [
+        DETACH_SLA_OPTION,
+        ...slaList.map((s) => ({ value: s.id, label: s.title })),
+      ];
+      setSlas(slaOptions);
+      const attachedSlaId = ticketRes.data?.ticket?.sla?.id ?? null;
+      const currentSlaOption = slaOptions.find((o) => o.value === attachedSlaId) || DETACH_SLA_OPTION;
+      setSla(currentSlaOption);
+      setInitialSlaId(attachedSlaId);
 
       // Map agents
       if (agentsRes.data.results) {
@@ -196,6 +230,16 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
           formData.append(key, value);
         }
       });
+
+      // SLA: only send sla_id when the user actually changed the selection.
+      // Empty string == detach (DRF treats empty-string as null for nullable
+      // FK fields on multipart). Numeric id == attach/change. Skipping
+      // entirely == backend leaves the existing attachment untouched.
+      const currentSlaId = sla?.value ?? null;
+      if (currentSlaId !== initialSlaId) {
+        formData.append('sla_id', currentSlaId == null ? '' : String(currentSlaId));
+      }
+
       selectedImages.forEach((image) => formData.append('images', image));
 
       const response = await axiosInstance.patch(`/tickets/${ticketId}/update/`, formData, {
@@ -332,6 +376,21 @@ const UpdateTicketModal = ({ isOpen, onClose, ticketId, onUpdate }) => {
                 styles={selectStyles}
                 isDisabled={saving}
                 placeholder="Select priority..."
+              />
+            </div>
+
+            {/* SLA */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                SLA
+              </label>
+              <Select
+                value={sla}
+                onChange={(opt) => setSla(opt || DETACH_SLA_OPTION)}
+                options={slas}
+                styles={selectStyles}
+                isDisabled={saving}
+                placeholder="Detach SLA"
               />
             </div>
 
