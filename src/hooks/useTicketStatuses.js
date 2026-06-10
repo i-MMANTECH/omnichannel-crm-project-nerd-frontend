@@ -14,6 +14,18 @@ let cachedGrouped = null;
 let cachedLegacyMap = null;
 let inflight = null;
 
+// Subscriber list of mounted-hook state setters. When refetch() succeeds —
+// after an admin CRUDs a custom status from the Epic B modals — we
+// broadcast the new payload to every live consumer so the row dropdown,
+// the create/edit modals, the stat cards, and the filter chips all rerender
+// in sync. Without this broadcast, only the component that called refetch()
+// would see the new data; everything else would stay stale until the next
+// page mount.
+const subscribers = new Set();
+const broadcast = ({ effective, grouped }) => {
+  subscribers.forEach((handler) => handler({ effective, grouped }));
+};
+
 // Pill colour classes keyed on category (to_do / in_progress / done). Per the
 // new PRD (Ticket Status Overhaul v2), pill colour derives from category, not
 // from status name. Status names are just labels; category drives every
@@ -104,11 +116,25 @@ export const useTicketStatuses = () => {
   const [loading, setLoading] = useState(!cachedEffective || !cachedGrouped);
 
   useEffect(() => {
+    let mounted = true;
+    // Subscribe to broadcasts so a refetch() from any modal in any
+    // consumer reaches this instance's state too.
+    const handler = ({ effective, grouped }) => {
+      if (!mounted) return;
+      setStatuses(effective);
+      setGroupedStatuses(grouped);
+      setLoading(false);
+    };
+    subscribers.add(handler);
+
     if (cachedEffective && cachedGrouped) {
       setStatuses(cachedEffective);
       setGroupedStatuses(cachedGrouped);
       setLoading(false);
-      return;
+      return () => {
+        mounted = false;
+        subscribers.delete(handler);
+      };
     }
     if (!inflight) {
       inflight = fetchAll(axiosInstance)
@@ -124,7 +150,6 @@ export const useTicketStatuses = () => {
           throw err;
         });
     }
-    let mounted = true;
     inflight
       .then(({ grouped, effective }) => {
         if (!mounted) return;
@@ -138,6 +163,7 @@ export const useTicketStatuses = () => {
       });
     return () => {
       mounted = false;
+      subscribers.delete(handler);
     };
   }, [axiosInstance]);
 
@@ -163,8 +189,10 @@ export const useTicketStatuses = () => {
     return Array.from(out);
   };
 
-  // Allow callers (e.g. an admin toggle UI in a later epic) to invalidate the
-  // cache and refetch. Not used in this ticket but exposed for completeness.
+  // Bust the module-level cache, refetch, broadcast the new payload to
+  // every subscribed instance. Called by the Epic B CRUD modals on every
+  // success — the row dropdown, the create/edit dropdowns, and the stat
+  // cards all rerender in sync without anyone re-mounting.
   const refetch = async () => {
     cachedEffective = null;
     cachedGrouped = null;
@@ -176,8 +204,7 @@ export const useTicketStatuses = () => {
       cachedGrouped = grouped;
       cachedEffective = effective;
       cachedLegacyMap = legacyMap;
-      setStatuses(effective);
-      setGroupedStatuses(grouped);
+      broadcast({ effective, grouped });
     } finally {
       setLoading(false);
     }

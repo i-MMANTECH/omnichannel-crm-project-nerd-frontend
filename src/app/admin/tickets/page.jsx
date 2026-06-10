@@ -6,6 +6,10 @@ import TicketDetailsModal from "@/app/components/Ticket/TicketDetailsModal";
 import UpdateTicketModal from "@/app/components/Ticket/UpdateTicketModal";
 import ExportModal from "@/app/components/ExportModal";
 import TicketsTable from "@/app/components/Ticket/TicketsTable";
+// Admin-only status CRUD overflow menu. Intentionally NOT imported on
+// /nativecrm/tickets/page.jsx — the portal-routing boundary gates this
+// feature to admins per the user's permission rule for NOCF-Epic-B.
+import StatusAdminOverflow from "@/app/components/Ticket/StatusAdminOverflow";
 import { Download } from "lucide-react";
 import { useApi } from "@/services/axiosConfig";
 import { useError } from "@/context/ErrorContext";
@@ -151,6 +155,7 @@ const TicketsContent = () => {
                   </svg>
                   New Ticket
                 </button>
+                <StatusAdminOverflow />
               </>
             }
             openViewModal={openViewModal}
