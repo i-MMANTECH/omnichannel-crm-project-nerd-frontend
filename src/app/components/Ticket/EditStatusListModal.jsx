@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Modal from '../Modal';
 import { useTicketStatuses } from '@/hooks/useTicketStatuses';
+import StatusAuditPanel from './StatusAuditPanel';
 
 const documentIcon = (
   <svg
@@ -65,15 +66,50 @@ const trashSvg = (
   </svg>
 );
 
-// Edit Status list modal — lists every custom (non-global) status for the
-// current company. Globals (Open, New, Assigned, Investigating, In Progress,
-// Resolved, Closed) are filtered out client-side via `is_global` — the PRD
-// is explicit that system defaults can't be edited or deleted (only
-// recoloured by moving them around, which the API forbids via the 403 on
-// company IS NULL paths). Backend also enforces; the filter here is the UX
-// half.
+// Edit Status modal — two tabs after NOCF-Epic-C:
+//
+//   Statuses (default)  — the NOCF-Epic-B list of custom (non-global)
+//                          statuses with pencil + trash per row.
+//   Audit History       — the Epic C panel reading the activity log of
+//                          status admin actions.
+//
+// Globals (Open, New, Assigned, Investigating, In Progress, Resolved,
+// Closed) are filtered out client-side on the Statuses tab via `is_global`
+// — the PRD is explicit that system defaults can't be edited or deleted
+// (only recoloured by moving them around, which the API forbids via the
+// 403 on company IS NULL paths). Backend also enforces; the filter here
+// is the UX half.
+//
+// Tab state + audit-panel mount state both reset every time the modal
+// closes so the next open starts on the Statuses tab with no stale audit
+// state. Within a single modal lifetime, switching from Audit back to
+// Statuses preserves the audit panel's filters and loaded rows so the
+// admin can flip between tabs without re-fetching.
 const EditStatusListModal = ({ isOpen, onClose, onEdit, onDelete }) => {
   const { groupedStatuses } = useTicketStatuses();
+
+  const [activeTab, setActiveTab] = useState('statuses');
+  // The audit panel mounts lazily on first switch to the Audit tab so
+  // simply opening the modal doesn't fire a GET /audit/ in the background.
+  // Once mounted, we keep it mounted (hidden when not active) so the
+  // admin's filter + page state survives a Statuses round-trip.
+  const [hasAuditMounted, setHasAuditMounted] = useState(false);
+
+  // Reset both pieces of tab state whenever the modal closes. Without
+  // this, reopening the modal would land the admin back on whatever tab
+  // they were last on with the previous audit panel state intact —
+  // contradicts the brief's "next open starts fresh" rule.
+  useEffect(() => {
+    if (!isOpen) {
+      setActiveTab('statuses');
+      setHasAuditMounted(false);
+    }
+  }, [isOpen]);
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tab === 'audit') setHasAuditMounted(true);
+  };
 
   // Flatten the grouped response, drop globals, preserve the category-order
   // the backend imposes so the list reads top-to-bottom: To Do → In Progress
@@ -82,15 +118,46 @@ const EditStatusListModal = ({ isOpen, onClose, onEdit, onDelete }) => {
     .flatMap((cat) => (cat.statuses || []).map((s) => ({ ...s })))
     .filter((s) => s.is_global === false);
 
+  const tabButtonClasses = (tab) =>
+    `px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+      activeTab === tab
+        ? 'border-[#3EBF0F] text-[#3EBF0F]'
+        : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+    }`;
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={<>{documentIcon}Edit Status</>}
-      width="440px"
+      // Widened from Epic B's 440px to give the audit tab enough room for
+      // avatar + description + relative time without wrapping. Statuses
+      // tab just gets a bit more breathing room.
+      width="600px"
       showFooter={false}
     >
-      <div>
+      <div role="tablist" className="flex border-b border-gray-200 dark:border-gray-700 mb-4">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'statuses'}
+          onClick={() => handleTabChange('statuses')}
+          className={tabButtonClasses('statuses')}
+        >
+          Statuses
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'audit'}
+          onClick={() => handleTabChange('audit')}
+          className={tabButtonClasses('audit')}
+        >
+          Audit History
+        </button>
+      </div>
+
+      <div className={activeTab === 'statuses' ? '' : 'hidden'}>
         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
           Created Status
         </h3>
@@ -133,6 +200,12 @@ const EditStatusListModal = ({ isOpen, onClose, onEdit, onDelete }) => {
           </ul>
         )}
       </div>
+
+      {hasAuditMounted && (
+        <div className={activeTab === 'audit' ? '' : 'hidden'}>
+          <StatusAuditPanel />
+        </div>
+      )}
     </Modal>
   );
 };
